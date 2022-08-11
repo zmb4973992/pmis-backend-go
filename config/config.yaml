@@ -1,0 +1,52 @@
+#value要加双引号，否则容易读取出错，比如0030会读取为30
+
+App:
+  AppMode: "debug"
+  HttpPort: "8000"
+
+Database:
+  DbHost: "localhost"
+  DbPort: "1433"
+  DbName: "test"
+  DbUsername: "sa"
+  DbPassword: "028912"
+  #绝对不传给前端的数据库字段名
+  OmittedColumns: ["password","created_at"]
+
+JWT:
+  SecretKey: "e7KF3k0dj3"
+  #有效期(天)，登录后可以几天免登录
+  ValidityPeriod: "14"
+
+Log:
+  #日志文件的路径
+  LogPath: "d:/test/log"
+  #在进行切割之前，日志文件的最大大小(MB)
+  LogMaxSize: "10"
+  #保留旧文件的最大个数
+  LogMaxBackup: "100"
+  #保留旧文件的最大天数
+  LogMaxAge: "365"
+  #是否压缩旧文件，默认为否
+  LogCompress: "False"
+
+UploadFiles:
+  #保存上传文件的完整路径
+  FullPath: "D:/test/upload_files"
+  #上传文件的最大尺寸(MB)，这里是50MB
+  MaxSize: "50"
+
+Email:
+  #发送邮件服务器，一般是smtp
+  OutgoingMailServer: "smtp.qq.com"
+  #端口，使用QQ邮箱时，发现587可以正常用，465用不了
+  Port: "587"
+  Account: "19725912@qq.com"
+  #注意：QQ邮箱、88邮箱都需要使用授权码，而不是邮箱密码
+  Password: "ejusnukrlniabgdd"
+
+#列表分页
+Paging:
+  #单页默认条数
+  DefaultPageSize: "20"
+  MaxPageSize: "100"
