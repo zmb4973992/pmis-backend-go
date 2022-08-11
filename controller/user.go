@@ -77,15 +77,15 @@ func (userController) Delete(c *gin.Context) {
 }
 
 func (userController) List(c *gin.Context) {
-	var userListDTO dto.UserListDTO
-	err := c.ShouldBindJSON(&userListDTO)
+	var param dto.UserListDTO
+	err := c.ShouldBindJSON(&param)
 	if err != nil && errors.Is(err, io.EOF) == false {
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//生成userService,然后调用它的方法
-	res := service.UserService.List(userListDTO)
+	res := service.UserService.List(param)
 	c.JSON(http.StatusOK, res)
 	return
 }

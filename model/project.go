@@ -17,12 +17,13 @@ type Project struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
 	RelatedPartyID   *int
-	//外键，拆解情况
+	//外键
 	Breakdowns                  []ProjectBreakdown           `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	ActualReceiptAndPayments    []ActualReceiptAndPayment    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	PlannedReceiptAndPayments   []PlannedReceiptAndPayment   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	PredictedReceiptAndPayments []PredictedReceiptAndPayment `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	ProjectAndUsers             []ProjectAndUser             `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	OperationRecords            []OperationRecord            `gorm:"constraint:OnUpdate:CASCADE;"`
 }
 
 // TableName 将表名改为project

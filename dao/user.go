@@ -9,7 +9,7 @@ import (
 type userDAO struct{}
 
 func (userDAO) Get(userID int) *dto.UserGetDTO {
-	var userGetDTO = dto.UserGetDTO{}
+	var userGetDTO dto.UserGetDTO
 	//把基础的账号信息查出来
 	var user model.User
 	err := global.DB.Where("id = ?", userID).First(&user).Error

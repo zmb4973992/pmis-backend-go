@@ -14,9 +14,7 @@ type RelatedPartyDTO struct {
 }
 
 // RelatedPartyListDTO 是list查询的过滤器
-// 这里不用指针，如果前端没传字段或者只传字段没传值，那么该字段默认为空
 // 在dto传递给sqlCondition时，空值会被忽略
-// 用string来接收所有数据，然后再转成int、bool分别处理，这样就能处理“只传字段没传值”的问题
 type RelatedPartyListDTO struct {
 	ID    int  `json:"id"`
 	IDGte *int `json:"id_gte"`

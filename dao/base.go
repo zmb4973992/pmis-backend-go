@@ -7,14 +7,16 @@ type dao struct {
 	relatedPartyDAO
 	roleAndUserDAO
 	userDAO
+	operationRecordDAO
 }
 
 var (
-	entranceOfAllDAO     = new(dao)
-	DepartmentDAO        = entranceOfAllDAO.departmentDAO
-	DepartmentAndUserDAO = entranceOfAllDAO.departmentAndUserDAO
-	ProjectBreakdownDAO  = entranceOfAllDAO.projectBreakdownDAO
-	RelatedPartyDAO      = entranceOfAllDAO.relatedPartyDAO
-	RoleAndUserDAO       = entranceOfAllDAO.roleAndUserDAO
-	UserDAO              = entranceOfAllDAO.userDAO
+	entrance             = new(dao)
+	DepartmentDAO        = entrance.departmentDAO
+	DepartmentAndUserDAO = entrance.departmentAndUserDAO
+	ProjectBreakdownDAO  = entrance.projectBreakdownDAO
+	RelatedPartyDAO      = entrance.relatedPartyDAO
+	RoleAndUserDAO       = entrance.roleAndUserDAO
+	UserDAO              = entrance.userDAO
+	OperationRecordDAO   = entrance.operationRecordDAO
 )

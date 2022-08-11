@@ -9,7 +9,7 @@ import (
 type projectBreakdownDAO struct{}
 
 func (projectBreakdownDAO) Get(projectBreakdownID int) *dto.ProjectBreakdownGetDTO {
-	var projectBreakdownGetDTO = dto.ProjectBreakdownGetDTO{}
+	var param dto.ProjectBreakdownGetDTO
 	//把基础的拆解信息查出来
 	var projectBreakdown model.ProjectBreakdown
 	err := global.DB.Where("id = ?", projectBreakdownID).First(&projectBreakdown).Error
@@ -18,21 +18,21 @@ func (projectBreakdownDAO) Get(projectBreakdownID int) *dto.ProjectBreakdownGetD
 	}
 	//把所有查出的结果赋值给输出变量
 	if projectBreakdown.Name != nil {
-		projectBreakdownGetDTO.Name = projectBreakdown.Name
+		param.Name = projectBreakdown.Name
 	}
 	if projectBreakdown.ProjectID != nil {
-		projectBreakdownGetDTO.ProjectID = projectBreakdown.ProjectID
+		param.ProjectID = projectBreakdown.ProjectID
 	}
 	if projectBreakdown.Level != nil {
-		projectBreakdownGetDTO.Level = projectBreakdown.Level
+		param.Level = projectBreakdown.Level
 	}
 	if projectBreakdown.Weight != nil {
-		projectBreakdownGetDTO.Weight = projectBreakdown.Weight
+		param.Weight = projectBreakdown.Weight
 	}
 	if projectBreakdown.SuperiorID != nil {
-		projectBreakdownGetDTO.SuperiorID = projectBreakdown.SuperiorID
+		param.SuperiorID = projectBreakdown.SuperiorID
 	}
-	return &projectBreakdownGetDTO
+	return &param
 }
 
 // Create 这里是只负责新增，不写任何业务逻辑。只要收到参数就创建数据库记录，然后返回错误

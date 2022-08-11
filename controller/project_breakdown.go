@@ -72,8 +72,8 @@ func (projectBreakdownController) Delete(c *gin.Context) {
 }
 
 func (projectBreakdownController) List(c *gin.Context) {
-	var projectBreakdownListDTO dto.ProjectBreakdownListDTO
-	err := c.ShouldBindJSON(&projectBreakdownListDTO)
+	var param dto.ProjectBreakdownListDTO
+	err := c.ShouldBindJSON(&param)
 
 	if err != nil && errors.Is(err, io.EOF) == false {
 		c.JSON(http.StatusBadRequest,
@@ -81,6 +81,6 @@ func (projectBreakdownController) List(c *gin.Context) {
 		return
 	}
 	//生成Service,然后调用它的方法
-	res := service.ProjectBreakdownService.List(projectBreakdownListDTO)
+	res := service.ProjectBreakdownService.List(param)
 	c.JSON(http.StatusOK, res)
 }

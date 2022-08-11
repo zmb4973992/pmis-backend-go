@@ -16,9 +16,7 @@ Service层没有数据结构、只有方法，所有的数据结构都放在DTO�
 生成出参response后，交给controller展示。
 */
 
-type relatedPartyService struct {
-	baseService
-}
+type relatedPartyService struct{}
 
 func (relatedPartyService) Get(relatedPartyID int) response.Common {
 	result := dao.RelatedPartyDAO.Get(relatedPartyID)

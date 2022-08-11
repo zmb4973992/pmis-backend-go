@@ -41,7 +41,7 @@ func Init() {
 		&PredictedReceiptAndPayment{},
 		&Dictionary{},
 		&ProjectAndUser{},
-		&OperationHistory{},
+		&OperationRecord{},
 		&Test{},
 	)
 	if err != nil {

@@ -13,9 +13,7 @@ import (
 // UserService 没有数据、只有方法，所有的数据都放在DTO里
 //这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
 //所有的增删改查都交给DAO层处理，否则service层会非常庞大
-type userService struct {
-	baseService
-}
+type userService struct{}
 
 func (userService) Get(userID int) response.Common {
 	result := dao.UserDAO.Get(userID)

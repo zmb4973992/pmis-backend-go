@@ -45,7 +45,7 @@ var Message = map[int]string{
 	ErrorNotEnoughParameters:              "没有足够的参数",
 	ErrorInvalidURIParameters:             "URI参数无效",
 	ErrorInvalidFormDataParameters:        "form-data参数无效",
-	ErrorInvalidJSONParameters:            "json参数缺失或json参数无效",
+	ErrorInvalidJSONParameters:            "JSON参数无效",
 	ErrorInvalidQueryParameters:           "query参数无效",
 	ErrorFailToSaveRecord:                 "保存记录失败",
 	ErrorFailToDeleteRecord:               "删除记录失败",

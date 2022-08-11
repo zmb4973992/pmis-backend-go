@@ -6,6 +6,8 @@ type DepartmentGetDTO struct {
 	Superior any    `json:"superior"` //上级机构
 }
 
+// DepartmentCreateAndUpdateDTO
+// 除id外，所有字段都设置为必须绑定
 type DepartmentCreateAndUpdateDTO struct {
 	ID         int    `json:"id"`
 	Name       string `json:"name" binding:"required"`        //部门名称

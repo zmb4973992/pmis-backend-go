@@ -33,6 +33,7 @@ require (
 	github.com/go-playground/validator/v10 v10.11.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/goccy/go-json v0.9.7 // indirect
+	github.com/golang-module/carbon/v2 v2.1.9 // indirect
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.0.0-20170517235910-f1bb20e5a188 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect

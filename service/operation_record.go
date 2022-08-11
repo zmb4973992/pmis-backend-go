@@ -9,31 +9,50 @@ import (
 	"learn-go/util"
 )
 
-// DepartmentService 没有数据、只有方法，所有的数据都放在DTO里
+// operationRecordService 没有数据、只有方法，所有的数据都放在DTO里
 //这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
 //所有的增删改查都交给DAO层处理，否则service层会非常庞大
-type departmentService struct{}
+type operationRecordService struct{}
 
-func (departmentService) Get(departmentID int) response.Common {
-	result := dao.DepartmentDAO.Get(departmentID)
+func (operationRecordService) Get(operationRecordID int) response.Common {
+	result := dao.OperationRecordDAO.Get(operationRecordID)
 	if result == nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	return response.SuccessWithData(result)
 }
 
-func (departmentService) Create(paramIn *dto.DepartmentCreateAndUpdateDTO) response.Common {
+func (operationRecordService) Create(paramIn *dto.ProjectBreakdownCreateAndUpdateDTO) response.Common {
 	//对dto进行清洗，生成dao层需要的model
-	var paramOut model.Department
-	paramOut.Name = paramIn.Name
-	paramOut.Level = paramIn.Level
-	//model.Department的SuperiorID为指针，需要处理
+	var paramOut model.ProjectBreakdown
+	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
+	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
+		paramOut.Name = nil
+	} else {
+		paramOut.Name = paramIn.Name
+	}
+	if *paramIn.Level == -1 {
+		paramOut.Level = nil
+	} else {
+		paramOut.Level = paramIn.Level
+	}
+	if *paramIn.ProjectID == -1 {
+		paramOut.ProjectID = nil
+	} else {
+		paramOut.ProjectID = paramIn.ProjectID
+	}
+	if *paramIn.Weight == -1 {
+		paramOut.Weight = nil
+	} else {
+		paramOut.Weight = paramIn.Weight
+	}
 	if *paramIn.SuperiorID == -1 {
 		paramOut.SuperiorID = nil
 	} else {
 		paramOut.SuperiorID = paramIn.SuperiorID
 	}
-	err := dao.DepartmentDAO.Create(&paramOut)
+
+	err := dao.ProjectBreakdownDAO.Create(&paramOut)
 	if err != nil {
 		return response.Failure(util.ErrorFailToSaveRecord)
 	}
@@ -42,12 +61,30 @@ func (departmentService) Create(paramIn *dto.DepartmentCreateAndUpdateDTO) respo
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (departmentService) Update(paramIn *dto.DepartmentCreateAndUpdateDTO) response.Common {
-	var paramOut model.Department
+func (operationRecordService) Update(paramIn *dto.ProjectBreakdownCreateAndUpdateDTO) response.Common {
+	var paramOut model.ProjectBreakdown
 	paramOut.ID = paramIn.ID
-	paramOut.Name = paramIn.Name
-	paramOut.Level = paramIn.Level
-	//model.Department的SuperiorID为指针，需要处理
+	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
+	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
+		paramOut.Name = nil
+	} else {
+		paramOut.Name = paramIn.Name
+	}
+	if *paramIn.Level == -1 {
+		paramOut.Level = nil
+	} else {
+		paramOut.Level = paramIn.Level
+	}
+	if *paramIn.ProjectID == -1 {
+		paramOut.ProjectID = nil
+	} else {
+		paramOut.ProjectID = paramIn.ProjectID
+	}
+	if *paramIn.Weight == -1 {
+		paramOut.Weight = nil
+	} else {
+		paramOut.Weight = paramIn.Weight
+	}
 	if *paramIn.SuperiorID == -1 {
 		paramOut.SuperiorID = nil
 	} else {
@@ -55,7 +92,7 @@ func (departmentService) Update(paramIn *dto.DepartmentCreateAndUpdateDTO) respo
 	}
 
 	//清洗完毕，开始update
-	err := dao.DepartmentDAO.Update(&paramOut)
+	err := dao.ProjectBreakdownDAO.Update(&paramOut)
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		return response.Failure(util.ErrorFailToSaveRecord)
@@ -63,15 +100,15 @@ func (departmentService) Update(paramIn *dto.DepartmentCreateAndUpdateDTO) respo
 	return response.Success()
 }
 
-func (departmentService) Delete(departmentID int) response.Common {
-	err := dao.DepartmentDAO.Delete(departmentID)
+func (operationRecordService) Delete(operationRecordID int) response.Common {
+	err := dao.ProjectBreakdownDAO.Delete(operationRecordID)
 	if err != nil {
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()
 }
 
-func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
+func (operationRecordService) List(paramIn dto.ProjectBreakdownListDTO) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 	//对paramIn进行清洗
@@ -79,7 +116,7 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 	//如果参数正确，那么指定字段的数据正常返回，其他字段返回空；
 	//如果参数错误，就返回全部字段的数据
 	if len(paramIn.SelectedColumns) > 0 {
-		ok := sqlCondition.ValidateColumns(paramIn.SelectedColumns, model.Department{})
+		ok := sqlCondition.ValidateColumns(paramIn.SelectedColumns, model.ProjectBreakdown{})
 		if ok {
 			sqlCondition.SelectedColumns = paramIn.SelectedColumns
 		}
@@ -94,6 +131,7 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 	if paramIn.PageSize > 0 && paramIn.PageSize <= maxPagingSize {
 		sqlCondition.Paging.PageSize = paramIn.PageSize
 	}
+
 	if id := paramIn.ID; id > 0 {
 		sqlCondition.Equal("id", id)
 	}
@@ -104,7 +142,7 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 		sqlCondition.Lte("id", *paramIn.IDLte)
 	}
 	if paramIn.Name != nil && *paramIn.Name != "" {
-		sqlCondition = sqlCondition.Equal("name", paramIn.Name)
+		sqlCondition = sqlCondition.Equal("name", *paramIn.Name)
 	}
 	if paramIn.NameInclude != nil && *paramIn.NameInclude != "" {
 		sqlCondition = sqlCondition.Include("name", *paramIn.NameInclude)
@@ -125,8 +163,8 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 		sqlCondition.Sorting.Desc = false
 	}
 
-	list := sqlCondition.Find(model.Department{})
-	totalRecords := sqlCondition.Count(model.Department{})
+	list := sqlCondition.Find(model.ProjectBreakdown{})
+	totalRecords := sqlCondition.Count(model.ProjectBreakdown{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(list) == 0 {

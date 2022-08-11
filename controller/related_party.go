@@ -78,14 +78,14 @@ func (relatedPartyController) Delete(c *gin.Context) {
 }
 
 func (relatedPartyController) List(c *gin.Context) {
-	var relatedPartyListDTO dto.RelatedPartyListDTO
-	err := c.ShouldBindJSON(&relatedPartyListDTO)
+	var param dto.RelatedPartyListDTO
+	err := c.ShouldBindJSON(&param)
 	if err != nil && errors.Is(err, io.EOF) == false {
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//生成userService,然后调用它的方法
-	res := service.RelatedPartyService.List(relatedPartyListDTO)
+	res := service.RelatedPartyService.List(param)
 	c.JSON(http.StatusOK, res)
 }

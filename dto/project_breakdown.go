@@ -8,6 +8,8 @@ type ProjectBreakdownGetDTO struct {
 	SuperiorID *int     `json:"superior_id"` //上级拆解项id
 }
 
+// ProjectBreakdownCreateAndUpdateDTO
+// 除id外，所有字段都设置为必须绑定
 type ProjectBreakdownCreateAndUpdateDTO struct {
 	ID         int      `json:"id"`
 	Name       *string  `json:"name" binding:"required"`        //拆解项名称
@@ -18,7 +20,6 @@ type ProjectBreakdownCreateAndUpdateDTO struct {
 }
 
 // ProjectBreakdownListDTO 是list查询的过滤器
-// 这里不用指针，如果前端没传字段或者只传字段没传值，那么该字段默认为空
 // 在dto传递给sqlCondition时，空值会被忽略
 type ProjectBreakdownListDTO struct {
 	ID    int  `json:"id"`

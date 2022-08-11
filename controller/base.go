@@ -9,13 +9,15 @@ type controller struct {
 	projectBreakdownController
 	relatedPartyController
 	userController
+	operationRecordController
 }
 
 var (
-	entranceOfAllControllers   = new(controller)
-	NoRouteController          = entranceOfAllControllers.noRouteController
-	DepartmentController       = entranceOfAllControllers.departmentController
-	ProjectBreakdownController = entranceOfAllControllers.projectBreakdownController
-	RelatedPartyController     = entranceOfAllControllers.relatedPartyController
-	UserController             = entranceOfAllControllers.userController
+	entrance                   = new(controller)
+	NoRouteController          = entrance.noRouteController
+	DepartmentController       = entrance.departmentController
+	ProjectBreakdownController = entrance.projectBreakdownController
+	RelatedPartyController     = entrance.relatedPartyController
+	UserController             = entrance.userController
+	OperationRecordController  = entrance.operationRecordController
 )

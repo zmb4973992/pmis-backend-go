@@ -1,7 +1,5 @@
 package service
 
-type baseService struct{}
-
 // EntranceOfAllService 所有服务的入口
 type EntranceOfAllService struct {
 	loginService
@@ -9,6 +7,7 @@ type EntranceOfAllService struct {
 	relatedPartyService
 	departmentService
 	projectBreakdownService
+	operationRecordService
 }
 
 //定义各个服务的入口,避免反复new service
@@ -19,4 +18,5 @@ var (
 	RelatedPartyService     = entrance.relatedPartyService
 	DepartmentService       = entrance.departmentService
 	ProjectBreakdownService = entrance.projectBreakdownService
+	OperationRecordService  = entrance.operationRecordService
 )

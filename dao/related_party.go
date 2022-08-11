@@ -21,12 +21,12 @@ type relatedPartyDAO struct{}
 func (relatedPartyDAO) Get(id int) *dto.RelatedPartyDTO {
 	//之所以用dto不用model，是因为model为数据库原表，数据可能包含敏感字段、或未加工，不适合直接传递
 	//展现的功能基本都交给dto
-	var r dto.RelatedPartyDTO
-	err := global.DB.Debug().Model(&model.RelatedParty{}).Where("id = ?", id).First(&r).Error
+	var param dto.RelatedPartyDTO
+	err := global.DB.Debug().Model(&model.RelatedParty{}).Where("id = ?", id).First(&param).Error
 	if err != nil {
 		return nil
 	}
-	return &r
+	return &param
 }
 
 // Create 这里是只负责新增，不写任何业务逻辑。

@@ -72,8 +72,8 @@ func (departmentController) Delete(c *gin.Context) {
 }
 
 func (departmentController) List(c *gin.Context) {
-	var departmentListDTO dto.DepartmentListDTO
-	err := c.ShouldBindJSON(&departmentListDTO)
+	var param dto.DepartmentListDTO
+	err := c.ShouldBindJSON(&param)
 	//如果json没有传参，会提示EOF错误，这里可以正常运行；如果是其他错误，就正常报错
 	if err != nil && errors.Is(err, io.EOF) == false {
 		c.JSON(http.StatusBadRequest,
@@ -81,6 +81,6 @@ func (departmentController) List(c *gin.Context) {
 		return
 	}
 	//生成Service,然后调用它的方法
-	res := service.DepartmentService.List(departmentListDTO)
+	res := service.DepartmentService.List(param)
 	c.JSON(http.StatusOK, res)
 }
