@@ -51,22 +51,22 @@ func (s *SqlCondition) NotEqual(paramKey string, paramValue any) *SqlCondition {
 	return s
 }
 
-func (s *SqlCondition) Gt(paramKey string, paramValue int) *SqlCondition {
+func (s *SqlCondition) Gt(paramKey string, paramValue any) *SqlCondition {
 	s.where(paramKey+" > ?", paramValue)
 	return s
 }
 
-func (s *SqlCondition) Gte(paramKey string, paramValue int) *SqlCondition {
+func (s *SqlCondition) Gte(paramKey string, paramValue any) *SqlCondition {
 	s.where(paramKey+" >= ?", paramValue)
 	return s
 }
 
-func (s *SqlCondition) Lt(paramKey string, paramValue int) *SqlCondition {
+func (s *SqlCondition) Lt(paramKey string, paramValue any) *SqlCondition {
 	s.where(paramKey+" < ?", paramValue)
 	return s
 }
 
-func (s *SqlCondition) Lte(paramKey string, paramValue int) *SqlCondition {
+func (s *SqlCondition) Lte(paramKey string, paramValue any) *SqlCondition {
 	s.where(paramKey+" <= ?", paramValue)
 	return s
 }
@@ -174,6 +174,23 @@ func (s *SqlCondition) Find(modelName model.IModel) (list []map[string]any) {
 		return nil
 	}
 	return
+}
+
+func (s *SqlCondition) FindTest(modelName model.IModel) []any {
+	//直接限定数据源，后期如果要自定义数据源，可以改这里
+	db := global.DB
+
+	//根据sqlCondition处理db
+	db = s.Build(db)
+
+	var list []dto.OperationRecordGetDTO
+	//出结果
+	err := db.Model(&modelName).Find(&list).Error
+	if err != nil {
+		return nil
+	}
+
+	return list
 }
 
 // ValidateColumn 验证提交的单个字段是否为有效字段（即数据表有相应的字段）

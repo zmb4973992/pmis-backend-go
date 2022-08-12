@@ -8,6 +8,12 @@ type OperationRecordGetDTO struct {
 	Detail     *string `json:"detail"`      //详情
 }
 
+func (OperationRecordGetDTO) GetDTO() {}
+
+type Test interface {
+	GetDTO()
+}
+
 type OperationRecordCreateAndUpdateDTO struct {
 	ID         int     `json:"id"`
 	ProjectID  *int    `json:"project_id" binding:"required"`  //项目id

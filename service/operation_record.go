@@ -135,14 +135,14 @@ func (operationRecordService) Update(paramIn *dto.OperationRecordCreateAndUpdate
 }
 
 func (operationRecordService) Delete(operationRecordID int) response.Common {
-	err := dao.ProjectBreakdownDAO.Delete(operationRecordID)
+	err := dao.OperationRecordDAO.Delete(operationRecordID)
 	if err != nil {
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()
 }
 
-func (operationRecordService) List(paramIn dto.ProjectBreakdownListDTO) response.List {
+func (operationRecordService) List(paramIn dto.OperationRecordListDTO) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 	//对paramIn进行清洗
@@ -150,7 +150,7 @@ func (operationRecordService) List(paramIn dto.ProjectBreakdownListDTO) response
 	//如果参数正确，那么指定字段的数据正常返回，其他字段返回空；
 	//如果参数错误，就返回全部字段的数据
 	if len(paramIn.SelectedColumns) > 0 {
-		ok := sqlCondition.ValidateColumns(paramIn.SelectedColumns, model.ProjectBreakdown{})
+		ok := sqlCondition.ValidateColumns(paramIn.SelectedColumns, model.OperationRecord{})
 		if ok {
 			sqlCondition.SelectedColumns = paramIn.SelectedColumns
 		}
@@ -169,23 +169,26 @@ func (operationRecordService) List(paramIn dto.ProjectBreakdownListDTO) response
 	if id := paramIn.ID; id > 0 {
 		sqlCondition.Equal("id", id)
 	}
-	if paramIn.IDGte != nil {
-		sqlCondition.Gte("id", *paramIn.IDGte)
+	if paramIn.ProjectID != nil && *paramIn.ProjectID != -1 {
+		sqlCondition.Equal("project_id", *paramIn.ProjectID)
 	}
-	if paramIn.IDLte != nil {
-		sqlCondition.Lte("id", *paramIn.IDLte)
+	if paramIn.OperatorID != nil && *paramIn.OperatorID != -1 {
+		sqlCondition.Equal("operator_id", *paramIn.OperatorID)
 	}
-	if paramIn.Name != nil && *paramIn.Name != "" {
-		sqlCondition = sqlCondition.Equal("name", *paramIn.Name)
-	}
-	if paramIn.NameInclude != nil && *paramIn.NameInclude != "" {
-		sqlCondition = sqlCondition.Include("name", *paramIn.NameInclude)
+	if paramIn.DateGte != nil && *paramIn.DateGte != "" {
+		//date, err := time.ParseInLocation("2006-01-02", *paramIn.DateGte, time.Local)
+		//if err != nil {
+		//	response.FailureForList(util.ErrorInvalidJSONParameters)
+		//} else {
+		sqlCondition.Gte("date", *paramIn.DateGte)
+		//}
+		//未完待续
 	}
 
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
-		ok := sqlCondition.ValidateColumn(orderBy, model.ProjectBreakdown{})
+		ok := sqlCondition.ValidateColumn(orderBy, model.OperationRecord{})
 		if ok {
 			sqlCondition.Sorting.OrderBy = orderBy
 		}
@@ -197,8 +200,8 @@ func (operationRecordService) List(paramIn dto.ProjectBreakdownListDTO) response
 		sqlCondition.Sorting.Desc = false
 	}
 
-	list := sqlCondition.Find(model.ProjectBreakdown{})
-	totalRecords := sqlCondition.Count(model.ProjectBreakdown{})
+	list := sqlCondition.FindTest(model.OperationRecord{})
+	totalRecords := sqlCondition.Count(model.OperationRecord{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(list) == 0 {
