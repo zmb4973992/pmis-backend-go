@@ -54,7 +54,7 @@ func (projectBreakdownService) Create(paramIn *dto.ProjectBreakdownCreateAndUpda
 
 	err := dao.ProjectBreakdownDAO.Create(&paramOut)
 	if err != nil {
-		return response.Failure(util.ErrorFailToSaveRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
 }
@@ -95,7 +95,7 @@ func (projectBreakdownService) Update(paramIn *dto.ProjectBreakdownCreateAndUpda
 	err := dao.ProjectBreakdownDAO.Update(&paramOut)
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
-		return response.Failure(util.ErrorFailToSaveRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 	return response.Success()
 }

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
+	"learn-go/dto"
 	"learn-go/serializer/response"
 	"learn-go/service"
 	"learn-go/util"
@@ -23,40 +24,41 @@ func (operationRecordController) Get(c *gin.Context) {
 	return
 }
 
-//func (operationRecordController) Create(c *gin.Context) {
-//	var param dto.OperationRecordCreateAndUpdateDTO
-//	//先把json参数绑定到model
-//	err := c.ShouldBindJSON(&param)
-//	if err != nil {
-//		c.JSON(http.StatusBadRequest,
-//			response.Failure(util.ErrorInvalidJSONParameters))
-//		return
-//	}
-//	res := service.OperationRecordService.Create(&param)
-//	c.JSON(http.StatusOK, res)
-//	return
-//}
-//
-//func (operationRecordController) Update(c *gin.Context) {
-//	var param dto.OperationRecordCreateAndUpdateDTO
-//	//先把json参数绑定到model
-//	err := c.ShouldBindJSON(&param)
-//	if err != nil {
-//		c.JSON(http.StatusOK,
-//			response.Failure(util.ErrorInvalidJSONParameters))
-//		return
-//	}
-//	//把uri上的id参数传递给结构体形式的入参
-//	param.ID, err = strconv.Atoi(c.Param("id"))
-//	if err != nil {
-//		c.JSON(http.StatusOK,
-//			response.Failure(util.ErrorInvalidURIParameters))
-//		return
-//	}
-//	res := service.OperationRecordService.Update(&param)
-//	c.JSON(200, res)
-//}
-//
+func (operationRecordController) Create(c *gin.Context) {
+	var param dto.OperationRecordCreateAndUpdateDTO
+	//先把json参数绑定到model
+	err := c.ShouldBindJSON(&param)
+	if err != nil {
+		c.JSON(http.StatusBadRequest,
+			response.Failure(util.ErrorInvalidJSONParameters))
+		return
+	}
+
+	res := service.OperationRecordService.Create(&param)
+	c.JSON(http.StatusOK, res)
+	return
+}
+
+func (operationRecordController) Update(c *gin.Context) {
+	var param dto.OperationRecordCreateAndUpdateDTO
+	//先把json参数绑定到model
+	err := c.ShouldBindJSON(&param)
+	if err != nil {
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidJSONParameters))
+		return
+	}
+	//把uri上的id参数传递给结构体形式的入参
+	param.ID, err = strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidURIParameters))
+		return
+	}
+	res := service.OperationRecordService.Update(&param)
+	c.JSON(200, res)
+}
+
 //func (operationRecordController) Delete(c *gin.Context) {
 //	id, err := strconv.Atoi(c.Param("id"))
 //	if err != nil {

@@ -35,7 +35,7 @@ func (departmentService) Create(paramIn *dto.DepartmentCreateAndUpdateDTO) respo
 	}
 	err := dao.DepartmentDAO.Create(&paramOut)
 	if err != nil {
-		return response.Failure(util.ErrorFailToSaveRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
 }
@@ -58,7 +58,7 @@ func (departmentService) Update(paramIn *dto.DepartmentCreateAndUpdateDTO) respo
 	err := dao.DepartmentDAO.Update(&paramOut)
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
-		return response.Failure(util.ErrorFailToSaveRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 	return response.Success()
 }

@@ -43,7 +43,9 @@ func Init() *gin.Engine {
 		api.DELETE("/project_breakdown/:id", controller.ProjectBreakdownController.Delete) //删除项目拆解
 		api.GET("/project_breakdown/list", controller.ProjectBreakdownController.List)     //获取项目拆解列表
 
-		api.GET("/operation_record/:id", controller.OperationRecordController.Get) //获取操作记录详情
+		api.GET("/operation_record/:id", controller.OperationRecordController.Get)    //获取操作记录详情
+		api.POST("/operation_record", controller.OperationRecordController.Create)    //新增操作记录
+		api.PUT("/operation_record/:id", controller.OperationRecordController.Update) //修改操作记录
 	}
 
 	engine.NoRoute(controller.NoRouteController.NoRoute)

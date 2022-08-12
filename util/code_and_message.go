@@ -11,12 +11,13 @@ const (
 	ErrorInvalidFormDataParameters        int = 1004
 	ErrorInvalidJSONParameters            int = 1005
 	ErrorInvalidQueryParameters           int = 1006
-	ErrorFailToSaveRecord                 int = 1010
 	ErrorFailToDeleteRecord               int = 1011
 	ErrorFileTooLarge                     int = 1012
 	ErrorFailToUploadFiles                int = 1013
 	ErrorFailToTransferDataFromDtoToModel int = 1014
 	ErrorInvalidBaseController            int = 1015
+	ErrorFailToCreateRecord               int = 1016
+	ErrorFailToUpdateRecord               int = 1017
 
 	ErrorInvalidUsernameOrPassword int = 2001
 	ErrorUsernameExist             int = 2002
@@ -47,12 +48,13 @@ var Message = map[int]string{
 	ErrorInvalidFormDataParameters:        "form-data参数无效",
 	ErrorInvalidJSONParameters:            "JSON参数无效",
 	ErrorInvalidQueryParameters:           "query参数无效",
-	ErrorFailToSaveRecord:                 "保存记录失败",
 	ErrorFailToDeleteRecord:               "删除记录失败",
 	ErrorFileTooLarge:                     "文件过大",
 	ErrorFailToUploadFiles:                "上传文件失败",
 	ErrorFailToTransferDataFromDtoToModel: "dto转model失败，请检查service层",
 	ErrorInvalidBaseController:            "BaseController配置错误，请检查",
+	ErrorFailToCreateRecord:               "添加记录失败",
+	ErrorFailToUpdateRecord:               "修改记录失败",
 
 	ErrorInvalidUsernameOrPassword: "用户名或密码错误",
 	ErrorUsernameExist:             "用户名已存在",

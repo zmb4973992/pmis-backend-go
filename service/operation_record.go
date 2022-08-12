@@ -7,6 +7,7 @@ import (
 	"learn-go/model"
 	"learn-go/serializer/response"
 	"learn-go/util"
+	"time"
 )
 
 // operationRecordService 没有数据、只有方法，所有的数据都放在DTO里
@@ -22,80 +23,113 @@ func (operationRecordService) Get(operationRecordID int) response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (operationRecordService) Create(paramIn *dto.ProjectBreakdownCreateAndUpdateDTO) response.Common {
+func (operationRecordService) Create(paramIn *dto.OperationRecordCreateAndUpdateDTO) response.Common {
 	//对dto进行清洗，生成dao层需要的model
-	var paramOut model.ProjectBreakdown
+	var paramOut model.OperationRecord
+
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
-		paramOut.Name = nil
+	if *paramIn.ProjectID == -1 { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
+		paramOut.ProjectID = nil
 	} else {
-		paramOut.Name = paramIn.Name
+		paramOut.ProjectID = paramIn.ProjectID
 	}
-	if *paramIn.Level == -1 {
-		paramOut.Level = nil
+
+	if *paramIn.OperatorID == -1 {
+		paramOut.OperatorID = nil
 	} else {
-		paramOut.Level = paramIn.Level
+		paramOut.OperatorID = paramIn.OperatorID
 	}
+
 	if *paramIn.ProjectID == -1 {
 		paramOut.ProjectID = nil
 	} else {
 		paramOut.ProjectID = paramIn.ProjectID
 	}
-	if *paramIn.Weight == -1 {
-		paramOut.Weight = nil
+
+	if *paramIn.Date == "" {
+		paramOut.Date = nil
 	} else {
-		paramOut.Weight = paramIn.Weight
-	}
-	if *paramIn.SuperiorID == -1 {
-		paramOut.SuperiorID = nil
-	} else {
-		paramOut.SuperiorID = paramIn.SuperiorID
+		date, err := time.Parse("2006-01-02", *paramIn.Date)
+		if err != nil {
+			return response.Failure(util.ErrorInvalidJSONParameters)
+		} else {
+			paramOut.Date = &date
+		}
 	}
 
-	err := dao.ProjectBreakdownDAO.Create(&paramOut)
-	if err != nil {
-		return response.Failure(util.ErrorFailToSaveRecord)
+	if *paramIn.Action == "" {
+		paramOut.Action = nil
+	} else {
+		paramOut.Action = paramIn.Action
 	}
+
+	if *paramIn.Detail == "" {
+		paramOut.Detail = nil
+	} else {
+		paramOut.Detail = paramIn.Detail
+	}
+
+	err := dao.OperationRecordDAO.Create(&paramOut)
+	if err != nil {
+		return response.Failure(util.ErrorFailToCreateRecord)
+	}
+
 	return response.Success()
 }
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (operationRecordService) Update(paramIn *dto.ProjectBreakdownCreateAndUpdateDTO) response.Common {
-	var paramOut model.ProjectBreakdown
+func (operationRecordService) Update(paramIn *dto.OperationRecordCreateAndUpdateDTO) response.Common {
+	var paramOut model.OperationRecord
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
-		paramOut.Name = nil
-	} else {
-		paramOut.Name = paramIn.Name
-	}
-	if *paramIn.Level == -1 {
-		paramOut.Level = nil
-	} else {
-		paramOut.Level = paramIn.Level
-	}
+	//这里不需要进行非空判定，因为前面的dto已经设定了必须绑定
 	if *paramIn.ProjectID == -1 {
 		paramOut.ProjectID = nil
 	} else {
 		paramOut.ProjectID = paramIn.ProjectID
 	}
-	if *paramIn.Weight == -1 {
-		paramOut.Weight = nil
+
+	if *paramIn.OperatorID == -1 {
+		paramOut.OperatorID = nil
 	} else {
-		paramOut.Weight = paramIn.Weight
+		paramOut.OperatorID = paramIn.OperatorID
 	}
-	if *paramIn.SuperiorID == -1 {
-		paramOut.SuperiorID = nil
+
+	if *paramIn.ProjectID == -1 {
+		paramOut.ProjectID = nil
 	} else {
-		paramOut.SuperiorID = paramIn.SuperiorID
+		paramOut.ProjectID = paramIn.ProjectID
+	}
+
+	if *paramIn.Date == "" {
+		paramOut.Date = nil
+	} else {
+		date, err := time.Parse("2006-01-02", *paramIn.Date)
+		if err != nil {
+			return response.Failure(util.ErrorInvalidJSONParameters)
+		} else {
+			paramOut.Date = &date
+		}
+	}
+
+	if *paramIn.Action == "" {
+		paramOut.Action = nil
+	} else {
+		paramOut.Action = paramIn.Action
+	}
+
+	if *paramIn.Detail == "" {
+		paramOut.Detail = nil
+	} else {
+		paramOut.Detail = paramIn.Detail
 	}
 
 	//清洗完毕，开始update
-	err := dao.ProjectBreakdownDAO.Update(&paramOut)
+	err := dao.OperationRecordDAO.Update(&paramOut)
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
-		return response.Failure(util.ErrorFailToSaveRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 	return response.Success()
 }

@@ -49,7 +49,6 @@ type JWTConfig struct {
 }
 
 type LogConfig struct {
-	Path          string
 	FileName      string
 	MaxSizeForLog int
 	MaxBackup     int
@@ -90,40 +89,38 @@ func Init() {
 }
 
 func loadConfig() {
-	Config.APPConfig.AppMode = v.GetString("App.AppMode")
-	Config.APPConfig.HttpPort = v.GetString("App.HttpPort")
+	Config.APPConfig.AppMode = v.GetString("app.app_mode")
+	Config.APPConfig.HttpPort = v.GetString("app.http_port")
 
-	Config.DBConfig.DbHost = v.GetString("Database.DbHost")
-	Config.DBConfig.DbPort = v.GetString("Database.DbPort")
-	Config.DBConfig.DbName = v.GetString("Database.DbName")
-	Config.DBConfig.DbUsername = v.GetString("Database.DbUsername")
-	Config.DBConfig.DbPassword = v.GetString("Database.DbPassword")
+	Config.DBConfig.DbHost = v.GetString("database.db_host")
+	Config.DBConfig.DbPort = v.GetString("database.db_port")
+	Config.DBConfig.DbName = v.GetString("database.db_name")
+	Config.DBConfig.DbUsername = v.GetString("database.db_username")
+	Config.DBConfig.DbPassword = v.GetString("database.db_password")
 	Config.DBConfig.DSN =
 		"sqlserver://" + Config.DBConfig.DbUsername + ":" +
 			Config.DBConfig.DbPassword + "@" + Config.DBConfig.DbHost +
 			":" + Config.DBConfig.DbPort + "?database=" + Config.DBConfig.DbName
-	Config.DBConfig.OmittedColumns = v.GetStringSlice("Database.OmittedColumns")
+	Config.DBConfig.OmittedColumns = v.GetStringSlice("database.omitted_columns")
 
 	//配置里的密钥是string类型，jwt要求为[]byte类型，必须转换后才能使用
-	Config.JWTConfig.SecretKey = []byte(v.GetString("JWT.SecretKey"))
-	Config.JWTConfig.ValidityPeriod = v.GetInt("JWT.ValidityPeriod")
+	Config.JWTConfig.SecretKey = []byte(v.GetString("jwt.secret_key"))
+	Config.JWTConfig.ValidityPeriod = v.GetInt("jwt.validity_period")
 
-	Config.LogConfig.Path = v.GetString("Log.LogPath")
-	Config.LogConfig.FileName = v.GetString("Log.LogPath") + "/status.log"
-	Config.LogConfig.MaxSizeForLog = v.GetInt("Log.LogMaxSize")
-	Config.LogConfig.MaxBackup = v.GetInt("Log.LogMaxBackup")
-	Config.LogConfig.MaxAge = v.GetInt("Log.LogMaxAge")
-	Config.LogConfig.Compress = v.GetBool("Log.LogCompress")
+	Config.LogConfig.FileName = v.GetString("log.log_path") + "/status.log"
+	Config.LogConfig.MaxSizeForLog = v.GetInt("log.log_max_size")
+	Config.LogConfig.MaxBackup = v.GetInt("log.log_max_backup")
+	Config.LogConfig.MaxAge = v.GetInt("log.log_max_age")
+	Config.LogConfig.Compress = v.GetBool("log.log_compress")
 
-	Config.UploadConfig.FullPath = v.GetString("UploadFiles.FullPath") + "/"
-	Config.UploadConfig.MaxSizeForUpload = v.GetInt64("UploadFiles.MaxSize") << 20
+	Config.UploadConfig.FullPath = v.GetString("upload_files.full_path") + "/"
+	Config.UploadConfig.MaxSizeForUpload = v.GetInt64("upload_files.max_size") << 20
 
-	Config.EmailConfig.OutgoingMailServer = v.GetString("Email.OutgoingMailServer")
-	Config.EmailConfig.Port = v.GetInt("Email.Port")
-	Config.EmailConfig.Account = v.GetString("Email.Account")
-	Config.EmailConfig.Password = v.GetString("Email.Password")
+	Config.EmailConfig.OutgoingMailServer = v.GetString("email.outgoing_mail_server")
+	Config.EmailConfig.Port = v.GetInt("email.port")
+	Config.EmailConfig.Account = v.GetString("email.account")
+	Config.EmailConfig.Password = v.GetString("email.password")
 
-	Config.PagingConfig.DefaultPageSize = v.GetInt("Paging.DefaultPageSize")
-	Config.PagingConfig.MaxPageSize = v.GetInt("Paging.MaxPageSize")
-
+	Config.PagingConfig.DefaultPageSize = v.GetInt("paging.default_page_size")
+	Config.PagingConfig.MaxPageSize = v.GetInt("paging.max_page_size")
 }

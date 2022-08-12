@@ -100,7 +100,7 @@ func (userService) Create(paramIn *dto.UserCreateDTO) response.Common {
 	})
 
 	if err != nil {
-		return response.Failure(util.ErrorFailToSaveRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
 }
@@ -199,7 +199,7 @@ func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
 		})
 
 	if err != nil {
-		return response.Failure(util.ErrorFailToSaveRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 	return response.Success()
 }
