@@ -137,7 +137,9 @@ func (s *SqlCondition) Build(db *gorm.DB) *gorm.DB {
 	//新offset方法，数据量哪怕达到几千万也不会产生查询瓶颈，已测试过
 	//任何数据库的 offset 1000000 都比 where id > 1000000 要慢很多
 	offset := (s.Paging.Page - 1) * s.Paging.PageSize
-	db = db.Where("id > ?", offset)
+	if offset > 0 {
+		db = db.Where("id > ?", offset)
+	}
 
 	return db
 }
@@ -169,28 +171,11 @@ func (s *SqlCondition) Find(modelName model.IModel) (list []map[string]any) {
 	db = s.Build(db)
 
 	//出结果
-	err := db.Model(&modelName).Find(&list).Error
+	err := db.Debug().Model(&modelName).Find(&list).Error
 	if err != nil {
 		return nil
 	}
 	return
-}
-
-func (s *SqlCondition) FindTest(modelName model.IModel) []any {
-	//直接限定数据源，后期如果要自定义数据源，可以改这里
-	db := global.DB
-
-	//根据sqlCondition处理db
-	db = s.Build(db)
-
-	var list []dto.OperationRecordGetDTO
-	//出结果
-	err := db.Model(&modelName).Find(&list).Error
-	if err != nil {
-		return nil
-	}
-
-	return list
 }
 
 // ValidateColumn 验证提交的单个字段是否为有效字段（即数据表有相应的字段）

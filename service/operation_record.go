@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/mitchellh/mapstructure"
 	"learn-go/dao"
 	"learn-go/dto"
 	"learn-go/global"
@@ -156,7 +157,7 @@ func (operationRecordService) List(paramIn dto.OperationRecordListDTO) response.
 		}
 	}
 
-	//这部分是用于where的参数
+	//分页
 	if paramIn.Page > 0 {
 		sqlCondition.Paging.Page = paramIn.Page
 	}
@@ -166,6 +167,7 @@ func (operationRecordService) List(paramIn dto.OperationRecordListDTO) response.
 		sqlCondition.Paging.PageSize = paramIn.PageSize
 	}
 
+	//这部分是用于where的参数
 	if id := paramIn.ID; id > 0 {
 		sqlCondition.Equal("id", id)
 	}
@@ -176,13 +178,13 @@ func (operationRecordService) List(paramIn dto.OperationRecordListDTO) response.
 		sqlCondition.Equal("operator_id", *paramIn.OperatorID)
 	}
 	if paramIn.DateGte != nil && *paramIn.DateGte != "" {
-		//date, err := time.ParseInLocation("2006-01-02", *paramIn.DateGte, time.Local)
-		//if err != nil {
-		//	response.FailureForList(util.ErrorInvalidJSONParameters)
-		//} else {
 		sqlCondition.Gte("date", *paramIn.DateGte)
-		//}
-		//未完待续
+	}
+	if paramIn.DateLte != nil && *paramIn.DateLte != "" {
+		sqlCondition.Lte("date", *paramIn.DateLte)
+	}
+	if paramIn.Action != nil && *paramIn.Action != "" {
+		sqlCondition.Equal("action", *paramIn.Action)
 	}
 
 	//这部分是用于order的参数
@@ -200,12 +202,23 @@ func (operationRecordService) List(paramIn dto.OperationRecordListDTO) response.
 		sqlCondition.Sorting.Desc = false
 	}
 
-	list := sqlCondition.FindTest(model.OperationRecord{})
+	tempList := sqlCondition.Find(model.OperationRecord{})
 	totalRecords := sqlCondition.Count(model.OperationRecord{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
-	if len(list) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(tempList) == 0 {
+		response.FailureForList(util.ErrorRecordNotFound)
+	}
+
+	//这里的tempList是基于model的，不能直接传给前端，要处理成dto才行
+	//如果map的字段类型和struct的字段类型不匹配，数据不会同步过来
+	var list []dto.OperationRecordGetDTO
+	_ = mapstructure.Decode(&tempList, &list)
+
+	//处理字段类型不匹配、或者有特殊格式要求的字段
+	for k := range tempList {
+		a := tempList[k]["date"].(*time.Time).Format("2006-01-02")
+		list[k].Date = &a
 	}
 
 	return response.List{
