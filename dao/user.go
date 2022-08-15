@@ -59,19 +59,6 @@ func (userDAO) Get(userID int) *dto.UserGetDTO {
 	return &userGetDTO
 }
 
-// Create 这里是只负责新增，不写任何业务逻辑。只要收到参数就创建数据库记录，然后返回错误
-//func (UserDAO) Create(param *model.User) error {
-//	err := model.DB.Create(param).Error
-//	return err
-//}
-
-// Update 这里是只负责更新，不写任何业务逻辑。只要收到id和更新参数，然后返回错误
-//func (UserDAO) Update(param *model.User) error {
-//	//注意，这里就算没有找到记录，也不会报错，只有更新字段出现问题才会报错。详见gorm的update用法
-//	err := model.DB.Where("id = ?", param.ID).Omit("created_at").Save(param).Error
-//	return err
-//}
-
 func (userDAO) Delete(userID int) error {
 	//注意，这里就算没有找到记录，也不会报错。详见gorm的delete用法
 	err := global.DB.Delete(&model.User{}, userID).Error

@@ -27,7 +27,7 @@ func (projectDisassemblyController) Get(c *gin.Context) {
 }
 
 func (projectDisassemblyController) Create(c *gin.Context) {
-	var param dto.ProjectDisassemblyCreateAndUpdateDTO
+	var param dto.ProjectDisassemblyCreateOrUpdateDTO
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -41,7 +41,7 @@ func (projectDisassemblyController) Create(c *gin.Context) {
 }
 
 func (projectDisassemblyController) Update(c *gin.Context) {
-	var param dto.ProjectDisassemblyCreateAndUpdateDTO
+	var param dto.ProjectDisassemblyCreateOrUpdateDTO
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {

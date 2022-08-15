@@ -25,11 +25,11 @@ func Init() *gin.Engine {
 		api.DELETE("/user/:id", controller.UserController.Delete)                  //删除用户
 		api.GET("/user/list", controller.UserController.List)                      //获取用户列表
 
-		api.GET("/related_party/:id", controller.RelatedPartyController.Get)    //获取相关方详情
-		api.PUT("/related_party/:id", controller.RelatedPartyController.Update) //修改相关方
-		api.POST("/related_party", controller.RelatedPartyController.Create)    //新增相关方
-		api.DELETE("/:id", controller.RelatedPartyController.Delete)            //删除相关方
-		api.GET("/related_party/list", controller.RelatedPartyController.List)  //获取相关方列表
+		api.GET("/related_party/:id", controller.RelatedPartyController.Get)       //获取相关方详情
+		api.PUT("/related_party/:id", controller.RelatedPartyController.Update)    //修改相关方
+		api.POST("/related_party", controller.RelatedPartyController.Create)       //新增相关方
+		api.DELETE("/related_party/:id", controller.RelatedPartyController.Delete) //删除相关方
+		api.GET("/related_party/list", controller.RelatedPartyController.List)     //获取相关方列表
 
 		api.GET("/department/:id", controller.DepartmentController.Get)       //获取部门详情
 		api.POST("/department", controller.DepartmentController.Create)       //新增部门

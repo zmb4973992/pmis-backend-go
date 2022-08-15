@@ -1,16 +1,16 @@
 package dto
 
 type ProjectDisassemblyGetDTO struct {
-	Name       *string  `json:"name"`        //名称
-	ProjectID  *int     `json:"project_id"`  //所属项目id
-	Level      *int     `json:"level"`       //层级
-	Weight     *float64 `json:"weight"`      //权重
-	SuperiorID *int     `json:"superior_id"` //上级拆解项id
+	Name       *string  `json:"name" mapstructure:"name"`               //名称
+	ProjectID  *int     `json:"project_id" mapstructure:"project_id"`   //所属项目id
+	Level      *int     `json:"level" mapstructure:"level"`             //层级
+	Weight     *float64 `json:"weight" mapstructure:"weight"`           //权重
+	SuperiorID *int     `json:"superior_id" mapstructure:"superior_id"` //上级拆解项id
 }
 
-// ProjectDisassemblyCreateAndUpdateDTO
+// ProjectDisassemblyCreateOrUpdateDTO
 // 除id外，所有字段都设置为必须绑定
-type ProjectDisassemblyCreateAndUpdateDTO struct {
+type ProjectDisassemblyCreateOrUpdateDTO struct {
 	ID         int      `json:"id"`
 	Name       *string  `json:"name" binding:"required"`        //拆解项名称
 	ProjectID  *int     `json:"project_id" binding:"required"`  //所属项目id

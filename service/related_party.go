@@ -1,8 +1,10 @@
 package service
 
 import (
+	"github.com/mitchellh/mapstructure"
 	"learn-go/dao"
 	"learn-go/dto"
+	"learn-go/global"
 	"learn-go/model"
 	"learn-go/serializer/response"
 	"learn-go/util"
@@ -26,58 +28,88 @@ func (relatedPartyService) Get(relatedPartyID int) response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (relatedPartyService) Create(paramIn *model.RelatedParty) response.Common {
+func (relatedPartyService) Create(paramIn *dto.RelatedPartyCreateOrUpdateDTO) response.Common {
 	//对model进行清洗，生成dao层需要的model
-	if paramIn.ChineseName != nil && *paramIn.ChineseName == "" {
-		paramIn.ChineseName = nil
-	}
-	if paramIn.EnglishName != nil && *paramIn.EnglishName == "" {
-		paramIn.EnglishName = nil
-	}
-	if paramIn.Address != nil && *paramIn.Address == "" {
-		paramIn.Address = nil
-	}
-	if paramIn.Telephone != nil && *paramIn.Telephone == "" {
-		paramIn.Telephone = nil
-	}
-	if paramIn.UniformSocialCreditCode != nil && *paramIn.UniformSocialCreditCode == "" {
-		paramIn.UniformSocialCreditCode = nil
-	}
-	if paramIn.Code != nil && *paramIn.Code == -1 {
-		paramIn.Code = nil
+	var paramOut model.RelatedParty
+
+	if *paramIn.ChineseName == "" {
+		paramOut.ChineseName = nil
+	} else {
+		paramOut.ChineseName = paramIn.ChineseName
 	}
 
-	err := dao.RelatedPartyDAO.Create(paramIn)
+	if *paramIn.EnglishName == "" {
+		paramOut.EnglishName = nil
+	} else {
+		paramOut.EnglishName = paramIn.EnglishName
+	}
+
+	if *paramIn.Address == "" {
+		paramOut.Address = nil
+	} else {
+		paramOut.Address = paramIn.Address
+	}
+
+	if *paramIn.Telephone == "" {
+		paramOut.Telephone = nil
+	} else {
+		paramOut.Telephone = paramIn.Telephone
+	}
+
+	if *paramIn.UniformSocialCreditCode == "" {
+		paramOut.UniformSocialCreditCode = nil
+	} else {
+		paramOut.UniformSocialCreditCode = paramIn.UniformSocialCreditCode
+	}
+
+	err := dao.RelatedPartyDAO.Create(&paramOut)
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
 }
 
-func (relatedPartyService) Update(paramIn *model.RelatedParty) response.Common {
-	//var record model.RelatedParty
-	//对model进行清洗，生成dao层需要的model
-	if paramIn.ChineseName != nil && *paramIn.ChineseName == "" {
-		paramIn.ChineseName = nil
+func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdateDTO) response.Common {
+	var paramOut model.RelatedParty
+	//先找出原始记录
+	err := global.DB.Where("id = ?", paramIn.ID).First(&paramOut).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
-	if paramIn.EnglishName != nil && *paramIn.EnglishName == "" {
-		paramIn.EnglishName = nil
+
+	//对dto进行清洗，生成dao层需要的model
+	if *paramIn.ChineseName == "" {
+		paramOut.ChineseName = nil
+	} else {
+		paramOut.ChineseName = paramIn.ChineseName
 	}
-	if paramIn.Address != nil && *paramIn.Address == "" {
-		paramIn.Address = nil
+
+	if *paramIn.EnglishName == "" {
+		paramOut.EnglishName = nil
+	} else {
+		paramOut.EnglishName = paramIn.EnglishName
 	}
-	if paramIn.Telephone != nil && *paramIn.Telephone == "" {
-		paramIn.Telephone = nil
+
+	if *paramIn.Address == "" {
+		paramOut.Address = nil
+	} else {
+		paramOut.Address = paramIn.Address
 	}
-	if paramIn.UniformSocialCreditCode != nil && *paramIn.UniformSocialCreditCode == "" {
-		paramIn.UniformSocialCreditCode = nil
+
+	if *paramIn.Telephone == "" {
+		paramOut.Telephone = nil
+	} else {
+		paramOut.Telephone = paramIn.Telephone
 	}
-	if paramIn.Code != nil && *paramIn.Code == -1 {
-		paramIn.Code = nil
+
+	if *paramIn.UniformSocialCreditCode == "" {
+		paramOut.UniformSocialCreditCode = nil
+	} else {
+		paramOut.UniformSocialCreditCode = paramIn.UniformSocialCreditCode
 	}
 
 	//清洗完毕，开始update
-	err := dao.RelatedPartyDAO.Update(paramIn)
+	err = dao.RelatedPartyDAO.Update(&paramOut)
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -101,23 +133,29 @@ func (relatedPartyService) List(paramIn dto.RelatedPartyListDTO) response.List {
 	if paramIn.Page > 0 {
 		sqlCondition.Paging.Page = paramIn.Page
 	}
+
 	//如果参数里的pageSize是整数且大于0、小于等于100：
 	if paramIn.PageSize > 0 && paramIn.PageSize <= 100 {
 		sqlCondition.Paging.PageSize = paramIn.PageSize
 	}
+
 	if id := paramIn.ID; id > 0 {
 		sqlCondition.Equal("id", id)
 	}
+
 	if paramIn.IDGte != nil {
 		sqlCondition.Gte("id", *paramIn.IDGte)
 	}
+
 	if paramIn.IDGte != nil {
 		sqlCondition.Lte("id", *paramIn.IDLte)
 	}
-	if *paramIn.ChineseName != "" {
+
+	if paramIn.ChineseName != nil && *paramIn.ChineseName != "" {
 		sqlCondition = sqlCondition.Equal("chinese_name", *paramIn.ChineseName)
 	}
-	if *paramIn.ChineseNameInclude != "" {
+
+	if paramIn.ChineseNameInclude != nil && *paramIn.ChineseNameInclude != "" {
 		sqlCondition = sqlCondition.Include("chinese_name", *paramIn.ChineseNameInclude)
 	}
 
@@ -136,13 +174,22 @@ func (relatedPartyService) List(paramIn dto.RelatedPartyListDTO) response.List {
 		sqlCondition.Sorting.Desc = false
 	}
 
-	list := sqlCondition.Find(model.RelatedParty{})
+	tempList := sqlCondition.Find(model.RelatedParty{})
 	totalRecords := sqlCondition.Count(model.RelatedParty{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
-	if len(list) == 0 {
+	if len(tempList) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
+
+	var list []dto.RelatedPartyGetDTO
+	_ = mapstructure.Decode(&tempList, &list)
+
+	//处理字段类型不匹配、或者有特殊格式要求的字段
+	//for k := range tempList {
+	//	a := tempList[k]["date"].(*time.Time).Format("2006-01-02")
+	//	list[k].Date = &a
+	//}
 
 	return response.List{
 		Data: list,

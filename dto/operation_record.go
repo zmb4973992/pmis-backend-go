@@ -11,7 +11,7 @@ type OperationRecordGetDTO struct {
 	Detail     *string `json:"detail" mapstructure:"detail"`           //详情
 }
 
-type OperationRecordCreateAndUpdateDTO struct {
+type OperationRecordCreateOrUpdateDTO struct {
 	ID         int     `json:"id"`
 	ProjectID  *int    `json:"project_id" binding:"required"`  //项目id
 	OperatorID *int    `json:"operator_id" binding:"required"` //操作人id

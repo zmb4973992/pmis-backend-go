@@ -22,7 +22,7 @@ func (projectDisassemblyService) Get(projectDisassemblyID int) response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (projectDisassemblyService) Create(paramIn *dto.ProjectDisassemblyCreateAndUpdateDTO) response.Common {
+func (projectDisassemblyService) Create(paramIn *dto.ProjectDisassemblyCreateOrUpdateDTO) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.ProjectDisassembly
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -61,7 +61,7 @@ func (projectDisassemblyService) Create(paramIn *dto.ProjectDisassemblyCreateAnd
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (projectDisassemblyService) Update(paramIn *dto.ProjectDisassemblyCreateAndUpdateDTO) response.Common {
+func (projectDisassemblyService) Update(paramIn *dto.ProjectDisassemblyCreateOrUpdateDTO) response.Common {
 	var paramOut model.ProjectDisassembly
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理

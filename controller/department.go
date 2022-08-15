@@ -30,7 +30,7 @@ func (departmentController) Get(c *gin.Context) {
 }
 
 func (departmentController) Create(c *gin.Context) {
-	var param dto.DepartmentCreateAndUpdateDTO
+	var param dto.DepartmentCreateOrUpdateDTO
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -44,7 +44,7 @@ func (departmentController) Create(c *gin.Context) {
 }
 
 func (departmentController) Update(c *gin.Context) {
-	var param dto.DepartmentCreateAndUpdateDTO
+	var param dto.DepartmentCreateOrUpdateDTO
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {

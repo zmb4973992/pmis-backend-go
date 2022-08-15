@@ -24,7 +24,7 @@ func (operationRecordService) Get(operationRecordID int) response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (operationRecordService) Create(paramIn *dto.OperationRecordCreateAndUpdateDTO) response.Common {
+func (operationRecordService) Create(paramIn *dto.OperationRecordCreateOrUpdateDTO) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.OperationRecord
 
@@ -80,7 +80,7 @@ func (operationRecordService) Create(paramIn *dto.OperationRecordCreateAndUpdate
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (operationRecordService) Update(paramIn *dto.OperationRecordCreateAndUpdateDTO) response.Common {
+func (operationRecordService) Update(paramIn *dto.OperationRecordCreateOrUpdateDTO) response.Common {
 	var paramOut model.OperationRecord
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -162,10 +162,10 @@ func (operationRecordService) List(paramIn dto.OperationRecordListDTO) response.
 	if id := paramIn.ID; id > 0 {
 		sqlCondition.Equal("id", id)
 	}
-	if paramIn.ProjectID != nil && *paramIn.ProjectID != -1 {
+	if paramIn.ProjectID != nil {
 		sqlCondition.Equal("project_id", *paramIn.ProjectID)
 	}
-	if paramIn.OperatorID != nil && *paramIn.OperatorID != -1 {
+	if paramIn.OperatorID != nil {
 		sqlCondition.Equal("operator_id", *paramIn.OperatorID)
 	}
 	if paramIn.DateGte != nil && *paramIn.DateGte != "" {

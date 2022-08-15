@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"learn-go/dto"
-	"learn-go/model"
 	"learn-go/serializer/response"
 	"learn-go/service"
 	"learn-go/util"
@@ -33,27 +32,27 @@ func (relatedPartyController) Get(c *gin.Context) {
 }
 
 func (relatedPartyController) Update(c *gin.Context) {
-	var paramIn model.RelatedParty
+	var param dto.RelatedPartyCreateOrUpdateDTO
 	//先把json参数绑定到model
-	err := c.ShouldBindJSON(&paramIn)
+	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	paramIn.ID, err = strconv.Atoi(c.Param("id"))
+	param.ID, err = strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.RelatedPartyService.Update(&paramIn)
+	res := service.RelatedPartyService.Update(&param)
 	c.JSON(200, res)
 }
 
 func (relatedPartyController) Create(c *gin.Context) {
-	var paramIn model.RelatedParty
+	var paramIn dto.RelatedPartyCreateOrUpdateDTO
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&paramIn)
 	if err != nil {

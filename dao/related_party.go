@@ -17,11 +17,11 @@ type relatedPartyDAO struct{}
 
 // Get 这里是只负责查询，不写任何业务逻辑。
 // 查询数据库记录，返回dto
-func (relatedPartyDAO) Get(id int) *dto.RelatedPartyDTO {
+func (relatedPartyDAO) Get(id int) *dto.RelatedPartyGetDTO {
 	//之所以用dto不用model，是因为model为数据库原表，数据可能包含敏感字段、或未加工，不适合直接传递
 	//展现的功能基本都交给dto
-	var param dto.RelatedPartyDTO
-	err := global.DB.Debug().Model(&model.RelatedParty{}).Where("id = ?", id).First(&param).Error
+	var param dto.RelatedPartyGetDTO
+	err := global.DB.Model(&model.RelatedParty{}).Where("id = ?", id).First(&param).Error
 	if err != nil {
 		return nil
 	}

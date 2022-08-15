@@ -22,7 +22,7 @@ func (departmentService) Get(departmentID int) response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (departmentService) Create(paramIn *dto.DepartmentCreateAndUpdateDTO) response.Common {
+func (departmentService) Create(paramIn *dto.DepartmentCreateOrUpdateDTO) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.Department
 	paramOut.Name = paramIn.Name
@@ -42,7 +42,7 @@ func (departmentService) Create(paramIn *dto.DepartmentCreateAndUpdateDTO) respo
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (departmentService) Update(paramIn *dto.DepartmentCreateAndUpdateDTO) response.Common {
+func (departmentService) Update(paramIn *dto.DepartmentCreateOrUpdateDTO) response.Common {
 	var paramOut model.Department
 	paramOut.ID = paramIn.ID
 	paramOut.Name = paramIn.Name

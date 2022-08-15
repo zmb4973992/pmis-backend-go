@@ -1,14 +1,14 @@
 package dto
 
 type DepartmentGetDTO struct {
-	Name     string `json:"name"`     //部门名称
-	Level    string `json:"level"`    //级别，如公司、事业部、部门等
-	Superior any    `json:"superior"` //上级机构
+	Name     string `json:"name"  mapstructure:"name"`        //部门名称
+	Level    string `json:"level" mapstructure:"level"`       //级别，如公司、事业部、部门等
+	Superior any    `json:"superior" mapstructure:"superior"` //上级机构
 }
 
-// DepartmentCreateAndUpdateDTO
+// DepartmentCreateOrUpdateDTO
 // 除id外，所有字段都设置为必须绑定
-type DepartmentCreateAndUpdateDTO struct {
+type DepartmentCreateOrUpdateDTO struct {
 	ID         int    `json:"id"`
 	Name       string `json:"name" binding:"required"`        //部门名称
 	Level      string `json:"level" binding:"required"`       //级别，如公司、事业部、部门等

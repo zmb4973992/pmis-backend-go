@@ -12,8 +12,3 @@ func (roleAndUserDAO) Create(param *model.RoleAndUser) error {
 	err := global.DB.Create(param).Error
 	return err
 }
-
-func (roleAndUserDAO) CreateBatch(param []model.RoleAndUser) error {
-	err := global.DB.Create(param).Error
-	return err
-}

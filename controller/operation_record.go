@@ -27,7 +27,7 @@ func (operationRecordController) Get(c *gin.Context) {
 }
 
 func (operationRecordController) Create(c *gin.Context) {
-	var param dto.OperationRecordCreateAndUpdateDTO
+	var param dto.OperationRecordCreateOrUpdateDTO
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -42,7 +42,7 @@ func (operationRecordController) Create(c *gin.Context) {
 }
 
 func (operationRecordController) Update(c *gin.Context) {
-	var param dto.OperationRecordCreateAndUpdateDTO
+	var param dto.OperationRecordCreateOrUpdateDTO
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {

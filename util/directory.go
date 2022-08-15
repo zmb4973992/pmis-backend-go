@@ -10,7 +10,8 @@ func PathExistsOrNot(path string) bool {
 	_, err := os.Stat(path)
 	/*
 		当函数返回true时，其实文件并不一定存在。
-		对目标path中的某一部分没有可读权限时，os.Lstat和syscall.Access同样会返回error，不过这个error不会让os.IsNotExist返回true。
+		对目标path中的某一部分没有可读权限时，os.Lstat和syscall.Access同样会返回error，
+		不过这个error不会让os.IsNotExist返回true。
 		当文件不存在而你对文件所在的目录或者它的上层目录没有访问权限时，函数依旧会返回true，bug就在这时发生了。
 		所以重要的一点是在判断文件是否存在前，应该先判断自己对文件及其路径是否有访问权限。
 	*/
