@@ -3,7 +3,7 @@ package dao
 type dao struct {
 	departmentDAO
 	departmentAndUserDAO
-	projectBreakdownDAO
+	projectDisassemblyDAO
 	relatedPartyDAO
 	roleAndUserDAO
 	userDAO
@@ -11,12 +11,12 @@ type dao struct {
 }
 
 var (
-	entrance             = new(dao)
-	DepartmentDAO        = entrance.departmentDAO
-	DepartmentAndUserDAO = entrance.departmentAndUserDAO
-	ProjectBreakdownDAO  = entrance.projectBreakdownDAO
-	RelatedPartyDAO      = entrance.relatedPartyDAO
-	RoleAndUserDAO       = entrance.roleAndUserDAO
-	UserDAO              = entrance.userDAO
-	OperationRecordDAO   = entrance.operationRecordDAO
+	entrance              = new(dao)
+	DepartmentDAO         = entrance.departmentDAO
+	DepartmentAndUserDAO  = entrance.departmentAndUserDAO
+	ProjectDisassemblyDAO = entrance.projectDisassemblyDAO
+	RelatedPartyDAO       = entrance.relatedPartyDAO
+	RoleAndUserDAO        = entrance.roleAndUserDAO
+	UserDAO               = entrance.userDAO
+	OperationRecordDAO    = entrance.operationRecordDAO
 )

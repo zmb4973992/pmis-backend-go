@@ -12,22 +12,22 @@ import (
 	"strconv"
 )
 
-type projectBreakdownController struct{}
+type projectDisassemblyController struct{}
 
-func (projectBreakdownController) Get(c *gin.Context) {
+func (projectDisassemblyController) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.ProjectBreakdownService.Get(id)
+	res := service.ProjectDisassemblyService.Get(id)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (projectBreakdownController) Create(c *gin.Context) {
-	var param dto.ProjectBreakdownCreateAndUpdateDTO
+func (projectDisassemblyController) Create(c *gin.Context) {
+	var param dto.ProjectDisassemblyCreateAndUpdateDTO
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -35,13 +35,13 @@ func (projectBreakdownController) Create(c *gin.Context) {
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
-	res := service.ProjectBreakdownService.Create(&param)
+	res := service.ProjectDisassemblyService.Create(&param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (projectBreakdownController) Update(c *gin.Context) {
-	var param dto.ProjectBreakdownCreateAndUpdateDTO
+func (projectDisassemblyController) Update(c *gin.Context) {
+	var param dto.ProjectDisassemblyCreateAndUpdateDTO
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -56,23 +56,23 @@ func (projectBreakdownController) Update(c *gin.Context) {
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.ProjectBreakdownService.Update(&param)
+	res := service.ProjectDisassemblyService.Update(&param)
 	c.JSON(200, res)
 }
 
-func (projectBreakdownController) Delete(c *gin.Context) {
+func (projectDisassemblyController) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.ProjectBreakdownService.Delete(id)
+	res := service.ProjectDisassemblyService.Delete(id)
 	c.JSON(http.StatusOK, res)
 }
 
-func (projectBreakdownController) List(c *gin.Context) {
-	var param dto.ProjectBreakdownListDTO
+func (projectDisassemblyController) List(c *gin.Context) {
+	var param dto.ProjectDisassemblyListDTO
 	err := c.ShouldBindJSON(&param)
 
 	if err != nil && errors.Is(err, io.EOF) == false {
@@ -81,6 +81,6 @@ func (projectBreakdownController) List(c *gin.Context) {
 		return
 	}
 	//生成Service,然后调用它的方法
-	res := service.ProjectBreakdownService.List(param)
+	res := service.ProjectDisassemblyService.List(param)
 	c.JSON(http.StatusOK, res)
 }

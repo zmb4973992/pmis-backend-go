@@ -1,6 +1,6 @@
 package model
 
-type ProjectBreakdown struct {
+type ProjectDisassembly struct {
 	BaseModel
 	Name           *string        //名称
 	ProjectID      *int           //项目id，外键
@@ -11,6 +11,6 @@ type ProjectBreakdown struct {
 }
 
 // TableName 修改表名
-func (ProjectBreakdown) TableName() string {
-	return "project_breakdown"
+func (ProjectDisassembly) TableName() string {
+	return "project_disassembly"
 }

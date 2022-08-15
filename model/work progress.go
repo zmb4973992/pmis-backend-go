@@ -2,8 +2,8 @@ package model
 
 type WorkProgress struct {
 	BaseModel
-	ProjectBreakdownID *int    //项目拆解id，外键
-	Date               *string `gorm:"type:date;"` //日期  默认格式为2020-02-02
+	ProjectDisassemblyID *int    //项目拆解id，外键
+	Date                 *string `gorm:"type:date;"` //日期  默认格式为2020-02-02
 
 	PlannedProgress             *float64 //初始计划进度
 	RemarkOfPlannedProgress     *string  //初始计划进度的备注

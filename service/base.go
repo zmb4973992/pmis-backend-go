@@ -6,17 +6,17 @@ type EntranceOfAllService struct {
 	userService
 	relatedPartyService
 	departmentService
-	projectBreakdownService
+	projectDisassemblyService
 	operationRecordService
 }
 
 //定义各个服务的入口,避免反复new service
 var (
-	entrance                = new(EntranceOfAllService)
-	LoginService            = entrance.loginService
-	UserService             = entrance.userService
-	RelatedPartyService     = entrance.relatedPartyService
-	DepartmentService       = entrance.departmentService
-	ProjectBreakdownService = entrance.projectBreakdownService
-	OperationRecordService  = entrance.operationRecordService
+	entrance                  = new(EntranceOfAllService)
+	LoginService              = entrance.loginService
+	UserService               = entrance.userService
+	RelatedPartyService       = entrance.relatedPartyService
+	DepartmentService         = entrance.departmentService
+	ProjectDisassemblyService = entrance.projectDisassemblyService
+	OperationRecordService    = entrance.operationRecordService
 )

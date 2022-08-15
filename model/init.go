@@ -34,7 +34,7 @@ func Init() {
 		&Role{},
 		&RoleAndUser{},
 		&Contract{},
-		&ProjectBreakdown{},
+		&ProjectDisassembly{},
 		&WorkProgress{},
 		&ActualReceiptAndPayment{},
 		&PlannedReceiptAndPayment{},

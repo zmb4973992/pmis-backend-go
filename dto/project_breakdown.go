@@ -1,6 +1,6 @@
 package dto
 
-type ProjectBreakdownGetDTO struct {
+type ProjectDisassemblyGetDTO struct {
 	Name       *string  `json:"name"`        //名称
 	ProjectID  *int     `json:"project_id"`  //所属项目id
 	Level      *int     `json:"level"`       //层级
@@ -8,9 +8,9 @@ type ProjectBreakdownGetDTO struct {
 	SuperiorID *int     `json:"superior_id"` //上级拆解项id
 }
 
-// ProjectBreakdownCreateAndUpdateDTO
+// ProjectDisassemblyCreateAndUpdateDTO
 // 除id外，所有字段都设置为必须绑定
-type ProjectBreakdownCreateAndUpdateDTO struct {
+type ProjectDisassemblyCreateAndUpdateDTO struct {
 	ID         int      `json:"id"`
 	Name       *string  `json:"name" binding:"required"`        //拆解项名称
 	ProjectID  *int     `json:"project_id" binding:"required"`  //所属项目id
@@ -19,9 +19,9 @@ type ProjectBreakdownCreateAndUpdateDTO struct {
 	SuperiorID *int     `json:"superior_id" binding:"required"` //上级拆解项ID
 }
 
-// ProjectBreakdownListDTO 是list查询的过滤器
+// ProjectDisassemblyListDTO 是list查询的过滤器
 // 在dto传递给sqlCondition时，空值会被忽略
-type ProjectBreakdownListDTO struct {
+type ProjectDisassemblyListDTO struct {
 	ID    int  `json:"id"`
 	IDGte *int `json:"id_gte"`
 	IDLte *int `json:"id_lte"`

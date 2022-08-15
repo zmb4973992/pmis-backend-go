@@ -9,22 +9,22 @@ import (
 	"learn-go/util"
 )
 
-// ProjectBreakdownService 没有数据、只有方法，所有的数据都放在DTO里
+// ProjectDisassemblyService 没有数据、只有方法，所有的数据都放在DTO里
 //这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
 //所有的增删改查都交给DAO层处理，否则service层会非常庞大
-type projectBreakdownService struct{}
+type projectDisassemblyService struct{}
 
-func (projectBreakdownService) Get(projectBreakdownID int) response.Common {
-	result := dao.ProjectBreakdownDAO.Get(projectBreakdownID)
+func (projectDisassemblyService) Get(projectDisassemblyID int) response.Common {
+	result := dao.ProjectDisassemblyDAO.Get(projectDisassemblyID)
 	if result == nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	return response.SuccessWithData(result)
 }
 
-func (projectBreakdownService) Create(paramIn *dto.ProjectBreakdownCreateAndUpdateDTO) response.Common {
+func (projectDisassemblyService) Create(paramIn *dto.ProjectDisassemblyCreateAndUpdateDTO) response.Common {
 	//对dto进行清洗，生成dao层需要的model
-	var paramOut model.ProjectBreakdown
+	var paramOut model.ProjectDisassembly
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
 		paramOut.Name = nil
@@ -52,7 +52,7 @@ func (projectBreakdownService) Create(paramIn *dto.ProjectBreakdownCreateAndUpda
 		paramOut.SuperiorID = paramIn.SuperiorID
 	}
 
-	err := dao.ProjectBreakdownDAO.Create(&paramOut)
+	err := dao.ProjectDisassemblyDAO.Create(&paramOut)
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
@@ -61,8 +61,8 @@ func (projectBreakdownService) Create(paramIn *dto.ProjectBreakdownCreateAndUpda
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (projectBreakdownService) Update(paramIn *dto.ProjectBreakdownCreateAndUpdateDTO) response.Common {
-	var paramOut model.ProjectBreakdown
+func (projectDisassemblyService) Update(paramIn *dto.ProjectDisassemblyCreateAndUpdateDTO) response.Common {
+	var paramOut model.ProjectDisassembly
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
@@ -92,7 +92,7 @@ func (projectBreakdownService) Update(paramIn *dto.ProjectBreakdownCreateAndUpda
 	}
 
 	//清洗完毕，开始update
-	err := dao.ProjectBreakdownDAO.Update(&paramOut)
+	err := dao.ProjectDisassemblyDAO.Update(&paramOut)
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -100,15 +100,15 @@ func (projectBreakdownService) Update(paramIn *dto.ProjectBreakdownCreateAndUpda
 	return response.Success()
 }
 
-func (projectBreakdownService) Delete(projectBreakdownID int) response.Common {
-	err := dao.ProjectBreakdownDAO.Delete(projectBreakdownID)
+func (projectDisassemblyService) Delete(projectDisassemblyID int) response.Common {
+	err := dao.ProjectDisassemblyDAO.Delete(projectDisassemblyID)
 	if err != nil {
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()
 }
 
-func (projectBreakdownService) List(paramIn dto.ProjectBreakdownListDTO) response.List {
+func (projectDisassemblyService) List(paramIn dto.ProjectDisassemblyListDTO) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 	//对paramIn进行清洗
@@ -116,7 +116,7 @@ func (projectBreakdownService) List(paramIn dto.ProjectBreakdownListDTO) respons
 	//如果参数正确，那么指定字段的数据正常返回，其他字段返回空；
 	//如果参数错误，就返回全部字段的数据
 	if len(paramIn.SelectedColumns) > 0 {
-		ok := sqlCondition.ValidateColumns(paramIn.SelectedColumns, model.ProjectBreakdown{})
+		ok := sqlCondition.ValidateColumns(paramIn.SelectedColumns, model.ProjectDisassembly{})
 		if ok {
 			sqlCondition.SelectedColumns = paramIn.SelectedColumns
 		}
@@ -151,7 +151,7 @@ func (projectBreakdownService) List(paramIn dto.ProjectBreakdownListDTO) respons
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
-		ok := sqlCondition.ValidateColumn(orderBy, model.ProjectBreakdown{})
+		ok := sqlCondition.ValidateColumn(orderBy, model.ProjectDisassembly{})
 		if ok {
 			sqlCondition.Sorting.OrderBy = orderBy
 		}
@@ -163,8 +163,8 @@ func (projectBreakdownService) List(paramIn dto.ProjectBreakdownListDTO) respons
 		sqlCondition.Sorting.Desc = false
 	}
 
-	list := sqlCondition.Find(model.ProjectBreakdown{})
-	totalRecords := sqlCondition.Count(model.ProjectBreakdown{})
+	list := sqlCondition.Find(model.ProjectDisassembly{})
+	totalRecords := sqlCondition.Count(model.ProjectDisassembly{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(list) == 0 {
