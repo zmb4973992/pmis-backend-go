@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 	"learn-go/dao"
 	"learn-go/dto"
@@ -107,7 +108,12 @@ func (userService) Create(paramIn *dto.UserCreateDTO) response.Common {
 
 func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
 	var paramOut model.User
-	paramOut.ID = paramIn.ID
+	//先找出原始记录
+	err := global.DB.Where("id = ?", paramIn.ID).First(&paramOut).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToUpdateRecord)
+	}
+
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	if *paramIn.FullName == "" {
 		paramOut.FullName = nil
@@ -130,10 +136,9 @@ func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
 	} else {
 		paramOut.EmployeeNumber = paramIn.EmployeeNumber
 	}
-	//这里对一对多关系字段不作处理，都交给下面的事务
 
-	//由于涉及到多表的保存，所以这里启用事务
-	err := global.DB.Transaction(
+	//由于涉及到多表的保存，这里对一对多关系字段不作处理，都交给下面的事务
+	err = global.DB.Transaction(
 		func(tx *gorm.DB) error {
 			//注意，这里没有使用dao层的封装方法，而是使用tx+gorm的原始方法
 			err := tx.Where("id = ?", paramIn.ID).Omit("created_at").Save(&paramOut).Error
@@ -217,15 +222,6 @@ func (userService) List(paramIn dto.UserListDTO) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 
-	//对paramIn进行清洗
-	//这部分是用于where的参数
-	if len(paramIn.SelectedColumns) > 0 {
-		ok := sqlCondition.ValidateColumns(paramIn.SelectedColumns, model.User{})
-		if ok {
-			sqlCondition.SelectedColumns = paramIn.SelectedColumns
-		}
-	}
-
 	//这部分是用于where的参数
 	if paramIn.Page > 0 {
 		sqlCondition.Paging.Page = paramIn.Page
@@ -247,9 +243,15 @@ func (userService) List(paramIn dto.UserListDTO) response.List {
 	if paramIn.IDLte != nil {
 		sqlCondition.Lte("id", *paramIn.IDLte)
 	}
+
+	if paramIn.IsValid != nil {
+		sqlCondition.Equal("is_valid", *paramIn.IsValid)
+	}
+
 	if paramIn.Username != nil && *paramIn.Username != "" {
 		sqlCondition = sqlCondition.Equal("username", *paramIn.Username)
 	}
+
 	if paramIn.UsernameInclude != nil && *paramIn.UsernameInclude != "" {
 		sqlCondition = sqlCondition.Include("username", *paramIn.UsernameInclude)
 	}
@@ -269,13 +271,47 @@ func (userService) List(paramIn dto.UserListDTO) response.List {
 		sqlCondition.Sorting.Desc = false
 	}
 
-	list := sqlCondition.Find(model.User{})
+	tempList := sqlCondition.Find(model.User{})
 	totalRecords := sqlCondition.Count(model.User{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
-	if len(list) == 0 {
+	if len(tempList) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
+
+	//这里的tempList是基于model的，不能直接传给前端，要处理成dto才行
+	//如果map的字段类型和struct的字段类型不匹配，数据不会同步过来
+	var list []dto.UserGetDTO
+	_ = mapstructure.Decode(&tempList, &list)
+
+	//处理字段类型不匹配、或者有特殊格式要求的字段
+	for i := range tempList {
+		userID := tempList[i]["id"]
+		//把该userID的所有role_and_user记录查出来
+		var roleAndUsers []model.RoleAndUser
+		global.DB.Where("user_id = ?", userID).Find(&roleAndUsers)
+		//把所有的roleID提取出来，查出相应的角色名称
+		var roleNames []string
+		for _, roleAndUser := range roleAndUsers {
+			var role model.Role
+			global.DB.Where("id = ?", roleAndUser.RoleID).First(&role)
+			roleNames = append(roleNames, role.Name)
+		}
+		list[i].Roles = roleNames
+
+		//把该userID的所有department_and_user记录查出来
+		var departmentAndUsers []model.DepartmentAndUser
+		global.DB.Where("user_id = ?", userID).Find(&departmentAndUsers)
+		//把所有的departmentID提取出来，查出相应的部门名称
+		var departmentNames []string
+		for _, departmentAndUser := range departmentAndUsers {
+			var department model.Department
+			global.DB.Where("id = ?", departmentAndUser.DepartmentID).First(&department)
+			departmentNames = append(departmentNames, department.Name)
+		}
+		list[i].Departments = departmentNames
+	}
+
 	return response.List{
 		Data: list,
 		Paging: &dto.PagingDTO{

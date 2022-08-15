@@ -8,7 +8,7 @@ import (
 )
 
 type SqlCondition struct {
-	SelectedColumns []string
+	SelectedColumns []string //暂时弃用，因为比较麻烦，要考虑dto和model转换的问题
 	ParamPairs      []ParamPair
 	Sorting         dto.SortingDTO
 	Paging          dto.PagingDTO
@@ -101,14 +101,16 @@ func (s *SqlCondition) In(paramKey string, paramValue string) *SqlCondition {
 func (s *SqlCondition) Build(db *gorm.DB) *gorm.DB {
 	//处理顺序：select → where → order → limit → offset
 	//select
-	//先定义绝对不传给前端的字段，比如密码等
-	OmittedColumns := global.Config.DBConfig.OmittedColumns
-	db = db.Omit(OmittedColumns...)
 
-	//然后是选择要显示哪些字段。如果不填，就显示全部字段
+	//选择要显示哪些字段。如果不填，就显示全部字段
+	//selectedColumns暂时弃用，因为比较麻烦，涉及到dto、model的转换
 	if len(s.SelectedColumns) > 0 {
 		db = db.Select(s.SelectedColumns)
 	}
+
+	//定义绝对不传给前端的字段，比如密码等
+	OmittedColumns := global.Config.DBConfig.OmittedColumns
+	db = db.Debug().Omit(OmittedColumns...)
 
 	//where
 	if len(s.ParamPairs) > 0 {
@@ -119,10 +121,14 @@ func (s *SqlCondition) Build(db *gorm.DB) *gorm.DB {
 
 	//orderBy
 	orderBy := s.Sorting.OrderBy
-	if orderBy != "" {
-		if s.Sorting.Desc == true {
+	if orderBy == "" { //如果排序字段为空
+		if s.Sorting.Desc == true { //如果要求降序排列
+			db = db.Order("id desc")
+		}
+	} else { //如果有排序字段
+		if s.Sorting.Desc == true { //如果要求降序排列
 			db = db.Order(s.Sorting.OrderBy + " desc")
-		} else {
+		} else { //如果没有要求排序方式
 			db = db.Order(s.Sorting.OrderBy)
 		}
 	}
@@ -130,16 +136,17 @@ func (s *SqlCondition) Build(db *gorm.DB) *gorm.DB {
 	//limit
 	db = db.Limit(s.Paging.PageSize)
 
-	//原offset方法，数据量超过50万后会明显变慢
-	//offset := (s.Paging.Page - 1) * s.Paging.PageSize
-	//db = db.Offset(offset)
+	//原offset方法，数据量超过50万后会明显变慢。好处是不用考虑id的缺失
+	offset := (s.Paging.Page - 1) * s.Paging.PageSize
+	db = db.Offset(offset)
 
 	//新offset方法，数据量哪怕达到几千万也不会产生查询瓶颈，已测试过
 	//任何数据库的 offset 1000000 都比 where id > 1000000 要慢很多
-	offset := (s.Paging.Page - 1) * s.Paging.PageSize
-	if offset > 0 {
-		db = db.Where("id > ?", offset)
-	}
+	//问题在于如果id不连续，会导致偏移出现错误
+	//offset := (s.Paging.Page - 1) * s.Paging.PageSize
+	//if offset > 0 {
+	//	db = db.Where("id > ?", offset)
+	//}
 
 	return db
 }

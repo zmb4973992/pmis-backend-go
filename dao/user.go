@@ -72,51 +72,8 @@ func (userDAO) Get(userID int) *dto.UserGetDTO {
 //	return err
 //}
 
-func (userDAO) Delete(id int) error {
+func (userDAO) Delete(userID int) error {
 	//注意，这里就算没有找到记录，也不会报错。详见gorm的delete用法
-	err := global.DB.Delete(&model.User{}, id).Error
+	err := global.DB.Delete(&model.User{}, userID).Error
 	return err
 }
-
-// List 入参为sql查询条件，结果为数据列表+分页情况
-//func (UserDAO) List(sqlCondition util.SqlCondition) (
-//	list []dto.UserCreateAndUpdateDTO, totalPages int, totalRecords int) {
-//	db := model.DB
-//	//select
-//	if len(sqlCondition.SelectedColumns) > 0 {
-//		db = db.Select(sqlCondition.SelectedColumns)
-//	}
-//	//where
-//	for _, paramPair := range sqlCondition.ParamPairs {
-//		db = db.Where(paramPair.Key, paramPair.Value)
-//	}
-//	//orderBy
-//	if sqlCondition.Sorting.OrderBy != "" {
-//		if sqlCondition.Sorting.Desc == true {
-//			db = db.Order(sqlCondition.Sorting.OrderBy + " desc")
-//		} else {
-//			db = db.Order(sqlCondition.Sorting.OrderBy)
-//		}
-//	}
-//	//count 计算totalRecords
-//	var tempTotalRecords int64
-//	err := db.Model(&model.User{}).Count(&tempTotalRecords).Error
-//	if err != nil {
-//		return nil, 0, 0
-//	}
-//	totalRecords = int(tempTotalRecords)
-//
-//	//limit
-//	db = db.Limit(sqlCondition.Paging.PageSize)
-//	//offset
-//	offset := (sqlCondition.Paging.Page - 1) * sqlCondition.Paging.PageSize
-//	db = db.Offset(offset)
-//
-//	//count 计算totalPages
-//	totalPages = util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
-//	err = db.Model(&model.User{}).Find(&list).Error
-//	if err != nil {
-//		return nil, 0, 0
-//	}
-//	return list, totalPages, totalRecords
-//}

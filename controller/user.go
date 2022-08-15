@@ -72,7 +72,7 @@ func (userController) Delete(c *gin.Context) {
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.RelatedPartyService.Delete(id)
+	res := service.UserService.Delete(id)
 	c.JSON(http.StatusOK, res)
 }
 

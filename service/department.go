@@ -74,17 +74,8 @@ func (departmentService) Delete(departmentID int) response.Common {
 func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
-	//对paramIn进行清洗
-	//select columns
-	//如果参数正确，那么指定字段的数据正常返回，其他字段返回空；
-	//如果参数错误，就返回全部字段的数据
-	if len(paramIn.SelectedColumns) > 0 {
-		ok := sqlCondition.ValidateColumns(paramIn.SelectedColumns, model.Department{})
-		if ok {
-			sqlCondition.SelectedColumns = paramIn.SelectedColumns
-		}
-	}
 
+	//对paramIn进行清洗
 	//这部分是用于where的参数
 	if paramIn.Page > 0 {
 		sqlCondition.Paging.Page = paramIn.Page

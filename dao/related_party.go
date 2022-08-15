@@ -4,7 +4,6 @@ import (
 	"learn-go/dto"
 	"learn-go/global"
 	"learn-go/model"
-	"learn-go/util"
 )
 
 /*
@@ -48,57 +47,4 @@ func (relatedPartyDAO) Update(paramIn *model.RelatedParty) error {
 func (relatedPartyDAO) Delete(id int) error {
 	err := global.DB.Debug().Delete(&model.RelatedParty{}, id).Error
 	return err
-}
-
-// List 这里是只负责查询列表，不写任何业务逻辑。
-// 查询数据库记录列表，返回dto
-// 入参为sql查询条件，结果为数据列表+分页情况
-// List 入参为sql查询条件，结果为数据列表+分页情况
-func (relatedPartyDAO) List(sqlCondition util.SqlCondition) (
-	list []dto.RelatedPartyDTO, totalPages int, totalRecords int) {
-	db := global.DB
-	//select
-	if len(sqlCondition.SelectedColumns) > 0 {
-		db = db.Select(sqlCondition.SelectedColumns)
-	}
-	//where
-	for _, paramPair := range sqlCondition.ParamPairs {
-		db = db.Where(paramPair.Key, paramPair.Value)
-	}
-	//orderBy
-	orderBy := sqlCondition.Sorting.OrderBy
-	if orderBy != "" {
-		var columns []string
-		db.Raw("Select Name FROM SysColumns where id=Object_Id('related_party')").
-			Find(&columns)
-		if ok := util.IsInSlice(orderBy, columns); ok {
-			if sqlCondition.Sorting.Desc == true {
-				db = db.Order(sqlCondition.Sorting.OrderBy + " desc")
-			} else {
-				db = db.Order(sqlCondition.Sorting.OrderBy)
-			}
-		}
-	}
-	//count 计算totalRecords
-	var tempTotalRecords int64
-	err := db.Debug().Model(&model.RelatedParty{}).Count(&tempTotalRecords).Error
-	if err != nil {
-		return nil, 0, 0
-	}
-	totalRecords = int(tempTotalRecords)
-
-	//limit
-	db = db.Limit(sqlCondition.Paging.PageSize)
-	//offset
-	offset := (sqlCondition.Paging.Page - 1) * sqlCondition.Paging.PageSize
-	db = db.Offset(offset)
-
-	//count 计算totalPages
-	totalPages = util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
-	err = db.Debug().Model(&model.RelatedParty{}).Find(&list).Error
-
-	if err != nil {
-		return nil, 0, 0
-	}
-	return list, totalPages, totalRecords
 }

@@ -122,11 +122,12 @@ func (relatedPartyService) List(paramIn dto.RelatedPartyListDTO) response.List {
 	}
 
 	//这部分是用于order的参数
-	column := paramIn.OrderBy
-	//allColumns := []string{"id", "telephone", "file"}
-	//re := util.IsInSlice(column, allColumns)
-	if column != "" {
-		sqlCondition.Sorting.OrderBy = column
+	orderBy := paramIn.OrderBy
+	if orderBy != "" {
+		ok := sqlCondition.ValidateColumn(orderBy, model.RelatedParty{})
+		if ok {
+			sqlCondition.Sorting.OrderBy = orderBy
+		}
 	}
 	desc := paramIn.Desc
 	if desc == true {
@@ -134,11 +135,15 @@ func (relatedPartyService) List(paramIn dto.RelatedPartyListDTO) response.List {
 	} else {
 		sqlCondition.Sorting.Desc = false
 	}
-	//新建一个dao.User结构体的实例
-	list, totalPages, totalRecords := dao.RelatedPartyDAO.List(*sqlCondition)
-	if list == nil {
+
+	list := sqlCondition.Find(model.RelatedParty{})
+	totalRecords := sqlCondition.Count(model.RelatedParty{})
+	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
+
+	if len(list) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
+
 	return response.List{
 		Data: list,
 		Paging: &dto.PagingDTO{
