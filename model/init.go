@@ -34,8 +34,10 @@ func Init() {
 		&Role{},
 		&RoleAndUser{},
 		&Contract{},
-		&ProjectDisassembly{},
+		&Disassembly{},
+		&DisassemblySnapshot{},
 		&WorkProgress{},
+		&WorkProgressSnapshot{},
 		&ActualReceiptAndPayment{},
 		&PlannedReceiptAndPayment{},
 		&PredictedReceiptAndPayment{},
@@ -60,5 +62,4 @@ func generateData() {
 	if err = generateDepartments(); err != nil {
 		panic(err)
 	}
-
 }

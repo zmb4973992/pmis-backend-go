@@ -1,6 +1,6 @@
 package model
 
-type ProjectDisassembly struct {
+type Disassembly struct {
 	BaseModel
 	Name           *string        //名称
 	ProjectID      *int           //项目id，外键
@@ -11,6 +11,6 @@ type ProjectDisassembly struct {
 }
 
 // TableName 修改表名
-func (ProjectDisassembly) TableName() string {
-	return "project_disassembly"
+func (Disassembly) TableName() string {
+	return "disassembly"
 }

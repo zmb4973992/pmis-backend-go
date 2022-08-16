@@ -26,6 +26,7 @@ type config struct {
 	UploadConfig
 	EmailConfig
 	PagingConfig
+	//InitialData
 }
 
 type APPConfig struct {
@@ -72,6 +73,11 @@ type PagingConfig struct {
 	DefaultPageSize int
 	MaxPageSize     int
 }
+
+//type InitialData struct {
+//	Countries []string
+//	Provinces []string
+//}
 
 func Init() {
 	v.AddConfigPath("./config/") //告诉viper，配置文件的路径在哪
@@ -123,4 +129,7 @@ func loadConfig() {
 
 	Config.PagingConfig.DefaultPageSize = v.GetInt("paging.default_page_size")
 	Config.PagingConfig.MaxPageSize = v.GetInt("paging.max_page_size")
+
+	//Config.InitialData.Countries = v.GetStringSlice("initial_data.countries")
+	//Config.InitialData.Provinces = v.GetStringSlice("initial_data.provinces")
 }

@@ -18,7 +18,7 @@ type Project struct {
 	UpdatedAt        time.Time
 	RelatedPartyID   *int
 	//外键
-	Disassemblies               []ProjectDisassembly         `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Disassemblies               []Disassembly                `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	ActualReceiptAndPayments    []ActualReceiptAndPayment    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 	PlannedReceiptAndPayments   []PlannedReceiptAndPayment   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	PredictedReceiptAndPayments []PredictedReceiptAndPayment `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`

@@ -110,7 +110,7 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 	if id := paramIn.ID; id > 0 {
 		sqlCondition.Equal("id", id)
 	}
-	if paramIn.SuperiorID != nil && *paramIn.SuperiorID != 0 {
+	if paramIn.SuperiorID != nil {
 		sqlCondition.Equal("superior_id", *paramIn.SuperiorID)
 	}
 	if paramIn.Level != nil && *paramIn.Level != "" {
@@ -126,7 +126,7 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
-		ok := sqlCondition.ValidateColumn(orderBy, model.ProjectDisassembly{})
+		ok := sqlCondition.ValidateColumn(orderBy, model.Disassembly{})
 		if ok {
 			sqlCondition.Sorting.OrderBy = orderBy
 		}

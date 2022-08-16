@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/mitchellh/mapstructure"
 	"learn-go/dao"
 	"learn-go/dto"
 	"learn-go/global"
@@ -9,22 +10,22 @@ import (
 	"learn-go/util"
 )
 
-// ProjectDisassemblyService 没有数据、只有方法，所有的数据都放在DTO里
+// disassemblyService 没有数据、只有方法，所有的数据都放在DTO里
 //这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
 //所有的增删改查都交给DAO层处理，否则service层会非常庞大
-type projectDisassemblyService struct{}
+type disassemblyService struct{}
 
-func (projectDisassemblyService) Get(projectDisassemblyID int) response.Common {
-	result := dao.ProjectDisassemblyDAO.Get(projectDisassemblyID)
+func (disassemblyService) Get(disassemblyID int) response.Common {
+	result := dao.DisassemblyDAO.Get(disassemblyID)
 	if result == nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	return response.SuccessWithData(result)
 }
 
-func (projectDisassemblyService) Create(paramIn *dto.ProjectDisassemblyCreateOrUpdateDTO) response.Common {
+func (disassemblyService) Create(paramIn *dto.DisassemblyCreateOrUpdateDTO) response.Common {
 	//对dto进行清洗，生成dao层需要的model
-	var paramOut model.ProjectDisassembly
+	var paramOut model.Disassembly
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
 		paramOut.Name = nil
@@ -52,7 +53,7 @@ func (projectDisassemblyService) Create(paramIn *dto.ProjectDisassemblyCreateOrU
 		paramOut.SuperiorID = paramIn.SuperiorID
 	}
 
-	err := dao.ProjectDisassemblyDAO.Create(&paramOut)
+	err := dao.DisassemblyDAO.Create(&paramOut)
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
@@ -61,8 +62,8 @@ func (projectDisassemblyService) Create(paramIn *dto.ProjectDisassemblyCreateOrU
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (projectDisassemblyService) Update(paramIn *dto.ProjectDisassemblyCreateOrUpdateDTO) response.Common {
-	var paramOut model.ProjectDisassembly
+func (disassemblyService) Update(paramIn *dto.DisassemblyCreateOrUpdateDTO) response.Common {
+	var paramOut model.Disassembly
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
@@ -92,7 +93,7 @@ func (projectDisassemblyService) Update(paramIn *dto.ProjectDisassemblyCreateOrU
 	}
 
 	//清洗完毕，开始update
-	err := dao.ProjectDisassemblyDAO.Update(&paramOut)
+	err := dao.DisassemblyDAO.Update(&paramOut)
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -100,15 +101,15 @@ func (projectDisassemblyService) Update(paramIn *dto.ProjectDisassemblyCreateOrU
 	return response.Success()
 }
 
-func (projectDisassemblyService) Delete(projectDisassemblyID int) response.Common {
-	err := dao.ProjectDisassemblyDAO.Delete(projectDisassemblyID)
+func (disassemblyService) Delete(disassemblyID int) response.Common {
+	err := dao.DisassemblyDAO.Delete(disassemblyID)
 	if err != nil {
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()
 }
 
-func (projectDisassemblyService) List(paramIn dto.ProjectDisassemblyListDTO) response.List {
+func (disassemblyService) List(paramIn dto.DisassemblyListDTO) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 
@@ -123,26 +124,30 @@ func (projectDisassemblyService) List(paramIn dto.ProjectDisassemblyListDTO) res
 		sqlCondition.Paging.PageSize = paramIn.PageSize
 	}
 
-	if id := paramIn.ID; id > 0 {
-		sqlCondition.Equal("id", id)
+	if paramIn.ProjectID != nil {
+		sqlCondition.Equal("project_id", *paramIn.ProjectID)
 	}
-	if paramIn.IDGte != nil {
-		sqlCondition.Gte("id", *paramIn.IDGte)
+
+	if paramIn.SuperiorID != nil {
+		sqlCondition.Equal("superior_id", *paramIn.SuperiorID)
 	}
-	if paramIn.IDLte != nil {
-		sqlCondition.Lte("id", *paramIn.IDLte)
+
+	if paramIn.Level != nil {
+		sqlCondition.Equal("level", *paramIn.Level)
 	}
-	if paramIn.Name != nil && *paramIn.Name != "" {
-		sqlCondition = sqlCondition.Equal("name", *paramIn.Name)
+
+	if paramIn.LevelGte != nil {
+		sqlCondition.Gte("level", *paramIn.LevelGte)
 	}
-	if paramIn.NameInclude != nil && *paramIn.NameInclude != "" {
-		sqlCondition = sqlCondition.Include("name", *paramIn.NameInclude)
+
+	if paramIn.LevelLte != nil {
+		sqlCondition.Lte("level", *paramIn.LevelLte)
 	}
 
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
-		ok := sqlCondition.ValidateColumn(orderBy, model.ProjectDisassembly{})
+		ok := sqlCondition.ValidateColumn(orderBy, model.Disassembly{})
 		if ok {
 			sqlCondition.Sorting.OrderBy = orderBy
 		}
@@ -154,13 +159,16 @@ func (projectDisassemblyService) List(paramIn dto.ProjectDisassemblyListDTO) res
 		sqlCondition.Sorting.Desc = false
 	}
 
-	list := sqlCondition.Find(model.ProjectDisassembly{})
-	totalRecords := sqlCondition.Count(model.ProjectDisassembly{})
+	tempList := sqlCondition.Find(model.Disassembly{})
+	totalRecords := sqlCondition.Count(model.Disassembly{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
-	if len(list) == 0 {
+	if len(tempList) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
+
+	var list []dto.DisassemblyGetDTO
+	_ = mapstructure.Decode(&tempList, &list)
 
 	return response.List{
 		Data: list,

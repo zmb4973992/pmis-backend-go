@@ -1,13 +1,9 @@
 package model
 
-import "time"
-
-type WorkProgress struct {
+type WorkProgressSnapshot struct {
 	BaseModel
-	DisassemblyID         *int       //拆解情况id，外键
-	DisassemblyIDWithDate *string    //带日期的拆解情况id
-	FillingDate           *time.Time `gorm:"type:date;"` //添加记录的日期
-	Date                  *time.Time `gorm:"type:date;"` //日期
+	DisassemblyID *int    //项目拆解id，外键
+	Date          *string `gorm:"type:date;"` //日期  默认格式为2020-02-02
 
 	PlannedProgress             *float64 //初始计划进度
 	RemarkOfPlannedProgress     *string  //初始计划进度的备注
@@ -24,6 +20,6 @@ type WorkProgress struct {
 }
 
 // TableName 修改表名
-func (WorkProgress) TableName() string {
-	return "work_progress"
+func (WorkProgressSnapshot) TableName() string {
+	return "work_progress_snapshot"
 }

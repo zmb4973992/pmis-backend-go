@@ -3,7 +3,7 @@ package model
 type Dictionary struct {
 	BaseModel
 	Country                         *string //国家
-	ProvinceOrRegion                *string //省份或地区
+	Province                        *string //省份或地区
 	TermOfReceiptOrPayment          *string //收付款方式
 	Currency                        *string //币种
 	OrderForCurrency                *int    //币种排序
@@ -16,7 +16,6 @@ type Dictionary struct {
 	OrderForFundDirectionOfContract *int    //合同资金方向的排序
 	OurSignatory                    *string //我方签约主体
 	SensitiveWord                   *string //敏感词
-
 }
 
 // TableName 修改数据库的表名

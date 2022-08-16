@@ -37,11 +37,11 @@ func Init() *gin.Engine {
 		api.DELETE("/department/:id", controller.DepartmentController.Delete) //删除部门
 		api.GET("/department/list", controller.DepartmentController.List)     //获取部门列表
 
-		api.GET("/project_disassembly/:id", controller.ProjectDisassemblyController.Get)       //获取项目拆解详情
-		api.POST("/project_disassembly", controller.ProjectDisassemblyController.Create)       //新增项目拆解
-		api.PUT("/project_disassembly/:id", controller.ProjectDisassemblyController.Update)    //修改项目拆解
-		api.DELETE("/project_disassembly/:id", controller.ProjectDisassemblyController.Delete) //删除项目拆解
-		api.GET("/project_disassembly/list", controller.ProjectDisassemblyController.List)     //获取项目拆解列表
+		api.GET("/disassembly/:id", controller.DisassemblyController.Get)       //获取项目拆解详情
+		api.POST("/disassembly", controller.DisassemblyController.Create)       //新增项目拆解
+		api.PUT("/disassembly/:id", controller.DisassemblyController.Update)    //修改项目拆解
+		api.DELETE("/disassembly/:id", controller.DisassemblyController.Delete) //删除项目拆解
+		api.GET("/disassembly/list", controller.DisassemblyController.List)     //获取项目拆解列表
 
 		api.GET("/operation_record/:id", controller.OperationRecordController.Get)       //获取操作记录详情
 		api.POST("/operation_record", controller.OperationRecordController.Create)       //新增操作记录
