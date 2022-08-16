@@ -207,9 +207,9 @@ func (operationRecordService) List(paramIn dto.OperationRecordListDTO) response.
 	_ = mapstructure.Decode(&tempList, &list)
 
 	//处理字段类型不匹配、或者有特殊格式要求的字段
-	for k := range tempList {
-		a := tempList[k]["date"].(*time.Time).Format("2006-01-02")
-		list[k].Date = &a
+	for i := range tempList {
+		a := tempList[i]["date"].(*time.Time).Format("2006-01-02")
+		list[i].Date = &a
 	}
 
 	return response.List{

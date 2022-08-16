@@ -9,7 +9,7 @@ import (
 type operationRecordDAO struct{}
 
 func (operationRecordDAO) Get(operationRecordID int) *dto.OperationRecordGetDTO {
-	var param dto.OperationRecordGetDTO
+	var paramOut dto.OperationRecordGetDTO
 	//把基础的拆解信息查出来
 	var operationRecord model.OperationRecord
 	err := global.DB.Where("id = ?", operationRecordID).First(&operationRecord).Error
@@ -18,23 +18,23 @@ func (operationRecordDAO) Get(operationRecordID int) *dto.OperationRecordGetDTO 
 	}
 	//把所有查出的结果赋值给输出变量
 	if operationRecord.ProjectID != nil {
-		param.ProjectID = operationRecord.ProjectID
+		paramOut.ProjectID = operationRecord.ProjectID
 	}
 	if operationRecord.OperatorID != nil {
-		param.OperatorID = operationRecord.OperatorID
+		paramOut.OperatorID = operationRecord.OperatorID
 	}
 	if operationRecord.Date != nil {
 		date := operationRecord.Date.Format("2006-01-02")
-		param.Date = &date
+		paramOut.Date = &date
 	}
 	if operationRecord.Action != nil {
-		param.Action = operationRecord.Action
+		paramOut.Action = operationRecord.Action
 	}
 	if operationRecord.Detail != nil {
-		param.Detail = operationRecord.Detail
+		paramOut.Detail = operationRecord.Detail
 	}
 
-	return &param
+	return &paramOut
 }
 
 // Create 这里是只负责新增，不写任何业务逻辑。只要收到参数就创建数据库记录，然后返回错误

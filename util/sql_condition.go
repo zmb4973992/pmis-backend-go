@@ -110,7 +110,7 @@ func (s *SqlCondition) Build(db *gorm.DB) *gorm.DB {
 
 	//定义绝对不传给前端的字段，比如密码等
 	OmittedColumns := global.Config.DBConfig.OmittedColumns
-	db = db.Debug().Omit(OmittedColumns...)
+	db = db.Omit(OmittedColumns...)
 
 	//where
 	if len(s.ParamPairs) > 0 {

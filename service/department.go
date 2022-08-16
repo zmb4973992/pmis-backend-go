@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/mitchellh/mapstructure"
 	"learn-go/dao"
 	"learn-go/dto"
 	"learn-go/global"
@@ -25,14 +26,25 @@ func (departmentService) Get(departmentID int) response.Common {
 func (departmentService) Create(paramIn *dto.DepartmentCreateOrUpdateDTO) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.Department
-	paramOut.Name = paramIn.Name
-	paramOut.Level = paramIn.Level
-	//model.Department的SuperiorID为指针，需要处理
+
+	if paramIn.Name == "" {
+		return response.Failure(util.ErrorInvalidJSONParameters)
+	} else {
+		paramOut.Name = paramIn.Name
+	}
+
+	if paramIn.Level == "" {
+		return response.Failure(util.ErrorInvalidJSONParameters)
+	} else {
+		paramOut.Level = paramIn.Level
+	}
+
 	if *paramIn.SuperiorID == -1 {
 		paramOut.SuperiorID = nil
 	} else {
 		paramOut.SuperiorID = paramIn.SuperiorID
 	}
+
 	err := dao.DepartmentDAO.Create(&paramOut)
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
@@ -45,9 +57,19 @@ func (departmentService) Create(paramIn *dto.DepartmentCreateOrUpdateDTO) respon
 func (departmentService) Update(paramIn *dto.DepartmentCreateOrUpdateDTO) response.Common {
 	var paramOut model.Department
 	paramOut.ID = paramIn.ID
-	paramOut.Name = paramIn.Name
-	paramOut.Level = paramIn.Level
-	//model.Department的SuperiorID为指针，需要处理
+
+	if paramIn.Name == "" {
+		return response.Failure(util.ErrorInvalidJSONParameters)
+	} else {
+		paramOut.Name = paramIn.Name
+	}
+
+	if paramIn.Level == "" {
+		return response.Failure(util.ErrorInvalidJSONParameters)
+	} else {
+		paramOut.Level = paramIn.Level
+	}
+
 	if *paramIn.SuperiorID == -1 {
 		paramOut.SuperiorID = nil
 	} else {
@@ -88,14 +110,14 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 	if id := paramIn.ID; id > 0 {
 		sqlCondition.Equal("id", id)
 	}
-	if paramIn.IDGte != nil {
-		sqlCondition.Gte("id", *paramIn.IDGte)
+	if paramIn.SuperiorID != nil && *paramIn.SuperiorID != 0 {
+		sqlCondition.Equal("superior_id", *paramIn.SuperiorID)
 	}
-	if paramIn.IDLte != nil {
-		sqlCondition.Lte("id", *paramIn.IDLte)
+	if paramIn.Level != nil && *paramIn.Level != "" {
+		sqlCondition.Equal("level", *paramIn.Level)
 	}
 	if paramIn.Name != nil && *paramIn.Name != "" {
-		sqlCondition = sqlCondition.Equal("name", paramIn.Name)
+		sqlCondition = sqlCondition.Equal("name", *paramIn.Name)
 	}
 	if paramIn.NameInclude != nil && *paramIn.NameInclude != "" {
 		sqlCondition = sqlCondition.Include("name", *paramIn.NameInclude)
@@ -116,13 +138,16 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 		sqlCondition.Sorting.Desc = false
 	}
 
-	list := sqlCondition.Find(model.Department{})
+	tempList := sqlCondition.Find(model.Department{})
 	totalRecords := sqlCondition.Count(model.Department{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
-	if len(list) == 0 {
+	if len(tempList) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
+
+	var list []dto.DepartmentGetDTO
+	_ = mapstructure.Decode(&tempList, &list)
 
 	return response.List{
 		Data: list,

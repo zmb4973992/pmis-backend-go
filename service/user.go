@@ -107,41 +107,41 @@ func (userService) Create(paramIn *dto.UserCreateDTO) response.Common {
 }
 
 func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
-	var paramOut model.User
+	var paramOutForUser model.User
+
 	//先找出原始记录
-	err := global.DB.Where("id = ?", paramIn.ID).First(&paramOut).Error
+	err := global.DB.Where("id = ?", paramIn.ID).First(&paramOutForUser).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
-
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	if *paramIn.FullName == "" {
-		paramOut.FullName = nil
+		paramOutForUser.FullName = nil
 	} else {
-		paramOut.FullName = paramIn.FullName
+		paramOutForUser.FullName = paramIn.FullName
 	}
 	if *paramIn.EmailAddress == "" {
-		paramOut.EmailAddress = nil
+		paramOutForUser.EmailAddress = nil
 	} else {
-		paramOut.EmailAddress = paramIn.EmailAddress
+		paramOutForUser.EmailAddress = paramIn.EmailAddress
 	}
-	paramOut.IsValid = paramIn.IsValid
+	paramOutForUser.IsValid = paramIn.IsValid
 	if *paramIn.MobilePhoneNumber == "" {
-		paramOut.MobilePhoneNumber = nil
+		paramOutForUser.MobilePhoneNumber = nil
 	} else {
-		paramOut.MobilePhoneNumber = paramIn.MobilePhoneNumber
+		paramOutForUser.MobilePhoneNumber = paramIn.MobilePhoneNumber
 	}
 	if *paramIn.EmployeeNumber == "" {
-		paramOut.EmployeeNumber = nil
+		paramOutForUser.EmployeeNumber = nil
 	} else {
-		paramOut.EmployeeNumber = paramIn.EmployeeNumber
+		paramOutForUser.EmployeeNumber = paramIn.EmployeeNumber
 	}
 
 	//由于涉及到多表的保存，这里对一对多关系字段不作处理，都交给下面的事务
 	err = global.DB.Transaction(
 		func(tx *gorm.DB) error {
 			//注意，这里没有使用dao层的封装方法，而是使用tx+gorm的原始方法
-			err := tx.Where("id = ?", paramIn.ID).Omit("created_at").Save(&paramOut).Error
+			err := tx.Where("id = ?", paramIn.ID).Omit("created_at").Save(&paramOutForUser).Error
 			if err != nil {
 				return err
 			}
@@ -162,7 +162,7 @@ func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
 					//这里不能使用v进行循环赋值，因为涉及到指针，会导致所有记录都变成一样的
 					for k := range paramIn.Roles {
 						var record model.RoleAndUser
-						record.UserID = &paramOut.ID
+						record.UserID = &paramOutForUser.ID
 						record.RoleID = &paramIn.Roles[k]
 						paramOutForRoleAndUser = append(paramOutForRoleAndUser, record)
 					}
@@ -189,7 +189,7 @@ func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
 					var paramOutForDepartmentAndUser []model.DepartmentAndUser
 					for k := range paramIn.Departments {
 						var record model.DepartmentAndUser
-						record.UserID = &paramOut.ID
+						record.UserID = &paramOutForUser.ID
 						record.DepartmentID = &paramIn.Departments[k]
 						paramOutForDepartmentAndUser = append(paramOutForDepartmentAndUser, record)
 					}
