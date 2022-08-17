@@ -21,9 +21,11 @@ func Init() *gin.Engine {
 	api := engine.Group("/api").Use(middleware.NeedLogin())
 	{
 		api.GET("/user/:id", middleware.NeedAuth(), controller.UserController.Get) //获取用户详情
-		api.PUT("/user/:id", controller.UserController.Update)                     //修改用户
+		api.PUT("/user/:id", controller.UserController.Update)                     //修改用户（目前为全功能，考虑改成：修改用户基本信息）
 		api.DELETE("/user/:id", controller.UserController.Delete)                  //删除用户
 		api.GET("/user/list", controller.UserController.List)                      //获取用户列表
+
+		api.GET("/role_and_user/list", controller.RoleAndUserController.List) //获取角色和用户中间表的列表
 
 		api.GET("/related_party/:id", controller.RelatedPartyController.Get)       //获取相关方详情
 		api.PUT("/related_party/:id", controller.RelatedPartyController.Update)    //修改相关方

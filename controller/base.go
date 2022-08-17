@@ -10,6 +10,7 @@ type controller struct {
 	relatedPartyController
 	userController
 	operationRecordController
+	roleAndUserController
 }
 
 var (
@@ -20,4 +21,5 @@ var (
 	RelatedPartyController    = entrance.relatedPartyController
 	UserController            = entrance.userController
 	OperationRecordController = entrance.operationRecordController
+	RoleAndUserController     = entrance.roleAndUserController
 )

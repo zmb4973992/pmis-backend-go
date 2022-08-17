@@ -6,6 +6,7 @@ type dao struct {
 	relatedPartyDAO
 	userDAO
 	operationRecordDAO
+	roleAndUserDAO
 }
 
 var (
@@ -15,4 +16,5 @@ var (
 	RelatedPartyDAO    = entrance.relatedPartyDAO
 	UserDAO            = entrance.userDAO
 	OperationRecordDAO = entrance.operationRecordDAO
+	RoleAndUserDAO     = entrance.roleAndUserDAO
 )

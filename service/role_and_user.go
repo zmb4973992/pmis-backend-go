@@ -14,9 +14,9 @@ import (
 // UserService 没有数据、只有方法，所有的数据都放在DTO里
 //这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
 //所有的增删改查都交给DAO层处理，否则service层会非常庞大
-type userService struct{}
+type roleAndUserService struct{}
 
-func (userService) Get(userID int) response.Common {
+func (roleAndUserService) Get(userID int) response.Common {
 	result := dao.UserDAO.Get(userID)
 	if result == nil {
 		return response.Failure(util.ErrorRecordNotFound)
@@ -24,7 +24,7 @@ func (userService) Get(userID int) response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (userService) Create(paramIn *dto.UserCreateDTO) response.Common {
+func (roleAndUserService) Create(paramIn *dto.UserCreateDTO) response.Common {
 	//对数据进行清洗
 	var paramOut model.User
 	paramOut.Username = paramIn.Username
@@ -72,57 +72,13 @@ func (userService) Create(paramIn *dto.UserCreateDTO) response.Common {
 
 	err = dao.UserDAO.Create(&paramOut)
 
-	//
-	////由于涉及到多表的保存，所以这里启用事务。这是老写法，自己尝试出来的。利用了事务，以后可以参考
-	//err = global.DB.Transaction(func(tx *gorm.DB) error {
-	//	//注意，这里没有使用dao层的封装方法，而是使用tx+gorm的原始方法
-	//	err = tx.Create(&paramOut).Error
-	//	if err != nil {
-	//		return err
-	//	}
-	//	//把用户-角色的对应关系添加到role_and_user表
-	//	//如果有角色数据：
-	//	if len(paramIn.Roles) > 0 {
-	//		var paramOutForRoleAndUser []model.RoleAndUser
-	//
-	//		//这里不能使用v进行循环赋值，因为涉及到指针，会导致所有记录都变成一样的
-	//		for k := range paramIn.Roles {
-	//			var record model.RoleAndUser
-	//			record.UserID = &paramOut.ID
-	//			record.RoleID = &paramIn.Roles[k]
-	//			paramOutForRoleAndUser = append(paramOutForRoleAndUser, record)
-	//		}
-	//		err = tx.Create(&paramOutForRoleAndUser).Error
-	//		if err != nil {
-	//			return err
-	//		}
-	//	}
-	//
-	//	//把用户-部门的对应关系添加到department_and_user表
-	//	//如果有部门数据：
-	//	if len(paramIn.Departments) > 0 {
-	//		var paramOutForDepartmentAndUser []model.DepartmentAndUser
-	//		for k := range paramIn.Departments {
-	//			var record model.DepartmentAndUser
-	//			record.UserID = &paramOut.ID
-	//			record.DepartmentID = &paramIn.Departments[k]
-	//			paramOutForDepartmentAndUser = append(paramOutForDepartmentAndUser, record)
-	//		}
-	//		err = tx.Create(&paramOutForDepartmentAndUser).Error
-	//		if err != nil {
-	//			return err
-	//		}
-	//	}
-	//	return nil
-	//})
-
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
 }
 
-func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
+func (roleAndUserService) Update(paramIn *dto.UserUpdateDTO) response.Common {
 	var paramOut model.User
 
 	//先找出原始记录
@@ -225,7 +181,7 @@ func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
 	return response.Success()
 }
 
-func (userService) Delete(userID int) response.Common {
+func (roleAndUserService) Delete(userID int) response.Common {
 	//新建一个dao.User结构体的实例
 	err := dao.UserDAO.Delete(userID)
 	if err != nil {
@@ -234,64 +190,12 @@ func (userService) Delete(userID int) response.Common {
 	return response.Success()
 }
 
-func (userService) List(paramIn dto.UserListDTO) response.List {
-	//生成sql查询条件
-	sqlCondition := util.NewSqlCondition()
+func (roleAndUserService) List(paramIn dto.RoleAndUserListDTO) response.List {
+	var list []dto.RoleAndUserGetDTO
 
-	//这部分是用于where的参数
-	if paramIn.Page > 0 {
-		sqlCondition.Paging.Page = paramIn.Page
-	}
+	list = dao.RoleAndUserDAO.List(&paramIn)
 
-	//如果参数里的pageSize是整数且大于0、小于等于上限：
-	maxPagingSize := global.Config.PagingConfig.MaxPageSize
-	if paramIn.PageSize > 0 && paramIn.PageSize <= maxPagingSize {
-		sqlCondition.Paging.PageSize = paramIn.PageSize
-	}
-
-	if id := paramIn.ID; id > 0 {
-		sqlCondition.Equal("id", id)
-	}
-	if paramIn.IDGte != nil {
-		sqlCondition.Gte("id", *paramIn.IDGte)
-	}
-
-	if paramIn.IDLte != nil {
-		sqlCondition.Lte("id", *paramIn.IDLte)
-	}
-
-	if paramIn.IsValid != nil {
-		sqlCondition.Equal("is_valid", *paramIn.IsValid)
-	}
-
-	if paramIn.Username != nil && *paramIn.Username != "" {
-		sqlCondition = sqlCondition.Equal("username", *paramIn.Username)
-	}
-
-	if paramIn.UsernameInclude != nil && *paramIn.UsernameInclude != "" {
-		sqlCondition = sqlCondition.Include("username", *paramIn.UsernameInclude)
-	}
-
-	//这部分是用于order的参数
-	orderBy := paramIn.OrderBy
-	if orderBy != "" {
-		ok := sqlCondition.ValidateColumn(orderBy, model.User{})
-		if ok {
-			sqlCondition.Sorting.OrderBy = orderBy
-		}
-	}
-	desc := paramIn.Desc
-	if desc == true {
-		sqlCondition.Sorting.Desc = true
-	} else {
-		sqlCondition.Sorting.Desc = false
-	}
-
-	tempList := sqlCondition.Find(model.User{})
-	totalRecords := sqlCondition.Count(model.User{})
-	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
-
-	if len(tempList) == 0 {
+	if len(list) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 

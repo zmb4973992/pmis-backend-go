@@ -59,6 +59,11 @@ func (userDAO) Get(userID int) *dto.UserGetDTO {
 	return &userGetDTO
 }
 
+func (userDAO) Create(param *model.User) error {
+	err := global.DB.Create(param).Error
+	return err
+}
+
 func (userDAO) Delete(userID int) error {
 	//注意，这里就算没有找到记录，也不会报错。详见gorm的delete用法
 	err := global.DB.Delete(&model.User{}, userID).Error
