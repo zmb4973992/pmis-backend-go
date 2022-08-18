@@ -81,15 +81,17 @@ func (roleAndUserDAO) Delete(roleID *int, userID *int) error {
 	return err
 }
 
-// List 中间表为什么还要用dto、不用[]string作为结果？
+// List 中间表为什么还要用dto、不用[]int作为结果？
 //为了后期的可扩展性，万一结果格式变了，可以直接改dto
-func (roleAndUserDAO) List(paramPairs []util.ParamPair) []dto.RoleAndUserGetDTO {
+func (roleAndUserDAO) List(roleID *int, userID *int) []dto.RoleAndUserGetDTO {
 	db := global.DB
 
-	if len(paramPairs) > 0 {
-		for _, parameterPair := range paramPairs {
-			db = db.Where(parameterPair.Key, parameterPair.Value)
-		}
+	if roleID != nil {
+		db = db.Where("role_id = ?", roleID)
+	}
+
+	if userID != nil {
+		db = db.Where("user_id = ?", userID)
 	}
 
 	var list []dto.RoleAndUserGetDTO
@@ -99,4 +101,22 @@ func (roleAndUserDAO) List(paramPairs []util.ParamPair) []dto.RoleAndUserGetDTO 
 	}
 
 	return list
+}
+
+func (roleAndUserDAO) UserSlice(roleID int) []int {
+	list := RoleAndUserDAO.List(&roleID, nil)
+	var userSlice []int
+	for i := range list {
+		userSlice = append(userSlice, *list[i].UserID)
+	}
+	return userSlice
+}
+
+func (roleAndUserDAO) RoleSlice(userID int) []int {
+	list := RoleAndUserDAO.List(nil, &userID)
+	var roleSlice []int
+	for i := range list {
+		roleSlice = append(roleSlice, *list[i].RoleID)
+	}
+	return roleSlice
 }

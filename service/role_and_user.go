@@ -189,27 +189,27 @@ func (roleAndUserService) Delete(userID int) response.Common {
 	return response.Success()
 }
 
-func (roleAndUserService) List(param dto.RoleAndUserListDTO) []dto.RoleAndUserGetDTO {
-	var paramPairs []util.ParamPair
-
-	if param.RoleID != nil {
-		paramPairs = append(paramPairs, util.ParamPair{
-			Key:   "role_id",
-			Value: param.RoleID,
-		})
-	}
-
-	if param.UserID != nil {
-		paramPairs = append(paramPairs, util.ParamPair{
-			Key:   "user_id",
-			Value: param.UserID,
-		})
-	}
-
-	if len(paramPairs) == 0 {
-		return nil
-	}
-
-	res := dao.RoleAndUserDAO.List(paramPairs)
-	return res
-}
+//func (roleAndUserService) List(param dto.RoleAndUserListDTO) []dto.RoleAndUserGetDTO {
+//	var paramPairs []util.ParamPair
+//
+//	if param.RoleID != nil {
+//		paramPairs = append(paramPairs, util.ParamPair{
+//			Key:   "role_id",
+//			Value: param.RoleID,
+//		})
+//	}
+//
+//	if param.UserID != nil {
+//		paramPairs = append(paramPairs, util.ParamPair{
+//			Key:   "user_id",
+//			Value: param.UserID,
+//		})
+//	}
+//
+//	if len(paramPairs) == 0 {
+//		return nil
+//	}
+//
+//	res := dao.RoleAndUserDAO.List(paramPairs)
+//	return res
+//}

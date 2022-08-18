@@ -1,9 +1,8 @@
 package controller
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
-	"io"
+	"learn-go/dao"
 	"learn-go/dto"
 	"learn-go/serializer/response"
 	"learn-go/service"
@@ -76,16 +75,34 @@ func (roleAndUserController) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUserController) List(c *gin.Context) {
+func (roleAndUserController) UserSlice(c *gin.Context) {
 	var param dto.RoleAndUserListDTO
 	err := c.ShouldBindJSON(&param)
-	if err != nil && errors.Is(err, io.EOF) == false {
+	if err != nil || param.RoleID == nil {
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 
-	res := service.RoleAndUserService.List(param)
+	res := dao.RoleAndUserDAO.UserSlice(*param.RoleID)
 	c.JSON(http.StatusOK, res)
 	return
+}
+
+func (roleAndUserController) RoleSlice(c *gin.Context) {
+	var param dto.RoleAndUserListDTO
+	err := c.ShouldBindJSON(&param)
+	if err != nil || param.UserID == nil {
+		c.JSON(http.StatusBadRequest,
+			response.FailureForList(util.ErrorInvalidJSONParameters))
+		return
+	}
+
+	res := dao.RoleAndUserDAO.RoleSlice(*param.UserID)
+	c.JSON(http.StatusOK, res)
+	return
+}
+
+func (roleAndUserController) UpdateUserSlice(c *gin.Context) {
+
 }
