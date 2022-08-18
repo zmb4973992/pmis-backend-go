@@ -25,10 +25,10 @@ func Init() *gin.Engine {
 		api.DELETE("/user/:id", controller.UserController.Delete)                  //删除用户
 		api.GET("/user/list", controller.UserController.List)                      //获取用户列表
 
-		api.GET("/role_and_user", controller.RoleAndUserController.List)                         //获取角色和用户的列表
-		api.DELETE("/role_and_user", controller.RoleAndUserController.Delete)                    //删除角色和用户
-		api.POST("/role_and_user", controller.RoleAndUserController.Create)                      //新增角色和用户
-		api.POST("/role_and_user/batch", controller.RoleAndUserController.CreateInBatch)         //批量新增角色和用户
+		api.GET("/role_and_user", controller.RoleAndUserController.List)      //获取角色和用户的列表
+		api.DELETE("/role_and_user", controller.RoleAndUserController.Delete) //删除角色和用户
+		//api.POST("/role_and_user", controller.RoleAndUserController.Create)                      //新增角色和用户
+		//api.POST("/role_and_user/batch", controller.RoleAndUserController.CreateInBatch)         //批量新增角色和用户
 		api.PUT("/role_and_user/role/:role_id", controller.RoleAndUserController.UpdateByRoleID) //根据角色ID批量修改角色和用户
 		api.PUT("/role_and_user/user/:user_id", controller.RoleAndUserController.UpdateByUserID) //根据用户ID批量修改角色和用户
 
