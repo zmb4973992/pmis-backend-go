@@ -198,7 +198,7 @@ func (operationRecordService) List(paramIn dto.OperationRecordListDTO) response.
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
-		response.FailureForList(util.ErrorRecordNotFound)
+		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
 	//这里的tempList是基于model的，不能直接传给前端，要处理成dto才行

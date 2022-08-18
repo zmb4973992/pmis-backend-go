@@ -1,8 +1,9 @@
 package controller
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
-	"learn-go/dao"
+	"io"
 	"learn-go/dto"
 	"learn-go/serializer/response"
 	"learn-go/service"
@@ -13,96 +14,133 @@ import (
 
 type roleAndUserController struct{}
 
-func (roleAndUserController) Get(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidURIParameters))
-		return
-	}
-	res := service.UserService.Get(id)
-	c.JSON(http.StatusOK, res)
-	return
-}
-
 func (roleAndUserController) Create(c *gin.Context) {
 	//先声明空的dto，再把context里的数据绑到dto上
-	var u dto.UserCreateDTO
-	err := c.ShouldBindJSON(&u)
+	var r dto.RoleAndUserCreateDTO
+	err := c.ShouldBindJSON(&r)
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
-	res := service.UserService.Create(&u)
+	res := service.RoleAndUserService.Create(&r)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-// Update controller的功能：解析uri参数、json参数，拦截非法参数，然后传给service层处理
-func (roleAndUserController) Update(c *gin.Context) {
-	//这里只更新传过来的参数，所以采用map形式
-	var param dto.UserUpdateDTO
-	err := c.ShouldBindJSON(&param)
-	if err != nil {
+func (roleAndUserController) CreateInBatch(c *gin.Context) {
+	var r []dto.RoleAndUserCreateDTO
+	err := c.ShouldBindJSON(&r)
+	if err != nil || len(r) == 0 {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
-	//把uri上的id参数传递给结构体形式的入参
-	param.ID, err = strconv.Atoi(c.Param("id"))
-	//如果解析失败，例如URI的参数不是数字
+
+	res := service.RoleAndUserService.CreateInBatch(r)
+	c.JSON(http.StatusOK, res)
+	return
+}
+
+func (roleAndUserController) UpdateByRoleID(c *gin.Context) {
+	roleID, err := strconv.Atoi(c.Param("role_id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	//参数解析完毕，交给service层处理
-	res := service.UserService.Update(&param)
-	c.JSON(200, res)
+
+	var data dto.RoleAndUserCreateOrUpdateDTO
+	err = c.ShouldBindJSON(&data)
+	if err != nil {
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidJSONParameters))
+		return
+	}
+
+	res := service.RoleAndUserService.UpdateUserIDByRoleID(roleID, data)
+	c.JSON(http.StatusOK, res)
 }
+
+func (roleAndUserController) UpdateByUserID(c *gin.Context) {
+	userID, err := strconv.Atoi(c.Param("user_id"))
+	if err != nil {
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidURIParameters))
+		return
+	}
+
+	var data dto.RoleAndUserCreateOrUpdateDTO
+	err = c.ShouldBindJSON(&data)
+	if err != nil {
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidJSONParameters))
+		return
+	}
+
+	res := service.RoleAndUserService.UpdateRoleIDByUserID(userID, data)
+	c.JSON(http.StatusOK, res)
+}
+
+//	//这里只更新传过来的参数，所以采用map形式
+//	var param dto.RoleAndUserCreateDTO
+//	err := c.ShouldBindJSON(&param)
+//	if err != nil {
+//		c.JSON(http.StatusOK,
+//			response.Failure(util.ErrorInvalidJSONParameters))
+//		return
+//	}
 
 func (roleAndUserController) Delete(c *gin.Context) {
-	//把uri上的id参数传递给结构体形式的入参
-	id, err := strconv.Atoi(c.Param("id"))
-	//如果解析失败，例如URI的参数不是数字
+	var param dto.RoleAndUserDeleteDTO
+	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
-	res := service.UserService.Delete(id)
+	res := service.RoleAndUserService.Delete(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUserController) UserSlice(c *gin.Context) {
+func (roleAndUserController) List(c *gin.Context) {
 	var param dto.RoleAndUserListDTO
 	err := c.ShouldBindJSON(&param)
-	if err != nil || param.RoleID == nil {
+	if err != nil && errors.Is(err, io.EOF) == false {
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
-
-	res := dao.RoleAndUserDAO.UserSlice(*param.RoleID)
+	//生成userService,然后调用它的方法
+	res := service.RoleAndUserService.List(param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (roleAndUserController) RoleSlice(c *gin.Context) {
-	var param dto.RoleAndUserListDTO
-	err := c.ShouldBindJSON(&param)
-	if err != nil || param.UserID == nil {
-		c.JSON(http.StatusBadRequest,
-			response.FailureForList(util.ErrorInvalidJSONParameters))
-		return
-	}
+//func (roleAndUserController) UserSlice(c *gin.Context) {
+//	var param dto.RoleAndUserListDTO
+//	err := c.ShouldBindJSON(&param)
+//	if err != nil || param.RoleIDs == nil {
+//		c.JSON(http.StatusBadRequest,
+//			response.FailureForList(util.ErrorInvalidJSONParameters))
+//		return
+//	}
+//
+//	res := dao.RoleAndUserDAO.UserSlice(*param.RoleIDs)
+//	c.JSON(http.StatusOK, res)
+//	return
+//}
 
-	res := dao.RoleAndUserDAO.RoleSlice(*param.UserID)
-	c.JSON(http.StatusOK, res)
-	return
-}
-
-func (roleAndUserController) UpdateUserSlice(c *gin.Context) {
-
-}
+//func (roleAndUserController) RoleSlice(c *gin.Context) {
+//	var param dto.RoleAndUserListDTO
+//	err := c.ShouldBindJSON(&param)
+//	if err != nil || param.UserIDs == nil {
+//		c.JSON(http.StatusBadRequest,
+//			response.FailureForList(util.ErrorInvalidJSONParameters))
+//		return
+//	}
+//
+//	res := dao.RoleAndUserDAO.RoleSlice(*param.UserIDs)
+//	c.JSON(http.StatusOK, res)
+//	return
+//}

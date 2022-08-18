@@ -34,7 +34,12 @@ func (roleAndUserDAO) Get(departmentID int) *dto.DepartmentGetDTO {
 }
 
 // Create 这里是只负责新增，不写任何业务逻辑。只要收到参数就创建数据库记录，然后返回错误
-func (roleAndUserDAO) Create(param *model.Department) error {
+func (roleAndUserDAO) Create(param *model.RoleAndUser) error {
+	err := global.DB.Create(param).Error
+	return err
+}
+
+func (roleAndUserDAO) CreateInBatch(param []model.RoleAndUser) error {
 	err := global.DB.Create(param).Error
 	return err
 }
@@ -46,52 +51,24 @@ func (roleAndUserDAO) Update(param *model.Department) error {
 	return err
 }
 
-func (roleAndUserDAO) Delete(roleID *int, userID *int) error {
-	//注意，这里就算没有找到记录，也不会报错。详见gorm的delete用法
-	var sqlCondition util.SqlCondition
-
-	//如果入参都是空，那么不做任何处理，防止勿删
-	if roleID == nil && userID == nil {
-		return nil
-	}
-
-	if roleID != nil {
-		sqlCondition.ParamPairs = append(sqlCondition.ParamPairs, util.ParamPair{
-			Key:   "role_id",
-			Value: roleID,
-		})
-	}
-
-	if userID != nil {
-		sqlCondition.ParamPairs = append(sqlCondition.ParamPairs, util.ParamPair{
-			Key:   "user_id",
-			Value: userID,
-		})
-	}
-
+func (roleAndUserDAO) Delete(paramPairs []util.ParamPair) error {
 	db := global.DB
-
-	if len(sqlCondition.ParamPairs) > 0 {
-		for _, parameterPair := range sqlCondition.ParamPairs {
+	if len(paramPairs) > 0 {
+		for _, parameterPair := range paramPairs {
 			db = db.Where(parameterPair.Key, parameterPair.Value)
 		}
 	}
-
 	err := db.Delete(&model.RoleAndUser{}).Error
 	return err
 }
 
 // List 中间表为什么还要用dto、不用[]int作为结果？
 //为了后期的可扩展性，万一结果格式变了，可以直接改dto
-func (roleAndUserDAO) List(roleID *int, userID *int) []dto.RoleAndUserGetDTO {
+func (roleAndUserDAO) List(paramPairs []util.ParamPair) []dto.RoleAndUserGetDTO {
 	db := global.DB
 
-	if roleID != nil {
-		db = db.Where("role_id = ?", roleID)
-	}
-
-	if userID != nil {
-		db = db.Where("user_id = ?", userID)
+	for _, paramPair := range paramPairs {
+		db = db.Where(paramPair.Key, paramPair.Value)
 	}
 
 	var list []dto.RoleAndUserGetDTO
@@ -103,20 +80,20 @@ func (roleAndUserDAO) List(roleID *int, userID *int) []dto.RoleAndUserGetDTO {
 	return list
 }
 
-func (roleAndUserDAO) UserSlice(roleID int) []int {
-	list := RoleAndUserDAO.List(&roleID, nil)
-	var userSlice []int
-	for i := range list {
-		userSlice = append(userSlice, *list[i].UserID)
-	}
-	return userSlice
-}
-
-func (roleAndUserDAO) RoleSlice(userID int) []int {
-	list := RoleAndUserDAO.List(nil, &userID)
-	var roleSlice []int
-	for i := range list {
-		roleSlice = append(roleSlice, *list[i].RoleID)
-	}
-	return roleSlice
-}
+//func (roleAndUserDAO) UserSlice(roleID int) []int {
+//	list := RoleAndUserDAO.List(&roleID, nil)
+//	var userSlice []int
+//	for i := range list {
+//		userSlice = append(userSlice, *list[i].UserIDs)
+//	}
+//	return userSlice
+//}
+//
+//func (roleAndUserDAO) RoleSlice(userID int) []int {
+//	list := RoleAndUserDAO.List(nil, &userID)
+//	var roleSlice []int
+//	for i := range list {
+//		roleSlice = append(roleSlice, *list[i].RoleIDs)
+//	}
+//	return roleSlice
+//}

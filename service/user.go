@@ -88,8 +88,8 @@ func (userService) Create(paramIn *dto.UserCreateDTO) response.Common {
 	//		//这里不能使用v进行循环赋值，因为涉及到指针，会导致所有记录都变成一样的
 	//		for k := range paramIn.Roles {
 	//			var record model.RoleAndUser
-	//			record.UserID = &paramOut.ID
-	//			record.RoleID = &paramIn.Roles[k]
+	//			record.UserIDs = &paramOut.ID
+	//			record.RoleIDs = &paramIn.Roles[k]
 	//			paramOutForRoleAndUser = append(paramOutForRoleAndUser, record)
 	//		}
 	//		err = tx.Create(&paramOutForRoleAndUser).Error
@@ -104,7 +104,7 @@ func (userService) Create(paramIn *dto.UserCreateDTO) response.Common {
 	//		var paramOutForDepartmentAndUser []model.DepartmentAndUser
 	//		for k := range paramIn.Departments {
 	//			var record model.DepartmentAndUser
-	//			record.UserID = &paramOut.ID
+	//			record.UserIDs = &paramOut.ID
 	//			record.DepartmentID = &paramIn.Departments[k]
 	//			paramOutForDepartmentAndUser = append(paramOutForDepartmentAndUser, record)
 	//		}
