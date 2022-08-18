@@ -26,6 +26,7 @@ func Init() *gin.Engine {
 		api.GET("/user/list", controller.UserController.List)                      //获取用户列表
 
 		api.GET("/role_and_user/list", controller.RoleAndUserController.List) //获取角色和用户中间表的列表
+		//api.GET("/role_and_user/slice", controller.RoleAndUserController.Slice) //获取角色和用户中间表的切片
 
 		api.GET("/related_party/:id", controller.RelatedPartyController.Get)       //获取相关方详情
 		api.PUT("/related_party/:id", controller.RelatedPartyController.Update)    //修改相关方

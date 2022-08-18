@@ -8,6 +8,7 @@ type EntranceOfAllService struct {
 	departmentService
 	disassemblyService
 	operationRecordService
+	roleAndUserService
 }
 
 //定义各个服务的入口,避免反复new service
@@ -19,4 +20,5 @@ var (
 	DepartmentService      = entrance.departmentService
 	DisassemblyService     = entrance.disassemblyService
 	OperationRecordService = entrance.operationRecordService
+	RoleAndUserService     = entrance.roleAndUserService
 )

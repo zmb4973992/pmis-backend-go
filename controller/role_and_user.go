@@ -84,7 +84,7 @@ func (roleAndUserController) List(c *gin.Context) {
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
-	//生成userService,然后调用它的方法
+
 	res := service.RoleAndUserService.List(param)
 	c.JSON(http.StatusOK, res)
 	return

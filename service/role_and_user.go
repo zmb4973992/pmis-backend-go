@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 	"learn-go/dao"
 	"learn-go/dto"
@@ -190,57 +189,27 @@ func (roleAndUserService) Delete(userID int) response.Common {
 	return response.Success()
 }
 
-func (roleAndUserService) List(paramIn dto.RoleAndUserListDTO) response.List {
-	var list []dto.RoleAndUserGetDTO
+func (roleAndUserService) List(param dto.RoleAndUserListDTO) []dto.RoleAndUserGetDTO {
+	var paramPairs []util.ParamPair
 
-	list = dao.RoleAndUserDAO.List(&paramIn)
-
-	if len(list) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if param.RoleID != nil {
+		paramPairs = append(paramPairs, util.ParamPair{
+			Key:   "role_id",
+			Value: param.RoleID,
+		})
 	}
 
-	//这里的tempList是基于model的，不能直接传给前端，要处理成dto才行
-	//如果map的字段类型和struct的字段类型不匹配，数据不会同步过来
-	var list []dto.UserGetDTO
-	_ = mapstructure.Decode(&tempList, &list)
-
-	//处理字段类型不匹配、或者有特殊格式要求的字段
-	for i := range tempList {
-		userID := tempList[i]["id"]
-		//把该userID的所有role_and_user记录查出来
-		var roleAndUsers []model.RoleAndUser
-		global.DB.Where("user_id = ?", userID).Find(&roleAndUsers)
-		//把所有的roleID提取出来，查出相应的角色名称
-		var roleNames []string
-		for _, roleAndUser := range roleAndUsers {
-			var role model.Role
-			global.DB.Where("id = ?", roleAndUser.RoleID).First(&role)
-			roleNames = append(roleNames, role.Name)
-		}
-		list[i].Roles = roleNames
-
-		//把该userID的所有department_and_user记录查出来
-		var departmentAndUsers []model.DepartmentAndUser
-		global.DB.Where("user_id = ?", userID).Find(&departmentAndUsers)
-		//把所有的departmentID提取出来，查出相应的部门名称
-		var departmentNames []string
-		for _, departmentAndUser := range departmentAndUsers {
-			var department model.Department
-			global.DB.Where("id = ?", departmentAndUser.DepartmentID).First(&department)
-			departmentNames = append(departmentNames, department.Name)
-		}
-		list[i].Departments = departmentNames
+	if param.UserID != nil {
+		paramPairs = append(paramPairs, util.ParamPair{
+			Key:   "user_id",
+			Value: param.UserID,
+		})
 	}
 
-	return response.List{
-		Data: list,
-		Paging: &dto.PagingDTO{
-			Page:         sqlCondition.Paging.Page,
-			PageSize:     sqlCondition.Paging.PageSize,
-			TotalPages:   totalPages,
-			TotalRecords: totalRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetMessage(util.Success),
+	if len(paramPairs) == 0 {
+		return nil
 	}
+
+	res := dao.RoleAndUserDAO.List(paramPairs)
+	return res
 }

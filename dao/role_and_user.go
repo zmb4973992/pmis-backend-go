@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"fmt"
 	"learn-go/dto"
 	"learn-go/global"
 	"learn-go/model"
@@ -82,23 +81,9 @@ func (roleAndUserDAO) Delete(roleID *int, userID *int) error {
 	return err
 }
 
-func (roleAndUserDAO) List(param *dto.RoleAndUserListDTO) (list []dto.RoleAndUserGetDTO) {
-	var paramPairs []util.ParamPair
-
-	if param.RoleID != nil {
-		paramPairs = append(paramPairs, util.ParamPair{
-			Key:   "role_id",
-			Value: param.RoleID,
-		})
-	}
-
-	if param.UserID != nil {
-		paramPairs = append(paramPairs, util.ParamPair{
-			Key:   "user_id",
-			Value: param.UserID,
-		})
-	}
-
+// List 中间表为什么还要用dto、不用[]string作为结果？
+//为了后期的可扩展性，万一结果格式变了，可以直接改dto
+func (roleAndUserDAO) List(paramPairs []util.ParamPair) []dto.RoleAndUserGetDTO {
 	db := global.DB
 
 	if len(paramPairs) > 0 {
@@ -107,9 +92,11 @@ func (roleAndUserDAO) List(param *dto.RoleAndUserListDTO) (list []dto.RoleAndUse
 		}
 	}
 
-	err := db.Find(&list).Error
+	var list []dto.RoleAndUserGetDTO
+	err := db.Model(&model.RoleAndUser{}).Find(&list).Error
 	if err != nil {
-		fmt.Println(err)
+		return nil
 	}
 
+	return list
 }
