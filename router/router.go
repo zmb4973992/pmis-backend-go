@@ -25,17 +25,15 @@ func Init() *gin.Engine {
 		api.DELETE("/user/:id", controller.UserController.Delete)                  //删除用户
 		api.GET("/user/list", controller.UserController.List)                      //获取用户列表
 
-		api.GET("/role_and_user", controller.RoleAndUserController.List)      //获取角色和用户的列表
-		api.DELETE("/role_and_user", controller.RoleAndUserController.Delete) //删除角色和用户
-		//api.POST("/role_and_user", controller.RoleAndUserController.Create)                      //新增角色和用户
-		//api.POST("/role_and_user/batch", controller.RoleAndUserController.CreateInBatch)         //批量新增角色和用户
-		api.PUT("/role_and_user/role/:role_id", controller.RoleAndUserController.UpdateByRoleID) //根据角色ID批量修改角色和用户
-		api.PUT("/role_and_user/user/:user_id", controller.RoleAndUserController.UpdateByUserID) //根据用户ID批量修改角色和用户
+		api.GET("/role_and_user/role/:role_id", controller.RoleAndUserController.ListByRoleID)      //根据角色ID获取角色和用户的列表
+		api.POST("/role_and_user/role/:role_id", controller.RoleAndUserController.CreateByRoleID)   //根据角色ID批量新增角色和用户
+		api.PUT("/role_and_user/role/:role_id", controller.RoleAndUserController.UpdateByRoleID)    //根据角色ID批量修改角色和用户
+		api.DELETE("/role_and_user/role/:role_id", controller.RoleAndUserController.DeleteByRoleID) //根据角色ID批量删除角色和用户
 
-		//api.GET("/role_and_user/list", controller.RoleAndUserController.List)            //获取角色和用户中间表的列表
-		//api.GET("/user_slice", controller.RoleAndUserController.UserSlice) //获取角色和用户中间表的用户切片
-		//api.GET("/role_slice", controller.RoleAndUserController.RoleSlice) //获取角色和用户中间表的角色切片
-		//api.PUT("/user_slice", controller.RoleAndUserController.UpdateUserSlice)
+		api.GET("/role_and_user/user/:user_id", controller.RoleAndUserController.ListByUserID)      //根据用户ID获取角色和用户的列表
+		api.POST("/role_and_user/user/:user_id", controller.RoleAndUserController.CreateByUserID)   //根据用户ID批量新增角色和用户
+		api.PUT("/role_and_user/user/:user_id", controller.RoleAndUserController.UpdateByUserID)    //根据用户ID批量修改角色和用户
+		api.DELETE("/role_and_user/user/:user_id", controller.RoleAndUserController.DeleteByUserID) //根据用户ID批量删除角色和用户
 
 		api.GET("/related_party/:id", controller.RelatedPartyController.Get)       //获取相关方详情
 		api.PUT("/related_party/:id", controller.RelatedPartyController.Update)    //修改相关方
