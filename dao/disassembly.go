@@ -48,8 +48,8 @@ func (disassemblyDAO) Update(param *model.Disassembly) error {
 	return err
 }
 
-func (disassemblyDAO) Delete(projectDisassemblyID int) error {
+func (disassemblyDAO) Delete(disassemblyID int) error {
 	//注意，这里就算没有找到记录，也不会报错。详见gorm的delete用法
-	err := global.DB.Delete(&model.Disassembly{}, projectDisassemblyID).Error
+	err := global.DB.Delete(&model.Disassembly{}, disassemblyID).Error
 	return err
 }

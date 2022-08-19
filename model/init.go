@@ -26,25 +26,26 @@ func Init() {
 	// Set Connection Max Lifetime 设置了连接可复用的最大时间
 	sqlDB.SetConnMaxLifetime(time.Hour)
 	err = global.DB.AutoMigrate(
-		&RelatedParty{},
-		&Project{},
-		&Department{},
-		&User{},
-		&DepartmentAndUser{},
-		&Role{},
-		&RoleAndUser{},
-		&Contract{},
-		&Disassembly{},
-		&DisassemblySnapshot{},
-		&WorkProgress{},
-		&WorkProgressSnapshot{},
-		&ActualReceiptAndPayment{},
-		&PlannedReceiptAndPayment{},
-		&PredictedReceiptAndPayment{},
-		&Dictionary{},
-		&ProjectAndUser{},
-		&OperationRecord{},
-		&Test{},
+		&RelatedParty{},               //相关方
+		&Project{},                    //项目
+		&Department{},                 //部门
+		&User{},                       //用户
+		&DepartmentAndUser{},          //部门和用户的中间表
+		&Role{},                       //角色
+		&RoleAndUser{},                //角色和用户的中间表
+		&Contract{},                   //合同
+		&Disassembly{},                //项目拆解
+		&DisassemblySnapshot{},        //项目拆解快照
+		&WorkProgress{},               //工作进度
+		&WorkProgressSnapshot{},       // 工作进度快照
+		&DisassemblyTemplate{},        //拆解模板
+		&ActualReceiptAndPayment{},    //实际收付款
+		&PlannedReceiptAndPayment{},   //计划收付款
+		&PredictedReceiptAndPayment{}, //预测收付款
+		&Dictionary{},                 //字典
+		&ProjectAndUser{},             //项目和用户的中间表
+		&OperationRecord{},            //操作记录
+		&Test{},                       //测试
 	)
 	if err != nil {
 		panic(err)

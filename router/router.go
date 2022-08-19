@@ -53,6 +53,12 @@ func Init() *gin.Engine {
 		api.DELETE("/disassembly/:id", controller.DisassemblyController.Delete) //删除项目拆解
 		api.GET("/disassembly/list", controller.DisassemblyController.List)     //获取项目拆解列表
 
+		api.GET("/disassembly_template/:id", controller.DisassemblyTemplateController.Get)       //获取项目拆解模板详情
+		api.POST("/disassembly_template", controller.DisassemblyTemplateController.Create)       //新增项目拆解模板
+		api.PUT("/disassembly_template/:id", controller.DisassemblyTemplateController.Update)    //修改项目拆解模板
+		api.DELETE("/disassembly_template/:id", controller.DisassemblyTemplateController.Delete) //删除项目拆解模板
+		api.GET("/disassembly_template/list", controller.DisassemblyTemplateController.List)     //获取项目拆解模板列表
+
 		api.GET("/operation_record/:id", controller.OperationRecordController.Get)       //获取操作记录详情
 		api.POST("/operation_record", controller.OperationRecordController.Create)       //新增操作记录
 		api.PUT("/operation_record/:id", controller.OperationRecordController.Update)    //修改操作记录

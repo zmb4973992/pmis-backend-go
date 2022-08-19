@@ -7,6 +7,7 @@ type controller struct {
 	departmentController
 	noRouteController
 	disassemblyController
+	disassemblyTemplateController
 	relatedPartyController
 	userController
 	operationRecordController
@@ -14,12 +15,13 @@ type controller struct {
 }
 
 var (
-	entrance                  = new(controller)
-	NoRouteController         = entrance.noRouteController
-	DepartmentController      = entrance.departmentController
-	DisassemblyController     = entrance.disassemblyController
-	RelatedPartyController    = entrance.relatedPartyController
-	UserController            = entrance.userController
-	OperationRecordController = entrance.operationRecordController
-	RoleAndUserController     = entrance.roleAndUserController
+	entrance                      = new(controller)
+	NoRouteController             = entrance.noRouteController
+	DepartmentController          = entrance.departmentController
+	DisassemblyController         = entrance.disassemblyController
+	DisassemblyTemplateController = entrance.disassemblyTemplateController
+	RelatedPartyController        = entrance.relatedPartyController
+	UserController                = entrance.userController
+	OperationRecordController     = entrance.operationRecordController
+	RoleAndUserController         = entrance.roleAndUserController
 )
