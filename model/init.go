@@ -3,6 +3,7 @@ package model
 import (
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
+	"io/ioutil"
 	"learn-go/global"
 	"time"
 )
@@ -54,9 +55,23 @@ func Init() {
 		panic(err)
 	}
 
+	//创建所需的视图
+	createView()
+
 	//生成初始数据
 	generateData()
 
+}
+
+func createView() {
+	sqlStatement, err := ioutil.ReadFile("./sql/create_view.sql")
+	if err != nil {
+		panic(err)
+	}
+	err = global.DB.Exec(string(sqlStatement)).Error
+	if err != nil {
+		panic(err)
+	}
 }
 
 func generateData() {
