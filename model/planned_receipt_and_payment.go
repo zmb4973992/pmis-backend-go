@@ -8,7 +8,7 @@ type PlannedReceiptAndPayment struct {
 	NameOfTheOtherParty      *string  //对方名称
 	TypeOfReceiptAndPayment  *string  //款项类型
 	Condition                *string  //条件
-	Date                     *string  `gorm:"type:date;"` //日期
+	Date                     *string  `gorm:"type:date"` //日期
 	Amount                   *float64 //金额
 	Currency                 *string  //币种
 	ExchangeRate             *float64 //汇率

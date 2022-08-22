@@ -13,11 +13,11 @@ type Contract struct {
 	Amount                   *float64   //金额
 	Currency                 *string    //币种
 	ExchangeRate             *float64   //汇率
-	SigningDate              *time.Time //签约日期
-	EffectiveDate            *time.Time //生效日期
-	CommissioningDate        *time.Time //调试日期
+	SigningDate              *time.Time `gorm:"type:date"` //签约日期
+	EffectiveDate            *time.Time `gorm:"type:date"` //生效日期
+	CommissioningDate        *time.Time `gorm:"type:date"` //调试日期
 	AgreedConstructionPeriod *int       //约定工期，天
-	CompletionDate           *time.Time //完工日期
+	CompletionDate           *time.Time `gorm:"type:date"` //完工日期
 	JobDescription           *string    //工作内容
 	Deliverables             *string    //交付物
 	Penalty                  *string    //罚则

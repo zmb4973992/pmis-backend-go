@@ -5,7 +5,7 @@ import "time"
 type ErrorLog struct {
 	BaseModel
 	Detail        *string    //详情
-	Date          *time.Time //日期
+	Date          *time.Time `gorm:"type:date"` //日期
 	MajorCategory *string    //大类
 	MinorCategory *string    //小类
 	IsResolved    *string    //是否已解决

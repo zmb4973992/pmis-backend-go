@@ -8,7 +8,7 @@ if object_id('disassembly_view') is null
     end
 
 
-if object_id('d') is null
+if object_id('a') is null
     begin
         execute (
 'create view a as

@@ -6,7 +6,7 @@ import "time"
 type WorkNote struct {
 	BaseModel
 	ProjectID  *int       //项目id
-	Date       *time.Time //日期
+	Date       *time.Time `gorm:"type:date"` //日期
 	Category   *string    //类型
 	Subject    *string    //主题
 	Content    *string    //内容

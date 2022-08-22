@@ -7,7 +7,6 @@ type RelatedParty struct {
 	Address                 *string `json:"address" binding:"required"`                    //地址
 	UniformSocialCreditCode *string `json:"uniform_social_credit_code" binding:"required"` //统一社会信用代码
 	Telephone               *string `json:"telephone" binding:"required"`                  //电话
-	//Project                 []Project `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
 }
 
 // TableName 修改数据库的表名

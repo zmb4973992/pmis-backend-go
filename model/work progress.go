@@ -6,8 +6,8 @@ type WorkProgress struct {
 	BaseModel
 	DisassemblyID         *int       //拆解情况id，外键
 	DisassemblyIDWithDate *string    //带日期的拆解情况id
-	FillingDate           *time.Time `gorm:"type:date;"` //添加记录的日期
-	Date                  *time.Time `gorm:"type:date;"` //日期
+	FillingDate           *time.Time `gorm:"type:date"` //添加记录的日期
+	Date                  *time.Time `gorm:"type:date"` //日期
 
 	PlannedProgress             *float64 //初始计划进度
 	RemarkOfPlannedProgress     *string  //初始计划进度的备注

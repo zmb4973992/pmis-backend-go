@@ -1,7 +1,5 @@
 package model
 
-import "time"
-
 type Project struct {
 	BaseModel
 	ProjectCode      *string
@@ -11,11 +9,9 @@ type Project struct {
 	Province         *string
 	ProjectType      *string
 	Department       *string
-	Amount           *int64
+	Amount           *float64
 	Currency         *string
 	ExchangeRate     *float64
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
 	RelatedPartyID   *int
 	//外键
 	Disassemblies               []Disassembly                `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
