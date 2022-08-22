@@ -45,6 +45,9 @@ func Init() {
 		&Dictionary{},                 //字典
 		&ProjectAndUser{},             //项目和用户的中间表
 		&OperationRecord{},            //操作记录
+		&ErrorLog{},                   //错误日志
+		&WorkNote{},                   //工作备注
+		&WorkReview{},                 //工作点评
 		&Test{},                       //测试
 	)
 	if err != nil {

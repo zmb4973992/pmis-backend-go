@@ -1,9 +1,15 @@
 package model
 
+import "time"
+
 type WorkProgressSnapshot struct {
 	BaseModel
+
 	DisassemblyID *int    //项目拆解id，外键
 	Date          *string `gorm:"type:date;"` //日期  默认格式为2020-02-02
+
+	SnapshotDate                  *time.Time //快照日期，添加记录的日期
+	DisassemblyIDWithSnapshotDate *string    //带快照日期的拆解情况id
 
 	PlannedProgress             *float64 //初始计划进度
 	RemarkOfPlannedProgress     *string  //初始计划进度的备注
