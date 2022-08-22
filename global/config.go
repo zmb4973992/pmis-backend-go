@@ -15,7 +15,6 @@ var (
 	Logger        *zap.Logger        //zap的标准logger，速度更快，但是输入麻烦，用于取代gin的logger
 	SugaredLogger *zap.SugaredLogger // zap的加糖logger，速度慢一点点，但是输入方便，自己用
 	v1            = viper.New()
-	//v2            = viper.New()
 )
 
 //这层只是中间的汇总层，只是包内引用、不展示，所以小写
