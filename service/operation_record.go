@@ -29,6 +29,18 @@ func (operationRecordService) Create(paramIn *dto.OperationRecordCreateOrUpdateD
 	var paramOut model.OperationRecord
 
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
+	if paramIn.LastModifier != nil {
+		paramOut.LastModifier = paramIn.LastModifier
+	}
+
+	if paramIn.Creator != nil {
+		paramOut.Creator = paramIn.Creator
+	}
+
+	if paramIn.LastModifier != nil {
+		paramOut.LastModifier = paramIn.LastModifier
+	}
+
 	if *paramIn.ProjectID == -1 { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
 		paramOut.ProjectID = nil
 	} else {

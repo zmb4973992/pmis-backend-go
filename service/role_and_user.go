@@ -32,6 +32,14 @@ func (roleAndUserService) CreateByRoleID(roleID int, paramIn dto.RoleAndUserCrea
 	var paramOut []model.RoleAndUser
 	for i := range paramIn.UserIDs {
 		var record model.RoleAndUser
+		if paramIn.Creator != nil {
+			record.Creator = paramIn.Creator
+		}
+
+		if paramIn.LastModifier != nil {
+			record.LastModifier = paramIn.LastModifier
+		}
+
 		record.RoleID = &roleID
 		record.UserID = &paramIn.UserIDs[i]
 		paramOut = append(paramOut, record)
@@ -60,6 +68,10 @@ func (roleAndUserService) UpdateByRoleID(roleID int, paramIn dto.RoleAndUserCrea
 	var paramOut []model.RoleAndUser
 	for i := range paramIn.UserIDs {
 		var record model.RoleAndUser
+		if paramIn.LastModifier != nil {
+			record.LastModifier = paramIn.LastModifier
+		}
+
 		record.RoleID = &roleID
 		record.UserID = &paramIn.UserIDs[i]
 		paramOut = append(paramOut, record)
@@ -100,6 +112,14 @@ func (roleAndUserService) CreateByUserID(userID int, paramIn dto.RoleAndUserCrea
 	var paramOut []model.RoleAndUser
 	for i := range paramIn.RoleIDs {
 		var record model.RoleAndUser
+		if paramIn.Creator != nil {
+			record.Creator = paramIn.Creator
+		}
+
+		if paramIn.LastModifier != nil {
+			record.LastModifier = paramIn.LastModifier
+		}
+
 		record.UserID = &userID
 		record.RoleID = &paramIn.RoleIDs[i]
 		paramOut = append(paramOut, record)
@@ -128,6 +148,9 @@ func (roleAndUserService) UpdateByUserID(userID int, paramIn dto.RoleAndUserCrea
 	var paramOut []model.RoleAndUser
 	for i := range paramIn.RoleIDs {
 		var record model.RoleAndUser
+		if paramIn.LastModifier != nil {
+			record.LastModifier = paramIn.LastModifier
+		}
 		record.UserID = &userID
 		record.RoleID = &paramIn.RoleIDs[i]
 		paramOut = append(paramOut, record)

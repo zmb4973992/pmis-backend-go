@@ -27,6 +27,14 @@ func (disassemblyService) Create(paramIn *dto.DisassemblyCreateOrUpdateDTO) resp
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.Disassembly
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
+	if paramIn.Creator != nil {
+		paramOut.Creator = paramIn.Creator
+	}
+
+	if paramIn.LastModifier != nil {
+		paramOut.LastModifier = paramIn.LastModifier
+	}
+
 	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
 		paramOut.Name = nil
 	} else {
@@ -66,6 +74,10 @@ func (disassemblyService) Update(paramIn *dto.DisassemblyCreateOrUpdateDTO) resp
 	var paramOut model.Disassembly
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
+	if paramIn.LastModifier != nil {
+		paramOut.LastModifier = paramIn.LastModifier
+	}
+
 	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
 		paramOut.Name = nil
 	} else {

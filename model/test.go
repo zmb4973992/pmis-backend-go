@@ -1,7 +1,9 @@
 package model
 
+import "time"
+
 type Test struct {
-	BaseModel
-	Name string
-	Age  int
+	Date1 time.Time `gorm:"type:datetime"`
+	Date2 time.Time `gorm:"type:datetime"`
+	Date3 time.Time `gorm:"type:datetime;scale:0"`
 }

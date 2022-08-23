@@ -28,8 +28,6 @@ type UserCreateDTO struct {
 	IsValid           *bool   `json:"is_valid" binding:"required"`             //是否有效
 	MobilePhoneNumber *string `json:"mobile_phone_number"  binding:"required"` //手机号
 	EmployeeNumber    *string `json:"employee_number" binding:"required"`      //工号
-	Roles             []int   `json:"roles" binding:"required"`                //角色
-	Departments       []int   `json:"departments" binding:"required"`          //部门
 }
 
 type UserUpdateDTO struct {
@@ -40,8 +38,6 @@ type UserUpdateDTO struct {
 	IsValid           *bool   `json:"is_valid" binding:"required"`             //是否有效
 	MobilePhoneNumber *string `json:"mobile_phone_number"  binding:"required"` //手机号
 	EmployeeNumber    *string `json:"employee_number" binding:"required"`      //工号
-	Roles             []int   `json:"roles" binding:"required"`                //角色
-	Departments       []int   `json:"departments" binding:"required"`          //部门
 }
 
 type UserListDTO struct {

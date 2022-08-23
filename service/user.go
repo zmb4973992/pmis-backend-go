@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"gorm.io/gorm"
 	"learn-go/dao"
 	"learn-go/dto"
 	"learn-go/global"
@@ -35,6 +34,15 @@ func (userService) Create(paramIn *dto.UserCreateDTO) response.Common {
 	}
 	paramOut.Password = encryptedPassword
 	paramOut.IsValid = paramIn.IsValid
+
+	if paramIn.Creator != nil {
+		paramOut.Creator = paramIn.Creator
+	}
+
+	if paramIn.LastModifier != nil {
+		paramOut.LastModifier = paramIn.LastModifier
+	}
+
 	if *paramIn.FullName == "" {
 		paramOut.FullName = nil
 	} else {
@@ -57,18 +65,18 @@ func (userService) Create(paramIn *dto.UserCreateDTO) response.Common {
 	}
 	//这里对一对多关系字段不作处理，都交给下面的事务
 
-	//生成子表需要的角色数据
-	for i := range paramIn.Roles {
-		paramOut.Roles = append(paramOut.Roles, model.RoleAndUser{
-			RoleID: &paramIn.Roles[i],
-		})
-	}
-	//生成子表需要的部门数据
-	for i := range paramIn.Departments {
-		paramOut.Departments = append(paramOut.Departments, model.DepartmentAndUser{
-			DepartmentID: &paramIn.Departments[i],
-		})
-	}
+	////生成子表需要的角色数据
+	//for i := range paramIn.Roles {
+	//	paramOut.Roles = append(paramOut.Roles, model.RoleAndUser{
+	//		RoleID: &paramIn.Roles[i],
+	//	})
+	//}
+	////生成子表需要的部门数据
+	//for i := range paramIn.Departments {
+	//	paramOut.Departments = append(paramOut.Departments, model.DepartmentAndUser{
+	//		DepartmentID: &paramIn.Departments[i],
+	//	})
+	//}
 
 	err = dao.UserDAO.Create(&paramOut)
 
@@ -131,6 +139,10 @@ func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
+	if paramIn.LastModifier != nil {
+		paramOut.LastModifier = paramIn.LastModifier
+	}
+
 	if *paramIn.FullName == "" {
 		paramOut.FullName = nil
 	} else {
@@ -153,75 +165,80 @@ func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
 		paramOut.EmployeeNumber = paramIn.EmployeeNumber
 	}
 
-	//由于涉及到多表的保存，这里对一对多关系字段不作处理，都交给下面的事务
-	err = global.DB.Transaction(
-		func(tx *gorm.DB) error {
-			//注意，这里没有使用dao层的封装方法，而是使用tx+gorm的原始方法
-			err := tx.Where("id = ?", paramIn.ID).Omit("created_at").Save(&paramOut).Error
-			if err != nil {
-				return err
-			}
-			//把用户-角色的对应关系添加到role_and_user表
-			//如果有角色数据：
-			if len(paramIn.Roles) > 0 {
-				//获取原始的角色数据：
-				var existedRoleIDs []int
-				tx.Model(&model.RoleAndUser{}).Select("role_id").Where("user_id = ?", paramIn.ID).Find(&existedRoleIDs)
-				//新老数据比较
-				ok := util.SlicesAreSame(paramIn.Roles, existedRoleIDs)
-				//如果不相同，则开始更新
-				if !ok {
-					//先把中间表的数据删除
-					tx.Where("user_id = ?", paramIn.ID).Delete(&model.RoleAndUser{})
-					//然后插入新的中间表数据
-					var paramOutForRoleAndUser []model.RoleAndUser
-					//这里不能使用v进行循环赋值，因为涉及到指针，会导致所有记录都变成一样的
-					for k := range paramIn.Roles {
-						var record model.RoleAndUser
-						record.UserID = &paramOut.ID
-						record.RoleID = &paramIn.Roles[k]
-						paramOutForRoleAndUser = append(paramOutForRoleAndUser, record)
-					}
-					err = tx.Create(&paramOutForRoleAndUser).Error
-					if err != nil {
-						return err
-					}
-				}
-			}
-
-			//把用户-部门的对应关系添加到department_and_user表
-			//如果有部门数据：
-			if len(paramIn.Departments) > 0 {
-				//获取原始的部门数据：
-				var existedDepartmentIDs []int
-				tx.Model(&model.DepartmentAndUser{}).Select("department_id").Where("user_id = ?", paramIn.ID).Find(&existedDepartmentIDs)
-				//新老数据比较
-				ok := util.SlicesAreSame(paramIn.Roles, existedDepartmentIDs)
-				//如果不相同，则开始更新
-				if !ok {
-					//先把中间表的数据删除
-					tx.Where("user_id = ?", paramIn.ID).Delete(&model.DepartmentAndUser{})
-					//然后插入新的中间表数据
-					var paramOutForDepartmentAndUser []model.DepartmentAndUser
-					for k := range paramIn.Departments {
-						var record model.DepartmentAndUser
-						record.UserID = &paramOut.ID
-						record.DepartmentID = &paramIn.Departments[k]
-						paramOutForDepartmentAndUser = append(paramOutForDepartmentAndUser, record)
-					}
-					err = tx.Create(&paramOutForDepartmentAndUser).Error
-					if err != nil {
-						return err
-					}
-				}
-			}
-			//事务执行完毕,返回空则自动提交
-			return nil
-		})
-
+	err = dao.UserDAO.Update(&paramOut)
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
+
+	//由于涉及到多表的保存，这里对一对多关系字段不作处理，都交给下面的事务
+	//err = global.DB.Transaction(
+	//	func(tx *gorm.DB) error {
+	//		//注意，这里没有使用dao层的封装方法，而是使用tx+gorm的原始方法
+	//		err := tx.Where("id = ?", paramIn.ID).Omit("created_at").Save(&paramOut).Error
+	//		if err != nil {
+	//			return err
+	//		}
+	//		//把用户-角色的对应关系添加到role_and_user表
+	//		//如果有角色数据：
+	//		if len(paramIn.Roles) > 0 {
+	//			//获取原始的角色数据：
+	//			var existedRoleIDs []int
+	//			tx.Model(&model.RoleAndUser{}).Select("role_id").Where("user_id = ?", paramIn.ID).Find(&existedRoleIDs)
+	//			//新老数据比较
+	//			ok := util.SlicesAreSame(paramIn.Roles, existedRoleIDs)
+	//			//如果不相同，则开始更新
+	//			if !ok {
+	//				//先把中间表的数据删除
+	//				tx.Where("user_id = ?", paramIn.ID).Delete(&model.RoleAndUser{})
+	//				//然后插入新的中间表数据
+	//				var paramOutForRoleAndUser []model.RoleAndUser
+	//				//这里不能使用v进行循环赋值，因为涉及到指针，会导致所有记录都变成一样的
+	//				for k := range paramIn.Roles {
+	//					var record model.RoleAndUser
+	//					record.UserID = &paramOut.ID
+	//					record.RoleID = &paramIn.Roles[k]
+	//					paramOutForRoleAndUser = append(paramOutForRoleAndUser, record)
+	//				}
+	//				err = tx.Create(&paramOutForRoleAndUser).Error
+	//				if err != nil {
+	//					return err
+	//				}
+	//			}
+	//		}
+	//
+	//		//把用户-部门的对应关系添加到department_and_user表
+	//		//如果有部门数据：
+	//		if len(paramIn.Departments) > 0 {
+	//			//获取原始的部门数据：
+	//			var existedDepartmentIDs []int
+	//			tx.Model(&model.DepartmentAndUser{}).Select("department_id").Where("user_id = ?", paramIn.ID).Find(&existedDepartmentIDs)
+	//			//新老数据比较
+	//			ok := util.SlicesAreSame(paramIn.Roles, existedDepartmentIDs)
+	//			//如果不相同，则开始更新
+	//			if !ok {
+	//				//先把中间表的数据删除
+	//				tx.Where("user_id = ?", paramIn.ID).Delete(&model.DepartmentAndUser{})
+	//				//然后插入新的中间表数据
+	//				var paramOutForDepartmentAndUser []model.DepartmentAndUser
+	//				for k := range paramIn.Departments {
+	//					var record model.DepartmentAndUser
+	//					record.UserID = &paramOut.ID
+	//					record.DepartmentID = &paramIn.Departments[k]
+	//					paramOutForDepartmentAndUser = append(paramOutForDepartmentAndUser, record)
+	//				}
+	//				err = tx.Create(&paramOutForDepartmentAndUser).Error
+	//				if err != nil {
+	//					return err
+	//				}
+	//			}
+	//		}
+	//		//事务执行完毕,返回空则自动提交
+	//		return nil
+	//	})
+	//if err != nil {
+	//	return response.Failure(util.ErrorFailToUpdateRecord)
+	//}
+
 	return response.Success()
 }
 

@@ -31,6 +31,13 @@ func (relatedPartyService) Get(relatedPartyID int) response.Common {
 func (relatedPartyService) Create(paramIn *dto.RelatedPartyCreateOrUpdateDTO) response.Common {
 	//对model进行清洗，生成dao层需要的model
 	var paramOut model.RelatedParty
+	if paramIn.Creator != nil {
+		paramOut.Creator = paramIn.Creator
+	}
+
+	if paramIn.LastModifier != nil {
+		paramOut.LastModifier = paramIn.LastModifier
+	}
 
 	if *paramIn.ChineseName == "" {
 		paramOut.ChineseName = nil
@@ -78,6 +85,10 @@ func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdateDTO) re
 	}
 
 	//对dto进行清洗，生成dao层需要的model
+	if paramIn.LastModifier != nil {
+		paramOut.LastModifier = paramIn.LastModifier
+	}
+
 	if *paramIn.ChineseName == "" {
 		paramOut.ChineseName = nil
 	} else {
