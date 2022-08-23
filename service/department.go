@@ -27,6 +27,14 @@ func (departmentService) Create(paramIn *dto.DepartmentCreateOrUpdateDTO) respon
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.Department
 
+	if paramIn.Creator != nil {
+		paramOut.Creator = paramIn.Creator
+	}
+
+	if paramIn.LastModifier != nil {
+		paramOut.LastModifier = paramIn.LastModifier
+	}
+
 	if paramIn.Name == "" {
 		return response.Failure(util.ErrorInvalidJSONParameters)
 	} else {
@@ -57,6 +65,10 @@ func (departmentService) Create(paramIn *dto.DepartmentCreateOrUpdateDTO) respon
 func (departmentService) Update(paramIn *dto.DepartmentCreateOrUpdateDTO) response.Common {
 	var paramOut model.Department
 	paramOut.ID = paramIn.ID
+
+	if paramIn.LastModifier != nil {
+		paramOut.LastModifier = paramIn.LastModifier
+	}
 
 	if paramIn.Name == "" {
 		return response.Failure(util.ErrorInvalidJSONParameters)

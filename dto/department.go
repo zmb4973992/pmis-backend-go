@@ -9,6 +9,7 @@ type DepartmentGetDTO struct {
 // DepartmentCreateOrUpdateDTO
 // 除id外，所有字段都设置为必须绑定
 type DepartmentCreateOrUpdateDTO struct {
+	BaseDTO
 	ID         int    `json:"id"`
 	Name       string `json:"name" binding:"required"`        //部门名称
 	Level      string `json:"level" binding:"required"`       //级别，如公司、事业部、部门等
@@ -17,6 +18,8 @@ type DepartmentCreateOrUpdateDTO struct {
 
 // DepartmentListDTO 待实现
 type DepartmentListDTO struct {
+	ListDTO
+
 	ID int `json:"id"`
 
 	SuperiorID *int    `json:"superior_id"`
@@ -24,6 +27,4 @@ type DepartmentListDTO struct {
 
 	Name        *string `json:"name"`
 	NameInclude *string `json:"name_include"`
-
-	ListDTO
 }

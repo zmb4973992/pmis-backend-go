@@ -32,15 +32,23 @@ func (roleAndUserController) CreateByRoleID(c *gin.Context) {
 		return
 	}
 
-	var data dto.RoleAndUserCreateOrUpdateDTO
-	err = c.ShouldBindJSON(&data)
-	if err != nil || len(data.UserIDs) == 0 {
+	var param dto.RoleAndUserCreateOrUpdateDTO
+	err = c.ShouldBindJSON(&param)
+	if err != nil || len(param.UserIDs) == 0 {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
-	res := service.RoleAndUserService.CreateByRoleID(roleID, data)
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.Creator = &userID
+		param.LastModifier = &userID
+	}
+
+	res := service.RoleAndUserService.CreateByRoleID(roleID, param)
 	c.JSON(http.StatusOK, res)
 }
 
@@ -52,15 +60,22 @@ func (roleAndUserController) UpdateByRoleID(c *gin.Context) {
 		return
 	}
 
-	var data dto.RoleAndUserCreateOrUpdateDTO
-	err = c.ShouldBindJSON(&data)
-	if err != nil || len(data.UserIDs) == 0 {
+	var param dto.RoleAndUserCreateOrUpdateDTO
+	err = c.ShouldBindJSON(&param)
+	if err != nil || len(param.UserIDs) == 0 {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
-	res := service.RoleAndUserService.UpdateByRoleID(roleID, data)
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.LastModifier = &userID
+	}
+
+	res := service.RoleAndUserService.UpdateByRoleID(roleID, param)
 	c.JSON(http.StatusOK, res)
 }
 
@@ -104,6 +119,14 @@ func (roleAndUserController) CreateByUserID(c *gin.Context) {
 		return
 	}
 
+	var param dto.RoleAndUserCreateOrUpdateDTO
+	err = c.ShouldBindJSON(&param)
+	if err != nil || len(param.UserIDs) == 0 {
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidJSONParameters))
+		return
+	}
+
 	res := service.RoleAndUserService.CreateByUserID(userID, data)
 	c.JSON(http.StatusOK, res)
 }
@@ -116,15 +139,22 @@ func (roleAndUserController) UpdateByUserID(c *gin.Context) {
 		return
 	}
 
-	var data dto.RoleAndUserCreateOrUpdateDTO
-	err = c.ShouldBindJSON(&data)
-	if err != nil || len(data.RoleIDs) == 0 {
+	var param dto.RoleAndUserCreateOrUpdateDTO
+	err = c.ShouldBindJSON(&param)
+	if err != nil || len(param.RoleIDs) == 0 {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
-	res := service.RoleAndUserService.UpdateByUserID(userID, data)
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.LastModifier = &userID
+	}
+
+	res := service.RoleAndUserService.UpdateByUserID(userID, param)
 	c.JSON(http.StatusOK, res)
 }
 

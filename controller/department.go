@@ -38,6 +38,14 @@ func (departmentController) Create(c *gin.Context) {
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.Creator = &userID
+		param.LastModifier = &userID
+	}
+
 	res := service.DepartmentService.Create(&param)
 	c.JSON(http.StatusOK, res)
 	return
@@ -57,6 +65,14 @@ func (departmentController) Update(c *gin.Context) {
 		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
+
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.LastModifier = &userID
+	}
+
 	res := service.DepartmentService.Update(&param)
 	c.JSON(200, res)
 }

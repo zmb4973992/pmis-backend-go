@@ -46,7 +46,7 @@ func (operationRecordDAO) Create(param *model.OperationRecord) error {
 // Update 这里是只负责更新，不写任何业务逻辑。只要收到id和更新参数，然后返回错误
 func (operationRecordDAO) Update(param *model.OperationRecord) error {
 	//注意，这里就算没有找到记录，也不会报错，只有更新字段出现问题才会报错。详见gorm的update用法
-	err := global.DB.Where("id = ?", param.ID).Omit("created_at").Save(param).Error
+	err := global.DB.Where("id = ?", param.ID).Omit("created_at", "creator").Save(param).Error
 	return err
 }
 

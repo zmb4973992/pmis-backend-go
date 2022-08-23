@@ -31,6 +31,29 @@ func (relatedPartyController) Get(c *gin.Context) {
 	return
 }
 
+func (relatedPartyController) Create(c *gin.Context) {
+	var param dto.RelatedPartyCreateOrUpdateDTO
+	//先把json参数绑定到model
+	err := c.ShouldBindJSON(&param)
+	if err != nil {
+		c.JSON(http.StatusBadRequest,
+			response.Failure(util.ErrorInvalidURIParameters))
+		return
+	}
+
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.Creator = &userID
+		param.LastModifier = &userID
+	}
+
+	res := service.RelatedPartyService.Create(&param)
+	c.JSON(http.StatusOK, res)
+	return
+}
+
 func (relatedPartyController) Update(c *gin.Context) {
 	var param dto.RelatedPartyCreateOrUpdateDTO
 	//先把json参数绑定到model
@@ -47,22 +70,16 @@ func (relatedPartyController) Update(c *gin.Context) {
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
+
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.LastModifier = &userID
+	}
+
 	res := service.RelatedPartyService.Update(&param)
 	c.JSON(200, res)
-}
-
-func (relatedPartyController) Create(c *gin.Context) {
-	var paramIn dto.RelatedPartyCreateOrUpdateDTO
-	//先把json参数绑定到model
-	err := c.ShouldBindJSON(&paramIn)
-	if err != nil {
-		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidURIParameters))
-		return
-	}
-	res := service.RelatedPartyService.Create(&paramIn)
-	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (relatedPartyController) Delete(c *gin.Context) {

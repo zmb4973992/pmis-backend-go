@@ -20,6 +20,7 @@ type UserGetDTO struct {
 }
 
 type UserCreateDTO struct {
+	BaseDTO
 	Username          string  `json:"username" binding:"required"`
 	Password          string  `json:"password" binding:"required"`
 	FullName          *string `json:"full_name"  binding:"required"`           //全名
@@ -32,6 +33,7 @@ type UserCreateDTO struct {
 }
 
 type UserUpdateDTO struct {
+	BaseDTO
 	ID                int     `json:"id"`
 	FullName          *string `json:"full_name"  binding:"required"`           //全名
 	EmailAddress      *string `json:"email_address" binding:"required"`        //邮箱地址
@@ -43,6 +45,7 @@ type UserUpdateDTO struct {
 }
 
 type UserListDTO struct {
+	ListDTO
 	ID      int   `json:"id"`
 	IDGte   *int  `json:"id_gte"` //验证功能用的，后期考虑删除
 	IDLte   *int  `json:"id_lte"` //验证功能用的，后期考虑删除
@@ -51,5 +54,4 @@ type UserListDTO struct {
 	Username        *string `json:"username"`
 	UsernameInclude *string `json:"username_include"` //验证功能用的，后期考虑删除
 
-	ListDTO
 }
