@@ -35,6 +35,15 @@ func (disassemblyTemplateController) Create(c *gin.Context) {
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
+
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.Creator = &userID
+		param.LastModifier = &userID
+	}
+
 	res := service.DisassemblyTemplateService.Create(&param)
 	c.JSON(http.StatusOK, res)
 	return
@@ -56,6 +65,14 @@ func (disassemblyTemplateController) Update(c *gin.Context) {
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
+
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.LastModifier = &userID
+	}
+
 	res := service.DisassemblyTemplateService.Update(&param)
 	c.JSON(200, res)
 }

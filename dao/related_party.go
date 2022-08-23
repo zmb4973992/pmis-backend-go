@@ -38,7 +38,7 @@ func (relatedPartyDAO) Create(paramIn *model.RelatedParty) error {
 // Update 这里是只负责修改，不写任何业务逻辑。
 // 全量更新，保存数据库记录，返回错误
 func (relatedPartyDAO) Update(paramIn *model.RelatedParty) error {
-	err := global.DB.Debug().Model(paramIn).Omit("created_at").Save(paramIn).Error
+	err := global.DB.Debug().Model(paramIn).Omit("created_at", "creator").Save(paramIn).Error
 	return err
 }
 

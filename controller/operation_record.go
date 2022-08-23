@@ -36,6 +36,14 @@ func (operationRecordController) Create(c *gin.Context) {
 		return
 	}
 
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.Creator = &userID
+		param.LastModifier = &userID
+	}
+
 	res := service.OperationRecordService.Create(&param)
 	c.JSON(http.StatusOK, res)
 	return
@@ -57,6 +65,14 @@ func (operationRecordController) Update(c *gin.Context) {
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
+
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.LastModifier = &userID
+	}
+
 	res := service.OperationRecordService.Update(&param)
 	c.JSON(200, res)
 }

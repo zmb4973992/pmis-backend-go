@@ -12,6 +12,7 @@ type OperationRecordGetDTO struct {
 }
 
 type OperationRecordCreateOrUpdateDTO struct {
+	BaseDTO
 	ID         int     `json:"id"`
 	ProjectID  *int    `json:"project_id" binding:"required"`  //项目id
 	OperatorID *int    `json:"operator_id" binding:"required"` //操作人id
@@ -23,12 +24,11 @@ type OperationRecordCreateOrUpdateDTO struct {
 // OperationRecordListDTO 是list查询的过滤器
 // 在dto传递给sqlCondition时，空值会被忽略
 type OperationRecordListDTO struct {
+	ListDTO
 	ID         int     `json:"id"`
 	ProjectID  *int    `json:"project_id"`
 	OperatorID *int    `json:"operator_id"`
 	DateGte    *string `json:"date_gte"`
 	DateLte    *string `json:"date_lte"`
 	Action     *string `json:"action"`
-
-	ListDTO
 }

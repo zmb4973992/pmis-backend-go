@@ -28,14 +28,23 @@ func (userController) Get(c *gin.Context) {
 
 func (userController) Create(c *gin.Context) {
 	//先声明空的dto，再把context里的数据绑到dto上
-	var u dto.UserCreateDTO
-	err := c.ShouldBindJSON(&u)
+	var param dto.UserCreateDTO
+	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
-	res := service.UserService.Create(&u)
+
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.Creator = &userID
+		param.LastModifier = &userID
+	}
+
+	res := service.UserService.Create(&param)
 	c.JSON(http.StatusOK, res)
 	return
 }
@@ -58,6 +67,14 @@ func (userController) Update(c *gin.Context) {
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
+
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.LastModifier = &userID
+	}
+
 	//参数解析完毕，交给service层处理
 	res := service.UserService.Update(&param)
 	c.JSON(200, res)

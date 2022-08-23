@@ -13,6 +13,7 @@ type RelatedPartyGetDTO struct {
 }
 
 type RelatedPartyCreateOrUpdateDTO struct {
+	BaseDTO
 	ID                      int     `json:"id"`
 	ChineseName             *string `json:"chinese_name" binding:"required"`
 	EnglishName             *string `json:"english_name" binding:"required"`
@@ -24,12 +25,11 @@ type RelatedPartyCreateOrUpdateDTO struct {
 // RelatedPartyListDTO 是list查询的过滤器
 // 在dto传递给sqlCondition时，空值会被忽略
 type RelatedPartyListDTO struct {
+	ListDTO
 	ID    int  `json:"id"`
 	IDGte *int `json:"id_gte"`
 	IDLte *int `json:"id_lte"`
 
 	ChineseName        *string `json:"chinese_name"`
 	ChineseNameInclude *string `json:"chinese_name_include"`
-
-	ListDTO
 }

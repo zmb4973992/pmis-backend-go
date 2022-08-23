@@ -64,6 +64,13 @@ func (userDAO) Create(param *model.User) error {
 	return err
 }
 
+// Update 这里是只负责修改，不写任何业务逻辑。
+// 全量更新，保存数据库记录，返回错误
+func (userDAO) Update(paramIn *model.User) error {
+	err := global.DB.Model(paramIn).Omit("created_at", "creator").Save(paramIn).Error
+	return err
+}
+
 func (userDAO) Delete(userID int) error {
 	//注意，这里就算没有找到记录，也不会报错。详见gorm的delete用法
 	err := global.DB.Delete(&model.User{}, userID).Error
