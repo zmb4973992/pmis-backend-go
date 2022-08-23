@@ -8,7 +8,7 @@ type ErrorLog struct {
 	Date          *time.Time `gorm:"type:date"` //日期
 	MajorCategory *string    //大类
 	MinorCategory *string    //小类
-	IsResolved    *string    //是否已解决
+	IsResolved    *bool      //是否已解决
 }
 
 // TableName 修改表名
