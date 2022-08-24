@@ -11,7 +11,7 @@ database:
   db_username: "sa"
   db_password: "028912"
   #绝对不传给前端的数据库字段名
-  omitted_columns: [ "password","created_at" ]
+  omitted_columns: [ "password" ]
 
 jwt:
   secret_key: "e7KF3k0dj3"
