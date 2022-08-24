@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"learn-go/dao"
 	"learn-go/dto"
 	"learn-go/global"
 	"learn-go/model"
@@ -16,10 +15,13 @@ import (
 type userService struct{}
 
 func (userService) Get(userID int) response.Common {
-	result := dao.UserDAO.Get(userID)
-	if result == nil {
+	var result dto.UserGetDTO
+	//把基础的账号信息查出来
+	err := global.DB.Model(model.User{}).Where("id = ?", userID).First(&result).Error
+	if err != nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
+
 	return response.SuccessWithData(result)
 }
 
@@ -78,7 +80,7 @@ func (userService) Create(paramIn *dto.UserCreateDTO) response.Common {
 	//	})
 	//}
 
-	err = dao.UserDAO.Create(&paramOut)
+	err = global.DB.Create(&paramOut).Error
 
 	//
 	////由于涉及到多表的保存，所以这里启用事务。这是老写法，自己尝试出来的。利用了事务，以后可以参考
@@ -165,7 +167,8 @@ func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
 		paramOut.EmployeeNumber = paramIn.EmployeeNumber
 	}
 
-	err = dao.UserDAO.Update(&paramOut)
+	err = global.DB.Where("id = ?", paramOut.ID).
+		Omit("created_at", "creator").Save(paramOut).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
@@ -244,7 +247,7 @@ func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
 
 func (userService) Delete(userID int) response.Common {
 	//新建一个dao.User结构体的实例
-	err := dao.UserDAO.Delete(userID)
+	err := global.DB.Delete(&model.User{}, userID).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
@@ -330,7 +333,6 @@ func (userService) List(paramIn dto.UserListDTO) response.List {
 			global.DB.Where("id = ?", roleAndUser.RoleID).First(&role)
 			roleNames = append(roleNames, role.Name)
 		}
-		list[i].Roles = roleNames
 
 		//把该userID的所有department_and_user记录查出来
 		var departmentAndUsers []model.DepartmentAndUser
@@ -342,7 +344,6 @@ func (userService) List(paramIn dto.UserListDTO) response.List {
 			global.DB.Where("id = ?", departmentAndUser.DepartmentID).First(&department)
 			departmentNames = append(departmentNames, department.Name)
 		}
-		list[i].Departments = departmentNames
 	}
 
 	return response.List{

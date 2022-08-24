@@ -1,14 +1,13 @@
 package service
 
 import (
-	"fmt"
 	"github.com/mitchellh/mapstructure"
-	"learn-go/dao"
 	"learn-go/dto"
 	"learn-go/global"
 	"learn-go/model"
 	"learn-go/serializer/response"
 	"learn-go/util"
+	"time"
 )
 
 // errorLogService 没有数据、只有方法，所有的数据都放在DTO里
@@ -17,39 +16,22 @@ import (
 type errorLogService struct{}
 
 func (errorLogService) Get(errorLogID int) response.Common {
-	//var param dto.ErrorLogGetDTO
-	//把基础的拆解信息查出来
-	var errorLog model.ErrorLog
-	err := global.DB.Where("id = ?", errorLogID).First(&errorLog).Error
+	var result dto.ErrorLogGetDTO
+	err := global.DB.Model(model.ErrorLog{}).
+		Where("id = ?", errorLogID).First(&result).Error
 	if err != nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
-
-	//把所有查出的结果赋值给输出变量
-	detail := errorLog.Detail
-	fmt.Println(detail)
-
-	//if disassembly.Level != nil {
-	//	param.Level = disassembly.Level
-	//}
-	//if disassembly.Weight != nil {
-	//	param.Weight = disassembly.Weight
-	//}
-	//if disassembly.SuperiorID != nil {
-	//	param.SuperiorID = disassembly.SuperiorID
-	//}
-	//return &param
-	//
-	//errorLog := dao.DisassemblyDAO.Get(errorLogID)
-	//if errorLog == nil {
-	//	return response.Failure(util.ErrorRecordNotFound)
-	//}
-	return response.SuccessWithData(errorLog)
+	if result.Date != nil {
+		date := *result.Date
+		*result.Date = date[:10]
+	}
+	return response.SuccessWithData(result)
 }
 
-func (errorLogService) Create(paramIn *dto.DisassemblyCreateOrUpdateDTO) response.Common {
+func (errorLogService) Create(paramIn *dto.ErrorLogCreateOrUpdateDTO) response.Common {
 	//对dto进行清洗，生成dao层需要的model
-	var paramOut model.Disassembly
+	var paramOut model.ErrorLog
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	if paramIn.Creator != nil {
 		paramOut.Creator = paramIn.Creator
@@ -59,33 +41,44 @@ func (errorLogService) Create(paramIn *dto.DisassemblyCreateOrUpdateDTO) respons
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
-		paramOut.Name = nil
+	if *paramIn.Detail == "" {
+		paramOut.Detail = nil
 	} else {
-		paramOut.Name = paramIn.Name
-	}
-	if *paramIn.Level == -1 {
-		paramOut.Level = nil
-	} else {
-		paramOut.Level = paramIn.Level
-	}
-	if *paramIn.ProjectID == -1 {
-		paramOut.ProjectID = nil
-	} else {
-		paramOut.ProjectID = paramIn.ProjectID
-	}
-	if *paramIn.Weight == -1 {
-		paramOut.Weight = nil
-	} else {
-		paramOut.Weight = paramIn.Weight
-	}
-	if *paramIn.SuperiorID == -1 {
-		paramOut.SuperiorID = nil
-	} else {
-		paramOut.SuperiorID = paramIn.SuperiorID
+		paramOut.Detail = paramIn.Detail
 	}
 
-	err := dao.DisassemblyDAO.Create(&paramOut)
+	if *paramIn.Date == "" {
+		paramOut.Date = nil
+	} else {
+		date, err := time.Parse("2006-01-02", *paramIn.Date)
+		if err != nil {
+			return response.Failure(util.ErrorInvalidJSONParameters)
+		} else {
+			paramOut.Date = &date
+		}
+	}
+
+	if *paramIn.MajorCategory == "" {
+		paramOut.MajorCategory = nil
+	} else {
+		paramOut.MajorCategory = paramIn.MajorCategory
+	}
+
+	if *paramIn.MinorCategory == "" {
+		paramOut.MinorCategory = nil
+	} else {
+		paramOut.MinorCategory = paramIn.MinorCategory
+	}
+
+	if *paramIn.IsResolved == false {
+		temp := false
+		paramOut.IsResolved = &temp
+	} else {
+		temp := true
+		paramOut.IsResolved = &temp
+	}
+
+	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
@@ -94,42 +87,53 @@ func (errorLogService) Create(paramIn *dto.DisassemblyCreateOrUpdateDTO) respons
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (errorLogService) Update(paramIn *dto.DisassemblyCreateOrUpdateDTO) response.Common {
-	var paramOut model.Disassembly
+func (errorLogService) Update(paramIn *dto.ErrorLogCreateOrUpdateDTO) response.Common {
+	var paramOut model.ErrorLog
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	if paramIn.LastModifier != nil {
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
-		paramOut.Name = nil
+	if *paramIn.Detail == "" {
+		paramOut.Detail = nil
 	} else {
-		paramOut.Name = paramIn.Name
+		paramOut.Detail = paramIn.Detail
 	}
-	if *paramIn.Level == -1 {
-		paramOut.Level = nil
+
+	if *paramIn.Date == "" {
+		paramOut.Date = nil
 	} else {
-		paramOut.Level = paramIn.Level
+		date, err := time.Parse("2006-01-02", *paramIn.Date)
+		if err != nil {
+			return response.Failure(util.ErrorInvalidJSONParameters)
+		} else {
+			paramOut.Date = &date
+		}
 	}
-	if *paramIn.ProjectID == -1 {
-		paramOut.ProjectID = nil
+
+	if *paramIn.MajorCategory == "" {
+		paramOut.MajorCategory = nil
 	} else {
-		paramOut.ProjectID = paramIn.ProjectID
+		paramOut.MajorCategory = paramIn.MajorCategory
 	}
-	if *paramIn.Weight == -1 {
-		paramOut.Weight = nil
+
+	if *paramIn.MinorCategory == "" {
+		paramOut.MinorCategory = nil
 	} else {
-		paramOut.Weight = paramIn.Weight
+		paramOut.MinorCategory = paramIn.MinorCategory
 	}
-	if *paramIn.SuperiorID == -1 {
-		paramOut.SuperiorID = nil
+
+	if *paramIn.IsResolved == false {
+		temp := false
+		paramOut.IsResolved = &temp
 	} else {
-		paramOut.SuperiorID = paramIn.SuperiorID
+		temp := true
+		paramOut.IsResolved = &temp
 	}
 
 	//清洗完毕，开始update
-	err := dao.DisassemblyDAO.Update(&paramOut)
+	err := global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -138,7 +142,7 @@ func (errorLogService) Update(paramIn *dto.DisassemblyCreateOrUpdateDTO) respons
 }
 
 func (errorLogService) Delete(errorLogID int) response.Common {
-	err := dao.DisassemblyDAO.Delete(errorLogID)
+	err := global.DB.Delete(&model.ErrorLog{}, errorLogID).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}

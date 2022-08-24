@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"learn-go/dao"
 	"learn-go/dto"
 	"learn-go/global"
 	"learn-go/model"
@@ -16,10 +15,14 @@ import (
 type disassemblyTemplateService struct{}
 
 func (disassemblyTemplateService) Get(disassemblyTemplateID int) response.Common {
-	result := dao.DisassemblyTemplateDAO.Get(disassemblyTemplateID)
-	if result == nil {
+	var result dto.DisassemblyTemplateGetDTO
+	//把基础的拆解信息查出来
+	err := global.DB.Model(model.DisassemblyTemplate{}).
+		Where("id = ?", disassemblyTemplateID).First(&result).Error
+	if err != nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
+
 	return response.SuccessWithData(result)
 }
 
@@ -61,7 +64,7 @@ func (disassemblyTemplateService) Create(paramIn *dto.DisassemblyTemplateCreateO
 		paramOut.SuperiorID = paramIn.SuperiorID
 	}
 
-	err := dao.DisassemblyTemplateDAO.Create(&paramOut)
+	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
@@ -105,7 +108,8 @@ func (disassemblyTemplateService) Update(paramIn *dto.DisassemblyTemplateCreateO
 	}
 
 	//清洗完毕，开始update
-	err := dao.DisassemblyTemplateDAO.Update(&paramOut)
+	err := global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
+
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -114,7 +118,7 @@ func (disassemblyTemplateService) Update(paramIn *dto.DisassemblyTemplateCreateO
 }
 
 func (disassemblyTemplateService) Delete(disassemblyTemplateID int) response.Common {
-	err := dao.DisassemblyTemplateDAO.Delete(disassemblyTemplateID)
+	err := global.DB.Delete(&model.DisassemblyTemplate{}, disassemblyTemplateID).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}

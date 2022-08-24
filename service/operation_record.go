@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"learn-go/dao"
 	"learn-go/dto"
 	"learn-go/global"
 	"learn-go/model"
@@ -17,10 +16,19 @@ import (
 type operationRecordService struct{}
 
 func (operationRecordService) Get(operationRecordID int) response.Common {
-	result := dao.OperationRecordDAO.Get(operationRecordID)
-	if result == nil {
+	var result dto.OperationRecordGetDTO
+	//把基础的拆解信息查出来
+	err := global.DB.Model(model.OperationRecord{}).
+		Where("id = ?", operationRecordID).First(&result).Error
+	if err != nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
+	//调整日期格式
+	if result.Date != nil {
+		date := *result.Date
+		*result.Date = date[:10]
+	}
+
 	return response.SuccessWithData(result)
 }
 
@@ -82,7 +90,7 @@ func (operationRecordService) Create(paramIn *dto.OperationRecordCreateOrUpdateD
 		paramOut.Detail = paramIn.Detail
 	}
 
-	err := dao.OperationRecordDAO.Create(&paramOut)
+	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
@@ -96,6 +104,10 @@ func (operationRecordService) Update(paramIn *dto.OperationRecordCreateOrUpdateD
 	var paramOut model.OperationRecord
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
+	if paramIn.LastModifier != nil {
+		paramOut.LastModifier = paramIn.LastModifier
+	}
+
 	//这里不需要进行非空判定，因为前面的dto已经设定了必须绑定
 	if *paramIn.ProjectID == -1 {
 		paramOut.ProjectID = nil
@@ -139,7 +151,7 @@ func (operationRecordService) Update(paramIn *dto.OperationRecordCreateOrUpdateD
 	}
 
 	//清洗完毕，开始update
-	err := dao.OperationRecordDAO.Update(&paramOut)
+	err := global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -148,7 +160,7 @@ func (operationRecordService) Update(paramIn *dto.OperationRecordCreateOrUpdateD
 }
 
 func (operationRecordService) Delete(operationRecordID int) response.Common {
-	err := dao.OperationRecordDAO.Delete(operationRecordID)
+	err := global.DB.Delete(&model.OperationRecord{}, operationRecordID).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}

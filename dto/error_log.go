@@ -5,7 +5,7 @@ type ErrorLogGetDTO struct {
 	Date          *string `json:"date" mapstructure:"date"`
 	MajorCategory *string `json:"major_category" mapstructure:"major_category"`
 	MinorCategory *string `json:"minor_category" mapstructure:"minor_category"`
-	IsResolved    *string `json:"is_resolved" mapstructure:"is_resolved"`
+	IsResolved    *bool   `json:"is_resolved" mapstructure:"is_resolved"`
 }
 
 // ErrorLogCreateOrUpdateDTO
@@ -17,7 +17,7 @@ type ErrorLogCreateOrUpdateDTO struct {
 	Date          *string `json:"date" mapstructure:"date" binding:"required"`
 	MajorCategory *string `json:"major_category" mapstructure:"major_category" binding:"required"`
 	MinorCategory *string `json:"minor_category" mapstructure:"minor_category" binding:"required"`
-	IsResolved    *string `json:"is_resolved" mapstructure:"is_resolved" binding:"required"`
+	IsResolved    *bool   `json:"is_resolved" mapstructure:"is_resolved" binding:"required"`
 }
 
 // ErrorLogListDTO 是list查询的过滤器
@@ -28,5 +28,5 @@ type ErrorLogListDTO struct {
 	Date          *string `json:"date" mapstructure:"date"`
 	MajorCategory *string `json:"major_category" mapstructure:"major_category"`
 	MinorCategory *string `json:"minor_category" mapstructure:"minor_category"`
-	IsResolved    *string `json:"is_resolved" mapstructure:"is_resolved"`
+	IsResolved    *bool   `json:"is_resolved" mapstructure:"is_resolved"`
 }

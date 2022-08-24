@@ -1,5 +1,16 @@
 package dto
 
+// OperationRecordGetDTO
+// mapstructure用于list
+// list方法中返回的数据为[]map，需要借助mapstructure转换为struct，再返回给前端
+type OperationRecordGetDTO struct {
+	ProjectID  *int    `json:"project_id" mapstructure:"project_id"`   //项目id
+	OperatorID *int    `json:"operator_id" mapstructure:"operator_id"` //操作人id
+	Date       *string `json:"date" mapstructure:"-"`                  //日期
+	Action     *string `json:"action" mapstructure:"action"`           //动作
+	Detail     *string `json:"detail" mapstructure:"detail"`           //详情
+}
+
 type OperationRecordCreateOrUpdateDTO struct {
 	BaseDTO
 	ID         int     `json:"id"`
@@ -20,15 +31,4 @@ type OperationRecordListDTO struct {
 	DateGte    *string `json:"date_gte"`
 	DateLte    *string `json:"date_lte"`
 	Action     *string `json:"action"`
-}
-
-// OperationRecordGetDTO
-// mapstructure用于list
-// list方法中返回的数据为[]map，需要借助mapstructure转换为struct，再返回给前端
-type OperationRecordGetDTO struct {
-	ProjectID  *int    `json:"project_id" mapstructure:"project_id"`   //项目id
-	OperatorID *int    `json:"operator_id" mapstructure:"operator_id"` //操作人id
-	Date       *string `json:"date" mapstructure:"-"`                  //日期
-	Action     *string `json:"action" mapstructure:"action"`           //动作
-	Detail     *string `json:"detail" mapstructure:"detail"`           //详情
 }

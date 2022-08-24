@@ -47,11 +47,12 @@ func Init() *gin.Engine {
 		api.DELETE("/department/:id", controller.DepartmentController.Delete) //删除部门
 		api.GET("/department/list", controller.DepartmentController.List)     //获取部门列表
 
-		api.GET("/disassembly/:id", controller.DisassemblyController.Get)       //获取项目拆解详情
-		api.POST("/disassembly", controller.DisassemblyController.Create)       //新增项目拆解
-		api.PUT("/disassembly/:id", controller.DisassemblyController.Update)    //修改项目拆解
-		api.DELETE("/disassembly/:id", controller.DisassemblyController.Delete) //删除项目拆解
-		api.GET("/disassembly/list", controller.DisassemblyController.List)     //获取项目拆解列表
+		api.GET("/disassembly/:id", controller.DisassemblyController.Get)                //获取项目拆解详情
+		api.POST("/disassembly", controller.DisassemblyController.Create)                //新增项目拆解
+		api.POST("/disassembly/batch", controller.DisassemblyController.CreateInBatches) //批量新增项目拆解
+		api.PUT("/disassembly/:id", controller.DisassemblyController.Update)             //修改项目拆解
+		api.DELETE("/disassembly/:id", controller.DisassemblyController.Delete)          //删除项目拆解
+		api.GET("/disassembly/list", controller.DisassemblyController.List)              //获取项目拆解列表
 
 		api.GET("/disassembly_template/:id", controller.DisassemblyTemplateController.Get)       //获取项目拆解模板详情
 		api.POST("/disassembly_template", controller.DisassemblyTemplateController.Create)       //新增项目拆解模板
@@ -64,6 +65,11 @@ func Init() *gin.Engine {
 		api.PUT("/operation_record/:id", controller.OperationRecordController.Update)    //修改操作记录
 		api.DELETE("/operation_record/:id", controller.OperationRecordController.Delete) //删除操作记录
 		api.GET("/operation_record/list", controller.OperationRecordController.List)     //获取操作详情列表
+
+		api.GET("/error_log/:id", controller.ErrorLogController.Get)       //获取错误日志详情
+		api.POST("/error_log", controller.ErrorLogController.Create)       //新增错误日志
+		api.PUT("/error_log/:id", controller.ErrorLogController.Update)    //修改错误日志
+		api.DELETE("/error_log/:id", controller.ErrorLogController.Delete) //删除错误日志
 	}
 
 	engine.NoRoute(controller.NoRouteController.NoRoute)

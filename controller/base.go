@@ -12,6 +12,7 @@ type controller struct {
 	userController
 	operationRecordController
 	roleAndUserController
+	errorLogController
 }
 
 var (
@@ -24,4 +25,5 @@ var (
 	UserController                = entrance.userController
 	OperationRecordController     = entrance.operationRecordController
 	RoleAndUserController         = entrance.roleAndUserController
+	ErrorLogController            = entrance.errorLogController
 )

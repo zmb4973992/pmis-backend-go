@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"learn-go/dao"
 	"learn-go/dto"
 	"learn-go/global"
 	"learn-go/model"
@@ -21,8 +20,10 @@ Service层没有数据结构、只有方法，所有的数据结构都放在DTO�
 type relatedPartyService struct{}
 
 func (relatedPartyService) Get(relatedPartyID int) response.Common {
-	result := dao.RelatedPartyDAO.Get(relatedPartyID)
-	if result == nil {
+	var result dto.RelatedPartyGetDTO
+	err := global.DB.Model(&model.RelatedParty{}).
+		Where("id = ?", relatedPartyID).First(&result).Error
+	if err != nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	return response.SuccessWithData(result)
@@ -69,7 +70,7 @@ func (relatedPartyService) Create(paramIn *dto.RelatedPartyCreateOrUpdateDTO) re
 		paramOut.UniformSocialCreditCode = paramIn.UniformSocialCreditCode
 	}
 
-	err := dao.RelatedPartyDAO.Create(&paramOut)
+	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
@@ -120,7 +121,7 @@ func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdateDTO) re
 	}
 
 	//清洗完毕，开始update
-	err = dao.RelatedPartyDAO.Update(&paramOut)
+	err = global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -129,7 +130,7 @@ func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdateDTO) re
 }
 
 func (relatedPartyService) Delete(relatedPartyID int) response.Common {
-	err := dao.RelatedPartyDAO.Delete(relatedPartyID)
+	err := global.DB.Delete(&model.RelatedParty{}, relatedPartyID).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}

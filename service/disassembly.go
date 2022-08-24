@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"learn-go/dao"
 	"learn-go/dto"
 	"learn-go/global"
 	"learn-go/model"
@@ -16,8 +15,10 @@ import (
 type disassemblyService struct{}
 
 func (disassemblyService) Get(disassemblyID int) response.Common {
-	result := dao.DisassemblyDAO.Get(disassemblyID)
-	if result == nil {
+	var result dto.DisassemblyGetDTO
+	err := global.DB.Model(model.Disassembly{}).
+		Where("id = ?", disassemblyID).First(&result).Error
+	if err != nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	return response.SuccessWithData(result)
@@ -35,7 +36,7 @@ func (disassemblyService) Create(paramIn *dto.DisassemblyCreateOrUpdateDTO) resp
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
+	if *paramIn.Name == "" {
 		paramOut.Name = nil
 	} else {
 		paramOut.Name = paramIn.Name
@@ -61,7 +62,62 @@ func (disassemblyService) Create(paramIn *dto.DisassemblyCreateOrUpdateDTO) resp
 		paramOut.SuperiorID = paramIn.SuperiorID
 	}
 
-	err := dao.DisassemblyDAO.Create(&paramOut)
+	err := global.DB.Create(&paramOut).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToCreateRecord)
+	}
+	return response.Success()
+}
+
+func (disassemblyService) CreateInBatches(paramIn []dto.DisassemblyCreateOrUpdateDTO) response.Common {
+	//对dto进行清洗，生成dao层需要的model
+	var paramOut []model.Disassembly
+	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
+	for i := range paramIn {
+		var record model.Disassembly
+		if paramIn[i].Creator != nil {
+			record.Creator = paramIn[i].Creator
+		}
+
+		if paramIn[i].LastModifier != nil {
+			record.LastModifier = paramIn[i].LastModifier
+		}
+
+		if *paramIn[i].Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
+			record.Name = nil
+		} else {
+			record.Name = paramIn[i].Name
+		}
+
+		if *paramIn[i].Level == -1 {
+			record.Level = nil
+		} else {
+			record.Level = paramIn[i].Level
+		}
+
+		if *paramIn[i].ProjectID == -1 {
+			record.ProjectID = nil
+		} else {
+			record.ProjectID = paramIn[i].ProjectID
+		}
+
+		if *paramIn[i].Weight == -1 {
+			record.Weight = nil
+		} else {
+			record.Weight = paramIn[i].Weight
+		}
+
+		if *paramIn[i].SuperiorID == -1 {
+			record.SuperiorID = nil
+		} else {
+			record.SuperiorID = paramIn[i].SuperiorID
+		}
+
+		paramOut = append(paramOut, record)
+
+	}
+
+	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
@@ -105,7 +161,7 @@ func (disassemblyService) Update(paramIn *dto.DisassemblyCreateOrUpdateDTO) resp
 	}
 
 	//清洗完毕，开始update
-	err := dao.DisassemblyDAO.Update(&paramOut)
+	err := global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -114,7 +170,7 @@ func (disassemblyService) Update(paramIn *dto.DisassemblyCreateOrUpdateDTO) resp
 }
 
 func (disassemblyService) Delete(disassemblyID int) response.Common {
-	err := dao.DisassemblyDAO.Delete(disassemblyID)
+	err := global.DB.Delete(&model.Disassembly{}, disassemblyID).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}

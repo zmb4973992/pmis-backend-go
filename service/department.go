@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"learn-go/dao"
 	"learn-go/dto"
 	"learn-go/global"
 	"learn-go/model"
@@ -16,10 +15,13 @@ import (
 type departmentService struct{}
 
 func (departmentService) Get(departmentID int) response.Common {
-	result := dao.DepartmentDAO.Get(departmentID)
-	if result == nil {
+	var result dto.DepartmentGetDTO
+
+	err := global.DB.Model(model.Department{}).Where("id = ?", departmentID).First(&result).Error
+	if err != nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
+
 	return response.SuccessWithData(result)
 }
 
@@ -53,7 +55,7 @@ func (departmentService) Create(paramIn *dto.DepartmentCreateOrUpdateDTO) respon
 		paramOut.SuperiorID = paramIn.SuperiorID
 	}
 
-	err := dao.DepartmentDAO.Create(&paramOut)
+	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
@@ -89,7 +91,7 @@ func (departmentService) Update(paramIn *dto.DepartmentCreateOrUpdateDTO) respon
 	}
 
 	//清洗完毕，开始update
-	err := dao.DepartmentDAO.Update(&paramOut)
+	err := global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -98,7 +100,7 @@ func (departmentService) Update(paramIn *dto.DepartmentCreateOrUpdateDTO) respon
 }
 
 func (departmentService) Delete(departmentID int) response.Common {
-	err := dao.DepartmentDAO.Delete(departmentID)
+	err := global.DB.Delete(&model.Department{}, departmentID).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}

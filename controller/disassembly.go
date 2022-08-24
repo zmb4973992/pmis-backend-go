@@ -49,6 +49,30 @@ func (disassemblyController) Create(c *gin.Context) {
 	return
 }
 
+func (disassemblyController) CreateInBatches(c *gin.Context) {
+	var param []dto.DisassemblyCreateOrUpdateDTO
+	//先把json参数绑定到model
+	err := c.ShouldBindJSON(&param)
+	if err != nil {
+		c.JSON(http.StatusBadRequest,
+			response.Failure(util.ErrorInvalidJSONParameters))
+		return
+	}
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		for i := range param {
+			param[i].Creator = &userID
+			param[i].LastModifier = &userID
+		}
+	}
+
+	res := service.DisassemblyService.CreateInBatches(param)
+	c.JSON(http.StatusOK, res)
+	return
+}
+
 func (disassemblyController) Update(c *gin.Context) {
 	var param dto.DisassemblyCreateOrUpdateDTO
 	//先把json参数绑定到model
