@@ -40,14 +40,11 @@ type UserGetDTO struct {
 	//Departments       []string `json:"departments" mapstructure:"-"`                           //部门
 }
 
+// UserListDTO form用于接收query传参
 type UserListDTO struct {
 	ListDTO
-	ID      int   `json:"id"`
-	IDGte   *int  `json:"id_gte"` //验证功能用的，后期考虑删除
-	IDLte   *int  `json:"id_lte"` //验证功能用的，后期考虑删除
-	IsValid *bool `json:"is_valid"`
-
-	Username        *string `json:"username"`
-	UsernameInclude *string `json:"username_include"` //验证功能用的，后期考虑删除
-
+	IDGte           *int    `form:"id_gte"`
+	IDLte           *int    `form:"id_lte"`
+	IsValid         *int    `form:"is_valid"`
+	UsernameInclude *string `form:"username_include"`
 }

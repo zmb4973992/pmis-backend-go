@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
-	"io"
 	"learn-go/dto"
 	"learn-go/serializer/response"
 	"learn-go/service"
@@ -95,12 +93,13 @@ func (userController) Delete(c *gin.Context) {
 
 func (userController) List(c *gin.Context) {
 	var param dto.UserListDTO
-	err := c.ShouldBindJSON(&param)
-	if err != nil && errors.Is(err, io.EOF) == false {
+	err := c.ShouldBindQuery(&param)
+	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
+
 	//生成userService,然后调用它的方法
 	res := service.UserService.List(param)
 	c.JSON(http.StatusOK, res)

@@ -269,9 +269,6 @@ func (userService) List(paramIn dto.UserListDTO) response.List {
 		sqlCondition.Paging.PageSize = paramIn.PageSize
 	}
 
-	if id := paramIn.ID; id > 0 {
-		sqlCondition.Equal("id", id)
-	}
 	if paramIn.IDGte != nil {
 		sqlCondition.Gte("id", *paramIn.IDGte)
 	}
@@ -282,10 +279,6 @@ func (userService) List(paramIn dto.UserListDTO) response.List {
 
 	if paramIn.IsValid != nil {
 		sqlCondition.Equal("is_valid", *paramIn.IsValid)
-	}
-
-	if paramIn.Username != nil && *paramIn.Username != "" {
-		sqlCondition = sqlCondition.Equal("username", *paramIn.Username)
 	}
 
 	if paramIn.UsernameInclude != nil && *paramIn.UsernameInclude != "" {
