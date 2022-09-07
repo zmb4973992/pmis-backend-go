@@ -45,6 +45,6 @@ type UserListDTO struct {
 	ListDTO
 	IDGte           *int    `form:"id_gte"`
 	IDLte           *int    `form:"id_lte"`
-	IsValid         *int    `form:"is_valid"`
+	IsValid         *bool   `form:"is_valid"`
 	UsernameInclude *string `form:"username_include"`
 }
