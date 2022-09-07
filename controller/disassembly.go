@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
-	"io"
 	"learn-go/dto"
 	"learn-go/serializer/response"
 	"learn-go/service"
@@ -114,9 +112,9 @@ func (disassemblyController) Delete(c *gin.Context) {
 
 func (disassemblyController) List(c *gin.Context) {
 	var param dto.DisassemblyListDTO
-	err := c.ShouldBindJSON(&param)
+	err := c.ShouldBindQuery(&param)
 
-	if err != nil && errors.Is(err, io.EOF) == false {
+	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return

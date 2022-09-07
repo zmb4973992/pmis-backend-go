@@ -20,11 +20,11 @@ type DepartmentCreateOrUpdateDTO struct {
 type DepartmentListDTO struct {
 	ListDTO
 
-	ID int `json:"id"`
+	ID int `form:"id"`
 
-	SuperiorID *int    `json:"superior_id"`
-	Level      *string `json:"level"`
+	SuperiorID *int    `form:"superior_id"`
+	Level      *string `form:"level"`
 
-	Name        *string `json:"name"`
-	NameInclude *string `json:"name_include"`
+	Name        *string `form:"name"`
+	NameInclude *string `form:"name_include"`
 }

@@ -25,10 +25,10 @@ type OperationRecordCreateOrUpdateDTO struct {
 // 在dto传递给sqlCondition时，空值会被忽略
 type OperationRecordListDTO struct {
 	ListDTO
-	ID         int     `json:"id"`
-	ProjectID  *int    `json:"project_id"`
-	OperatorID *int    `json:"operator_id"`
-	DateGte    *string `json:"date_gte"`
-	DateLte    *string `json:"date_lte"`
-	Action     *string `json:"action"`
+	ID         int     `form:"id"`
+	ProjectID  *int    `form:"project_id"`
+	OperatorID *int    `form:"operator_id"`
+	DateGte    *string `form:"date_gte"`
+	DateLte    *string `form:"date_lte"`
+	Action     *string `form:"action"`
 }

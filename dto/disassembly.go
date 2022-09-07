@@ -25,9 +25,9 @@ type DisassemblyCreateOrUpdateDTO struct {
 type DisassemblyListDTO struct {
 	ListDTO
 
-	ProjectID  *int `json:"project_id"`
-	SuperiorID *int `json:"superior_id"`
-	Level      *int `json:"level"`
-	LevelGte   *int `json:"level_gte"`
-	LevelLte   *int `json:"level_lte"`
+	ProjectID  *int `form:"project_id"`
+	SuperiorID *int `form:"superior_id"`
+	Level      *int `form:"level"`
+	LevelGte   *int `form:"level_gte"`
+	LevelLte   *int `form:"level_lte"`
 }

@@ -1,5 +1,13 @@
 package dto
 
+type DisassemblyTemplateGetDTO struct {
+	Name       *string  `json:"name" mapstructure:"name"`               //名称
+	ProjectID  *int     `json:"project_id" mapstructure:"project_id"`   //所属项目id
+	Level      *int     `json:"level" mapstructure:"level"`             //层级
+	Weight     *float64 `json:"weight" mapstructure:"weight"`           //权重
+	SuperiorID *int     `json:"superior_id" mapstructure:"superior_id"` //上级拆解项id
+}
+
 // DisassemblyTemplateCreateOrUpdateDTO
 // 除id外，所有字段都设置为必须绑定
 type DisassemblyTemplateCreateOrUpdateDTO struct {
@@ -17,17 +25,9 @@ type DisassemblyTemplateCreateOrUpdateDTO struct {
 type DisassemblyTemplateListDTO struct {
 	ListDTO
 
-	ProjectID  *int `json:"project_id"`
-	SuperiorID *int `json:"superior_id"`
-	Level      *int `json:"level"`
-	LevelGte   *int `json:"level_gte"`
-	LevelLte   *int `json:"level_lte"`
-}
-
-type DisassemblyTemplateGetDTO struct {
-	Name       *string  `json:"name" mapstructure:"name"`               //名称
-	ProjectID  *int     `json:"project_id" mapstructure:"project_id"`   //所属项目id
-	Level      *int     `json:"level" mapstructure:"level"`             //层级
-	Weight     *float64 `json:"weight" mapstructure:"weight"`           //权重
-	SuperiorID *int     `json:"superior_id" mapstructure:"superior_id"` //上级拆解项id
+	ProjectID  *int `form:"project_id"`
+	SuperiorID *int `form:"superior_id"`
+	Level      *int `form:"level"`
+	LevelGte   *int `form:"level_gte"`
+	LevelLte   *int `form:"level_lte"`
 }

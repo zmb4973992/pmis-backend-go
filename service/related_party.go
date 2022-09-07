@@ -159,7 +159,7 @@ func (relatedPartyService) List(paramIn dto.RelatedPartyListDTO) response.List {
 		sqlCondition.Gte("id", *paramIn.IDGte)
 	}
 
-	if paramIn.IDGte != nil {
+	if paramIn.IDLte != nil {
 		sqlCondition.Lte("id", *paramIn.IDLte)
 	}
 

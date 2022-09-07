@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
-	"io"
 	"learn-go/dto"
 	"learn-go/serializer/response"
 	"learn-go/service"
@@ -95,8 +93,8 @@ func (relatedPartyController) Delete(c *gin.Context) {
 
 func (relatedPartyController) List(c *gin.Context) {
 	var param dto.RelatedPartyListDTO
-	err := c.ShouldBindJSON(&param)
-	if err != nil && errors.Is(err, io.EOF) == false {
+	err := c.ShouldBindQuery(&param)
+	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return

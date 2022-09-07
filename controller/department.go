@@ -1,9 +1,7 @@
 package controller
 
 import (
-	"errors"
 	"github.com/gin-gonic/gin"
-	"io"
 	"learn-go/dto"
 	"learn-go/serializer/response"
 	"learn-go/service"
@@ -89,9 +87,9 @@ func (departmentController) Delete(c *gin.Context) {
 
 func (departmentController) List(c *gin.Context) {
 	var param dto.DepartmentListDTO
-	err := c.ShouldBindJSON(&param)
+	err := c.ShouldBindQuery(&param)
 	//如果json没有传参，会提示EOF错误，这里可以正常运行；如果是其他错误，就正常报错
-	if err != nil && errors.Is(err, io.EOF) == false {
+	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
