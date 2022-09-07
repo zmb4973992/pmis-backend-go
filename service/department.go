@@ -140,7 +140,7 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
-		ok := sqlCondition.ValidateColumn(orderBy, model.Disassembly{})
+		ok := sqlCondition.ValidateColumn(orderBy, model.Department{})
 		if ok {
 			sqlCondition.Sorting.OrderBy = orderBy
 		}

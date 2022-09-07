@@ -187,7 +187,7 @@ func (errorLogService) List(paramIn dto.DisassemblyListDTO) response.List {
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
-		ok := sqlCondition.ValidateColumn(orderBy, model.Disassembly{})
+		ok := sqlCondition.ValidateColumn(orderBy, model.ErrorLog{})
 		if ok {
 			sqlCondition.Sorting.OrderBy = orderBy
 		}
@@ -199,8 +199,8 @@ func (errorLogService) List(paramIn dto.DisassemblyListDTO) response.List {
 		sqlCondition.Sorting.Desc = false
 	}
 
-	tempList := sqlCondition.Find(model.Disassembly{})
-	totalRecords := sqlCondition.Count(model.Disassembly{})
+	tempList := sqlCondition.Find(model.ErrorLog{})
+	totalRecords := sqlCondition.Count(model.ErrorLog{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {

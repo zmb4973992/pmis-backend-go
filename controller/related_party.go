@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"learn-go/dto"
 	"learn-go/serializer/response"
@@ -99,6 +100,7 @@ func (relatedPartyController) List(c *gin.Context) {
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
+	fmt.Println(*param.IDGte)
 	//生成userService,然后调用它的方法
 	res := service.RelatedPartyService.List(param)
 	c.JSON(http.StatusOK, res)
