@@ -17,6 +17,8 @@ func Init() *gin.Engine {
 	engine.POST("/upload_single", controller.UploadSingle)     //测试上传单个
 	engine.POST("/upload_multiple", controller.UploadMultiple) //测试上传多个
 
+	engine.GET("/api/validate_token/:token", controller.TokenController.Validate) //单独校验token是否有效
+
 	//依次加载所有的路由组，以下都需要登录验证(jwt验证)
 	api := engine.Group("/api").Use(middleware.NeedLogin())
 	{

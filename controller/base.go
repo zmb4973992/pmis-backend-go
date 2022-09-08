@@ -13,6 +13,7 @@ type controller struct {
 	operationRecordController
 	roleAndUserController
 	errorLogController
+	tokenController
 }
 
 var (
@@ -26,4 +27,5 @@ var (
 	OperationRecordController     = entrance.operationRecordController
 	RoleAndUserController         = entrance.roleAndUserController
 	ErrorLogController            = entrance.errorLogController
+	TokenController               = entrance.tokenController
 )
