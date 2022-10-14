@@ -109,7 +109,7 @@ func (roleAndUserService) ListByUserID(userID int) response.Common {
 
 	//构建返回结果
 	data := make(map[string]any)
-	data["user_id"] = userID
+	//data["user_id"] = userID
 	data["role_ids"] = roleIDs
 	data["role_names"] = roleNames
 
