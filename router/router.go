@@ -37,7 +37,7 @@ func Init() *gin.Engine {
 		api.PUT("/role_and_user/user/:user_id", controller.RoleAndUserController.UpdateByUserID)    //根据用户ID批量修改角色和用户
 		api.DELETE("/role_and_user/user/:user_id", controller.RoleAndUserController.DeleteByUserID) //根据用户ID批量删除角色和用户
 
-		api.GET("/role_and_user/token_in_header", controller.RoleAndUserController.ListByTokenInHeader) //根据header里的token获取角色和用户的列表
+		api.GET("/role_and_user/by_token_in_header", controller.RoleAndUserController.ListByTokenInHeader) //根据header里的token获取角色和用户的列表
 
 		api.GET("/related_party/:id", controller.RelatedPartyController.Get)       //获取相关方详情
 		api.PUT("/related_party/:id", controller.RelatedPartyController.Update)    //修改相关方
