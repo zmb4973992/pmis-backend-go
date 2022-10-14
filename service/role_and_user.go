@@ -100,10 +100,18 @@ func (roleAndUserService) ListByUserID(userID int) response.Common {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 
+	var roleNames []string
+	for _, roleID := range roleIDs {
+		var roleName string
+		global.DB.Model(&model.Role{}).Where("id = ?", roleID).Select("name").Find(&roleName)
+		roleNames = append(roleNames, roleName)
+	}
+
 	//构建返回结果
 	data := make(map[string]any)
 	data["user_id"] = userID
 	data["role_ids"] = roleIDs
+	data["role_names"] = roleNames
 
 	return response.SuccessWithData(data)
 }
