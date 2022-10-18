@@ -105,3 +105,18 @@ func (userController) List(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 	return
 }
+
+func (userController) GetByToken(c *gin.Context) {
+	//通过中间件，设定header必须带有token才能访问
+	//header里有token后，中间件会自动在context里添加user_id属性，详见自定义的中间件
+	tempUserID, ok := c.Get("user_id")
+	if ok == false {
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorAccessTokenInvalid))
+		return
+	}
+	userID := tempUserID.(int)
+	res := service.UserService.Get(userID)
+	c.JSON(http.StatusOK, res)
+	return
+}

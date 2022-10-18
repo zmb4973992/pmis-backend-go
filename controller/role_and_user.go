@@ -119,14 +119,6 @@ func (roleAndUserController) CreateByUserID(c *gin.Context) {
 		return
 	}
 
-	var param dto.RoleAndUserCreateOrUpdateDTO
-	err = c.ShouldBindJSON(&param)
-	if err != nil || len(param.UserIDs) == 0 {
-		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidJSONParameters))
-		return
-	}
-
 	res := service.RoleAndUserService.CreateByUserID(userID, data)
 	c.JSON(http.StatusOK, res)
 }
