@@ -111,15 +111,23 @@ func (roleAndUserController) CreateByUserID(c *gin.Context) {
 		return
 	}
 
-	var data dto.RoleAndUserCreateOrUpdateDTO
-	err = c.ShouldBindJSON(&data)
-	if err != nil || len(data.RoleIDs) == 0 {
+	var param dto.RoleAndUserCreateOrUpdateDTO
+	err = c.ShouldBindJSON(&param)
+	if err != nil || len(param.RoleIDs) == 0 {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
-	res := service.RoleAndUserService.CreateByUserID(userID, data)
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.Creator = &userID
+		param.LastModifier = &userID
+	}
+
+	res := service.RoleAndUserService.CreateByUserID(userID, param)
 	c.JSON(http.StatusOK, res)
 }
 
