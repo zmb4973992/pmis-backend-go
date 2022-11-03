@@ -171,6 +171,10 @@ func (relatedPartyService) List(paramIn dto.RelatedPartyListDTO) response.List {
 		sqlCondition = sqlCondition.Include("chinese_name", *paramIn.ChineseNameInclude)
 	}
 
+	if paramIn.EnglishNameInclude != nil && *paramIn.EnglishNameInclude != "" {
+		sqlCondition = sqlCondition.Include("english_name", *paramIn.EnglishNameInclude)
+	}
+
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {

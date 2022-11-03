@@ -5,6 +5,7 @@ package dto
 //这里必须是指针类型，因为只有指针才能向前端传递nil
 //以后如果接收和推送用不同的dto，可以考虑不用指针
 type RelatedPartyGetDTO struct {
+	ID                      int     `json:"id"`
 	ChineseName             *string `json:"chinese_name" mapstructure:"chinese_name"`
 	EnglishName             *string `json:"english_name" mapstructure:"english_name"`
 	Address                 *string `json:"address" mapstructure:"address"`
@@ -32,4 +33,5 @@ type RelatedPartyListDTO struct {
 
 	ChineseName        *string `form:"chinese_name"`
 	ChineseNameInclude *string `form:"chinese_name_include"`
+	EnglishNameInclude *string `form:"english_name_include"`
 }
