@@ -1,6 +1,7 @@
 package dto
 
 type DisassemblyTemplateGetDTO struct {
+	BaseDTO
 	Name       *string  `json:"name" mapstructure:"name"`               //名称
 	ProjectID  *int     `json:"project_id" mapstructure:"project_id"`   //所属项目id
 	Level      *int     `json:"level" mapstructure:"level"`             //层级
@@ -12,7 +13,6 @@ type DisassemblyTemplateGetDTO struct {
 // 除id外，所有字段都设置为必须绑定
 type DisassemblyTemplateCreateOrUpdateDTO struct {
 	BaseDTO
-	ID         int      `json:"id"`
 	Name       *string  `json:"name" binding:"required"`        //拆解项名称
 	ProjectID  *int     `json:"project_id" binding:"required"`  //所属项目id
 	Level      *int     `json:"level" binding:"required"`       //层级

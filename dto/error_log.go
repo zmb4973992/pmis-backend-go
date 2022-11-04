@@ -1,6 +1,7 @@
 package dto
 
 type ErrorLogGetDTO struct {
+	BaseDTO
 	Detail        *string `json:"detail" mapstructure:"detail"`
 	Date          *string `json:"date" mapstructure:"date"`
 	MajorCategory *string `json:"major_category" mapstructure:"major_category"`
@@ -12,7 +13,6 @@ type ErrorLogGetDTO struct {
 // 除id外，所有字段都设置为必须绑定
 type ErrorLogCreateOrUpdateDTO struct {
 	BaseDTO
-	ID            int     `json:"id"`
 	Detail        *string `json:"detail" mapstructure:"detail" binding:"required"`
 	Date          *string `json:"date" mapstructure:"date" binding:"required"`
 	MajorCategory *string `json:"major_category" mapstructure:"major_category" binding:"required"`

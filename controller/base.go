@@ -14,6 +14,7 @@ type controller struct {
 	roleAndUserController
 	errorLogController
 	tokenController
+	projectController
 }
 
 var (
@@ -28,4 +29,5 @@ var (
 	RoleAndUserController         = entrance.roleAndUserController
 	ErrorLogController            = entrance.errorLogController
 	TokenController               = entrance.tokenController
+	ProjectController             = entrance.projectController
 )

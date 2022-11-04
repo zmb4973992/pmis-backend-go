@@ -18,7 +18,6 @@ type UserCreateDTO struct {
 
 type UserUpdateDTO struct {
 	BaseDTO
-	ID                int     `json:"id"`
 	FullName          *string `json:"full_name"  binding:"required"`           //全名
 	EmailAddress      *string `json:"email_address" binding:"required"`        //邮箱地址
 	IsValid           *bool   `json:"is_valid" binding:"required"`             //是否有效
@@ -30,6 +29,7 @@ type UserUpdateDTO struct {
 // list方法中返回的数据为[]map，需要借助mapstructure转换为struct，再返回给前端
 // []map中的键为数据库的字段名，mapstructure需要和[]map中的键名保持一致
 type UserGetDTO struct {
+	BaseDTO
 	Username          string  `json:"username" mapstructure:"username"`                       //用户名
 	FullName          *string `json:"full_name" mapstructure:"full_name"`                     //全名
 	EmailAddress      *string `json:"email_address" mapstructure:"email_address"`             //邮箱地址
