@@ -2,8 +2,8 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"learn-go/controller"
-	"learn-go/middleware"
+	"pmis-backend-go/controller"
+	"pmis-backend-go/middleware"
 )
 
 // Init 初始化路由器,最终返回*gin.Engine类型，给main调用

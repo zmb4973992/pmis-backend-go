@@ -1,8 +1,8 @@
 package response
 
 import (
-	"learn-go/dto"
-	"learn-go/util"
+	"pmis-backend-go/dto"
+	"pmis-backend-go/util"
 )
 
 type Common struct {

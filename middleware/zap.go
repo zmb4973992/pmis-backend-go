@@ -3,7 +3,7 @@ package middleware
 import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"learn-go/global"
+	"pmis-backend-go/global"
 	"time"
 )
 

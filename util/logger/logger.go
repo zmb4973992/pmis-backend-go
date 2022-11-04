@@ -4,8 +4,8 @@ import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"learn-go/global"
 	"os"
+	"pmis-backend-go/global"
 )
 
 func Init() {

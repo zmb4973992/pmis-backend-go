@@ -2,11 +2,11 @@ package service
 
 import (
 	"github.com/mitchellh/mapstructure"
-	"learn-go/dto"
-	"learn-go/global"
-	"learn-go/model"
-	"learn-go/serializer/response"
-	"learn-go/util"
+	"pmis-backend-go/dto"
+	"pmis-backend-go/global"
+	"pmis-backend-go/model"
+	"pmis-backend-go/serializer/response"
+	"pmis-backend-go/util"
 )
 
 // disassemblyService 没有数据、只有方法，所有的数据都放在DTO里

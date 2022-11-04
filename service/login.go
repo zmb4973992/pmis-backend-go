@@ -1,12 +1,12 @@
 package service
 
 import (
-	"learn-go/dto"
-	"learn-go/global"
-	"learn-go/model"
-	"learn-go/serializer/response"
-	"learn-go/util"
-	"learn-go/util/jwt"
+	"pmis-backend-go/dto"
+	"pmis-backend-go/global"
+	"pmis-backend-go/model"
+	"pmis-backend-go/serializer/response"
+	"pmis-backend-go/util"
+	"pmis-backend-go/util/jwt"
 )
 
 type loginService struct{}

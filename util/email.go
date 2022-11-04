@@ -3,8 +3,8 @@ package util
 import (
 	"github.com/jordan-wright/email"
 	"gopkg.in/gomail.v2"
-	"learn-go/global"
 	"net/smtp"
+	"pmis-backend-go/global"
 	"strconv"
 )
 

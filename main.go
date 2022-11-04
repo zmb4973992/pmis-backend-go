@@ -1,12 +1,12 @@
 package main
 
 import (
-	"learn-go/global"
-	"learn-go/model"
-	"learn-go/router"
-	"learn-go/util"
-	"learn-go/util/logger"
-	"learn-go/util/snowflake"
+	"pmis-backend-go/global"
+	"pmis-backend-go/model"
+	"pmis-backend-go/router"
+	"pmis-backend-go/util"
+	"pmis-backend-go/util/logger"
+	"pmis-backend-go/util/snowflake"
 )
 
 func main() {

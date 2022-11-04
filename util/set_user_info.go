@@ -3,9 +3,9 @@ package util
 import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm/clause"
-	"learn-go/dto"
-	"learn-go/global"
-	"learn-go/model"
+	"pmis-backend-go/dto"
+	"pmis-backend-go/global"
+	"pmis-backend-go/model"
 )
 
 func SetUserInfo(c *gin.Context, userID int) {

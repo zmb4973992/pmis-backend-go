@@ -2,11 +2,11 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"learn-go/dto"
-	"learn-go/serializer/response"
-	"learn-go/service"
-	"learn-go/util"
 	"net/http"
+	"pmis-backend-go/dto"
+	"pmis-backend-go/serializer/response"
+	"pmis-backend-go/service"
+	"pmis-backend-go/util"
 	"strconv"
 )
 

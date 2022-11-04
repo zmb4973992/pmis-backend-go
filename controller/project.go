@@ -10,32 +10,27 @@ import (
 	"strconv"
 )
 
-/* controller层负责接收参数、校验参数
-然后把id或dto传给service层进行业务处理
-最后拿到service层返回的结果进行展现
-*/
+type projectController struct{}
 
-type relatedPartyController struct{}
-
-func (relatedPartyController) Get(c *gin.Context) {
+func (projectController) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.RelatedPartyService.Get(id)
+	res := service.DisassemblyService.Get(id)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (relatedPartyController) Create(c *gin.Context) {
-	var param dto.RelatedPartyCreateOrUpdateDTO
+func (projectController) Create(c *gin.Context) {
+	var param dto.DisassemblyCreateOrUpdateDTO
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -47,13 +42,37 @@ func (relatedPartyController) Create(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.RelatedPartyService.Create(&param)
+	res := service.DisassemblyService.Create(&param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (relatedPartyController) Update(c *gin.Context) {
-	var param dto.RelatedPartyCreateOrUpdateDTO
+func (projectController) CreateInBatches(c *gin.Context) {
+	var param []dto.DisassemblyCreateOrUpdateDTO
+	//先把json参数绑定到model
+	err := c.ShouldBindJSON(&param)
+	if err != nil {
+		c.JSON(http.StatusBadRequest,
+			response.Failure(util.ErrorInvalidJSONParameters))
+		return
+	}
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		for i := range param {
+			param[i].Creator = &userID
+			param[i].LastModifier = &userID
+		}
+	}
+
+	res := service.DisassemblyService.CreateInBatches(param)
+	c.JSON(http.StatusOK, res)
+	return
+}
+
+func (projectController) Update(c *gin.Context) {
+	var param dto.DisassemblyCreateOrUpdateDTO
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -76,30 +95,31 @@ func (relatedPartyController) Update(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.RelatedPartyService.Update(&param)
+	res := service.DisassemblyService.Update(&param)
 	c.JSON(200, res)
 }
 
-func (relatedPartyController) Delete(c *gin.Context) {
+func (projectController) Delete(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.RelatedPartyService.Delete(id)
+	res := service.DisassemblyService.Delete(id)
 	c.JSON(http.StatusOK, res)
 }
 
-func (relatedPartyController) List(c *gin.Context) {
-	var param dto.RelatedPartyListDTO
+func (projectController) List(c *gin.Context) {
+	var param dto.DisassemblyListDTO
 	err := c.ShouldBindQuery(&param)
+
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
-	//生成userService,然后调用它的方法
-	res := service.RelatedPartyService.List(param)
+	//生成Service,然后调用它的方法
+	res := service.DisassemblyService.List(param)
 	c.JSON(http.StatusOK, res)
 }

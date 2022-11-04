@@ -1,4 +1,4 @@
-module learn-go
+module pmis-backend-go
 
 go 1.18
 

@@ -3,7 +3,7 @@ package util
 import (
 	"github.com/casbin/casbin/v2"
 	gormAdapter "github.com/casbin/gorm-adapter/v3"
-	"learn-go/global"
+	"pmis-backend-go/global"
 )
 
 func NewEnforcer() *casbin.Enforcer {

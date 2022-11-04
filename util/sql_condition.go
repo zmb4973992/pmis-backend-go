@@ -2,9 +2,9 @@ package util
 
 import (
 	"gorm.io/gorm"
-	"learn-go/dto"
-	"learn-go/global"
-	"learn-go/model"
+	"pmis-backend-go/dto"
+	"pmis-backend-go/global"
+	"pmis-backend-go/model"
 )
 
 type SqlCondition struct {

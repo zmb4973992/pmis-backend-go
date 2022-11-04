@@ -4,7 +4,7 @@ import (
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
 	"io/ioutil"
-	"learn-go/global"
+	"pmis-backend-go/global"
 	"time"
 )
 

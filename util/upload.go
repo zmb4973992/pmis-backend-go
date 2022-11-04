@@ -4,8 +4,8 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"learn-go/global"
 	"os"
+	"pmis-backend-go/global"
 )
 
 func UploadInit() {

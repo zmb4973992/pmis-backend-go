@@ -2,9 +2,9 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"learn-go/serializer/response"
-	"learn-go/util"
 	"net/http"
+	"pmis-backend-go/serializer/response"
+	"pmis-backend-go/util"
 )
 
 // NeedAuth 如果需要根据角色进行鉴权（casbin进行操作），则使用该中间件

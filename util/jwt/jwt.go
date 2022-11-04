@@ -2,7 +2,7 @@ package jwt
 
 import (
 	"github.com/golang-jwt/jwt"
-	"learn-go/global"
+	"pmis-backend-go/global"
 	"time"
 )
 

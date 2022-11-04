@@ -1,6 +1,6 @@
 package model
 
-import "learn-go/global"
+import "pmis-backend-go/global"
 
 type Department struct {
 	BaseModel

@@ -2,9 +2,9 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"learn-go/serializer/response"
-	"learn-go/util"
 	"net/http"
+	"pmis-backend-go/serializer/response"
+	"pmis-backend-go/util"
 )
 
 type noRouteController struct {

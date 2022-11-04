@@ -2,10 +2,10 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"learn-go/serializer/response"
-	"learn-go/util"
-	"learn-go/util/jwt"
 	"net/http"
+	"pmis-backend-go/serializer/response"
+	"pmis-backend-go/util"
+	"pmis-backend-go/util/jwt"
 	"time"
 )
 
