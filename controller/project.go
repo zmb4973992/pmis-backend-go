@@ -19,13 +19,13 @@ func (projectController) Get(c *gin.Context) {
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.DisassemblyService.Get(id)
+	res := service.ProjectService.Get(id)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
 func (projectController) Create(c *gin.Context) {
-	var param dto.DisassemblyCreateOrUpdateDTO
+	var param dto.ProjectCreateOrUpdateDTO
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -42,13 +42,13 @@ func (projectController) Create(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.DisassemblyService.Create(&param)
+	res := service.ProjectService.Create(&param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
 func (projectController) CreateInBatches(c *gin.Context) {
-	var param []dto.DisassemblyCreateOrUpdateDTO
+	var param []dto.ProjectCreateOrUpdateDTO
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -66,13 +66,13 @@ func (projectController) CreateInBatches(c *gin.Context) {
 		}
 	}
 
-	res := service.DisassemblyService.CreateInBatches(param)
+	res := service.ProjectService.CreateInBatches(param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
 func (projectController) Update(c *gin.Context) {
-	var param dto.DisassemblyCreateOrUpdateDTO
+	var param dto.ProjectCreateOrUpdateDTO
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -88,15 +88,15 @@ func (projectController) Update(c *gin.Context) {
 		return
 	}
 
-	//处理creator、lastModifier字段
+	//处理lastModifier字段
 	tempUserID, _ := c.Get("user_id")
 	if tempUserID != nil {
 		userID := tempUserID.(int)
 		param.LastModifier = &userID
 	}
 
-	res := service.DisassemblyService.Update(&param)
-	c.JSON(200, res)
+	res := service.ProjectService.Update(&param)
+	c.JSON(http.StatusOK, res)
 }
 
 func (projectController) Delete(c *gin.Context) {
@@ -106,13 +106,13 @@ func (projectController) Delete(c *gin.Context) {
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.DisassemblyService.Delete(id)
+	res := service.ProjectService.Delete(id)
 	c.JSON(http.StatusOK, res)
 }
 
 func (projectController) List(c *gin.Context) {
-	var param dto.DisassemblyListDTO
-	err := c.ShouldBindQuery(&param)
+	var param dto.ProjectListDTO
+	err := c.ShouldBindJSON(&param)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
@@ -120,6 +120,6 @@ func (projectController) List(c *gin.Context) {
 		return
 	}
 	//生成Service,然后调用它的方法
-	res := service.DisassemblyService.List(param)
+	res := service.ProjectService.List(param)
 	c.JSON(http.StatusOK, res)
 }

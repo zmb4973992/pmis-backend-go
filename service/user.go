@@ -281,8 +281,8 @@ func (userService) List(paramIn dto.UserListDTO) response.List {
 		sqlCondition.Equal("is_valid", *paramIn.IsValid)
 	}
 
-	if paramIn.UsernameInclude != nil && *paramIn.UsernameInclude != "" {
-		sqlCondition = sqlCondition.Include("username", *paramIn.UsernameInclude)
+	if paramIn.UsernameLike != nil && *paramIn.UsernameLike != "" {
+		sqlCondition = sqlCondition.Like("username", *paramIn.UsernameLike)
 	}
 
 	//这部分是用于order的参数

@@ -43,8 +43,8 @@ type UserGetDTO struct {
 // UserListDTO form用于接收query传参
 type UserListDTO struct {
 	ListDTO
-	IDGte           *int    `form:"id_gte"`
-	IDLte           *int    `form:"id_lte"`
-	IsValid         *bool   `form:"is_valid"`
-	UsernameInclude *string `form:"username_include"`
+	IDGte        *int    `form:"id_gte"`
+	IDLte        *int    `form:"id_lte"`
+	IsValid      *bool   `form:"is_valid"`
+	UsernameLike *string `form:"username_like"`
 }

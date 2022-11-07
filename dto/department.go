@@ -25,6 +25,6 @@ type DepartmentListDTO struct {
 	SuperiorID *int    `form:"superior_id"`
 	Level      *string `form:"level"`
 
-	Name        *string `form:"name"`
-	NameInclude *string `form:"name_include"`
+	Name     *string `form:"name"`
+	NameLike *string `form:"name_like"`
 }

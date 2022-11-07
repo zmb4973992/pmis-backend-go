@@ -30,7 +30,7 @@ type RelatedPartyListDTO struct {
 	IDGte *int `form:"id_gte"`
 	IDLte *int `form:"id_lte"`
 
-	ChineseName        *string `form:"chinese_name"`
-	ChineseNameInclude *string `form:"chinese_name_include"`
-	EnglishNameInclude *string `form:"english_name_include"`
+	ChineseName     *string `form:"chinese_name"`
+	ChineseNameLike *string `form:"chinese_name_like"`
+	EnglishNameLike *string `form:"english_name_like"`
 }

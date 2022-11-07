@@ -11,6 +11,7 @@ type AllService struct {
 	roleAndUserService
 	disassemblyTemplateService
 	errorLogService
+	projectService
 }
 
 //定义各个服务的入口,避免反复new service
@@ -25,4 +26,5 @@ var (
 	OperationRecordService     = entrance.operationRecordService
 	RoleAndUserService         = entrance.roleAndUserService
 	ErrorLogService            = entrance.errorLogService
+	ProjectService             = entrance.projectService
 )

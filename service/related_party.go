@@ -167,12 +167,12 @@ func (relatedPartyService) List(paramIn dto.RelatedPartyListDTO) response.List {
 		sqlCondition = sqlCondition.Equal("chinese_name", *paramIn.ChineseName)
 	}
 
-	if paramIn.ChineseNameInclude != nil && *paramIn.ChineseNameInclude != "" {
-		sqlCondition = sqlCondition.Include("chinese_name", *paramIn.ChineseNameInclude)
+	if paramIn.ChineseNameLike != nil && *paramIn.ChineseNameLike != "" {
+		sqlCondition = sqlCondition.Like("chinese_name", *paramIn.ChineseNameLike)
 	}
 
-	if paramIn.EnglishNameInclude != nil && *paramIn.EnglishNameInclude != "" {
-		sqlCondition = sqlCondition.Include("english_name", *paramIn.EnglishNameInclude)
+	if paramIn.EnglishNameLike != nil && *paramIn.EnglishNameLike != "" {
+		sqlCondition = sqlCondition.Like("english_name", *paramIn.EnglishNameLike)
 	}
 
 	//这部分是用于order的参数

@@ -8,11 +8,11 @@ type ProjectGetDTO struct {
 	Country          *string  `json:"country" mapstructure:"country"`
 	Province         *string  `json:"province" mapstructure:"province"`
 	ProjectType      *string  `json:"project_type" mapstructure:"project_type"`
-	Department       *string  `json:"department" mapstructure:"department"`
 	Amount           *float64 `json:"amount" mapstructure:"amount"`
 	Currency         *string  `json:"currency" mapstructure:"currency"`
 	ExchangeRate     *float64 `json:"exchange_rate" mapstructure:"exchange_rate"`
 	RelatedPartyID   *int     `json:"related_party_id" mapstructure:"related_party_id"`
+	DepartmentID     *int     `json:"department_id" mapstructure:"department_id"`
 }
 
 // ProjectCreateOrUpdateDTO
@@ -20,15 +20,15 @@ type ProjectGetDTO struct {
 type ProjectCreateOrUpdateDTO struct {
 	BaseDTO
 	ProjectCode      *string  `json:"project_code" binding:"required"`
-	ProjectFullName  *string  `json:"project_full_name" mapstructure:"project_full_name"`
+	ProjectFullName  *string  `json:"project_full_name" binding:"required"`
 	ProjectShortName *string  `json:"project_short_name" binding:"required"`
 	Country          *string  `json:"country" binding:"required"`
 	Province         *string  `json:"province" binding:"required"`
 	ProjectType      *string  `json:"project_type" binding:"required"`
-	Department       *string  `json:"department" binding:"required"`
 	Amount           *float64 `json:"amount" binding:"required"`
 	Currency         *string  `json:"currency" binding:"required"`
 	ExchangeRate     *float64 `json:"exchange_rate" binding:"required"`
+	DepartmentID     *int     `json:"department_id" binding:"required"`
 	RelatedPartyID   *int     `json:"related_party_id" binding:"required"`
 }
 
@@ -37,8 +37,6 @@ type ProjectCreateOrUpdateDTO struct {
 type ProjectListDTO struct {
 	ListDTO
 
-	ProjectID               *int    `form:"project_id"`
-	RelatedPartyNameInclude *string `form:"related_party_name_include"`
-	DepartmentInclude       *string `form:"department_include"`
-	ProjectFullNameInclude  *string `form:"project_full_name_include"`
+	DepartmentNameLike *string `json:"department_name_like"`
+	DepartmentIDIn     []int   `json:"department_id_in"`
 }

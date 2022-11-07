@@ -71,13 +71,11 @@ func (s *SqlCondition) Lte(paramKey string, paramValue any) *SqlCondition {
 	return s
 }
 
-// Include 和Like为相同方法
-func (s *SqlCondition) Include(paramKey string, paramValue string) *SqlCondition {
-	s.where(paramKey+" LIKE ?", "%"+paramValue+"%")
-	return s
-}
+//func (s *SqlCondition) Include(paramKey string, paramValue string) *SqlCondition {
+//	s.where(paramKey+" LIKE ?", "%"+paramValue+"%")
+//	return s
+//}
 
-// Like 和Include为相同方法
 func (s *SqlCondition) Like(paramKey string, paramValue string) *SqlCondition {
 	s.where(paramKey+" LIKE ?", "%"+paramValue+"%")
 	return s
@@ -93,7 +91,7 @@ func (s *SqlCondition) EndWith(paramKey string, paramValue string) *SqlCondition
 	return s
 }
 
-func (s *SqlCondition) In(paramKey string, paramValue string) *SqlCondition {
+func (s *SqlCondition) In(paramKey string, paramValue any) *SqlCondition {
 	s.where(paramKey+" IN ?", paramValue)
 	return s
 }

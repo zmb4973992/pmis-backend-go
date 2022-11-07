@@ -133,8 +133,8 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 	if paramIn.Name != nil && *paramIn.Name != "" {
 		sqlCondition = sqlCondition.Equal("name", *paramIn.Name)
 	}
-	if paramIn.NameInclude != nil && *paramIn.NameInclude != "" {
-		sqlCondition = sqlCondition.Include("name", *paramIn.NameInclude)
+	if paramIn.NameLike != nil && *paramIn.NameLike != "" {
+		sqlCondition = sqlCondition.Like("name", *paramIn.NameLike)
 	}
 
 	//这部分是用于order的参数

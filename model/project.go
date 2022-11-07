@@ -8,10 +8,10 @@ type Project struct {
 	Country          *string
 	Province         *string
 	ProjectType      *string
-	Department       *string
 	Amount           *float64
 	Currency         *string
 	ExchangeRate     *float64
+	DepartmentID     *int
 	RelatedPartyID   *int
 	//外键
 	Disassemblies               []Disassembly                `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
