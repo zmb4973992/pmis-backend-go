@@ -1,12 +1,12 @@
 package dto
 
 type DisassemblyGetDTO struct {
-	BaseDTO
-	Name       *string  `json:"name" mapstructure:"name"`               //名称
-	ProjectID  *int     `json:"project_id" mapstructure:"project_id"`   //所属项目id
-	Level      *int     `json:"level" mapstructure:"level"`             //层级
-	Weight     *float64 `json:"weight" mapstructure:"weight"`           //权重
-	SuperiorID *int     `json:"superior_id" mapstructure:"superior_id"` //上级拆解项id
+	BaseDTO    `mapstructure:",squash"` //这里是嵌套结构体，mapstructure必须加squash，否则无法匹配
+	Name       *string                  `json:"name" mapstructure:"name"`               //名称
+	ProjectID  *int                     `json:"project_id" mapstructure:"project_id"`   //所属项目id
+	Level      *int                     `json:"level" mapstructure:"level"`             //层级
+	Weight     *float64                 `json:"weight" mapstructure:"weight"`           //权重
+	SuperiorID *int                     `json:"superior_id" mapstructure:"superior_id"` //上级拆解项id
 }
 
 // DisassemblyCreateOrUpdateDTO

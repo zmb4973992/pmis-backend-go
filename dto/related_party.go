@@ -5,12 +5,12 @@ package dto
 //这里必须是指针类型，因为只有指针才能向前端传递nil
 //以后如果接收和推送用不同的dto，可以考虑不用指针
 type RelatedPartyGetDTO struct {
-	BaseDTO
-	ChineseName             *string `json:"chinese_name" mapstructure:"chinese_name"`
-	EnglishName             *string `json:"english_name" mapstructure:"english_name"`
-	Address                 *string `json:"address" mapstructure:"address"`
-	UniformSocialCreditCode *string `json:"uniform_social_credit_code" mapstructure:"uniform_social_credit_code"` //统一社会信用代码
-	Telephone               *string `json:"telephone" mapstructure:"telephone"`
+	BaseDTO                 `mapstructure:",squash"` //这里是嵌套结构体，mapstructure必须加squash，否则无法匹配
+	ChineseName             *string                  `json:"chinese_name" mapstructure:"chinese_name"`
+	EnglishName             *string                  `json:"english_name" mapstructure:"english_name"`
+	Address                 *string                  `json:"address" mapstructure:"address"`
+	UniformSocialCreditCode *string                  `json:"uniform_social_credit_code" mapstructure:"uniform_social_credit_code"` //统一社会信用代码
+	Telephone               *string                  `json:"telephone" mapstructure:"telephone"`
 }
 
 type RelatedPartyCreateOrUpdateDTO struct {

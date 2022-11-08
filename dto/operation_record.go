@@ -4,12 +4,12 @@ package dto
 // mapstructure用于list
 // list方法中返回的数据为[]map，需要借助mapstructure转换为struct，再返回给前端
 type OperationRecordGetDTO struct {
-	BaseDTO
-	ProjectID  *int    `json:"project_id" mapstructure:"project_id"`   //项目id
-	OperatorID *int    `json:"operator_id" mapstructure:"operator_id"` //操作人id
-	Date       *string `json:"date" mapstructure:"-"`                  //日期
-	Action     *string `json:"action" mapstructure:"action"`           //动作
-	Detail     *string `json:"detail" mapstructure:"detail"`           //详情
+	BaseDTO    `mapstructure:",squash"` //这里是嵌套结构体，mapstructure必须加squash，否则无法匹配
+	ProjectID  *int                     `json:"project_id" mapstructure:"project_id"`   //项目id
+	OperatorID *int                     `json:"operator_id" mapstructure:"operator_id"` //操作人id
+	Date       *string                  `json:"date" mapstructure:"-"`                  //日期
+	Action     *string                  `json:"action" mapstructure:"action"`           //动作
+	Detail     *string                  `json:"detail" mapstructure:"detail"`           //详情
 }
 
 type OperationRecordCreateOrUpdateDTO struct {

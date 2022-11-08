@@ -49,4 +49,5 @@ email:
 paging:
   #单页默认条数
   default_page_size: "20"
-  max_page_size: "100"
+  #单页最大条数
+  max_page_size: "500"

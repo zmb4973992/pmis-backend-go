@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/serializer/response"
@@ -87,9 +89,9 @@ func (departmentController) Delete(c *gin.Context) {
 
 func (departmentController) List(c *gin.Context) {
 	var param dto.DepartmentListDTO
-	err := c.ShouldBindQuery(&param)
+	err := c.ShouldBindJSON(&param)
 	//如果json没有传参，会提示EOF错误，这里可以正常运行；如果是其他错误，就正常报错
-	if err != nil {
+	if err != nil && !errors.Is(err, io.EOF) {
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return

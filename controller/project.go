@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/serializer/response"
@@ -114,7 +116,7 @@ func (projectController) List(c *gin.Context) {
 	var param dto.ProjectListDTO
 	err := c.ShouldBindJSON(&param)
 
-	if err != nil {
+	if err != nil && !errors.Is(err, io.EOF) {
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return

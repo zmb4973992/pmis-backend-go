@@ -310,6 +310,7 @@ func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
+	//tempList是map，需要转成structure才能使用
 	var list []dto.ProjectGetDTO
 	_ = mapstructure.Decode(&tempList, &list)
 

@@ -1,12 +1,12 @@
 package dto
 
 type ErrorLogGetDTO struct {
-	BaseDTO
-	Detail        *string `json:"detail" mapstructure:"detail"`
-	Date          *string `json:"date" mapstructure:"date"`
-	MajorCategory *string `json:"major_category" mapstructure:"major_category"`
-	MinorCategory *string `json:"minor_category" mapstructure:"minor_category"`
-	IsResolved    *bool   `json:"is_resolved" mapstructure:"is_resolved"`
+	BaseDTO       `mapstructure:",squash"` //这里是嵌套结构体，mapstructure必须加squash，否则无法匹配
+	Detail        *string                  `json:"detail" mapstructure:"detail"`
+	Date          *string                  `json:"date" mapstructure:"date"`
+	MajorCategory *string                  `json:"major_category" mapstructure:"major_category"`
+	MinorCategory *string                  `json:"minor_category" mapstructure:"minor_category"`
+	IsResolved    *bool                    `json:"is_resolved" mapstructure:"is_resolved"`
 }
 
 // ErrorLogCreateOrUpdateDTO

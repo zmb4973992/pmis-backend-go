@@ -187,12 +187,12 @@ func (s *SqlCondition) Find(modelName model.IModel) (list []map[string]any) {
 func (s *SqlCondition) ValidateColumn(columnToBeValidated string, modelName model.IModel) bool {
 	//获取自定义的数据库表名
 	tableName := modelName.TableName()
-
 	//自行拼接的sql，找出对应表名的所有字段名
 	//标准sql为：Select Name FROM SysColumns Where id = Object_Id('[某某表]')
 	//给 某某表 加上中括号，是因为当表名中含有特殊字符时，直接使用单引号，会出现表名不被识别的问题
 	var existedColumns []string
-	sql := "Select Name FROM SysColumns Where id = Object_Id('[" + tableName + "]')"
+	//这里goland编译器莫名报错，函数可以正常运行，可忽略
+	sql := "Select Name FROM SysColumns Where id = OBJECT_ID('[" + tableName + "]')"
 	global.DB.Raw(sql).Find(&existedColumns)
 	if len(existedColumns) == 0 {
 		return false

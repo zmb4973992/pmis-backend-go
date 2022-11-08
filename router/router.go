@@ -25,7 +25,7 @@ func Init() *gin.Engine {
 		api.GET("/user/:id", middleware.NeedAuth(), controller.UserController.Get) //获取用户详情
 		api.PUT("/user/:id", controller.UserController.Update)                     //修改用户（目前为全功能，考虑改成：修改用户基本信息）
 		api.DELETE("/user/:id", controller.UserController.Delete)                  //删除用户
-		api.GET("/user/list", controller.UserController.List)                      //获取用户列表
+		api.POST("/user/list", controller.UserController.List)                     //获取用户列表
 
 		api.GET("/user", controller.UserController.GetByToken) //根据header里的token获取用户详情
 
@@ -45,39 +45,39 @@ func Init() *gin.Engine {
 		api.PUT("/related_party/:id", controller.RelatedPartyController.Update)    //修改相关方
 		api.POST("/related_party", controller.RelatedPartyController.Create)       //新增相关方
 		api.DELETE("/related_party/:id", controller.RelatedPartyController.Delete) //删除相关方
-		api.GET("/related_party/list", controller.RelatedPartyController.List)     //获取相关方列表
+		api.POST("/related_party/list", controller.RelatedPartyController.List)    //获取相关方列表
 
 		api.GET("/department/:id", controller.DepartmentController.Get)       //获取部门详情
 		api.POST("/department", controller.DepartmentController.Create)       //新增部门
 		api.PUT("/department/:id", controller.DepartmentController.Update)    //修改部门
 		api.DELETE("/department/:id", controller.DepartmentController.Delete) //删除部门
-		api.GET("/department/list", controller.DepartmentController.List)     //获取部门列表
+		api.POST("/department/list", controller.DepartmentController.List)    //获取部门列表
 
 		api.GET("/project/:id", controller.ProjectController.Get)                //获取项目详情
 		api.POST("/project", controller.ProjectController.Create)                //新增项目
 		api.POST("/project/batch", controller.ProjectController.CreateInBatches) //批量新增项目
 		api.PUT("/project/:id", controller.ProjectController.Update)             //修改项目
 		api.DELETE("/project/:id", controller.ProjectController.Delete)          //删除项目
-		api.GET("project/list", controller.ProjectController.List)               //获取项目列表
+		api.POST("project/list", controller.ProjectController.List)              //获取项目列表
 
 		api.GET("/disassembly/:id", controller.DisassemblyController.Get)                //获取项目拆解详情
 		api.POST("/disassembly", controller.DisassemblyController.Create)                //新增项目拆解
 		api.POST("/disassembly/batch", controller.DisassemblyController.CreateInBatches) //批量新增项目拆解
 		api.PUT("/disassembly/:id", controller.DisassemblyController.Update)             //修改项目拆解
 		api.DELETE("/disassembly/:id", controller.DisassemblyController.Delete)          //删除项目拆解
-		api.GET("/disassembly/list", controller.DisassemblyController.List)              //获取项目拆解列表
+		api.POST("/disassembly/list", controller.DisassemblyController.List)             //获取项目拆解列表
 
 		api.GET("/disassembly_template/:id", controller.DisassemblyTemplateController.Get)       //获取项目拆解模板详情
 		api.POST("/disassembly_template", controller.DisassemblyTemplateController.Create)       //新增项目拆解模板
 		api.PUT("/disassembly_template/:id", controller.DisassemblyTemplateController.Update)    //修改项目拆解模板
 		api.DELETE("/disassembly_template/:id", controller.DisassemblyTemplateController.Delete) //删除项目拆解模板
-		api.GET("/disassembly_template/list", controller.DisassemblyTemplateController.List)     //获取项目拆解模板列表
+		api.POST("/disassembly_template/list", controller.DisassemblyTemplateController.List)    //获取项目拆解模板列表
 
 		api.GET("/operation_record/:id", controller.OperationRecordController.Get)       //获取操作记录详情
 		api.POST("/operation_record", controller.OperationRecordController.Create)       //新增操作记录
 		api.PUT("/operation_record/:id", controller.OperationRecordController.Update)    //修改操作记录
 		api.DELETE("/operation_record/:id", controller.OperationRecordController.Delete) //删除操作记录
-		api.GET("/operation_record/list", controller.OperationRecordController.List)     //获取操作详情列表
+		api.POST("/operation_record/list", controller.OperationRecordController.List)    //获取操作详情列表
 
 		api.GET("/error_log/:id", controller.ErrorLogController.Get)       //获取错误日志详情
 		api.POST("/error_log", controller.ErrorLogController.Create)       //新增错误日志

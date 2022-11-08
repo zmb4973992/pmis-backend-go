@@ -19,7 +19,6 @@ type Project struct {
 	PlannedReceiptAndPayments   []PlannedReceiptAndPayment   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	PredictedReceiptAndPayments []PredictedReceiptAndPayment `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	ProjectAndUsers             []ProjectAndUser             `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	OperationRecords            []OperationRecord            `gorm:"constraint:OnUpdate:CASCADE;"`
 }
 
 // TableName 将表名改为project
