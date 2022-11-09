@@ -16,10 +16,19 @@ type projectService struct{}
 
 func (projectService) Get(projectID int) response.Common {
 	var result dto.ProjectGetDTO
-	err := global.DB.Model(model.Project{}).
+	//查主表
+	err := global.DB.Debug().Model(model.Project{}).
 		Where("id = ?", projectID).First(&result).Error
 	if err != nil {
 		return response.Failure(util.ErrorRecordNotFound)
+	}
+	//如果有部门id，就查部门信息
+	if result.DepartmentID != nil {
+		err = global.DB.Debug().Model(model.Department{}).
+			Where("id=?", result.DepartmentID).First(&result.Department).Error
+		if err != nil {
+			result.Department = nil
+		}
 	}
 	return response.SuccessWithData(result)
 }
@@ -313,6 +322,17 @@ func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 	//tempList是map，需要转成structure才能使用
 	var list []dto.ProjectGetDTO
 	_ = mapstructure.Decode(&tempList, &list)
+
+	for i := range list {
+		//如果有部门id，就查部门信息
+		if list[i].DepartmentID != nil {
+			err := global.DB.Debug().Model(model.Department{}).
+				Where("id=?", list[i].DepartmentID).First(&list[i].Department).Error
+			if err != nil {
+				list[i].Department = nil
+			}
+		}
+	}
 
 	return response.List{
 		Data: list,

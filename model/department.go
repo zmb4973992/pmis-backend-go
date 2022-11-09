@@ -15,8 +15,7 @@ type Department struct {
 	//暂时不添加自引用的外键了，因为删除、更新都是麻烦事
 	//SuperiorID1 []Department        `gorm:"foreignkey:SuperiorID"`
 	//多对多的中间表需要外键，因为需要级联更新、级联删除
-	Users    []DepartmentAndUser `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	Projects []Project
+	Users []DepartmentAndUser `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // TableName 修改表名

@@ -93,7 +93,7 @@ func (relatedPartyController) Delete(c *gin.Context) {
 
 func (relatedPartyController) List(c *gin.Context) {
 	var param dto.RelatedPartyListDTO
-	err := c.ShouldBindQuery(&param)
+	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))

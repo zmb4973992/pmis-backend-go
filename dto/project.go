@@ -12,7 +12,8 @@ type ProjectGetDTO struct {
 	Currency         *string                  `json:"currency" mapstructure:"currency"`
 	ExchangeRate     *float64                 `json:"exchange_rate" mapstructure:"exchange_rate"`
 	RelatedPartyID   *int                     `json:"related_party_id" mapstructure:"related_party_id"`
-	DepartmentID     *int                     `json:"department_id" mapstructure:"department_id"`
+	DepartmentID     *int                     `json:"-" mapstructure:"department_id"`
+	Department       *DepartmentGetDTO        `json:"department" gorm:"-"`
 }
 
 // ProjectCreateOrUpdateDTO
