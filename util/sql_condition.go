@@ -31,9 +31,9 @@ func NewSqlCondition() *SqlCondition {
 	}
 }
 
-// where 给SqlCondition自定义where方法，将参数保存到ParameterPair中
-// 建议不要直接用，如果是“等于赋值”，可以用equal
-func (s *SqlCondition) where(key string, value any) *SqlCondition {
+// Where 建议不要直接用，如果是“等于赋值”，可以用equal
+// 给SqlCondition自定义where方法，将参数保存到ParameterPair中
+func (s *SqlCondition) Where(key string, value any) *SqlCondition {
 	s.ParamPairs = append(s.ParamPairs, ParamPair{
 		Key:   key,
 		Value: value,
@@ -42,62 +42,62 @@ func (s *SqlCondition) where(key string, value any) *SqlCondition {
 }
 
 func (s *SqlCondition) Equal(paramKey string, paramValue any) *SqlCondition {
-	s.where(paramKey+" = ?", paramValue)
+	s.Where(paramKey+" = ?", paramValue)
 	return s
 }
 
 func (s *SqlCondition) NotEqual(paramKey string, paramValue any) *SqlCondition {
-	s.where(paramKey+" <> ?", paramValue)
+	s.Where(paramKey+" <> ?", paramValue)
 	return s
 }
 
 func (s *SqlCondition) Gt(paramKey string, paramValue any) *SqlCondition {
-	s.where(paramKey+" > ?", paramValue)
+	s.Where(paramKey+" > ?", paramValue)
 	return s
 }
 
 func (s *SqlCondition) Gte(paramKey string, paramValue any) *SqlCondition {
-	s.where(paramKey+" >= ?", paramValue)
+	s.Where(paramKey+" >= ?", paramValue)
 	return s
 }
 
 func (s *SqlCondition) Lt(paramKey string, paramValue any) *SqlCondition {
-	s.where(paramKey+" < ?", paramValue)
+	s.Where(paramKey+" < ?", paramValue)
 	return s
 }
 
 func (s *SqlCondition) Lte(paramKey string, paramValue any) *SqlCondition {
-	s.where(paramKey+" <= ?", paramValue)
+	s.Where(paramKey+" <= ?", paramValue)
 	return s
 }
 
 //func (s *SqlCondition) Include(paramKey string, paramValue string) *SqlCondition {
-//	s.where(paramKey+" LIKE ?", "%"+paramValue+"%")
+//	s.Where(paramKey+" LIKE ?", "%"+paramValue+"%")
 //	return s
 //}
 
 func (s *SqlCondition) Like(paramKey string, paramValue string) *SqlCondition {
-	s.where(paramKey+" LIKE ?", "%"+paramValue+"%")
+	s.Where(paramKey+" LIKE ?", "%"+paramValue+"%")
 	return s
 }
 
 func (s *SqlCondition) StartWith(paramKey string, paramValue string) *SqlCondition {
-	s.where(paramKey+" LIKE ?", paramValue+"%")
+	s.Where(paramKey+" LIKE ?", paramValue+"%")
 	return s
 }
 
 func (s *SqlCondition) EndWith(paramKey string, paramValue string) *SqlCondition {
-	s.where(paramKey+" LIKE ?", "%"+paramValue)
+	s.Where(paramKey+" LIKE ?", "%"+paramValue)
 	return s
 }
 
 func (s *SqlCondition) In(paramKey string, paramValue any) *SqlCondition {
-	s.where(paramKey+" IN ?", paramValue)
+	s.Where(paramKey+" IN ?", paramValue)
 	return s
 }
 
 func (s *SqlCondition) Build(db *gorm.DB) *gorm.DB {
-	//处理顺序：select → where → order → limit → offset
+	//处理顺序：select → Where → order → limit → offset
 	//select
 
 	//选择要显示哪些字段。如果不填，就显示全部字段
@@ -110,7 +110,7 @@ func (s *SqlCondition) Build(db *gorm.DB) *gorm.DB {
 	OmittedColumns := global.Config.DBConfig.OmittedColumns
 	db = db.Omit(OmittedColumns...)
 
-	//where
+	//Where
 	if len(s.ParamPairs) > 0 {
 		for _, parameterPair := range s.ParamPairs {
 			db = db.Where(parameterPair.Key, parameterPair.Value)
@@ -139,7 +139,7 @@ func (s *SqlCondition) Build(db *gorm.DB) *gorm.DB {
 	db = db.Offset(offset)
 
 	//新offset方法，数据量哪怕达到几千万也不会产生查询瓶颈，已测试过
-	//任何数据库的 offset 1000000 都比 where id > 1000000 要慢很多
+	//任何数据库的 offset 1000000 都比 Where id > 1000000 要慢很多
 	//问题在于如果id不连续，会导致偏移出现错误
 	//offset := (s.Paging.Page - 1) * s.Paging.PageSize
 	//if offset > 0 {
@@ -154,7 +154,7 @@ func (s *SqlCondition) Build(db *gorm.DB) *gorm.DB {
 func (s *SqlCondition) Count(modelName model.IModel) int {
 	db := global.DB
 	result := db.Model(&modelName)
-	// where
+	// Where
 	if len(s.ParamPairs) > 0 {
 		for _, parameterPair := range s.ParamPairs {
 			result = result.Where(parameterPair.Key, parameterPair.Value)

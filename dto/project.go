@@ -37,6 +37,7 @@ type ProjectCreateOrUpdateDTO struct {
 // 在dto传递给sqlCondition时，空值会被忽略
 type ProjectListDTO struct {
 	ListDTO
+	ProjectNameLike    *string `json:"project_name_like"` //包含项目全称和项目简称
 	DepartmentNameLike *string `json:"department_name_like"`
 	DepartmentIDIn     []int   `json:"department_id_in"`
 }

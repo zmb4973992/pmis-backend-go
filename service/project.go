@@ -296,6 +296,10 @@ func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 		sqlCondition.In("department_id", departmentIDs)
 	}
 
+	if paramIn.ProjectNameLike != nil && *paramIn.ProjectNameLike != "" {
+		sqlCondition.Where("project_full_name or project_short_name", *paramIn.ProjectNameLike)
+	}
+
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
