@@ -17,14 +17,14 @@ type projectService struct{}
 func (projectService) Get(projectID int) response.Common {
 	var result dto.ProjectGetDTO
 	//查主表
-	err := global.DB.Debug().Model(model.Project{}).
+	err := global.DB.Model(model.Project{}).
 		Where("id = ?", projectID).First(&result).Error
 	if err != nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	//如果有部门id，就查部门信息
 	if result.DepartmentID != nil {
-		err = global.DB.Debug().Model(model.Department{}).
+		err = global.DB.Model(model.Department{}).
 			Where("id=?", result.DepartmentID).First(&result.Department).Error
 		if err != nil {
 			result.Department = nil
@@ -267,9 +267,9 @@ func (projectService) Delete(projectID int) response.Common {
 }
 
 func (projectService) List(paramIn dto.ProjectListDTO) response.List {
+	db := global.DB
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
-
 	//对paramIn进行清洗
 	//这部分是用于where的参数
 	if paramIn.Page > 0 {
@@ -297,7 +297,9 @@ func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 	}
 
 	if paramIn.ProjectNameLike != nil && *paramIn.ProjectNameLike != "" {
-		sqlCondition.Where("project_full_name or project_short_name", *paramIn.ProjectNameLike)
+		db = db.Where("project_full_name like ?", "%"+*paramIn.ProjectNameLike+"%").
+			Or("project_short_name like ?", "%"+*paramIn.ProjectNameLike+"%")
+		//Or("project_short_name LIKE ?", "%"+*paramIn.ProjectNameLike+"%")
 	}
 
 	//这部分是用于order的参数
@@ -314,9 +316,9 @@ func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 	} else {
 		sqlCondition.Sorting.Desc = false
 	}
-
-	tempList := sqlCondition.Find(model.Project{})
-	totalRecords := sqlCondition.Count(model.Project{})
+	//需要先count再find，因为find会改变db的指针
+	totalRecords := sqlCondition.Count(db, model.Project{})
+	tempList := sqlCondition.Find(db, model.Project{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
@@ -330,7 +332,7 @@ func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 	for i := range list {
 		//如果有部门id，就查部门信息
 		if list[i].DepartmentID != nil {
-			err := global.DB.Debug().Model(model.Department{}).
+			err := global.DB.Model(model.Department{}).
 				Where("id=?", list[i].DepartmentID).First(&list[i].Department).Error
 			if err != nil {
 				list[i].Department = nil

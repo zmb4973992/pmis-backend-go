@@ -190,8 +190,8 @@ func (relatedPartyService) List(paramIn dto.RelatedPartyListDTO) response.List {
 		sqlCondition.Sorting.Desc = false
 	}
 
-	tempList := sqlCondition.Find(model.RelatedParty{})
-	totalRecords := sqlCondition.Count(model.RelatedParty{})
+	tempList := sqlCondition.Find(global.DB, model.RelatedParty{})
+	totalRecords := sqlCondition.Count(global.DB, model.RelatedParty{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {

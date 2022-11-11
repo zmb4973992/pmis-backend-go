@@ -227,8 +227,8 @@ func (disassemblyService) List(paramIn dto.DisassemblyListDTO) response.List {
 		sqlCondition.Sorting.Desc = false
 	}
 
-	tempList := sqlCondition.Find(model.Disassembly{})
-	totalRecords := sqlCondition.Count(model.Disassembly{})
+	tempList := sqlCondition.Find(global.DB, model.Disassembly{})
+	totalRecords := sqlCondition.Count(global.DB, model.Disassembly{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {

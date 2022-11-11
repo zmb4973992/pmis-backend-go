@@ -7,6 +7,9 @@ import (
 	"pmis-backend-go/model"
 )
 
+//这里的思路来自zendea
+//https://github.com/zendea/zendea
+
 type SqlCondition struct {
 	SelectedColumns []string //暂时弃用，因为比较麻烦，要考虑dto和model转换的问题
 	ParamPairs      []ParamPair
@@ -151,32 +154,27 @@ func (s *SqlCondition) Build(db *gorm.DB) *gorm.DB {
 
 // Count 第二个参数应为model struct，如：model.User{}
 // 不理解的话可以看该方法的源码，因为使用了gorm的db.model()方法
-func (s *SqlCondition) Count(modelName model.IModel) int {
-	db := global.DB
-	result := db.Model(&modelName)
+func (s *SqlCondition) Count(db *gorm.DB, modelName model.IModel) int {
 	// Where
 	if len(s.ParamPairs) > 0 {
 		for _, parameterPair := range s.ParamPairs {
-			result = result.Where(parameterPair.Key, parameterPair.Value)
+			db = db.Where(parameterPair.Key, parameterPair.Value)
 		}
 	}
 	var totalRecords int64
-	err := result.Count(&totalRecords).Error
+	err := db.Debug().Model(&modelName).Count(&totalRecords).Error
 	if err != nil {
 		return 0
 	}
 	return int(totalRecords)
 }
 
-func (s *SqlCondition) Find(modelName model.IModel) (list []map[string]any) {
-	//直接限定数据源，后期如果要自定义数据源，可以改这里
-	db := global.DB
-
+func (s *SqlCondition) Find(tempDb *gorm.DB, modelName model.IModel) (list []map[string]any) {
 	//根据sqlCondition处理db
-	db = s.Build(db)
+	tempDb = s.Build(tempDb)
 
 	//出结果
-	err := db.Debug().Model(&modelName).Find(&list).Error
+	err := tempDb.Model(&modelName).Find(&list).Error
 	if err != nil {
 		return nil
 	}

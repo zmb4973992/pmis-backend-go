@@ -300,8 +300,8 @@ func (userService) List(paramIn dto.UserListDTO) response.List {
 		sqlCondition.Sorting.Desc = false
 	}
 
-	tempList := sqlCondition.Find(model.User{})
-	totalRecords := sqlCondition.Count(model.User{})
+	tempList := sqlCondition.Find(global.DB, model.User{})
+	totalRecords := sqlCondition.Count(global.DB, model.User{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
