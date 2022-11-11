@@ -152,8 +152,8 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 		sqlCondition.Sorting.Desc = false
 	}
 
-	tempList := sqlCondition.Find(model.Department{})
-	totalRecords := sqlCondition.Count(model.Department{})
+	tempList := sqlCondition.Find(global.DB, model.Department{})
+	totalRecords := sqlCondition.Count(global.DB, model.Department{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {

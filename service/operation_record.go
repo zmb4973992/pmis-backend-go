@@ -217,8 +217,8 @@ func (operationRecordService) List(paramIn dto.OperationRecordListDTO) response.
 		sqlCondition.Sorting.Desc = false
 	}
 
-	tempList := sqlCondition.Find(model.OperationRecord{})
-	totalRecords := sqlCondition.Count(model.OperationRecord{})
+	tempList := sqlCondition.Find(global.DB, model.OperationRecord{})
+	totalRecords := sqlCondition.Count(global.DB, model.OperationRecord{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {

@@ -199,8 +199,8 @@ func (errorLogService) List(paramIn dto.DisassemblyListDTO) response.List {
 		sqlCondition.Sorting.Desc = false
 	}
 
-	tempList := sqlCondition.Find(model.ErrorLog{})
-	totalRecords := sqlCondition.Count(model.ErrorLog{})
+	tempList := sqlCondition.Find(global.DB, model.ErrorLog{})
+	totalRecords := sqlCondition.Count(global.DB, model.ErrorLog{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {

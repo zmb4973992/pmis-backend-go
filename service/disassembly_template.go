@@ -175,8 +175,8 @@ func (disassemblyTemplateService) List(paramIn dto.DisassemblyTemplateListDTO) r
 		sqlCondition.Sorting.Desc = false
 	}
 
-	tempList := sqlCondition.Find(model.DisassemblyTemplate{})
-	totalRecords := sqlCondition.Count(model.DisassemblyTemplate{})
+	tempList := sqlCondition.Find(global.DB, model.DisassemblyTemplate{})
+	totalRecords := sqlCondition.Count(global.DB, model.DisassemblyTemplate{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
