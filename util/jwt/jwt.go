@@ -17,7 +17,7 @@ func GenerateToken(userID int) string {
 	claim := myClaim{
 		userID,
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour * 24 * days).Unix(),
+			ExpiresAt: time.Now().Add(days * 24 * time.Hour).Unix(),
 		}}
 	tokenStruct := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
 	tokenString, _ := tokenStruct.SignedString(global.Config.SecretKey)
