@@ -121,6 +121,13 @@ func (projectController) List(c *gin.Context) {
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
+
+	tempRoleNames, _ := c.Get("roleNames")
+	roleNames := tempRoleNames.([]string)
+	if len(roleNames) > 0 {
+		param.RoleDTO.RoleNames = roleNames
+	}
+
 	//生成Service,然后调用它的方法
 	res := service.ProjectService.List(param)
 	c.JSON(http.StatusOK, res)

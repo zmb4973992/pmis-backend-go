@@ -268,10 +268,21 @@ func (projectService) Delete(projectID int) response.Common {
 
 func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 	db := global.DB
+
+	if len(paramIn.RoleNames) > 0 {
+		if util.IsInSlice("管理员", paramIn.RoleNames) {
+			//如果有管理员权限，就不做任何处理
+		} else if util.IsInSlice("公司级", paramIn.RoleNames) {
+			//如果有公司级权限（相当于公司领导），也不做任何处理
+		} else if util.IsInSlice("事业部级", paramIn.RoleNames) {
+			//如果有事业部级权限（相当于事业部领导）
+		}
+	}
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 	//对paramIn进行清洗
 	//这部分是用于where的参数
+
 	if paramIn.Page > 0 {
 		sqlCondition.Paging.Page = paramIn.Page
 	}
@@ -299,7 +310,6 @@ func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 	if paramIn.ProjectNameLike != nil && *paramIn.ProjectNameLike != "" {
 		db = db.Where("project_full_name like ?", "%"+*paramIn.ProjectNameLike+"%").
 			Or("project_short_name like ?", "%"+*paramIn.ProjectNameLike+"%")
-		//Or("project_short_name LIKE ?", "%"+*paramIn.ProjectNameLike+"%")
 	}
 
 	//这部分是用于order的参数

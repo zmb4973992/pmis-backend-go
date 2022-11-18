@@ -4,6 +4,7 @@ type ListDTO struct {
 	PagingDTO
 	SortingDTO
 	SqlDTO
+	RoleDTO
 }
 
 type PagingDTO struct {
@@ -20,4 +21,8 @@ type SortingDTO struct {
 
 type SqlDTO struct {
 	SelectedColumns []string `json:"selected_columns"` //需要显示数据的列
+}
+
+type RoleDTO struct {
+	RoleNames []string
 }

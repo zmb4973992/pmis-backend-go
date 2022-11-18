@@ -8,6 +8,7 @@ import (
 )
 
 // NeedAuth 如果需要根据角色进行鉴权（casbin进行操作），则使用该中间件
+//这里通过casbin控制哪些角色可以访问接口、哪些角色不能访问接口
 func NeedAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tempSubjects, ok := c.Get("roles") //获取用户角色,casbin规则的主体参数
