@@ -9,9 +9,9 @@ type typeForSliceComparing interface {
 
 // IsInSlice 这里使用了泛型，至少需要1.18版本以上
 // 校验单个内容是否包含在切片中
-func IsInSlice[T typeForSliceComparing](str T, strSlice []T) bool {
-	for _, v := range strSlice {
-		if str == v {
+func IsInSlice[T typeForSliceComparing](element T, slice []T) bool {
+	for _, v := range slice {
+		if element == v {
 			return true
 		}
 	}
@@ -30,8 +30,8 @@ func SlicesAreSame[T typeForSliceComparing](slice1 []T, slice2 []T) bool {
 		return false
 	}
 	//对两个切片进行双重遍历比较
-	for _, v := range slice1 {
-		res := IsInSlice(v, slice2)
+	for _, element := range slice1 {
+		res := IsInSlice(element, slice2)
 		if res == false {
 			return false
 		}

@@ -15,13 +15,49 @@ import (
 type disassemblyService struct{}
 
 func (disassemblyService) Get(disassemblyID int) response.Common {
-	var result dto.DisassemblyGetDTO
+	var result dto.DisassemblyOutputDTO
 	err := global.DB.Model(model.Disassembly{}).
 		Where("id = ?", disassemblyID).First(&result).Error
 	if err != nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	return response.SuccessWithData(result)
+}
+
+func (disassemblyService) Tree(paramIn dto.DisassemblyTreeDTO) response.Common {
+	//第一轮查找
+	var result1 dto.DisassemblyOutputForTreeDTO
+	err := global.DB.Model(model.Disassembly{}).
+		Where("id = ?", paramIn.ID).First(&result1).Error
+	if err != nil {
+		return response.Failure(util.ErrorRecordNotFound)
+	}
+	//第二轮查找
+	var result2 []dto.DisassemblyOutputForTreeDTO
+	global.DB.Model(model.Disassembly{}).
+		Where("superior_id = ?", paramIn.ID).Find(&result2)
+	for index2, _ := range result2 {
+		//第三轮查找
+		var result3 []dto.DisassemblyOutputForTreeDTO
+		global.DB.Model(model.Disassembly{}).
+			Where("superior_id = ?", result2[index2].ID).Find(&result3)
+		//第四轮查找
+		for index3, _ := range result3 {
+			var result4 []dto.DisassemblyOutputForTreeDTO
+			global.DB.Model(model.Disassembly{}).
+				Where("superior_id = ?", result3[index3].ID).Find(&result4)
+			for index4, _ := range result4 {
+				var result5 []dto.DisassemblyOutputForTreeDTO
+				global.DB.Model(model.Disassembly{}).
+					Where("superior_id = ?", result4[index4].ID).Find(&result5)
+				result4[index4].Children = append(result4[index4].Children, result5...)
+			}
+			result3[index3].Children = append(result3[index3].Children, result4...)
+		}
+		result2[index2].Children = append(result2[index2].Children, result3...)
+	}
+	result1.Children = append(result1.Children, result2...)
+	return response.SuccessWithData(result1)
 }
 
 func (disassemblyService) Create(paramIn *dto.DisassemblyCreateOrUpdateDTO) response.Common {
@@ -235,7 +271,7 @@ func (disassemblyService) List(paramIn dto.DisassemblyListDTO) response.List {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
-	var list []dto.DisassemblyGetDTO
+	var list []dto.DisassemblyOutputDTO
 	_ = mapstructure.Decode(&tempList, &list)
 
 	return response.List{

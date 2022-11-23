@@ -37,26 +37,70 @@ func NeedLogin() gin.HandlerFunc {
 	}
 }
 
+//SetUserInfo 在请求中设置userID、roleNames、departmentIDs、departmentNames
 func SetUserInfo(c *gin.Context, userID int) {
-	c.Set("userID", userID)
+	c.Set("user_id", userID)
 	var user model.User
 	//预加载关联的全部子表信息
 	global.DB.Where("id = ?", userID).Preload(clause.Associations).First(&user)
 
+	//设置角色名称数组
 	var roleNames []string
 	for _, role := range user.Roles {
 		var roleInfo model.Role
 		global.DB.Where("id = ?", role.RoleID).First(&roleInfo)
 		roleNames = append(roleNames, roleInfo.Name)
 	}
-	c.Set("roleNames", roleNames)
+	c.Set("role_names", roleNames)
 
-	//设置所属部门
-	var departmentNames []string
-	for _, department := range user.Departments {
-		var departmentInfo model.Department
-		global.DB.Where("id = ?", department.DepartmentID).First(&departmentInfo)
-		departmentNames = append(departmentNames, departmentInfo.Name)
+	//设置当前用户最高级别的角色
+	var topRole string
+	if util.IsInSlice("管理员", roleNames) {
+		topRole = "管理员"
+	} else if util.IsInSlice("公司级", roleNames) {
+		topRole = "公司级"
+	} else if util.IsInSlice("事业部级", roleNames) {
+		topRole = "事业部级"
+
+		//设置部门id数组
+		var tempBusinessDivisionIDs []int
+		global.DB.Model(&model.DepartmentAndUser{}).Where("user_id = ?", userID).
+			Select("department_id").Find(&tempBusinessDivisionIDs)
+
+		//设置事业部id数组
+		var businessDivisionIDs []int
+		for _, businessDivisionID := range tempBusinessDivisionIDs {
+			var count int64
+			global.DB.Model(&model.Department{}).Where("id = ?", businessDivisionID).
+				Where("level = ?", "事业部").Count(&count)
+			if count > 0 {
+				businessDivisionIDs = append(businessDivisionIDs, businessDivisionID)
+			}
+		}
+		c.Set("business_division_ids", businessDivisionIDs)
+
+	} else if util.IsInSlice("部门级", roleNames) {
+		topRole = "部门级"
+
+		//设置部门id数组
+		var tempDepartmentIDs []int
+		global.DB.Model(&model.DepartmentAndUser{}).Where("user_id = ?", userID).
+			Select("department_id").Find(&tempDepartmentIDs)
+
+		//校验level是否为部门
+		var departmentIDs []int
+		for _, departmentID := range tempDepartmentIDs {
+			var count int64
+			global.DB.Model(&model.Department{}).Where("id = ?", departmentID).
+				Where("level = ?", "部门").Count(&count)
+			if count > 0 {
+				departmentIDs = append(departmentIDs, departmentID)
+			}
+		}
+
+		c.Set("department_ids", departmentIDs)
+	} else {
+		topRole = "项目级"
 	}
-	c.Set("departments", departmentNames)
+	c.Set("top_role", topRole)
 }

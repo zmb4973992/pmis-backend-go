@@ -40,4 +40,8 @@ type ProjectListDTO struct {
 	ProjectNameLike    *string `json:"project_name_like"` //包含项目全称和项目简称
 	DepartmentNameLike *string `json:"department_name_like"`
 	DepartmentIDIn     []int   `json:"department_id_in"`
+
+	TopRole             string //用户的最高角色
+	BusinessDivisionIDs []int  //用户所属的事业部id数组
+	DepartmentIDs       []int  //用户所属的部门id数组
 }

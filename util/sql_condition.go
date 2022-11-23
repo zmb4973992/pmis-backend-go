@@ -174,7 +174,7 @@ func (s *SqlCondition) Find(tempDb *gorm.DB, modelName model.IModel) (list []map
 	tempDb = s.Build(tempDb)
 
 	//出结果
-	err := tempDb.Model(&modelName).Find(&list).Error
+	err := tempDb.Debug().Model(&modelName).Find(&list).Error
 	if err != nil {
 		return nil
 	}

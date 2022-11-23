@@ -207,7 +207,7 @@ func (errorLogService) List(paramIn dto.DisassemblyListDTO) response.List {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
-	var list []dto.DisassemblyGetDTO
+	var list []dto.DisassemblyOutputDTO
 	_ = mapstructure.Decode(&tempList, &list)
 
 	return response.List{

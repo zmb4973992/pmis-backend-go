@@ -16,10 +16,24 @@ func (disassemblyController) Get(c *gin.Context) {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 	res := service.DisassemblyService.Get(id)
+	c.JSON(http.StatusOK, res)
+	return
+}
+
+func (disassemblyController) Tree(c *gin.Context) {
+	var param dto.DisassemblyTreeDTO
+	err := c.ShouldBindJSON(&param)
+	//这里json参数必填，否则无法知道要找哪条记录。因此不能忽略掉EOF错误
+	if err != nil {
+		c.JSON(http.StatusBadRequest,
+			response.Failure(util.ErrorInvalidJSONParameters))
+		return
+	}
+	res := service.DisassemblyService.Tree(param)
 	c.JSON(http.StatusOK, res)
 	return
 }

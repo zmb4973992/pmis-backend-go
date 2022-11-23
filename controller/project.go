@@ -122,10 +122,28 @@ func (projectController) List(c *gin.Context) {
 		return
 	}
 
-	tempRoleNames, _ := c.Get("roleNames")
-	roleNames := tempRoleNames.([]string)
-	if len(roleNames) > 0 {
-		param.RoleDTO.RoleNames = roleNames
+	tempTopRole, exists := c.Get("top_role")
+	if exists {
+		topRole := tempTopRole.(string)
+		if topRole != "" {
+			param.TopRole = topRole
+		}
+	}
+
+	tempBusinessDivisionIDs, exists := c.Get("business_division_ids")
+	if exists {
+		businessDivisionIDs := tempBusinessDivisionIDs.([]int)
+		if len(businessDivisionIDs) > 0 {
+			param.BusinessDivisionIDs = businessDivisionIDs
+		}
+	}
+
+	tempDepartmentIDs, exists := c.Get("department_ids")
+	if exists {
+		departmentIDs := tempDepartmentIDs.([]int)
+		if len(departmentIDs) > 0 {
+			param.DepartmentIDs = departmentIDs
+		}
 	}
 
 	//生成Service,然后调用它的方法

@@ -61,6 +61,7 @@ func Init() *gin.Engine {
 		api.POST("project/list", controller.ProjectController.List)              //获取项目列表
 
 		api.GET("/disassembly/:id", controller.DisassemblyController.Get)                //获取项目拆解详情
+		api.POST("/disassembly/tree", controller.DisassemblyController.Tree)             //获取项目拆解的节点树
 		api.POST("/disassembly", controller.DisassemblyController.Create)                //新增项目拆解
 		api.POST("/disassembly/batch", controller.DisassemblyController.CreateInBatches) //批量新增项目拆解
 		api.PUT("/disassembly/:id", controller.DisassemblyController.Update)             //修改项目拆解

@@ -268,20 +268,40 @@ func (projectService) Delete(projectID int) response.Common {
 
 func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 	db := global.DB
-
-	if len(paramIn.RoleNames) > 0 {
-		if util.IsInSlice("管理员", paramIn.RoleNames) {
-			//如果有管理员权限，就不做任何处理
-		} else if util.IsInSlice("公司级", paramIn.RoleNames) {
-			//如果有公司级权限（相当于公司领导），也不做任何处理
-		} else if util.IsInSlice("事业部级", paramIn.RoleNames) {
-			//如果有事业部级权限（相当于事业部领导）
-		}
-	}
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 	//对paramIn进行清洗
 	//这部分是用于where的参数
+
+	if paramIn.TopRole == "管理员" || paramIn.TopRole == "公司级" {
+		//不作处理
+	} else if paramIn.TopRole == "事业部级" {
+		var departmentIDs []int
+		if len(paramIn.BusinessDivisionIDs) > 0 {
+			global.DB.Model(&model.Department{}).
+				Where("superior_id in ?", paramIn.BusinessDivisionIDs).
+				Select("id").Find(&departmentIDs)
+		}
+		if len(departmentIDs) > 0 {
+			sqlCondition.In("department_id", departmentIDs)
+		} else {
+			sqlCondition.Where("department_id", -1)
+		}
+
+	} else if paramIn.TopRole == "部门级" {
+		if len(paramIn.DepartmentIDs) > 0 {
+			sqlCondition.In("department_id", paramIn.DepartmentIDs)
+		} else {
+			sqlCondition.Where("department_id", -1)
+		}
+
+	} else { //为以后的”项目级“预留的功能
+		if len(paramIn.DepartmentIDs) > 0 {
+			sqlCondition.In("department_id", paramIn.DepartmentIDs)
+		} else {
+			sqlCondition.Where("department_id", -1)
+		}
+	}
 
 	if paramIn.Page > 0 {
 		sqlCondition.Paging.Page = paramIn.Page
