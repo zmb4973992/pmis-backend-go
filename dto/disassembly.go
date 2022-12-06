@@ -44,5 +44,6 @@ type DisassemblyOutputDTO struct {
 type DisassemblyOutputForTreeDTO struct {
 	Name     *string                       `json:"title"`
 	ID       int                           `json:"key"`
+	Level    int                           `json:"level"`
 	Children []DisassemblyOutputForTreeDTO `json:"children" gorm:"-"`
 }

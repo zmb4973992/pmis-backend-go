@@ -26,7 +26,7 @@ func (disassemblyService) Get(disassemblyID int) response.Common {
 
 func (disassemblyService) Tree(paramIn dto.DisassemblyTreeDTO) response.Common {
 	//第一轮查找
-	var result1 dto.DisassemblyOutputForTreeDTO
+	var result1 []dto.DisassemblyOutputForTreeDTO
 	err := global.DB.Model(model.Disassembly{}).
 		Where("id = ?", paramIn.ID).First(&result1).Error
 	if err != nil {
@@ -56,7 +56,7 @@ func (disassemblyService) Tree(paramIn dto.DisassemblyTreeDTO) response.Common {
 		}
 		result2[index2].Children = append(result2[index2].Children, result3...)
 	}
-	result1.Children = append(result1.Children, result2...)
+	result1[0].Children = append(result1[0].Children, result2...)
 	return response.SuccessWithData(result1)
 }
 
