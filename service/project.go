@@ -272,10 +272,10 @@ func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 	sqlCondition := util.NewSqlCondition()
 	//对paramIn进行清洗
 	//这部分是用于where的参数
-
-	if paramIn.TopRole == "管理员" || paramIn.TopRole == "公司级" {
-		//不作处理
-	} else if paramIn.TopRole == "事业部级" {
+	//如果用户角色是管理员或公司级，就不作处理
+	if util.IsInSlice("管理员", paramIn.RoleNames) ||
+		util.IsInSlice("公司级", paramIn.RoleNames) {
+	} else if util.IsInSlice("事业部级", paramIn.RoleNames) {
 		var departmentIDs []int
 		if len(paramIn.BusinessDivisionIDs) > 0 {
 			global.DB.Model(&model.Department{}).
@@ -288,7 +288,7 @@ func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 			sqlCondition.Where("department_id", -1)
 		}
 
-	} else if paramIn.TopRole == "部门级" {
+	} else if util.SliceContains(paramIn.RoleNames, "部门级") {
 		if len(paramIn.DepartmentIDs) > 0 {
 			sqlCondition.In("department_id", paramIn.DepartmentIDs)
 		} else {

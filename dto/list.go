@@ -4,6 +4,8 @@ type ListDTO struct {
 	PagingDTO
 	SortingDTO
 	SqlDTO
+	AuthDTO
+	UserInfoDTO
 }
 
 type PagingDTO struct {
@@ -20,4 +22,14 @@ type SortingDTO struct {
 
 type SqlDTO struct {
 	SelectedColumns []string `json:"selected_columns"` //需要显示数据的列
+}
+
+type AuthDTO struct {
+	VerifyRole *bool `json:"verify_role"` //是否需要校验角色、分级显示
+}
+
+type UserInfoDTO struct {
+	RoleNames           []string //用户的角色名称数组
+	BusinessDivisionIDs []int    //用户所属的事业部id数组
+	DepartmentIDs       []int    //用户所属的部门id数组
 }

@@ -122,11 +122,11 @@ func (projectController) List(c *gin.Context) {
 		return
 	}
 
-	tempTopRole, exists := c.Get("top_role")
+	tempRoleNames, exists := c.Get("role_names")
 	if exists {
-		topRole := tempTopRole.(string)
-		if topRole != "" {
-			param.TopRole = topRole
+		roleNames := tempRoleNames.([]string)
+		if len(roleNames) > 0 {
+			param.RoleNames = roleNames
 		}
 	}
 

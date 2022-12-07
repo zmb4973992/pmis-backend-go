@@ -96,6 +96,31 @@ func (departmentController) List(c *gin.Context) {
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
+
+	tempRoleNames, exists := c.Get("role_names")
+	if exists {
+		roleNames := tempRoleNames.([]string)
+		if len(roleNames) > 0 {
+			param.RoleNames = roleNames
+		}
+	}
+
+	tempBusinessDivisionIDs, exists := c.Get("business_division_ids")
+	if exists {
+		businessDivisionIDs := tempBusinessDivisionIDs.([]int)
+		if len(businessDivisionIDs) > 0 {
+			param.BusinessDivisionIDs = businessDivisionIDs
+		}
+	}
+
+	tempDepartmentIDs, exists := c.Get("department_ids")
+	if exists {
+		departmentIDs := tempDepartmentIDs.([]int)
+		if len(departmentIDs) > 0 {
+			param.DepartmentIDs = departmentIDs
+		}
+	}
+
 	//生成Service,然后调用它的方法
 	res := service.DepartmentService.List(param)
 	c.JSON(http.StatusOK, res)

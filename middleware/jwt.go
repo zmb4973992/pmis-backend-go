@@ -54,13 +54,13 @@ func SetUserInfo(c *gin.Context, userID int) {
 	c.Set("role_names", roleNames)
 
 	//设置当前用户最高级别的角色
-	var topRole string
+	//var topRole string
 	if util.IsInSlice("管理员", roleNames) {
-		topRole = "管理员"
+		//topRole = "管理员"
 	} else if util.IsInSlice("公司级", roleNames) {
-		topRole = "公司级"
+		//topRole = "公司级"
 	} else if util.IsInSlice("事业部级", roleNames) {
-		topRole = "事业部级"
+		//topRole = "事业部级"
 
 		//设置部门id数组
 		var tempBusinessDivisionIDs []int
@@ -80,7 +80,7 @@ func SetUserInfo(c *gin.Context, userID int) {
 		c.Set("business_division_ids", businessDivisionIDs)
 
 	} else if util.IsInSlice("部门级", roleNames) {
-		topRole = "部门级"
+		//topRole = "部门级"
 
 		//设置部门id数组
 		var tempDepartmentIDs []int
@@ -100,7 +100,7 @@ func SetUserInfo(c *gin.Context, userID int) {
 
 		c.Set("department_ids", departmentIDs)
 	} else {
-		topRole = "项目级"
+		//topRole = "项目级"
 	}
-	c.Set("top_role", topRole)
+	//c.Set("top_role", topRole)
 }

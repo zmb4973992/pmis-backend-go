@@ -136,6 +136,38 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 	if paramIn.NameLike != nil && *paramIn.NameLike != "" {
 		sqlCondition = sqlCondition.Like("name", *paramIn.NameLike)
 	}
+	if paramIn.VerifyRole != nil && *paramIn.VerifyRole == true {
+		//fmt.Println(paramIn.BusinessDivisionIDs)
+		if util.IsInSlice("管理员", paramIn.RoleNames) ||
+			util.IsInSlice("公司级", paramIn.RoleNames) {
+		} else if util.IsInSlice("事业部级", paramIn.RoleNames) {
+			var departmentIDs []int
+			if len(paramIn.BusinessDivisionIDs) > 0 {
+				global.DB.Model(&model.Department{}).
+					Where("superior_id in ?", paramIn.BusinessDivisionIDs).
+					Select("id").Find(&departmentIDs)
+			}
+			if len(departmentIDs) > 0 {
+				sqlCondition.In("id", departmentIDs)
+			} else {
+				sqlCondition.Where("id", -1)
+			}
+
+		} else if util.SliceContains(paramIn.RoleNames, "部门级") {
+			if len(paramIn.DepartmentIDs) > 0 {
+				sqlCondition.In("id", paramIn.DepartmentIDs)
+			} else {
+				sqlCondition.Where("id", -1)
+			}
+
+		} else { //为以后的”项目级“预留的功能
+			if len(paramIn.DepartmentIDs) > 0 {
+				sqlCondition.In("id", paramIn.DepartmentIDs)
+			} else {
+				sqlCondition.Where("id", -1)
+			}
+		}
+	}
 
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
@@ -152,8 +184,8 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 		sqlCondition.Sorting.Desc = false
 	}
 
-	tempList := sqlCondition.Find(global.DB, model.Department{})
 	totalRecords := sqlCondition.Count(global.DB, model.Department{})
+	tempList := sqlCondition.Find(global.DB, model.Department{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
