@@ -4,12 +4,12 @@ type Dictionary struct {
 	BaseModel
 	Country                         *string //国家
 	Province                        *string //省份或地区
-	TermOfReceiptOrPayment          *string //收付款方式
+	ReceiptOrPaymentTerm            *string //收付款方式
 	Currency                        *string //币种
 	OrderForCurrency                *int    //币种排序
-	TypeOfContract                  *string //合同类型
-	TypeOfProject                   *string //项目类型
-	StatusOfProject                 *string //项目状态
+	ContractType                    *string //合同类型
+	ProjectType                     *string //项目类型
+	ProjectStatus                   *string //项目状态
 	OrderForStatusOfProject         *int    //项目状态排序
 	NameOfBank                      *string //银行名称
 	FundDirectionOfContract         *string //合同资金方向

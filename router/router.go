@@ -84,6 +84,8 @@ func Init() *gin.Engine {
 		api.POST("/error_log", controller.ErrorLogController.Create)       //新增错误日志
 		api.PUT("/error_log/:id", controller.ErrorLogController.Update)    //修改错误日志
 		api.DELETE("/error_log/:id", controller.ErrorLogController.Delete) //删除错误日志
+
+		api.GET("/dictionary", controller.DictionaryController.Get) //获取字典列表
 	}
 
 	engine.NoRoute(controller.NoRouteController.NoRoute)

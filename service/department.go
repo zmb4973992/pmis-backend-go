@@ -153,7 +153,7 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 				sqlCondition.Where("id", -1)
 			}
 
-		} else if util.SliceContains(paramIn.RoleNames, "部门级") {
+		} else if util.SliceIncludes(paramIn.RoleNames, "部门级") {
 			if len(paramIn.DepartmentIDs) > 0 {
 				sqlCondition.In("id", paramIn.DepartmentIDs)
 			} else {

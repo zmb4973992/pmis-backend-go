@@ -18,9 +18,9 @@ func IsInSlice[T typeForSliceComparing](element T, slice []T) bool {
 	return false
 }
 
-// SliceContains 这里使用了泛型，至少需要1.18版本以上
+// SliceIncludes 这里使用了泛型，至少需要1.18版本以上
 // 校验切片是否包含单个内容
-func SliceContains[T typeForSliceComparing](slice []T, element T) bool {
+func SliceIncludes[T typeForSliceComparing](slice []T, element T) bool {
 	for _, value := range slice {
 		if element == value {
 			return true
