@@ -137,7 +137,6 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 		sqlCondition = sqlCondition.Like("name", *paramIn.NameLike)
 	}
 	if paramIn.VerifyRole != nil && *paramIn.VerifyRole == true {
-		//fmt.Println(paramIn.BusinessDivisionIDs)
 		if util.IsInSlice("管理员", paramIn.RoleNames) ||
 			util.IsInSlice("公司级", paramIn.RoleNames) {
 		} else if util.IsInSlice("事业部级", paramIn.RoleNames) {

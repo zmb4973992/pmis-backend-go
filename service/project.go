@@ -272,34 +272,35 @@ func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 	sqlCondition := util.NewSqlCondition()
 	//对paramIn进行清洗
 	//这部分是用于where的参数
-	//如果用户角色是管理员或公司级，就不作处理
-	if util.IsInSlice("管理员", paramIn.RoleNames) ||
-		util.IsInSlice("公司级", paramIn.RoleNames) {
-	} else if util.IsInSlice("事业部级", paramIn.RoleNames) {
-		var departmentIDs []int
-		if len(paramIn.BusinessDivisionIDs) > 0 {
-			global.DB.Model(&model.Department{}).
-				Where("superior_id in ?", paramIn.BusinessDivisionIDs).
-				Select("id").Find(&departmentIDs)
-		}
-		if len(departmentIDs) > 0 {
-			sqlCondition.In("department_id", departmentIDs)
-		} else {
-			sqlCondition.Where("department_id", -1)
-		}
+	if paramIn.VerifyRole != nil && *paramIn.VerifyRole == true {
+		if util.IsInSlice("管理员", paramIn.RoleNames) ||
+			util.IsInSlice("公司级", paramIn.RoleNames) {
+		} else if util.IsInSlice("事业部级", paramIn.RoleNames) {
+			var departmentIDs []int
+			if len(paramIn.BusinessDivisionIDs) > 0 {
+				global.DB.Model(&model.Department{}).
+					Where("superior_id in ?", paramIn.BusinessDivisionIDs).
+					Select("id").Find(&departmentIDs)
+			}
+			if len(departmentIDs) > 0 {
+				sqlCondition.In("department_id", departmentIDs)
+			} else {
+				sqlCondition.Where("department_id", -1)
+			}
 
-	} else if util.SliceIncludes(paramIn.RoleNames, "部门级") {
-		if len(paramIn.DepartmentIDs) > 0 {
-			sqlCondition.In("department_id", paramIn.DepartmentIDs)
-		} else {
-			sqlCondition.Where("department_id", -1)
-		}
+		} else if util.SliceIncludes(paramIn.RoleNames, "部门级") {
+			if len(paramIn.DepartmentIDs) > 0 {
+				sqlCondition.In("department_id", paramIn.DepartmentIDs)
+			} else {
+				sqlCondition.Where("department_id", -1)
+			}
 
-	} else { //为以后的”项目级“预留的功能
-		if len(paramIn.DepartmentIDs) > 0 {
-			sqlCondition.In("department_id", paramIn.DepartmentIDs)
-		} else {
-			sqlCondition.Where("department_id", -1)
+		} else { //为以后的”项目级“预留的功能
+			if len(paramIn.DepartmentIDs) > 0 {
+				sqlCondition.In("department_id", paramIn.DepartmentIDs)
+			} else {
+				sqlCondition.Where("department_id", -1)
+			}
 		}
 	}
 
