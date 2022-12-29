@@ -4,6 +4,7 @@ package dto
 
 type DisassemblyTreeDTO struct {
 	BaseDTO
+	ProjectID *int `json:"project_id" binding:"required"`
 }
 
 // DisassemblyCreateOrUpdateDTO
@@ -21,7 +22,6 @@ type DisassemblyCreateOrUpdateDTO struct {
 // 在dto传递给sqlCondition时，空值会被忽略
 type DisassemblyListDTO struct {
 	ListDTO
-
 	ProjectID  *int `form:"project_id"`
 	SuperiorID *int `form:"superior_id"`
 	Level      *int `form:"level"`

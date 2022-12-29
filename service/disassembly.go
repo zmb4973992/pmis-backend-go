@@ -25,17 +25,26 @@ func (disassemblyService) Get(disassemblyID int) response.Common {
 }
 
 func (disassemblyService) Tree(paramIn dto.DisassemblyTreeDTO) response.Common {
+	//根据project_id获取disassembly_id
+	var disassemblyID int
+	err := global.DB.Model(model.Disassembly{}).Select("id").
+		Where("project_id = ?", paramIn.ProjectID).Where("level = 1").
+		First(&disassemblyID).Error
+	if err != nil {
+		return response.Failure(util.ErrorRecordNotFound)
+	}
+
 	//第一轮查找
 	var result1 []dto.DisassemblyOutputForTreeDTO
-	err := global.DB.Model(model.Disassembly{}).
-		Where("id = ?", paramIn.ID).First(&result1).Error
+	err = global.DB.Model(model.Disassembly{}).
+		Where("id = ?", disassemblyID).First(&result1).Error
 	if err != nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	//第二轮查找
 	var result2 []dto.DisassemblyOutputForTreeDTO
 	global.DB.Model(model.Disassembly{}).
-		Where("superior_id = ?", paramIn.ID).Find(&result2)
+		Where("superior_id = ?", disassemblyID).Find(&result2)
 	for index2, _ := range result2 {
 		//第三轮查找
 		var result3 []dto.DisassemblyOutputForTreeDTO
