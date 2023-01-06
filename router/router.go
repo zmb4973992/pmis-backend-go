@@ -60,13 +60,14 @@ func Init() *gin.Engine {
 		api.DELETE("/project/:id", controller.ProjectController.Delete)          //删除项目
 		api.POST("project/list", controller.ProjectController.List)              //获取项目列表
 
-		api.GET("/disassembly/:id", controller.DisassemblyController.Get)                //获取项目拆解详情
-		api.POST("/disassembly/tree", controller.DisassemblyController.Tree)             //获取项目拆解的节点树
-		api.POST("/disassembly", controller.DisassemblyController.Create)                //新增项目拆解
-		api.POST("/disassembly/batch", controller.DisassemblyController.CreateInBatches) //批量新增项目拆解
-		api.PUT("/disassembly/:id", controller.DisassemblyController.Update)             //修改项目拆解
-		api.DELETE("/disassembly/:id", controller.DisassemblyController.Delete)          //删除项目拆解
-		api.POST("/disassembly/list", controller.DisassemblyController.List)             //获取项目拆解列表
+		api.GET("/disassembly/:id", controller.DisassemblyController.Get)                           //获取项目拆解详情
+		api.POST("/disassembly/tree", controller.DisassemblyController.Tree)                        //获取项目拆解的节点树
+		api.POST("/disassembly", controller.DisassemblyController.Create)                           //新增项目拆解
+		api.POST("/disassembly/batch", controller.DisassemblyController.CreateInBatches)            //批量新增项目拆解
+		api.PUT("/disassembly/:id", controller.DisassemblyController.Update)                        //修改项目拆解
+		api.DELETE("/disassembly/:id", controller.DisassemblyController.Delete)                     //删除项目拆解
+		api.DELETE("/disassembly/cascade/:id", controller.DisassemblyController.DeleteWithSubitems) //删除项目拆解（子项一并删除）
+		api.POST("/disassembly/list", controller.DisassemblyController.List)                        //获取项目拆解列表
 
 		api.GET("/disassembly_template/:id", controller.DisassemblyTemplateController.Get)       //获取项目拆解模板详情
 		api.POST("/disassembly_template", controller.DisassemblyTemplateController.Create)       //新增项目拆解模板
