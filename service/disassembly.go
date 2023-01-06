@@ -45,17 +45,17 @@ func (disassemblyService) Tree(paramIn dto.DisassemblyTreeDTO) response.Common {
 	var result2 []dto.DisassemblyOutputForTreeDTO
 	global.DB.Model(model.Disassembly{}).
 		Where("superior_id = ?", disassemblyID).Find(&result2)
-	for index2, _ := range result2 {
+	for index2 := range result2 {
 		//第三轮查找
 		var result3 []dto.DisassemblyOutputForTreeDTO
 		global.DB.Model(model.Disassembly{}).
 			Where("superior_id = ?", result2[index2].ID).Find(&result3)
 		//第四轮查找
-		for index3, _ := range result3 {
+		for index3 := range result3 {
 			var result4 []dto.DisassemblyOutputForTreeDTO
 			global.DB.Model(model.Disassembly{}).
 				Where("superior_id = ?", result3[index3].ID).Find(&result4)
-			for index4, _ := range result4 {
+			for index4 := range result4 {
 				var result5 []dto.DisassemblyOutputForTreeDTO
 				global.DB.Model(model.Disassembly{}).
 					Where("superior_id = ?", result4[index4].ID).Find(&result5)
@@ -216,6 +216,42 @@ func (disassemblyService) Update(paramIn *dto.DisassemblyCreateOrUpdateDTO) resp
 
 func (disassemblyService) Delete(disassemblyID int) response.Common {
 	err := global.DB.Delete(&model.Disassembly{}, disassemblyID).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToDeleteRecord)
+	}
+	return response.Success()
+}
+
+func (disassemblyService) DeleteWithSubitems(disassemblyID int) response.Common {
+	var ToBeDeletedIDs []int
+	ToBeDeletedIDs = append(ToBeDeletedIDs, disassemblyID)
+	//第一轮查找
+	var result1 []int
+	global.DB.Model(&model.Disassembly{}).Where("superior_id = ?", disassemblyID).
+		Select("id").Find(&result1)
+	//第二轮查找
+	if len(result1) > 0 {
+		ToBeDeletedIDs = append(ToBeDeletedIDs, result1...)
+		var result2 []int
+		global.DB.Model(&model.Disassembly{}).Where("superior_id IN ?", result1).
+			Select("id").Find(&result2)
+		//第三轮查找
+		if len(result2) > 0 {
+			ToBeDeletedIDs = append(ToBeDeletedIDs, result2...)
+			var result3 []int
+			global.DB.Model(&model.Disassembly{}).Where("superior_id IN ?", result2).
+				Select("id").Find(&result3)
+			//第四轮查找
+			if len(result3) > 0 {
+				ToBeDeletedIDs = append(ToBeDeletedIDs, result3...)
+				var result4 []int
+				global.DB.Model(&model.Disassembly{}).Where("superior_id IN ?", result3).
+					Select("id").Find(&result4)
+				ToBeDeletedIDs = append(ToBeDeletedIDs, result4...)
+			}
+		}
+	}
+	err := global.DB.Delete(&model.Disassembly{}, ToBeDeletedIDs).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}

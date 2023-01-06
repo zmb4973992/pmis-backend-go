@@ -14,13 +14,13 @@ func (dictionaryService) Get() response.Common {
 	var data dto.DictionaryGetDTO
 
 	var projectType []string
-	global.DB.Debug().Model(&model.Dictionary{}).
+	global.DB.Model(&model.Dictionary{}).
 		Where("project_type is not null").
 		Select("project_type").Find(&projectType)
 	data.ProjectType = projectType
 
 	var province []string
-	global.DB.Debug().Model(&model.Dictionary{}).
+	global.DB.Model(&model.Dictionary{}).
 		Where("province is not null").
 		Select("province").Find(&province)
 	data.Province = province

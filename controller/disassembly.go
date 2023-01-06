@@ -124,6 +124,17 @@ func (disassemblyController) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
+func (disassemblyController) DeleteWithSubitems(c *gin.Context) {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidURIParameters))
+		return
+	}
+	res := service.DisassemblyService.DeleteWithSubitems(id)
+	c.JSON(http.StatusOK, res)
+}
+
 func (disassemblyController) List(c *gin.Context) {
 	var param dto.DisassemblyListDTO
 	err := c.ShouldBindQuery(&param)
