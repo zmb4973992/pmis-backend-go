@@ -43,7 +43,8 @@ func Init() {
 		&ActualReceiptAndPayment{},    //实际收付款
 		&PlannedReceiptAndPayment{},   //计划收付款
 		&PredictedReceiptAndPayment{}, //预测收付款
-		&Dictionary{},                 //字典
+		&DictionaryType{},             //字典类型
+		&DictionaryItem{},             //字典项详情
 		&ProjectAndUser{},             //项目和用户的中间表
 		&OperationRecord{},            //操作记录
 		&ErrorLog{},                   //错误日志
@@ -79,6 +80,12 @@ func generateData() {
 		panic(err)
 	}
 	if err = generateDepartments(); err != nil {
+		panic(err)
+	}
+	if err = generateDictionaryTypes(); err != nil {
+		panic(err)
+	}
+	if err = generateDictionaryItems(); err != nil {
 		panic(err)
 	}
 }

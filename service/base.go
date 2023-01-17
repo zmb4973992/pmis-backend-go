@@ -12,7 +12,7 @@ type AllService struct {
 	disassemblyTemplateService
 	errorLogService
 	projectService
-	dictionaryService
+	dictionaryItemService
 }
 
 //定义各个服务的入口,避免反复new service
@@ -28,5 +28,5 @@ var (
 	RoleAndUserService         = entrance.roleAndUserService
 	ErrorLogService            = entrance.errorLogService
 	ProjectService             = entrance.projectService
-	DictionaryService          = entrance.dictionaryService
+	DictionaryItemService      = entrance.dictionaryItemService
 )

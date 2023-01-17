@@ -15,7 +15,8 @@ type controller struct {
 	errorLogController
 	tokenController
 	projectController
-	dictionaryController
+	dictionaryTypeController
+	dictionaryItemController
 }
 
 var (
@@ -31,5 +32,6 @@ var (
 	ErrorLogController            = entrance.errorLogController
 	TokenController               = entrance.tokenController
 	ProjectController             = entrance.projectController
-	DictionaryController          = entrance.dictionaryController
+	DictionaryTypeController      = entrance.dictionaryTypeController
+	DictionaryItemController      = entrance.dictionaryItemController
 )

@@ -8,7 +8,7 @@ import (
 
 func NewEnforcer() *casbin.Enforcer {
 	adapter, _ := gormAdapter.NewAdapterByDB(global.DB)
-	enforcer, _ := casbin.NewEnforcer("./config/casbin_model.conf", adapter)
+	enforcer, _ := casbin.NewEnforcer("./config/casbin-model.conf", adapter)
 	_ = enforcer.LoadPolicy()
 	return enforcer
 }
