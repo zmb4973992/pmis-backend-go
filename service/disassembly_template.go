@@ -38,29 +38,23 @@ func (disassemblyTemplateService) Create(paramIn *dto.DisassemblyTemplateCreateO
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
-		paramOut.Name = nil
-	} else {
+	if *paramIn.Name != "" {
 		paramOut.Name = paramIn.Name
 	}
-	if *paramIn.Level == -1 {
-		paramOut.Level = nil
-	} else {
+
+	if *paramIn.Level != -1 {
 		paramOut.Level = paramIn.Level
 	}
-	if *paramIn.ProjectID == -1 {
-		paramOut.ProjectID = nil
-	} else {
+
+	if *paramIn.ProjectID != -1 {
 		paramOut.ProjectID = paramIn.ProjectID
 	}
-	if *paramIn.Weight == -1 {
-		paramOut.Weight = nil
-	} else {
+
+	if *paramIn.Weight != -1 {
 		paramOut.Weight = paramIn.Weight
 	}
-	if *paramIn.SuperiorID == -1 {
-		paramOut.SuperiorID = nil
-	} else {
+
+	if *paramIn.SuperiorID != -1 {
 		paramOut.SuperiorID = paramIn.SuperiorID
 	}
 
@@ -81,29 +75,23 @@ func (disassemblyTemplateService) Update(paramIn *dto.DisassemblyTemplateCreateO
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
-		paramOut.Name = nil
-	} else {
+	if *paramIn.Name != "" {
 		paramOut.Name = paramIn.Name
 	}
-	if *paramIn.Level == -1 {
-		paramOut.Level = nil
-	} else {
+
+	if *paramIn.Level != -1 {
 		paramOut.Level = paramIn.Level
 	}
-	if *paramIn.ProjectID == -1 {
-		paramOut.ProjectID = nil
-	} else {
+
+	if *paramIn.ProjectID != -1 {
 		paramOut.ProjectID = paramIn.ProjectID
 	}
-	if *paramIn.Weight == -1 {
-		paramOut.Weight = nil
-	} else {
+
+	if *paramIn.Weight != -1 {
 		paramOut.Weight = paramIn.Weight
 	}
-	if *paramIn.SuperiorID == -1 {
-		paramOut.SuperiorID = nil
-	} else {
+
+	if *paramIn.SuperiorID != -1 {
 		paramOut.SuperiorID = paramIn.SuperiorID
 	}
 

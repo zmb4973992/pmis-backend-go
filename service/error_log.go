@@ -41,15 +41,11 @@ func (errorLogService) Create(paramIn *dto.ErrorLogCreateOrUpdateDTO) response.C
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.Detail == "" {
-		paramOut.Detail = nil
-	} else {
+	if *paramIn.Detail != "" {
 		paramOut.Detail = paramIn.Detail
 	}
 
-	if *paramIn.Date == "" {
-		paramOut.Date = nil
-	} else {
+	if *paramIn.Date != "" {
 		date, err := time.Parse("2006-01-02", *paramIn.Date)
 		if err != nil {
 			return response.Failure(util.ErrorInvalidJSONParameters)
@@ -58,15 +54,11 @@ func (errorLogService) Create(paramIn *dto.ErrorLogCreateOrUpdateDTO) response.C
 		}
 	}
 
-	if *paramIn.MajorCategory == "" {
-		paramOut.MajorCategory = nil
-	} else {
+	if *paramIn.MajorCategory != "" {
 		paramOut.MajorCategory = paramIn.MajorCategory
 	}
 
-	if *paramIn.MinorCategory == "" {
-		paramOut.MinorCategory = nil
-	} else {
+	if *paramIn.MinorCategory != "" {
 		paramOut.MinorCategory = paramIn.MinorCategory
 	}
 
@@ -95,15 +87,11 @@ func (errorLogService) Update(paramIn *dto.ErrorLogCreateOrUpdateDTO) response.C
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.Detail == "" {
-		paramOut.Detail = nil
-	} else {
+	if *paramIn.Detail != "" {
 		paramOut.Detail = paramIn.Detail
 	}
 
-	if *paramIn.Date == "" {
-		paramOut.Date = nil
-	} else {
+	if *paramIn.Date != "" {
 		date, err := time.Parse("2006-01-02", *paramIn.Date)
 		if err != nil {
 			return response.Failure(util.ErrorInvalidJSONParameters)
@@ -112,15 +100,11 @@ func (errorLogService) Update(paramIn *dto.ErrorLogCreateOrUpdateDTO) response.C
 		}
 	}
 
-	if *paramIn.MajorCategory == "" {
-		paramOut.MajorCategory = nil
-	} else {
+	if *paramIn.MajorCategory != "" {
 		paramOut.MajorCategory = paramIn.MajorCategory
 	}
 
-	if *paramIn.MinorCategory == "" {
-		paramOut.MinorCategory = nil
-	} else {
+	if *paramIn.MinorCategory != "" {
 		paramOut.MinorCategory = paramIn.MinorCategory
 	}
 

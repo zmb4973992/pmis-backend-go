@@ -13,13 +13,13 @@ import (
 type disassemblyTemplateController struct{}
 
 func (disassemblyTemplateController) Get(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	disassemblyTemplateID, err := strconv.Atoi(c.Param("disassembly-template-id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.DisassemblyTemplateService.Get(id)
+	res := service.DisassemblyTemplateService.Get(disassemblyTemplateID)
 	c.JSON(http.StatusOK, res)
 	return
 }
@@ -57,7 +57,7 @@ func (disassemblyTemplateController) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.ID, err = strconv.Atoi(c.Param("id"))
+	param.ID, err = strconv.Atoi(c.Param("disassembly-template-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
@@ -76,13 +76,13 @@ func (disassemblyTemplateController) Update(c *gin.Context) {
 }
 
 func (disassemblyTemplateController) Delete(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	disassemblyTemplateID, err := strconv.Atoi(c.Param("disassembly-template-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.DisassemblyTemplateService.Delete(id)
+	res := service.DisassemblyTemplateService.Delete(disassemblyTemplateID)
 	c.JSON(http.StatusOK, res)
 }
 

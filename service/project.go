@@ -40,62 +40,52 @@ func (projectService) Create(paramIn *dto.ProjectCreateOrUpdateDTO) response.Com
 	if paramIn.Creator != nil {
 		paramOut.Creator = paramIn.Creator
 	}
+
 	if paramIn.LastModifier != nil {
 		paramOut.LastModifier = paramIn.LastModifier
 	}
-	if *paramIn.ProjectCode == "" {
-		paramOut.ProjectCode = nil
-	} else {
+
+	if *paramIn.ProjectCode != "" {
 		paramOut.ProjectCode = paramIn.ProjectCode
 	}
-	if *paramIn.ProjectFullName == "" {
-		paramOut.ProjectFullName = nil
-	} else {
+
+	if *paramIn.ProjectFullName != "" {
 		paramOut.ProjectFullName = paramIn.ProjectFullName
 	}
-	if *paramIn.ProjectShortName == "" {
-		paramOut.ProjectShortName = nil
-	} else {
+
+	if *paramIn.ProjectShortName != "" {
 		paramOut.ProjectShortName = paramIn.ProjectShortName
 	}
-	if *paramIn.Country == "" {
-		paramOut.Country = nil
-	} else {
+
+	if *paramIn.Country != "" {
 		paramOut.Country = paramIn.Country
 	}
-	if *paramIn.Province == "" {
-		paramOut.Province = nil
-	} else {
+
+	if *paramIn.Province != "" {
 		paramOut.Province = paramIn.Province
 	}
-	if *paramIn.ProjectType == "" {
-		paramOut.ProjectType = nil
-	} else {
+
+	if *paramIn.ProjectType != "" {
 		paramOut.ProjectType = paramIn.ProjectType
 	}
-	if *paramIn.Amount == -1 {
-		paramOut.Amount = nil
-	} else {
+
+	if *paramIn.Amount != -1 {
 		paramOut.Amount = paramIn.Amount
 	}
-	if *paramIn.Currency == "" {
-		paramOut.Currency = nil
-	} else {
+
+	if *paramIn.Currency != "" {
 		paramOut.Currency = paramIn.Currency
 	}
-	if *paramIn.ExchangeRate == -1 {
-		paramOut.ExchangeRate = nil
-	} else {
+
+	if *paramIn.ExchangeRate != -1 {
 		paramOut.ExchangeRate = paramIn.ExchangeRate
 	}
-	if *paramIn.DepartmentID == -1 {
-		paramOut.DepartmentID = nil
-	} else {
+
+	if *paramIn.DepartmentID != -1 {
 		paramOut.DepartmentID = paramIn.DepartmentID
 	}
-	if *paramIn.RelatedPartyID == -1 {
-		paramOut.RelatedPartyID = nil
-	} else {
+
+	if *paramIn.RelatedPartyID != -1 {
 		paramOut.RelatedPartyID = paramIn.RelatedPartyID
 	}
 
@@ -116,64 +106,55 @@ func (projectService) CreateInBatches(paramIn []dto.ProjectCreateOrUpdateDTO) re
 		if paramIn[i].Creator != nil {
 			record.Creator = paramIn[i].Creator
 		}
+
 		if paramIn[i].LastModifier != nil {
 			record.LastModifier = paramIn[i].LastModifier
 		}
-		if *paramIn[i].ProjectCode == "" {
-			record.ProjectCode = nil
-		} else {
+
+		if *paramIn[i].ProjectCode != "" {
 			record.ProjectCode = paramIn[i].ProjectCode
 		}
-		if *paramIn[i].ProjectFullName == "" {
-			record.ProjectFullName = nil
-		} else {
+
+		if *paramIn[i].ProjectFullName != "" {
 			record.ProjectFullName = paramIn[i].ProjectFullName
 		}
-		if *paramIn[i].ProjectShortName == "" {
-			record.ProjectShortName = nil
-		} else {
+
+		if *paramIn[i].ProjectShortName != "" {
 			record.ProjectShortName = paramIn[i].ProjectShortName
 		}
-		if *paramIn[i].Country == "" {
-			record.Country = nil
-		} else {
+
+		if *paramIn[i].Country != "" {
 			record.Country = paramIn[i].Country
 		}
-		if *paramIn[i].Province == "" {
-			record.Province = nil
-		} else {
+
+		if *paramIn[i].Province != "" {
 			record.Province = paramIn[i].Province
 		}
-		if *paramIn[i].ProjectType == "" {
-			record.ProjectType = nil
-		} else {
+
+		if *paramIn[i].ProjectType != "" {
 			record.ProjectType = paramIn[i].ProjectType
 		}
-		if *paramIn[i].Amount == -1 {
-			record.Amount = nil
-		} else {
+
+		if *paramIn[i].Amount != -1 {
 			record.Amount = paramIn[i].Amount
 		}
-		if *paramIn[i].Currency == "" {
-			record.Currency = nil
-		} else {
+
+		if *paramIn[i].Currency != "" {
 			record.Currency = paramIn[i].Currency
 		}
-		if *paramIn[i].ExchangeRate == -1 {
-			record.ExchangeRate = nil
-		} else {
+
+		if *paramIn[i].ExchangeRate != -1 {
 			record.ExchangeRate = paramIn[i].ExchangeRate
 		}
-		if *paramIn[i].DepartmentID == -1 {
-			record.DepartmentID = nil
-		} else {
+
+		if *paramIn[i].DepartmentID != -1 {
 			record.DepartmentID = paramIn[i].DepartmentID
 		}
-		if *paramIn[i].RelatedPartyID == -1 {
-			record.RelatedPartyID = nil
-		} else {
+
+		if *paramIn[i].RelatedPartyID != -1 {
 			record.RelatedPartyID = paramIn[i].RelatedPartyID
 		}
+
 		paramOut = append(paramOut, record)
 	}
 
@@ -194,59 +175,47 @@ func (projectService) Update(paramIn *dto.ProjectCreateOrUpdateDTO) response.Com
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.ProjectCode == "" {
-		paramOut.ProjectCode = nil
-	} else {
+	if *paramIn.ProjectCode != "" {
 		paramOut.ProjectCode = paramIn.ProjectCode
 	}
-	if *paramIn.ProjectFullName == "" {
-		paramOut.ProjectFullName = nil
-	} else {
+
+	if *paramIn.ProjectFullName != "" {
 		paramOut.ProjectFullName = paramIn.ProjectFullName
 	}
-	if *paramIn.ProjectShortName == "" {
-		paramOut.ProjectShortName = nil
-	} else {
+
+	if *paramIn.ProjectShortName != "" {
 		paramOut.ProjectShortName = paramIn.ProjectShortName
 	}
-	if *paramIn.Country == "" {
-		paramOut.Country = nil
-	} else {
+
+	if *paramIn.Country != "" {
 		paramOut.Country = paramIn.Country
 	}
-	if *paramIn.Province == "" {
-		paramOut.Province = nil
-	} else {
+
+	if *paramIn.Province != "" {
 		paramOut.Province = paramIn.Province
 	}
-	if *paramIn.ProjectType == "" {
-		paramOut.ProjectType = nil
-	} else {
+
+	if *paramIn.ProjectType != "" {
 		paramOut.ProjectType = paramIn.ProjectType
 	}
-	if *paramIn.Amount == -1 {
-		paramOut.Amount = nil
-	} else {
+
+	if *paramIn.Amount != -1 {
 		paramOut.Amount = paramIn.Amount
 	}
-	if *paramIn.Currency == "" {
-		paramOut.Currency = nil
-	} else {
+
+	if *paramIn.Currency != "" {
 		paramOut.Currency = paramIn.Currency
 	}
-	if *paramIn.ExchangeRate == -1 {
-		paramOut.ExchangeRate = nil
-	} else {
+
+	if *paramIn.ExchangeRate != -1 {
 		paramOut.ExchangeRate = paramIn.ExchangeRate
 	}
-	if *paramIn.DepartmentID == -1 {
-		paramOut.DepartmentID = nil
-	} else {
+
+	if *paramIn.DepartmentID != -1 {
 		paramOut.DepartmentID = paramIn.DepartmentID
 	}
-	if *paramIn.RelatedPartyID == -1 {
-		paramOut.RelatedPartyID = nil
-	} else {
+
+	if *paramIn.RelatedPartyID != -1 {
 		paramOut.RelatedPartyID = paramIn.RelatedPartyID
 	}
 

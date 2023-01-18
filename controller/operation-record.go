@@ -13,13 +13,13 @@ import (
 type operationRecordController struct{}
 
 func (operationRecordController) Get(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	operationRecordID, err := strconv.Atoi(c.Param("operation-record-id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.OperationRecordService.Get(id)
+	res := service.OperationRecordService.Get(operationRecordID)
 	c.JSON(http.StatusOK, res)
 	return
 }
@@ -57,7 +57,7 @@ func (operationRecordController) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.ID, err = strconv.Atoi(c.Param("id"))
+	param.ID, err = strconv.Atoi(c.Param("operation-record-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
@@ -76,13 +76,13 @@ func (operationRecordController) Update(c *gin.Context) {
 }
 
 func (operationRecordController) Delete(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	operationRecordID, err := strconv.Atoi(c.Param("operation-record-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.OperationRecordService.Delete(id)
+	res := service.OperationRecordService.Delete(operationRecordID)
 	c.JSON(http.StatusOK, res)
 }
 

@@ -15,13 +15,13 @@ import (
 type projectController struct{}
 
 func (projectController) Get(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	projectID, err := strconv.Atoi(c.Param("project-id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.ProjectService.Get(id)
+	res := service.ProjectService.Get(projectID)
 	c.JSON(http.StatusOK, res)
 	return
 }
@@ -83,7 +83,7 @@ func (projectController) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.ID, err = strconv.Atoi(c.Param("id"))
+	param.ID, err = strconv.Atoi(c.Param("project-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
@@ -102,13 +102,13 @@ func (projectController) Update(c *gin.Context) {
 }
 
 func (projectController) Delete(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	projectID, err := strconv.Atoi(c.Param("project-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.ProjectService.Delete(id)
+	res := service.ProjectService.Delete(projectID)
 	c.JSON(http.StatusOK, res)
 }
 

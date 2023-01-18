@@ -38,14 +38,12 @@ func (dictionaryItemService) Create(paramIn *dto.DictionaryItemCreateOrUpdateDTO
 
 	paramOut.DictionaryTypeID = paramIn.DictionaryTypeID
 
-	if paramIn.Name != "" {
-		paramOut.Name = paramIn.Name
-	}
-	if *paramIn.Sort == -1 {
-		paramOut.Sort = nil
-	} else {
+	paramOut.Name = paramIn.Name
+
+	if *paramIn.Sort != -1 {
 		paramOut.Sort = paramIn.Sort
 	}
+
 	if *paramIn.Remarks != "" {
 		paramOut.Remarks = paramIn.Remarks
 	}
@@ -57,12 +55,12 @@ func (dictionaryItemService) Create(paramIn *dto.DictionaryItemCreateOrUpdateDTO
 	return response.Success()
 }
 
-func (dictionaryItemService) CreateInBatches(paramIn []dto.DisassemblyCreateOrUpdateDTO) response.Common {
+func (dictionaryItemService) CreateInBatches(paramIn []dto.DictionaryItemCreateOrUpdateDTO) response.Common {
 	//对dto进行清洗，生成dao层需要的model
-	var paramOut []model.Disassembly
+	var paramOut []model.DictionaryItem
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	for i := range paramIn {
-		var record model.Disassembly
+		var record model.DictionaryItem
 		if paramIn[i].Creator != nil {
 			record.Creator = paramIn[i].Creator
 		}
@@ -71,38 +69,18 @@ func (dictionaryItemService) CreateInBatches(paramIn []dto.DisassemblyCreateOrUp
 			record.LastModifier = paramIn[i].LastModifier
 		}
 
-		if *paramIn[i].Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
-			record.Name = nil
-		} else {
-			record.Name = paramIn[i].Name
+		record.DictionaryTypeID = paramIn[i].DictionaryTypeID
+		record.Name = paramIn[i].Name
+
+		if *paramIn[i].Sort != -1 {
+			record.Sort = paramIn[i].Sort
 		}
 
-		if *paramIn[i].Level == -1 {
-			record.Level = nil
-		} else {
-			record.Level = paramIn[i].Level
-		}
-
-		if *paramIn[i].ProjectID == -1 {
-			record.ProjectID = nil
-		} else {
-			record.ProjectID = paramIn[i].ProjectID
-		}
-
-		if *paramIn[i].Weight == -1 {
-			record.Weight = nil
-		} else {
-			record.Weight = paramIn[i].Weight
-		}
-
-		if *paramIn[i].SuperiorID == -1 {
-			record.SuperiorID = nil
-		} else {
-			record.SuperiorID = paramIn[i].SuperiorID
+		if *paramIn[i].Remarks != "" {
+			record.Remarks = paramIn[i].Remarks
 		}
 
 		paramOut = append(paramOut, record)
-
 	}
 
 	err := global.DB.Create(&paramOut).Error
@@ -122,29 +100,23 @@ func (dictionaryItemService) Update(paramIn *dto.DisassemblyCreateOrUpdateDTO) r
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
-		paramOut.Name = nil
-	} else {
+	if *paramIn.Name != "" {
 		paramOut.Name = paramIn.Name
 	}
-	if *paramIn.Level == -1 {
-		paramOut.Level = nil
-	} else {
+
+	if *paramIn.Level != -1 {
 		paramOut.Level = paramIn.Level
 	}
-	if *paramIn.ProjectID == -1 {
-		paramOut.ProjectID = nil
-	} else {
+
+	if *paramIn.ProjectID != -1 {
 		paramOut.ProjectID = paramIn.ProjectID
 	}
-	if *paramIn.Weight == -1 {
-		paramOut.Weight = nil
-	} else {
+
+	if *paramIn.Weight != -1 {
 		paramOut.Weight = paramIn.Weight
 	}
-	if *paramIn.SuperiorID == -1 {
-		paramOut.SuperiorID = nil
-	} else {
+
+	if *paramIn.SuperiorID != -1 {
 		paramOut.SuperiorID = paramIn.SuperiorID
 	}
 

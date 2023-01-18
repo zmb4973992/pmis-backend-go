@@ -13,7 +13,7 @@ import (
 type roleAndUserController struct{}
 
 func (roleAndUserController) ListByRoleID(c *gin.Context) {
-	roleID, err := strconv.Atoi(c.Param("role_id"))
+	roleID, err := strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
@@ -25,7 +25,7 @@ func (roleAndUserController) ListByRoleID(c *gin.Context) {
 }
 
 func (roleAndUserController) CreateByRoleID(c *gin.Context) {
-	roleID, err := strconv.Atoi(c.Param("role_id"))
+	roleID, err := strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
@@ -53,7 +53,7 @@ func (roleAndUserController) CreateByRoleID(c *gin.Context) {
 }
 
 func (roleAndUserController) UpdateByRoleID(c *gin.Context) {
-	roleID, err := strconv.Atoi(c.Param("role_id"))
+	roleID, err := strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
@@ -80,7 +80,7 @@ func (roleAndUserController) UpdateByRoleID(c *gin.Context) {
 }
 
 func (roleAndUserController) DeleteByRoleID(c *gin.Context) {
-	roleID, err := strconv.Atoi(c.Param("role_id"))
+	roleID, err := strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
@@ -92,7 +92,7 @@ func (roleAndUserController) DeleteByRoleID(c *gin.Context) {
 }
 
 func (roleAndUserController) ListByUserID(c *gin.Context) {
-	userID, err := strconv.Atoi(c.Param("user_id"))
+	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
@@ -104,7 +104,7 @@ func (roleAndUserController) ListByUserID(c *gin.Context) {
 }
 
 func (roleAndUserController) CreateByUserID(c *gin.Context) {
-	userID, err := strconv.Atoi(c.Param("user_id"))
+	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
@@ -132,7 +132,7 @@ func (roleAndUserController) CreateByUserID(c *gin.Context) {
 }
 
 func (roleAndUserController) UpdateByUserID(c *gin.Context) {
-	userID, err := strconv.Atoi(c.Param("user_id"))
+	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
@@ -159,7 +159,7 @@ func (roleAndUserController) UpdateByUserID(c *gin.Context) {
 }
 
 func (roleAndUserController) DeleteByUserID(c *gin.Context) {
-	userID, err := strconv.Atoi(c.Param("user_id"))
+	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))

@@ -14,13 +14,13 @@ import (
 type errorLogController struct{}
 
 func (errorLogController) Get(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	errorLogID, err := strconv.Atoi(c.Param("error-log-id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.ErrorLogService.Get(id)
+	res := service.ErrorLogService.Get(errorLogID)
 	c.JSON(http.StatusOK, res)
 	return
 }
@@ -59,7 +59,7 @@ func (errorLogController) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.ID, err = strconv.Atoi(c.Param("id"))
+	param.ID, err = strconv.Atoi(c.Param("error-log-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
@@ -78,12 +78,12 @@ func (errorLogController) Update(c *gin.Context) {
 }
 
 func (errorLogController) Delete(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	errorLogID, err := strconv.Atoi(c.Param("error-log-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.ErrorLogService.Delete(id)
+	res := service.ErrorLogService.Delete(errorLogID)
 	c.JSON(http.StatusOK, res)
 }

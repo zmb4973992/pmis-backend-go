@@ -37,10 +37,6 @@ func (operationRecordService) Create(paramIn *dto.OperationRecordCreateOrUpdateD
 	var paramOut model.OperationRecord
 
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
-	}
-
 	if paramIn.Creator != nil {
 		paramOut.Creator = paramIn.Creator
 	}
@@ -49,27 +45,19 @@ func (operationRecordService) Create(paramIn *dto.OperationRecordCreateOrUpdateD
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.ProjectID == -1 { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
-		paramOut.ProjectID = nil
-	} else {
+	if *paramIn.ProjectID != -1 {
 		paramOut.ProjectID = paramIn.ProjectID
 	}
 
-	if *paramIn.OperatorID == -1 {
-		paramOut.OperatorID = nil
-	} else {
+	if *paramIn.OperatorID != -1 {
 		paramOut.OperatorID = paramIn.OperatorID
 	}
 
-	if *paramIn.ProjectID == -1 {
-		paramOut.ProjectID = nil
-	} else {
+	if *paramIn.ProjectID != -1 {
 		paramOut.ProjectID = paramIn.ProjectID
 	}
 
-	if *paramIn.Date == "" {
-		paramOut.Date = nil
-	} else {
+	if *paramIn.Date != "" {
 		date, err := time.Parse("2006-01-02", *paramIn.Date)
 		if err != nil {
 			return response.Failure(util.ErrorInvalidJSONParameters)
@@ -78,15 +66,11 @@ func (operationRecordService) Create(paramIn *dto.OperationRecordCreateOrUpdateD
 		}
 	}
 
-	if *paramIn.Action == "" {
-		paramOut.Action = nil
-	} else {
+	if *paramIn.Action != "" {
 		paramOut.Action = paramIn.Action
 	}
 
-	if *paramIn.Detail == "" {
-		paramOut.Detail = nil
-	} else {
+	if *paramIn.Detail != "" {
 		paramOut.Detail = paramIn.Detail
 	}
 
@@ -115,21 +99,15 @@ func (operationRecordService) Update(paramIn *dto.OperationRecordCreateOrUpdateD
 		paramOut.ProjectID = paramIn.ProjectID
 	}
 
-	if *paramIn.OperatorID == -1 {
-		paramOut.OperatorID = nil
-	} else {
+	if *paramIn.OperatorID != -1 {
 		paramOut.OperatorID = paramIn.OperatorID
 	}
 
-	if *paramIn.ProjectID == -1 {
-		paramOut.ProjectID = nil
-	} else {
+	if *paramIn.ProjectID != -1 {
 		paramOut.ProjectID = paramIn.ProjectID
 	}
 
-	if *paramIn.Date == "" {
-		paramOut.Date = nil
-	} else {
+	if *paramIn.Date != "" {
 		date, err := time.Parse("2006-01-02", *paramIn.Date)
 		if err != nil {
 			return response.Failure(util.ErrorInvalidJSONParameters)
@@ -138,15 +116,11 @@ func (operationRecordService) Update(paramIn *dto.OperationRecordCreateOrUpdateD
 		}
 	}
 
-	if *paramIn.Action == "" {
-		paramOut.Action = nil
-	} else {
+	if *paramIn.Action != "" {
 		paramOut.Action = paramIn.Action
 	}
 
-	if *paramIn.Detail == "" {
-		paramOut.Detail = nil
-	} else {
+	if *paramIn.Detail != "" {
 		paramOut.Detail = paramIn.Detail
 	}
 

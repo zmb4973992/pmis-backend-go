@@ -37,21 +37,12 @@ func (departmentService) Create(paramIn *dto.DepartmentCreateOrUpdateDTO) respon
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if paramIn.Name == "" {
-		return response.Failure(util.ErrorInvalidJSONParameters)
-	} else {
-		paramOut.Name = paramIn.Name
-	}
+	//如果dto的字段是指针，那么需要看字段binding是否为required，然后判定是否为空或-1再进行处理；
+	//如果dto的字段不是指针，需要看字段binding是否为required，然后可以赋值
+	paramOut.Name = paramIn.Name
+	paramOut.Level = paramIn.Level
 
-	if paramIn.Level == "" {
-		return response.Failure(util.ErrorInvalidJSONParameters)
-	} else {
-		paramOut.Level = paramIn.Level
-	}
-
-	if *paramIn.SuperiorID == -1 {
-		paramOut.SuperiorID = nil
-	} else {
+	if *paramIn.SuperiorID != -1 {
 		paramOut.SuperiorID = paramIn.SuperiorID
 	}
 
@@ -72,21 +63,10 @@ func (departmentService) Update(paramIn *dto.DepartmentCreateOrUpdateDTO) respon
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if paramIn.Name == "" {
-		return response.Failure(util.ErrorInvalidJSONParameters)
-	} else {
-		paramOut.Name = paramIn.Name
-	}
+	paramOut.Name = paramIn.Name
+	paramOut.Level = paramIn.Level
 
-	if paramIn.Level == "" {
-		return response.Failure(util.ErrorInvalidJSONParameters)
-	} else {
-		paramOut.Level = paramIn.Level
-	}
-
-	if *paramIn.SuperiorID == -1 {
-		paramOut.SuperiorID = nil
-	} else {
+	if *paramIn.SuperiorID != -1 {
 		paramOut.SuperiorID = paramIn.SuperiorID
 	}
 

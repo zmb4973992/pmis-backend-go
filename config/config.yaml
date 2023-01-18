@@ -16,7 +16,7 @@ database:
 jwt:
   secret_key: "e7KF3k0dj3"
   #有效期(天)，登录后可以几天免登录
-  validity_period: "14"
+  validity_period: "30"
 
 log:
   #日志文件的路径

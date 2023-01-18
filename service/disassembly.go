@@ -81,29 +81,23 @@ func (disassemblyService) Create(paramIn *dto.DisassemblyCreateOrUpdateDTO) resp
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.Name == "" {
-		paramOut.Name = nil
-	} else {
+	if *paramIn.Name != "" {
 		paramOut.Name = paramIn.Name
 	}
-	if *paramIn.Level == -1 {
-		paramOut.Level = nil
-	} else {
+
+	if *paramIn.Level != -1 {
 		paramOut.Level = paramIn.Level
 	}
-	if *paramIn.ProjectID == -1 {
-		paramOut.ProjectID = nil
-	} else {
+
+	if *paramIn.ProjectID != -1 {
 		paramOut.ProjectID = paramIn.ProjectID
 	}
-	if *paramIn.Weight == -1 {
-		paramOut.Weight = nil
-	} else {
+
+	if *paramIn.Weight != -1 {
 		paramOut.Weight = paramIn.Weight
 	}
-	if *paramIn.SuperiorID == -1 {
-		paramOut.SuperiorID = nil
-	} else {
+
+	if *paramIn.SuperiorID != -1 {
 		paramOut.SuperiorID = paramIn.SuperiorID
 	}
 
@@ -128,38 +122,27 @@ func (disassemblyService) CreateInBatches(paramIn []dto.DisassemblyCreateOrUpdat
 			record.LastModifier = paramIn[i].LastModifier
 		}
 
-		if *paramIn[i].Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
-			record.Name = nil
-		} else {
+		if *paramIn[i].Name != "" {
 			record.Name = paramIn[i].Name
 		}
 
-		if *paramIn[i].Level == -1 {
-			record.Level = nil
-		} else {
+		if *paramIn[i].Level != -1 {
 			record.Level = paramIn[i].Level
 		}
 
-		if *paramIn[i].ProjectID == -1 {
-			record.ProjectID = nil
-		} else {
+		if *paramIn[i].ProjectID != -1 {
 			record.ProjectID = paramIn[i].ProjectID
 		}
 
-		if *paramIn[i].Weight == -1 {
-			record.Weight = nil
-		} else {
+		if *paramIn[i].Weight != -1 {
 			record.Weight = paramIn[i].Weight
 		}
 
-		if *paramIn[i].SuperiorID == -1 {
-			record.SuperiorID = nil
-		} else {
+		if *paramIn[i].SuperiorID != -1 {
 			record.SuperiorID = paramIn[i].SuperiorID
 		}
 
 		paramOut = append(paramOut, record)
-
 	}
 
 	err := global.DB.Create(&paramOut).Error
@@ -179,29 +162,22 @@ func (disassemblyService) Update(paramIn *dto.DisassemblyCreateOrUpdateDTO) resp
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.Name == "" { //这里不需要对paramIn.Name进行非空判定，因为前面的dto已经设定了必须绑定
-		paramOut.Name = nil
-	} else {
+	if *paramIn.Name != "" {
 		paramOut.Name = paramIn.Name
 	}
-	if *paramIn.Level == -1 {
-		paramOut.Level = nil
-	} else {
+	if *paramIn.Level != -1 {
 		paramOut.Level = paramIn.Level
 	}
-	if *paramIn.ProjectID == -1 {
-		paramOut.ProjectID = nil
-	} else {
+
+	if *paramIn.ProjectID != -1 {
 		paramOut.ProjectID = paramIn.ProjectID
 	}
-	if *paramIn.Weight == -1 {
-		paramOut.Weight = nil
-	} else {
+
+	if *paramIn.Weight != -1 {
 		paramOut.Weight = paramIn.Weight
 	}
-	if *paramIn.SuperiorID == -1 {
-		paramOut.SuperiorID = nil
-	} else {
+
+	if *paramIn.SuperiorID != -1 {
 		paramOut.SuperiorID = paramIn.SuperiorID
 	}
 

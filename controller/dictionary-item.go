@@ -13,7 +13,7 @@ import (
 type dictionaryItemController struct{}
 
 func (dictionaryItemController) Get(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	dictionaryTypeID, err := strconv.Atoi(c.Param("dictionary-type-id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, response.Common{
 			Data:    nil,
@@ -23,13 +23,12 @@ func (dictionaryItemController) Get(c *gin.Context) {
 		return
 	}
 	//生成Service,然后调用它的方法
-	res := service.DictionaryItemService.Get(id)
+	res := service.DictionaryItemService.Get(dictionaryTypeID)
 	c.JSON(http.StatusOK, res)
 }
 
 func (dictionaryItemController) Create(c *gin.Context) {
 	var param dto.DictionaryItemCreateOrUpdateDTO
-	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
@@ -46,6 +45,29 @@ func (dictionaryItemController) Create(c *gin.Context) {
 	}
 
 	res := service.DictionaryItemService.Create(&param)
+	c.JSON(http.StatusOK, res)
+	return
+}
+
+func (dictionaryItemController) CreateInBatches(c *gin.Context) {
+	var param []dto.DictionaryItemCreateOrUpdateDTO
+	err := c.ShouldBindJSON(&param)
+	if err != nil {
+		c.JSON(http.StatusBadRequest,
+			response.Failure(util.ErrorInvalidJSONParameters))
+		return
+	}
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		for i := range param {
+			param[i].Creator = &userID
+			param[i].LastModifier = &userID
+		}
+	}
+
+	res := service.DictionaryItemService.CreateInBatches(param)
 	c.JSON(http.StatusOK, res)
 	return
 }

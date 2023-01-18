@@ -13,13 +13,13 @@ import (
 type userController struct{}
 
 func (userController) Get(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.UserService.Get(id)
+	res := service.UserService.Get(userID)
 	c.JSON(http.StatusOK, res)
 	return
 }
@@ -58,7 +58,7 @@ func (userController) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.ID, err = strconv.Atoi(c.Param("id"))
+	param.ID, err = strconv.Atoi(c.Param("user-id"))
 	//如果解析失败，例如URI的参数不是数字
 	if err != nil {
 		c.JSON(http.StatusOK,
@@ -80,14 +80,14 @@ func (userController) Update(c *gin.Context) {
 
 func (userController) Delete(c *gin.Context) {
 	//把uri上的id参数传递给结构体形式的入参
-	id, err := strconv.Atoi(c.Param("id"))
+	userID, err := strconv.Atoi(c.Param("user-id"))
 	//如果解析失败，例如URI的参数不是数字
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.UserService.Delete(id)
+	res := service.UserService.Delete(userID)
 	c.JSON(http.StatusOK, res)
 }
 

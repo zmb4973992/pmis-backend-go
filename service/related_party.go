@@ -40,33 +40,23 @@ func (relatedPartyService) Create(paramIn *dto.RelatedPartyCreateOrUpdateDTO) re
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.ChineseName == "" {
-		paramOut.ChineseName = nil
-	} else {
+	if *paramIn.ChineseName != "" {
 		paramOut.ChineseName = paramIn.ChineseName
 	}
 
-	if *paramIn.EnglishName == "" {
-		paramOut.EnglishName = nil
-	} else {
+	if *paramIn.EnglishName != "" {
 		paramOut.EnglishName = paramIn.EnglishName
 	}
 
-	if *paramIn.Address == "" {
-		paramOut.Address = nil
-	} else {
+	if *paramIn.Address != "" {
 		paramOut.Address = paramIn.Address
 	}
 
-	if *paramIn.Telephone == "" {
-		paramOut.Telephone = nil
-	} else {
+	if *paramIn.Telephone != "" {
 		paramOut.Telephone = paramIn.Telephone
 	}
 
-	if *paramIn.UniformSocialCreditCode == "" {
-		paramOut.UniformSocialCreditCode = nil
-	} else {
+	if *paramIn.UniformSocialCreditCode != "" {
 		paramOut.UniformSocialCreditCode = paramIn.UniformSocialCreditCode
 	}
 
@@ -90,33 +80,23 @@ func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdateDTO) re
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.ChineseName == "" {
-		paramOut.ChineseName = nil
-	} else {
+	if *paramIn.ChineseName != "" {
 		paramOut.ChineseName = paramIn.ChineseName
 	}
 
-	if *paramIn.EnglishName == "" {
-		paramOut.EnglishName = nil
-	} else {
+	if *paramIn.EnglishName != "" {
 		paramOut.EnglishName = paramIn.EnglishName
 	}
 
-	if *paramIn.Address == "" {
-		paramOut.Address = nil
-	} else {
+	if *paramIn.Address != "" {
 		paramOut.Address = paramIn.Address
 	}
 
-	if *paramIn.Telephone == "" {
-		paramOut.Telephone = nil
-	} else {
+	if *paramIn.Telephone != "" {
 		paramOut.Telephone = paramIn.Telephone
 	}
 
-	if *paramIn.UniformSocialCreditCode == "" {
-		paramOut.UniformSocialCreditCode = nil
-	} else {
+	if *paramIn.UniformSocialCreditCode != "" {
 		paramOut.UniformSocialCreditCode = paramIn.UniformSocialCreditCode
 	}
 

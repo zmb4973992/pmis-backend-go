@@ -15,7 +15,7 @@ import (
 type departmentController struct{}
 
 func (departmentController) Get(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	departmentID, err := strconv.Atoi(c.Param("department-id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, response.Common{
 			Data:    nil,
@@ -24,14 +24,13 @@ func (departmentController) Get(c *gin.Context) {
 		})
 		return
 	}
-	res := service.DepartmentService.Get(id)
+	res := service.DepartmentService.Get(departmentID)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
 func (departmentController) Create(c *gin.Context) {
 	var param dto.DepartmentCreateOrUpdateDTO
-	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		c.JSON(http.StatusBadRequest,
@@ -53,14 +52,13 @@ func (departmentController) Create(c *gin.Context) {
 
 func (departmentController) Update(c *gin.Context) {
 	var param dto.DepartmentCreateOrUpdateDTO
-	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.ID, err = strconv.Atoi(c.Param("id"))
+	param.ID, err = strconv.Atoi(c.Param("department-id"))
 	if err != nil {
 		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidURIParameters))
 		return
@@ -78,19 +76,19 @@ func (departmentController) Update(c *gin.Context) {
 }
 
 func (departmentController) Delete(c *gin.Context) {
-	id, err := strconv.Atoi(c.Param("id"))
+	departmentID, err := strconv.Atoi(c.Param("department-id"))
 	if err != nil {
 		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.DepartmentService.Delete(id)
+	res := service.DepartmentService.Delete(departmentID)
 	c.JSON(http.StatusOK, res)
 }
 
 func (departmentController) List(c *gin.Context) {
 	var param dto.DepartmentListDTO
 	err := c.ShouldBindJSON(&param)
-	//如果json没有传参，会提示EOF错误，这里可以正常运行；如果是其他错误，就正常报错
+	//如果json没有传参，会提示EOF错误，这里允许正常运行；如果是其他错误，就正常报错
 	if err != nil && !errors.Is(err, io.EOF) {
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
