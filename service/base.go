@@ -13,6 +13,7 @@ type AllService struct {
 	errorLogService
 	projectService
 	dictionaryItemService
+	dictionaryTypeService
 }
 
 //定义各个服务的入口,避免反复new service
@@ -29,4 +30,5 @@ var (
 	ErrorLogService            = entrance.errorLogService
 	ProjectService             = entrance.projectService
 	DictionaryItemService      = entrance.dictionaryItemService
+	DictionaryTypeService      = entrance.dictionaryTypeService
 )

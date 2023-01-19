@@ -110,7 +110,7 @@ func (disassemblyController) Update(c *gin.Context) {
 	}
 
 	res := service.DisassemblyService.Update(&param)
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 func (disassemblyController) Delete(c *gin.Context) {

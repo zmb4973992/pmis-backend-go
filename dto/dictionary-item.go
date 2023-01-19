@@ -1,7 +1,5 @@
 package dto
 
-// DictionaryItemCreateOrUpdateDTO
-// 除id外，所有字段都设置为必须绑定
 type DictionaryItemCreateOrUpdateDTO struct {
 	BaseDTO
 	DictionaryTypeID int     `json:"dictionary_type_id" binding:"required"` //字典类型id
