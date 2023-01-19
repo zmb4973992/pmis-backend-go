@@ -71,3 +71,41 @@ func (dictionaryItemController) CreateInBatches(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 	return
 }
+
+func (dictionaryItemController) Update(c *gin.Context) {
+	var param dto.DictionaryItemCreateOrUpdateDTO
+	err := c.ShouldBindJSON(&param)
+	if err != nil {
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidJSONParameters))
+		return
+	}
+	//把uri上的id参数传递给结构体形式的入参
+	param.ID, err = strconv.Atoi(c.Param("dictionary-item-id"))
+	if err != nil {
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidURIParameters))
+		return
+	}
+
+	//处理creator、lastModifier字段
+	tempUserID, _ := c.Get("user_id")
+	if tempUserID != nil {
+		userID := tempUserID.(int)
+		param.LastModifier = &userID
+	}
+
+	res := service.DictionaryItemService.Update(&param)
+	c.JSON(http.StatusOK, res)
+}
+
+func (dictionaryItemController) Delete(c *gin.Context) {
+	dictionaryItemID, err := strconv.Atoi(c.Param("dictionary-item-id"))
+	if err != nil {
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidURIParameters))
+		return
+	}
+	res := service.DictionaryItemService.Delete(dictionaryItemID)
+	c.JSON(http.StatusOK, res)
+}

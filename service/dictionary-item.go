@@ -92,36 +92,26 @@ func (dictionaryItemService) CreateInBatches(paramIn []dto.DictionaryItemCreateO
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (dictionaryItemService) Update(paramIn *dto.DisassemblyCreateOrUpdateDTO) response.Common {
-	var paramOut model.Disassembly
+func (dictionaryItemService) Update(paramIn *dto.DictionaryItemCreateOrUpdateDTO) response.Common {
+	var paramOut model.DictionaryItem
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	if paramIn.LastModifier != nil {
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.Name != "" {
-		paramOut.Name = paramIn.Name
+	paramOut.DictionaryTypeID = paramIn.DictionaryTypeID
+	paramOut.Name = paramIn.Name
+
+	if *paramIn.Sort != -1 {
+		paramOut.Sort = paramIn.Sort
 	}
 
-	if *paramIn.Level != -1 {
-		paramOut.Level = paramIn.Level
+	if *paramIn.Remarks != "" {
+		paramOut.Remarks = paramIn.Remarks
 	}
 
-	if *paramIn.ProjectID != -1 {
-		paramOut.ProjectID = paramIn.ProjectID
-	}
-
-	if *paramIn.Weight != -1 {
-		paramOut.Weight = paramIn.Weight
-	}
-
-	if *paramIn.SuperiorID != -1 {
-		paramOut.SuperiorID = paramIn.SuperiorID
-	}
-
-	//清洗完毕，开始update
-	err := global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
+	err := global.DB.Omit("created_at", "creator").Save(&paramOut).Error
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -129,8 +119,8 @@ func (dictionaryItemService) Update(paramIn *dto.DisassemblyCreateOrUpdateDTO) r
 	return response.Success()
 }
 
-func (dictionaryItemService) Delete(disassemblyID int) response.Common {
-	err := global.DB.Delete(&model.Disassembly{}, disassemblyID).Error
+func (dictionaryItemService) Delete(dictionaryItemID int) response.Common {
+	err := global.DB.Delete(&model.DictionaryItem{}, dictionaryItemID).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}

@@ -86,9 +86,19 @@ func Init() *gin.Engine {
 		api.PUT("/error-log/:error-log-id", controller.ErrorLogController.Update)    //修改错误日志
 		api.DELETE("/error-log/:error-log-id", controller.ErrorLogController.Delete) //删除错误日志
 
-		api.GET("/dictionary-item/:dictionary-type-id", controller.DictionaryItemController.Get) //获取单个字典项的所有值
-		api.POST("/dictionary-item", controller.DictionaryItemController.Create)                 //新增字典项的单个值
-		api.POST("/dictionary-item/batch", controller.DictionaryItemController.CreateInBatches)  //新增字典项的多个值
+		//数据字典的类型
+		api.POST("/dictionary-type", controller.DictionaryTypeController.Create)                       //新增字典类型
+		api.POST("/dictionary-type/batch", controller.DictionaryTypeController.CreateInBatches)        //批量新增字典类型
+		api.PUT("/dictionary-type/:dictionary-type-id", controller.DictionaryTypeController.Update)    //修改字典类型
+		api.DELETE("/dictionary-type/:dictionary-type-id", controller.DictionaryTypeController.Delete) //删除字典类型
+		//api.POST("/dictionary-type/list", controller.DictionaryTypeController.List) //获取字典类型的列表
+
+		//数据字典的详情项
+		api.GET("/dictionary-item/:dictionary-type-id", controller.DictionaryItemController.Get)       //获取单个字典项的所有值
+		api.POST("/dictionary-item", controller.DictionaryItemController.Create)                       //新增字典项的单个值
+		api.POST("/dictionary-item/batch", controller.DictionaryItemController.CreateInBatches)        //新增字典项的多个值
+		api.PUT("/dictionary-item/:dictionary-item-id", controller.DictionaryItemController.Update)    //修改字典项的单个值
+		api.DELETE("/dictionary-item/:dictionary-item-id", controller.DictionaryItemController.Delete) //删除字典项的单个值
 	}
 
 	engine.NoRoute(controller.NoRouteController.NoRoute)
