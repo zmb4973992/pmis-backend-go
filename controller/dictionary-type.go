@@ -1,7 +1,10 @@
 package controller
 
 import (
+	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/serializer/response"
@@ -91,5 +94,20 @@ func (dictionaryTypeController) Delete(c *gin.Context) {
 		return
 	}
 	res := service.DictionaryTypeService.Delete(dictionaryTypeID)
+	c.JSON(http.StatusOK, res)
+}
+
+func (dictionaryTypeController) List(c *gin.Context) {
+	var param dto.DictionaryTypeListDTO
+	err := c.ShouldBindJSON(&param)
+
+	if err != nil && !errors.Is(err, io.EOF) {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest,
+			response.FailureForList(util.ErrorInvalidJSONParameters))
+		return
+	}
+	//生成Service,然后调用它的方法
+	res := service.DictionaryTypeService.List(param)
 	c.JSON(http.StatusOK, res)
 }

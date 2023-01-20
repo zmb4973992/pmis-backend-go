@@ -12,6 +12,7 @@ func Init() *gin.Engine {
 	engine := gin.New()
 	//全局中间件
 	engine.Use(middleware.ZapLogger(), gin.Recovery(), middleware.Cors())
+
 	engine.POST("/api/login", controller.Login)                //用户登录
 	engine.POST("/api/user", controller.UserController.Create) //添加用户
 	engine.POST("/upload-single", controller.UploadSingle)     //测试上传单个
@@ -91,7 +92,7 @@ func Init() *gin.Engine {
 		api.POST("/dictionary-type/batch", controller.DictionaryTypeController.CreateInBatches)        //批量新增字典类型
 		api.PUT("/dictionary-type/:dictionary-type-id", controller.DictionaryTypeController.Update)    //修改字典类型
 		api.DELETE("/dictionary-type/:dictionary-type-id", controller.DictionaryTypeController.Delete) //删除字典类型
-		//api.POST("/dictionary-type/list", controller.DictionaryTypeController.List) //获取字典类型的列表
+		api.POST("/dictionary-type/list", controller.DictionaryTypeController.List)                    //获取字典类型的列表
 
 		//数据字典的详情项
 		api.GET("/dictionary-item/:dictionary-type-id", controller.DictionaryItemController.Get)       //获取单个字典项的所有值

@@ -1,6 +1,6 @@
 package dto
 
-//以下dto均为输入
+//以下dto均为入参格式
 
 type DisassemblyTreeDTO struct {
 	BaseDTO
@@ -29,7 +29,7 @@ type DisassemblyListDTO struct {
 	LevelLte   *int `form:"level_lte"`
 }
 
-//以下dto均为输出
+//以下dto均为出参格式
 
 type DisassemblyOutputDTO struct {
 	BaseDTO    `mapstructure:",squash"` //这里是嵌套结构体，mapstructure必须加squash，否则无法匹配
