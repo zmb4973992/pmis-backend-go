@@ -8,7 +8,7 @@ import (
 	"pmis-backend-go/global"
 )
 
-func Init() {
+func InitLogger() {
 	encoder := newEncoder() //调用自定义的编码器函数，生成新的编码器
 	//调用自定义的写入同步器函数，传入文件路径+名称、最大尺寸、最大备份数量、最大保存天数，生成新的写入同步器
 	writeSyncer := newWriteSyncer(

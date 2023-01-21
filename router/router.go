@@ -21,7 +21,7 @@ func Init() *gin.Engine {
 	engine.GET("/api/validate-token/:token", controller.TokenController.Validate) //单独校验token是否有效
 
 	//依次加载所有的路由组，以下都需要登录验证(jwt验证)
-	api := engine.Group("/api").Use(middleware.NeedLogin())
+	api := engine.Group("/api").Use(middleware.NeedLogin(), middleware.RateLimit())
 	{
 		api.GET("/user/:user-id", middleware.NeedAuth(), controller.UserController.Get) //获取用户详情
 		api.PUT("/user/:user-id", controller.UserController.Update)                     //修改用户（目前为全功能，考虑改成：修改用户基本信息）

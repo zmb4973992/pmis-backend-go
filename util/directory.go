@@ -2,6 +2,7 @@ package util
 
 import (
 	"os"
+	"pmis-backend-go/global"
 )
 
 // PathExistsOrNot 判断所给路径的文件或文件夹是否存在
@@ -16,6 +17,7 @@ func PathExistsOrNot(path string) bool {
 		所以重要的一点是在判断文件是否存在前，应该先判断自己对文件及其路径是否有访问权限。
 	*/
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		//只有当错误为“文件或文件夹已存在”，才能返回true
 		if os.IsExist(err) {
 			return true

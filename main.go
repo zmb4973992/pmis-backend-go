@@ -10,14 +10,14 @@ import (
 )
 
 func main() {
-	//加载全局变量
-	global.Init()
+	//加载全局变量,如应用基础设置、数据库连接信息、jwt信息、日志设置登
+	global.InitConfig()
 
 	//加载日志记录器，使用的是zap
-	logger.Init()
+	logger.InitLogger()
 
 	//连接数据库
-	model.Init()
+	model.InitDatabase()
 
 	//初始化snowflake，用来生成唯一ID
 	snowflake.Init()
@@ -34,6 +34,6 @@ func main() {
 	err := engine.Run(":" + global.Config.HttpPort)
 
 	if err != nil {
-		panic(err)
+		global.SugaredLogger.Panicln(err)
 	}
 }

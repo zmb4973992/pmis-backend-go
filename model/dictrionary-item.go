@@ -120,6 +120,7 @@ func generateDictionaryItems() error {
 	for _, dictionaryItem := range dictionaryItems {
 		err := global.DB.FirstOrCreate(&DictionaryItem{}, dictionaryItem).Error
 		if err != nil {
+			global.SugaredLogger.Errorln(err)
 			return err
 		}
 	}

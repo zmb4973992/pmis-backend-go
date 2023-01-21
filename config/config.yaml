@@ -51,3 +51,10 @@ paging:
   default_page_size: "20"
   #单页最大条数
   max_page_size: "500"
+
+#全局限流（采用令牌桶原理）
+rate-limit:
+  #每秒往令牌桶放XX个令牌，可以为小数
+  limit: "1"
+  #令牌桶最大容量，必须为整数
+  burst: "10"

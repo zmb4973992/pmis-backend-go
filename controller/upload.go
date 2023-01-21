@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 )
@@ -10,6 +11,7 @@ import (
 func UploadSingle(c *gin.Context) {
 	uniqueFilename, err := util.UploadSingleFile(c, "file")
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorFailToUploadFiles))
 		return
@@ -27,6 +29,7 @@ func UploadSingle(c *gin.Context) {
 func UploadMultiple(c *gin.Context) {
 	uniqueFilenames, err := util.UploadMultipleFiles(c, "files")
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorFailToUploadFiles))
 		return

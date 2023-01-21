@@ -52,6 +52,7 @@ func generateDepartments() error {
 	for _, department := range departments {
 		err := global.DB.FirstOrCreate(&Department{}, department).Error
 		if err != nil {
+			global.SugaredLogger.Errorln(err)
 			return err
 		}
 		//添加上级机构id
@@ -66,22 +67,26 @@ func generateDepartments() error {
 			//查找上级部门的信息
 			err = global.DB.Where("name = ?", "水泥工程事业部").First(&superiorDepartment).Error
 			if err != nil {
+				global.SugaredLogger.Errorln(err)
 				return err
 			}
 			//把上级部门的id赋值给本部门
 			err = global.DB.Model(&Department{}).Where("name = ?", department.Name).Update("superior_id", superiorDepartment.ID).Error
 			if err != nil {
+				global.SugaredLogger.Errorln(err)
 				return err
 			}
 		} else { //如果非水泥工程事业部的其他部门
 			//查找上级部门的信息
 			err = global.DB.Where("name = ?", "北京公司").First(&superiorDepartment).Error
 			if err != nil {
+				global.SugaredLogger.Errorln(err)
 				return err
 			}
 			//把上级部门的id赋值给本部门
 			err = global.DB.Model(&Department{}).Where("name = ?", department.Name).Update("superior_id", superiorDepartment.ID).Error
 			if err != nil {
+				global.SugaredLogger.Errorln(err)
 				return err
 			}
 		}

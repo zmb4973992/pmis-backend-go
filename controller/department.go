@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"pmis-backend-go/dto"
+	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service"
 	"pmis-backend-go/util"
@@ -17,6 +18,7 @@ type departmentController struct{}
 func (departmentController) Get(c *gin.Context) {
 	departmentID, err := strconv.Atoi(c.Param("department-id"))
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest, response.Common{
 			Data:    nil,
 			Code:    util.ErrorInvalidURIParameters,
@@ -33,13 +35,14 @@ func (departmentController) Create(c *gin.Context) {
 	var param dto.DepartmentCreateOrUpdateDTO
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//处理creator、lastModifier字段
-	tempUserID, _ := c.Get("user_id")
-	if tempUserID != nil {
+	tempUserID, exists := c.Get("user_id")
+	if exists {
 		userID := tempUserID.(int)
 		param.Creator = &userID
 		param.LastModifier = &userID
@@ -54,19 +57,21 @@ func (departmentController) Update(c *gin.Context) {
 	var param dto.DepartmentCreateOrUpdateDTO
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
 	param.ID, err = strconv.Atoi(c.Param("department-id"))
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
-	//处理creator、lastModifier字段
-	tempUserID, _ := c.Get("user_id")
-	if tempUserID != nil {
+	//处理lastModifier字段
+	tempUserID, exists := c.Get("user_id")
+	if exists {
 		userID := tempUserID.(int)
 		param.LastModifier = &userID
 	}
@@ -78,6 +83,7 @@ func (departmentController) Update(c *gin.Context) {
 func (departmentController) Delete(c *gin.Context) {
 	departmentID, err := strconv.Atoi(c.Param("department-id"))
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
@@ -90,6 +96,7 @@ func (departmentController) List(c *gin.Context) {
 	err := c.ShouldBindJSON(&param)
 	//如果json没有传参，会提示EOF错误，这里允许正常运行；如果是其他错误，就正常报错
 	if err != nil && !errors.Is(err, io.EOF) {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return

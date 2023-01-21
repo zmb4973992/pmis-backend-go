@@ -10,8 +10,8 @@ import (
 )
 
 // disassemblyService 没有数据、只有方法，所有的数据都放在DTO里
-//这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
-//所有的增删改查都交给DAO层处理，否则service层会非常庞大
+// 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
+// 所有的增删改查都交给DAO层处理，否则service层会非常庞大
 type disassemblyService struct{}
 
 func (disassemblyService) Get(disassemblyID int) response.Common {
@@ -19,6 +19,7 @@ func (disassemblyService) Get(disassemblyID int) response.Common {
 	err := global.DB.Model(model.Disassembly{}).
 		Where("id = ?", disassemblyID).First(&result).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	return response.SuccessWithData(result)
@@ -31,6 +32,7 @@ func (disassemblyService) Tree(paramIn dto.DisassemblyTreeDTO) response.Common {
 		Where("project_id = ?", paramIn.ProjectID).Where("level = 1").
 		First(&disassemblyID).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 
@@ -39,6 +41,7 @@ func (disassemblyService) Tree(paramIn dto.DisassemblyTreeDTO) response.Common {
 	err = global.DB.Model(model.Disassembly{}).
 		Where("id = ?", disassemblyID).First(&result1).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	//第二轮查找
@@ -147,6 +150,7 @@ func (disassemblyService) CreateInBatches(paramIn []dto.DisassemblyCreateOrUpdat
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
@@ -185,6 +189,7 @@ func (disassemblyService) Update(paramIn *dto.DisassemblyCreateOrUpdateDTO) resp
 	err := global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 	return response.Success()
@@ -193,6 +198,7 @@ func (disassemblyService) Update(paramIn *dto.DisassemblyCreateOrUpdateDTO) resp
 func (disassemblyService) Delete(disassemblyID int) response.Common {
 	err := global.DB.Delete(&model.Disassembly{}, disassemblyID).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()
@@ -229,6 +235,7 @@ func (disassemblyService) DeleteWithSubitems(disassemblyID int) response.Common 
 	}
 	err := global.DB.Delete(&model.Disassembly{}, ToBeDeletedIDs).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()

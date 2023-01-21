@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"pmis-backend-go/dto"
+	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service"
 	"pmis-backend-go/util"
@@ -15,6 +16,7 @@ type userController struct{}
 func (userController) Get(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
@@ -29,14 +31,15 @@ func (userController) Create(c *gin.Context) {
 	var param dto.UserCreateDTO
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
 	//处理creator、lastModifier字段
-	tempUserID, _ := c.Get("user_id")
-	if tempUserID != nil {
+	tempUserID, exists := c.Get("user_id")
+	if exists {
 		userID := tempUserID.(int)
 		param.Creator = &userID
 		param.LastModifier = &userID
@@ -53,6 +56,7 @@ func (userController) Update(c *gin.Context) {
 	var param dto.UserUpdateDTO
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
@@ -61,14 +65,15 @@ func (userController) Update(c *gin.Context) {
 	param.ID, err = strconv.Atoi(c.Param("user-id"))
 	//如果解析失败，例如URI的参数不是数字
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
-	//处理creator、lastModifier字段
-	tempUserID, _ := c.Get("user_id")
-	if tempUserID != nil {
+	//处理lastModifier字段
+	tempUserID, exists := c.Get("user_id")
+	if exists {
 		userID := tempUserID.(int)
 		param.LastModifier = &userID
 	}
@@ -83,6 +88,7 @@ func (userController) Delete(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("user-id"))
 	//如果解析失败，例如URI的参数不是数字
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
@@ -95,6 +101,7 @@ func (userController) List(c *gin.Context) {
 	var param dto.UserListDTO
 	err := c.ShouldBindQuery(&param)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
@@ -109,8 +116,8 @@ func (userController) List(c *gin.Context) {
 func (userController) GetByToken(c *gin.Context) {
 	//通过中间件，设定header必须带有token才能访问
 	//header里有token后，中间件会自动在context里添加user_id属性，详见自定义的中间件
-	tempUserID, ok := c.Get("user_id")
-	if ok == false {
+	tempUserID, exists := c.Get("user_id")
+	if !exists {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorAccessTokenInvalid))
 		return

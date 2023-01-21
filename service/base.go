@@ -16,7 +16,7 @@ type AllService struct {
 	dictionaryTypeService
 }
 
-//定义各个服务的入口,避免反复new service
+// 定义各个服务的入口,避免反复new service
 var (
 	entrance                   = new(AllService)
 	LoginService               = entrance.loginService

@@ -11,8 +11,8 @@ import (
 )
 
 // errorLogService 没有数据、只有方法，所有的数据都放在DTO里
-//这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
-//所有的增删改查都交给DAO层处理，否则service层会非常庞大
+// 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
+// 所有的增删改查都交给DAO层处理，否则service层会非常庞大
 type errorLogService struct{}
 
 func (errorLogService) Get(errorLogID int) response.Common {
@@ -20,6 +20,7 @@ func (errorLogService) Get(errorLogID int) response.Common {
 	err := global.DB.Model(model.ErrorLog{}).
 		Where("id = ?", errorLogID).First(&result).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	if result.Date != nil {
@@ -48,6 +49,7 @@ func (errorLogService) Create(paramIn *dto.ErrorLogCreateOrUpdateDTO) response.C
 	if *paramIn.Date != "" {
 		date, err := time.Parse("2006-01-02", *paramIn.Date)
 		if err != nil {
+			global.SugaredLogger.Errorln(err)
 			return response.Failure(util.ErrorInvalidJSONParameters)
 		} else {
 			paramOut.Date = &date
@@ -72,6 +74,7 @@ func (errorLogService) Create(paramIn *dto.ErrorLogCreateOrUpdateDTO) response.C
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
@@ -120,6 +123,7 @@ func (errorLogService) Update(paramIn *dto.ErrorLogCreateOrUpdateDTO) response.C
 	err := global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 	return response.Success()
@@ -128,6 +132,7 @@ func (errorLogService) Update(paramIn *dto.ErrorLogCreateOrUpdateDTO) response.C
 func (errorLogService) Delete(errorLogID int) response.Common {
 	err := global.DB.Delete(&model.ErrorLog{}, errorLogID).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()

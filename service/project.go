@@ -10,8 +10,8 @@ import (
 )
 
 // projectService 没有数据、只有方法，所有的数据都放在DTO里
-//这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
-//所有的增删改查都交给DAO层处理，否则service层会非常庞大
+// 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
+// 所有的增删改查都交给DAO层处理，否则service层会非常庞大
 type projectService struct{}
 
 func (projectService) Get(projectID int) response.Common {
@@ -20,6 +20,7 @@ func (projectService) Get(projectID int) response.Common {
 	err := global.DB.Model(model.Project{}).
 		Where("id = ?", projectID).First(&result).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	//如果有部门id，就查部门信息
@@ -27,6 +28,7 @@ func (projectService) Get(projectID int) response.Common {
 		err = global.DB.Model(model.Department{}).
 			Where("id=?", result.DepartmentID).First(&result.Department).Error
 		if err != nil {
+			global.SugaredLogger.Errorln(err)
 			result.Department = nil
 		}
 	}
@@ -91,6 +93,7 @@ func (projectService) Create(paramIn *dto.ProjectCreateOrUpdateDTO) response.Com
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
@@ -160,6 +163,7 @@ func (projectService) CreateInBatches(paramIn []dto.ProjectCreateOrUpdateDTO) re
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
@@ -222,6 +226,7 @@ func (projectService) Update(paramIn *dto.ProjectCreateOrUpdateDTO) response.Com
 	//清洗完毕，开始update
 	err := global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 	return response.Success()
@@ -230,6 +235,7 @@ func (projectService) Update(paramIn *dto.ProjectCreateOrUpdateDTO) response.Com
 func (projectService) Delete(projectID int) response.Common {
 	err := global.DB.Delete(&model.Project{}, projectID).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()
@@ -292,6 +298,7 @@ func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 			Where("name LIKE ?", "%"+*paramIn.DepartmentNameLike+"%").
 			Select("id").Find(&departmentIDs).Error
 		if err != nil {
+			global.SugaredLogger.Errorln(err)
 			return response.FailureForList(util.ErrorInvalidJSONParameters)
 		}
 		sqlCondition.In("department_id", departmentIDs)
@@ -335,6 +342,7 @@ func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 			err := global.DB.Model(model.Department{}).
 				Where("id=?", list[i].DepartmentID).First(&list[i].Department).Error
 			if err != nil {
+				global.SugaredLogger.Errorln(err)
 				list[i].Department = nil
 			}
 		}

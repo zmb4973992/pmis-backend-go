@@ -17,6 +17,7 @@ func (loginService) Login(param dto.LoginDTO) response.Common {
 	err := global.DB.Where("username=?", param.Username).First(&user).Error
 	//如果没有找到记录
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorInvalidUsernameOrPassword)
 	}
 	//如果找到记录了，但是密码错误的话

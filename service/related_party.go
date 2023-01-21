@@ -24,6 +24,7 @@ func (relatedPartyService) Get(relatedPartyID int) response.Common {
 	err := global.DB.Model(&model.RelatedParty{}).
 		Where("id = ?", relatedPartyID).First(&result).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	return response.SuccessWithData(result)
@@ -62,6 +63,7 @@ func (relatedPartyService) Create(paramIn *dto.RelatedPartyCreateOrUpdateDTO) re
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
@@ -72,6 +74,7 @@ func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdateDTO) re
 	//先找出原始记录
 	err := global.DB.Where("id = ?", paramIn.ID).First(&paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 
@@ -104,6 +107,7 @@ func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdateDTO) re
 	err = global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 	return response.Success()
@@ -112,6 +116,7 @@ func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdateDTO) re
 func (relatedPartyService) Delete(relatedPartyID int) response.Common {
 	err := global.DB.Delete(&model.RelatedParty{}, relatedPartyID).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()

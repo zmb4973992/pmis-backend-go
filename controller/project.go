@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"pmis-backend-go/dto"
+	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service"
 	"pmis-backend-go/util"
@@ -17,6 +18,7 @@ type projectController struct{}
 func (projectController) Get(c *gin.Context) {
 	projectID, err := strconv.Atoi(c.Param("project-id"))
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
@@ -31,14 +33,15 @@ func (projectController) Create(c *gin.Context) {
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
 	//处理creator、lastModifier字段
-	tempUserID, _ := c.Get("user_id")
-	if tempUserID != nil {
+	tempUserID, exists := c.Get("user_id")
+	if exists {
 		userID := tempUserID.(int)
 		param.Creator = &userID
 		param.LastModifier = &userID
@@ -54,6 +57,7 @@ func (projectController) CreateInBatches(c *gin.Context) {
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
@@ -78,6 +82,7 @@ func (projectController) Update(c *gin.Context) {
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
@@ -91,8 +96,8 @@ func (projectController) Update(c *gin.Context) {
 	}
 
 	//处理lastModifier字段
-	tempUserID, _ := c.Get("user_id")
-	if tempUserID != nil {
+	tempUserID, exists := c.Get("user_id")
+	if exists {
 		userID := tempUserID.(int)
 		param.LastModifier = &userID
 	}
@@ -104,6 +109,7 @@ func (projectController) Update(c *gin.Context) {
 func (projectController) Delete(c *gin.Context) {
 	projectID, err := strconv.Atoi(c.Param("project-id"))
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
@@ -117,6 +123,7 @@ func (projectController) List(c *gin.Context) {
 	err := c.ShouldBindJSON(&param)
 
 	if err != nil && !errors.Is(err, io.EOF) {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return

@@ -1,8 +1,6 @@
 package service
 
 import (
-	"fmt"
-	"os"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -35,6 +33,7 @@ func (dictionaryTypeService) Create(paramIn *dto.DictionaryTypeCreateOrUpdateDTO
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
@@ -68,6 +67,7 @@ func (dictionaryTypeService) CreateInBatches(paramIn []dto.DictionaryTypeCreateO
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
@@ -98,6 +98,7 @@ func (dictionaryTypeService) Update(paramIn *dto.DictionaryTypeCreateOrUpdateDTO
 	err := global.DB.Omit("created_at", "creator").
 		Save(&paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 	return response.Success()
@@ -121,9 +122,6 @@ func (dictionaryTypeService) List(paramIn dto.DictionaryTypeListDTO) response.Li
 	if paramIn.OrderBy != "" {
 		db = db.Order(paramIn.OrderBy)
 	}
-
-	a, _ := os.Getwd()
-	fmt.Println(a)
 
 	var count int64
 	db.Model(&model.DictionaryType{}).Count(&count)
@@ -205,7 +203,7 @@ func (dictionaryTypeService) List(paramIn dto.DictionaryTypeListDTO) response.Li
 	//}
 
 	return response.List{
-		Data:    a,
+		Data:    res,
 		Paging:  nil,
 		Code:    int(count),
 		Message: "",

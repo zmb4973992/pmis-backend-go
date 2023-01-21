@@ -10,8 +10,8 @@ import (
 )
 
 // dictionaryItemService 没有数据、只有方法，所有的数据都放在DTO里
-//这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
-//所有的增删改查都交给DAO层处理，否则service层会非常庞大
+// 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
+// 所有的增删改查都交给DAO层处理，否则service层会非常庞大
 type dictionaryItemService struct{}
 
 func (dictionaryItemService) Get(dictionaryTypeID int) response.Common {
@@ -19,6 +19,7 @@ func (dictionaryItemService) Get(dictionaryTypeID int) response.Common {
 	err := global.DB.Model(model.DictionaryItem{}).
 		Where("dictionary_type_id = ?", dictionaryTypeID).Find(&result).Error
 	if err != nil || len(result) == 0 {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	return response.SuccessWithData(result)
@@ -50,6 +51,7 @@ func (dictionaryItemService) Create(paramIn *dto.DictionaryItemCreateOrUpdateDTO
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
@@ -85,6 +87,7 @@ func (dictionaryItemService) CreateInBatches(paramIn []dto.DictionaryItemCreateO
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
@@ -114,6 +117,7 @@ func (dictionaryItemService) Update(paramIn *dto.DictionaryItemCreateOrUpdateDTO
 	err := global.DB.Omit("created_at", "creator").Save(&paramOut).Error
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 	return response.Success()

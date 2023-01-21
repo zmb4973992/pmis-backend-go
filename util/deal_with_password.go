@@ -1,11 +1,15 @@
 package util
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"golang.org/x/crypto/bcrypt"
+	"pmis-backend-go/global"
+)
 
 func EncryptPassword(originalPassword string) (encryptedPassword string, err error) {
 	//10为加密难度，取值范围为4-31，官方建议10
 	bytes, err := bcrypt.GenerateFromPassword([]byte(originalPassword), 10)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return "", err
 	}
 	encryptedPassword = string(bytes)

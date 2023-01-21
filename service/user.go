@@ -10,8 +10,8 @@ import (
 )
 
 // UserService 没有数据、只有方法，所有的数据都放在DTO里
-//这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
-//所有的增删改查都交给DAO层处理，否则service层会非常庞大
+// 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
+// 所有的增删改查都交给DAO层处理，否则service层会非常庞大
 type userService struct{}
 
 func (userService) Get(userID int) response.Common {
@@ -19,6 +19,7 @@ func (userService) Get(userID int) response.Common {
 	//把基础的账号信息查出来
 	err := global.DB.Model(model.User{}).Where("id = ?", userID).First(&result).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 
@@ -32,6 +33,7 @@ func (userService) Create(paramIn *dto.UserCreateDTO) response.Common {
 	//对密码进行加密
 	encryptedPassword, err := util.EncryptPassword(paramIn.Password)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToEncrypt)
 	}
 	paramOut.Password = encryptedPassword
@@ -61,6 +63,7 @@ func (userService) Create(paramIn *dto.UserCreateDTO) response.Common {
 	err = global.DB.Create(&paramOut).Error
 
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
@@ -72,6 +75,7 @@ func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
 	//先找出原始记录
 	err := global.DB.Where("id = ?", paramIn.ID).First(&paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -100,6 +104,7 @@ func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
 	err = global.DB.Where("id = ?", paramOut.ID).
 		Omit("created_at", "creator").Save(paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 
@@ -109,6 +114,7 @@ func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
 func (userService) Delete(userID int) response.Common {
 	err := global.DB.Delete(&model.User{}, userID).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()

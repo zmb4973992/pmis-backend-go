@@ -15,17 +15,18 @@ func UploadInit() {
 	if res == false {
 		err := os.MkdirAll(global.Config.FullPath, os.ModePerm)
 		if err != nil {
-			panic(err)
+			global.SugaredLogger.Panicln(err)
 		}
 	}
 }
 
 // UploadSingleFile
-//上传单个文件专用，经过uuid加持后返回唯一文件名和错误信息。
-//第二个入参为前端的关键词名称。
+// 上传单个文件专用，经过uuid加持后返回唯一文件名和错误信息。
+// 第二个入参为前端的关键词名称。
 func UploadSingleFile(c *gin.Context, key string) (uniqueFilename string, err error) {
 	_, header, err := c.Request.FormFile(key)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return "", err
 	}
 	if header.Size > global.Config.MaxSizeForUpload {
@@ -35,6 +36,7 @@ func UploadSingleFile(c *gin.Context, key string) (uniqueFilename string, err er
 	header.Filename = id + "--" + header.Filename
 	err = c.SaveUploadedFile(header, global.Config.FullPath+header.Filename)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return "", err
 	}
 	return header.Filename, nil
@@ -45,6 +47,7 @@ func UploadSingleFile(c *gin.Context, key string) (uniqueFilename string, err er
 func UploadMultipleFiles(c *gin.Context, key string) (uniqueFilenames []string, err error) {
 	form, err := c.MultipartForm()
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return nil, err
 	}
 	files := form.File[key]
@@ -61,6 +64,7 @@ func UploadMultipleFiles(c *gin.Context, key string) (uniqueFilenames []string, 
 		file.Filename = id + "--" + file.Filename
 		err = c.SaveUploadedFile(file, global.Config.FullPath+file.Filename)
 		if err != nil {
+			global.SugaredLogger.Errorln(err)
 			return nil, err
 		}
 		fileNames = append(fileNames, file.Filename)

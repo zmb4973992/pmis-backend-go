@@ -25,6 +25,7 @@ func SendEmail(to string, subject string, body string) error {
 		smtp.PlainAuth("", account, password, host),
 	)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return err
 	}
 	return nil
@@ -41,6 +42,7 @@ func SendEmail2(to string, subject string, body string) error {
 	d := gomail.NewDialer("smtp.qq.com", 465, "19725912@qq.com", "ejusnukrlniabgdd")
 	err := d.DialAndSend(m)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return err
 	}
 	return nil

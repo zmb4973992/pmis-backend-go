@@ -1,6 +1,6 @@
 package util
 
-//自定义错误的code
+// 自定义错误的code
 const (
 	Success int = 0
 	Error   int = 500
@@ -32,9 +32,9 @@ const (
 	ErrorInvalidRequest int = 4002
 	ErrorOutOfRateLimit int = 4003
 
-	//请求列表时发生的错误
-
 	ErrorInvalidColumns int = 5001
+
+	ErrorRequestFrequencyTooHigh int = 6001
 )
 
 // Message 自定义错误的message
@@ -69,9 +69,9 @@ var Message = map[int]string{
 	ErrorInvalidRequest: "请求路径错误",
 	ErrorOutOfRateLimit: "请求频率过快，请稍后再试",
 
-	//请求列表时发生的错误
-
 	ErrorInvalidColumns: "列名无效",
+
+	ErrorRequestFrequencyTooHigh: "请求频率过高，请稍后再试",
 }
 
 func GetMessage(code int) string {

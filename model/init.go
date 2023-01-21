@@ -3,20 +3,18 @@ package model
 import (
 	"gorm.io/driver/sqlserver"
 	"gorm.io/gorm"
-	"io/ioutil"
+	"os"
 	"pmis-backend-go/global"
 	"time"
 )
 
-var (
-	err error
-)
+var err error
 
-func Init() {
+func InitDatabase() {
 	//通过gorm连接sqlserver数据库
 	global.DB, err = gorm.Open(sqlserver.Open(global.Config.DBConfig.DSN), &gorm.Config{})
 	if err != nil {
-		panic(err)
+		global.SugaredLogger.Panicln(err)
 	}
 	//使用gorm标准格式，创建连接池
 	sqlDB, _ := global.DB.DB()
@@ -53,39 +51,38 @@ func Init() {
 		&Test{},                       //测试
 	)
 	if err != nil {
-		panic(err)
+		global.SugaredLogger.Panicln(err)
 	}
 
 	//创建所需的视图
 	createView()
 
 	//生成初始数据
-	generateData()
-
+	generateInitialData()
 }
 
 func createView() {
-	sqlStatement, err := ioutil.ReadFile("./sql/create_view.sql")
+	sqlStatement, err := os.ReadFile("./sql/create_view.sql")
 	if err != nil {
-		panic(err)
+		global.SugaredLogger.Panicln(err)
 	}
 	err = global.DB.Exec(string(sqlStatement)).Error
 	if err != nil {
-		panic(err)
+		global.SugaredLogger.Panicln(err)
 	}
 }
 
-func generateData() {
+func generateInitialData() {
 	if err = generateRoles(); err != nil {
-		panic(err)
+		global.SugaredLogger.Panicln(err)
 	}
 	if err = generateDepartments(); err != nil {
-		panic(err)
+		global.SugaredLogger.Panicln(err)
 	}
 	if err = generateDictionaryTypes(); err != nil {
-		panic(err)
+		global.SugaredLogger.Panicln(err)
 	}
 	if err = generateDictionaryItems(); err != nil {
-		panic(err)
+		global.SugaredLogger.Panicln(err)
 	}
 }

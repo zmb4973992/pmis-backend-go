@@ -1,14 +1,15 @@
 package model
 
-import "pmis-backend-go/global"
+import (
+	"pmis-backend-go/global"
+)
 
 type DictionaryType struct {
 	BaseModel
-	Name    string  //名称
-	Sort    *int    //排序
-	Remarks *string //备注
-
-	DictionaryItems []DictionaryItem `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
+	Name            string           //名称
+	Sort            *int             //排序
+	Remarks         *string          //备注
+	DictionaryItems []DictionaryItem `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // TableName 修改数据库的表名

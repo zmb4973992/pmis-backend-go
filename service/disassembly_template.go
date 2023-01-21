@@ -10,8 +10,8 @@ import (
 )
 
 // disassemblyService 没有数据、只有方法，所有的数据都放在DTO里
-//这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
-//所有的增删改查都交给DAO层处理，否则service层会非常庞大
+// 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
+// 所有的增删改查都交给DAO层处理，否则service层会非常庞大
 type disassemblyTemplateService struct{}
 
 func (disassemblyTemplateService) Get(disassemblyTemplateID int) response.Common {
@@ -20,6 +20,7 @@ func (disassemblyTemplateService) Get(disassemblyTemplateID int) response.Common
 	err := global.DB.Model(model.DisassemblyTemplate{}).
 		Where("id = ?", disassemblyTemplateID).First(&result).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 
@@ -60,6 +61,7 @@ func (disassemblyTemplateService) Create(paramIn *dto.DisassemblyTemplateCreateO
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
@@ -100,6 +102,7 @@ func (disassemblyTemplateService) Update(paramIn *dto.DisassemblyTemplateCreateO
 
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 	return response.Success()
@@ -108,6 +111,7 @@ func (disassemblyTemplateService) Update(paramIn *dto.DisassemblyTemplateCreateO
 func (disassemblyTemplateService) Delete(disassemblyTemplateID int) response.Common {
 	err := global.DB.Delete(&model.DisassemblyTemplate{}, disassemblyTemplateID).Error
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()

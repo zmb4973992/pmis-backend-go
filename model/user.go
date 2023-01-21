@@ -20,13 +20,3 @@ type User struct {
 func (User) TableName() string {
 	return "user"
 }
-
-//func UserExistOrNot(username string) (code uint64) {
-//	var user model.User
-//	util.DB.where("username = ?", username).First(&user)
-//	if user.ID > 0 {
-//		return util.Error_Username_Exist
-//	} else {
-//		return user.ID
-//	}
-//}
