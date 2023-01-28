@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// 这里是全局变量，给其他所有包引用
+// 需要全局使用的变量都在这里声明，方便其他包调用
 var (
 	DB     *gorm.DB
 	Config config

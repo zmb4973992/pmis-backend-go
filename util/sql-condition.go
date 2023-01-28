@@ -13,8 +13,8 @@ import (
 type SqlCondition struct {
 	SelectedColumns []string //暂时弃用，因为比较麻烦，要考虑dto和model转换的问题
 	ParamPairs      []ParamPair
-	Sorting         dto.SortingDTO
-	Paging          dto.PagingDTO
+	Sorting         dto.SortingInput
+	Paging          dto.PagingInput
 }
 
 type ParamPair struct {
@@ -23,11 +23,11 @@ type ParamPair struct {
 }
 
 // NewSqlCondition 生成自定义的查询条件,参数可不填
-//必须为指针，因为下面的方法要用到指针进行修改入参
+// 必须为指针，因为下面的方法要用到指针进行修改入参
 func NewSqlCondition() *SqlCondition {
 	pageSize := global.Config.PagingConfig.DefaultPageSize
 	return &SqlCondition{
-		Paging: dto.PagingDTO{
+		Paging: dto.PagingInput{
 			Page:     1,
 			PageSize: pageSize,
 		},

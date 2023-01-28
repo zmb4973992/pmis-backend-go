@@ -12,6 +12,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible
 	github.com/mitchellh/mapstructure v1.5.0
+	github.com/robfig/cron/v3 v3.0.0
 	github.com/sony/sonyflake v1.1.0
 	github.com/spf13/viper v1.15.0
 	go.uber.org/zap v1.24.0

@@ -11,7 +11,7 @@ import (
 )
 
 func Login(c *gin.Context) {
-	var loginDTO dto.LoginDTO
+	var loginDTO dto.Login
 	err := c.ShouldBindJSON(&loginDTO)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)

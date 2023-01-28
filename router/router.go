@@ -21,7 +21,8 @@ func Init() *gin.Engine {
 	engine.GET("/api/validate-token/:token", controller.TokenController.Validate) //单独校验token是否有效
 
 	//依次加载所有的路由组，以下都需要登录验证(jwt验证)
-	api := engine.Group("/api").Use(middleware.NeedLogin(), middleware.RateLimit())
+	api := engine.Group("/api")
+	api.Use(middleware.NeedLogin(), middleware.RateLimit())
 	{
 		api.GET("/user/:user-id", middleware.NeedAuth(), controller.UserController.Get) //获取用户详情
 		api.PUT("/user/:user-id", controller.UserController.Update)                     //修改用户（目前为全功能，考虑改成：修改用户基本信息）
@@ -88,11 +89,12 @@ func Init() *gin.Engine {
 		api.DELETE("/error-log/:error-log-id", controller.ErrorLogController.Delete) //删除错误日志
 
 		//数据字典的类型
-		api.POST("/dictionary-type", controller.DictionaryTypeController.Create)                       //新增字典类型
-		api.POST("/dictionary-type/batch", controller.DictionaryTypeController.CreateInBatches)        //批量新增字典类型
-		api.PUT("/dictionary-type/:dictionary-type-id", controller.DictionaryTypeController.Update)    //修改字典类型
-		api.DELETE("/dictionary-type/:dictionary-type-id", controller.DictionaryTypeController.Delete) //删除字典类型
-		api.POST("/dictionary-type/list", controller.DictionaryTypeController.List)                    //获取字典类型的列表
+		dictionaryType := api.Group("/dictionary-type")
+		dictionaryType.POST("", middleware.OperationLog(), controller.DictionaryTypeController.Create)                       //新增字典类型
+		dictionaryType.POST("/batch", middleware.OperationLog(), controller.DictionaryTypeController.CreateInBatches)        //批量新增字典类型
+		dictionaryType.PUT("/:dictionary-type-id", middleware.OperationLog(), controller.DictionaryTypeController.Update)    //修改字典类型
+		dictionaryType.DELETE("/:dictionary-type-id", middleware.OperationLog(), controller.DictionaryTypeController.Delete) //删除字典类型
+		dictionaryType.POST("/list", controller.DictionaryTypeController.List)                                               //获取字典类型的列表
 
 		//数据字典的详情项
 		api.GET("/dictionary-item/:dictionary-type-id", controller.DictionaryItemController.Get)       //获取单个字典项的所有值

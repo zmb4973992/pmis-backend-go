@@ -9,13 +9,10 @@ import (
 	"pmis-backend-go/util"
 )
 
-// DepartmentService 没有数据、只有方法，所有的数据都放在DTO里
-// 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
-// 所有的增删改查都交给DAO层处理，否则service层会非常庞大
 type departmentService struct{}
 
 func (departmentService) Get(departmentID int) response.Common {
-	var result dto.DepartmentGetDTO
+	var result dto.DepartmentOutput
 
 	err := global.DB.Model(model.Department{}).Where("id = ?", departmentID).First(&result).Error
 	if err != nil {
@@ -26,7 +23,7 @@ func (departmentService) Get(departmentID int) response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (departmentService) Create(paramIn *dto.DepartmentCreateOrUpdateDTO) response.Common {
+func (departmentService) Create(paramIn *dto.DepartmentCreateOrUpdate) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.Department
 
@@ -57,7 +54,7 @@ func (departmentService) Create(paramIn *dto.DepartmentCreateOrUpdateDTO) respon
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (departmentService) Update(paramIn *dto.DepartmentCreateOrUpdateDTO) response.Common {
+func (departmentService) Update(paramIn *dto.DepartmentCreateOrUpdate) response.Common {
 	var paramOut model.Department
 	paramOut.ID = paramIn.ID
 
@@ -91,7 +88,7 @@ func (departmentService) Delete(departmentID int) response.Common {
 	return response.Success()
 }
 
-func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
+func (departmentService) List(paramIn dto.DepartmentList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 
@@ -175,12 +172,12 @@ func (departmentService) List(paramIn dto.DepartmentListDTO) response.List {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
-	var list []dto.DepartmentGetDTO
+	var list []dto.DepartmentOutput
 	_ = mapstructure.Decode(&tempList, &list)
 
 	return response.List{
 		Data: list,
-		Paging: &dto.PagingDTO{
+		Paging: &dto.PagingOutput{
 			Page:         sqlCondition.Paging.Page,
 			PageSize:     sqlCondition.Paging.PageSize,
 			TotalPages:   totalPages,

@@ -15,7 +15,7 @@ import (
 type dictionaryItemService struct{}
 
 func (dictionaryItemService) Get(dictionaryTypeID int) response.Common {
-	var result []dto.DictionaryItemOutputDTO
+	var result []dto.DictionaryItemOutput
 	err := global.DB.Model(model.DictionaryItem{}).
 		Where("dictionary_type_id = ?", dictionaryTypeID).Find(&result).Error
 	if err != nil || len(result) == 0 {
@@ -25,7 +25,7 @@ func (dictionaryItemService) Get(dictionaryTypeID int) response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (dictionaryItemService) Create(paramIn *dto.DictionaryItemCreateOrUpdateDTO) response.Common {
+func (dictionaryItemService) Create(paramIn *dto.DictionaryItemCreateOrUpdate) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.DictionaryItem
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -57,7 +57,7 @@ func (dictionaryItemService) Create(paramIn *dto.DictionaryItemCreateOrUpdateDTO
 	return response.Success()
 }
 
-func (dictionaryItemService) CreateInBatches(paramIn []dto.DictionaryItemCreateOrUpdateDTO) response.Common {
+func (dictionaryItemService) CreateInBatches(paramIn []dto.DictionaryItemCreateOrUpdate) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut []model.DictionaryItem
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -95,7 +95,7 @@ func (dictionaryItemService) CreateInBatches(paramIn []dto.DictionaryItemCreateO
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (dictionaryItemService) Update(paramIn *dto.DictionaryItemCreateOrUpdateDTO) response.Common {
+func (dictionaryItemService) Update(paramIn *dto.DictionaryItemCreateOrUpdate) response.Common {
 	var paramOut model.DictionaryItem
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -131,7 +131,7 @@ func (dictionaryItemService) Delete(dictionaryItemID int) response.Common {
 	return response.Success()
 }
 
-func (dictionaryItemService) List(paramIn dto.DisassemblyListDTO) response.List {
+func (dictionaryItemService) List(paramIn dto.DisassemblyList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 
@@ -189,12 +189,12 @@ func (dictionaryItemService) List(paramIn dto.DisassemblyListDTO) response.List 
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
-	var list []dto.DisassemblyOutputDTO
+	var list []dto.DisassemblyOutput
 	_ = mapstructure.Decode(&tempList, &list)
 
 	return response.List{
 		Data: list,
-		Paging: &dto.PagingDTO{
+		Paging: &dto.PagingOutput{
 			Page:         sqlCondition.Paging.Page,
 			PageSize:     sqlCondition.Paging.PageSize,
 			TotalPages:   totalPages,

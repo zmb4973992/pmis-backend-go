@@ -1,6 +1,7 @@
 package service
 
 import (
+	"gorm.io/gorm"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -10,7 +11,7 @@ import (
 
 type dictionaryTypeService struct{}
 
-func (dictionaryTypeService) Create(paramIn *dto.DictionaryTypeCreateOrUpdateDTO) response.Common {
+func (dictionaryTypeService) Create(paramIn *dto.DictionaryTypeCreateOrUpdate) response.Common {
 	var paramOut model.DictionaryType
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	if paramIn.Creator != nil {
@@ -39,7 +40,7 @@ func (dictionaryTypeService) Create(paramIn *dto.DictionaryTypeCreateOrUpdateDTO
 	return response.Success()
 }
 
-func (dictionaryTypeService) CreateInBatches(paramIn []dto.DictionaryTypeCreateOrUpdateDTO) response.Common {
+func (dictionaryTypeService) CreateInBatches(paramIn []dto.DictionaryTypeCreateOrUpdate) response.Common {
 	var paramOut []model.DictionaryType
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	for i := range paramIn {
@@ -75,7 +76,7 @@ func (dictionaryTypeService) CreateInBatches(paramIn []dto.DictionaryTypeCreateO
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (dictionaryTypeService) Update(paramIn *dto.DictionaryTypeCreateOrUpdateDTO) response.Common {
+func (dictionaryTypeService) Update(paramIn *dto.DictionaryTypeCreateOrUpdate) response.Common {
 
 	var paramOut model.DictionaryType
 	paramOut.ID = paramIn.ID
@@ -104,15 +105,30 @@ func (dictionaryTypeService) Update(paramIn *dto.DictionaryTypeCreateOrUpdateDTO
 	return response.Success()
 }
 
-func (dictionaryTypeService) Delete(dictionaryTypeID int) response.Common {
-	err := global.DB.Delete(&model.DictionaryType{}, dictionaryTypeID).Error
+func (dictionaryTypeService) Delete(paramIn dto.DictionaryTypeDelete) response.Common {
+	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
+	err := global.DB.Transaction(func(tx *gorm.DB) error {
+		//这里记录删除人，在事务中必须放在前面
+		//如果放后面，由于是软删除，系统会找不到这条记录，导致无法更新
+		err := tx.Debug().Model(&model.DictionaryType{}).Where("id = ?", paramIn.DictionaryTypeID).
+			Update("deleter", *paramIn.Deleter).Error
+		if err != nil {
+			return err
+		}
+		//这里删除记录
+		err = tx.Delete(&model.DictionaryType{}, paramIn.DictionaryTypeID).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
 	if err != nil {
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()
 }
 
-func (dictionaryTypeService) List(paramIn dto.DictionaryTypeListDTO) response.List {
+func (dictionaryTypeService) List(paramIn dto.DictionaryTypeList) response.List {
 	db := global.DB
 	//where order limit offset
 	if paramIn.NameInclude != "" {
@@ -187,12 +203,12 @@ func (dictionaryTypeService) List(paramIn dto.DictionaryTypeListDTO) response.Li
 	//	return response.FailureForList(util.ErrorRecordNotFound)
 	//}
 	//
-	//var list []dto.DisassemblyOutputDTO
+	//var list []dto.DisassemblyOutput
 	//_ = mapstructure.Decode(&tempList, &list)
 	//
 	//return response.List{
 	//	Data: list,
-	//	Paging: &dto.PagingDTO{
+	//	Paging: &dto.Paging{
 	//		Page:         sqlCondition.Paging.Page,
 	//		PageSize:     sqlCondition.Paging.PageSize,
 	//		TotalPages:   totalPages,

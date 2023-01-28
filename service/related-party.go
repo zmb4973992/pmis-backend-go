@@ -20,7 +20,7 @@ Service层没有数据结构、只有方法，所有的数据结构都放在DTO�
 type relatedPartyService struct{}
 
 func (relatedPartyService) Get(relatedPartyID int) response.Common {
-	var result dto.RelatedPartyGetDTO
+	var result dto.RelatedPartyOutput
 	err := global.DB.Model(&model.RelatedParty{}).
 		Where("id = ?", relatedPartyID).First(&result).Error
 	if err != nil {
@@ -30,7 +30,7 @@ func (relatedPartyService) Get(relatedPartyID int) response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (relatedPartyService) Create(paramIn *dto.RelatedPartyCreateOrUpdateDTO) response.Common {
+func (relatedPartyService) Create(paramIn *dto.RelatedPartyCreateOrUpdate) response.Common {
 	//对model进行清洗，生成dao层需要的model
 	var paramOut model.RelatedParty
 	if paramIn.Creator != nil {
@@ -69,7 +69,7 @@ func (relatedPartyService) Create(paramIn *dto.RelatedPartyCreateOrUpdateDTO) re
 	return response.Success()
 }
 
-func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdateDTO) response.Common {
+func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdate) response.Common {
 	var paramOut model.RelatedParty
 	//先找出原始记录
 	err := global.DB.Where("id = ?", paramIn.ID).First(&paramOut).Error
@@ -122,7 +122,7 @@ func (relatedPartyService) Delete(relatedPartyID int) response.Common {
 	return response.Success()
 }
 
-func (relatedPartyService) List(paramIn dto.RelatedPartyListDTO) response.List {
+func (relatedPartyService) List(paramIn dto.RelatedPartyList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 	//对paramIn进行清洗
@@ -183,7 +183,7 @@ func (relatedPartyService) List(paramIn dto.RelatedPartyListDTO) response.List {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
-	var list []dto.RelatedPartyGetDTO
+	var list []dto.RelatedPartyOutput
 	_ = mapstructure.Decode(&tempList, &list)
 
 	//处理字段类型不匹配、或者有特殊格式要求的字段
@@ -194,7 +194,7 @@ func (relatedPartyService) List(paramIn dto.RelatedPartyListDTO) response.List {
 
 	return response.List{
 		Data: list,
-		Paging: &dto.PagingDTO{
+		Paging: &dto.PagingOutput{
 			Page:         sqlCondition.Paging.Page,
 			PageSize:     sqlCondition.Paging.PageSize,
 			TotalPages:   totalPages,

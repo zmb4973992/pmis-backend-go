@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
@@ -27,7 +29,7 @@ func (operationRecordController) Get(c *gin.Context) {
 }
 
 func (operationRecordController) Create(c *gin.Context) {
-	var param dto.OperationRecordCreateOrUpdateDTO
+	var param dto.OperationLogCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -50,7 +52,7 @@ func (operationRecordController) Create(c *gin.Context) {
 }
 
 func (operationRecordController) Update(c *gin.Context) {
-	var param dto.OperationRecordCreateOrUpdateDTO
+	var param dto.OperationLogCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -93,10 +95,12 @@ func (operationRecordController) Delete(c *gin.Context) {
 }
 
 func (operationRecordController) List(c *gin.Context) {
-	var param dto.OperationRecordListDTO
-	err := c.ShouldBindQuery(&param)
+	var param dto.OperationRecordList
+	err := c.ShouldBindJSON(&param)
 
-	if err != nil {
+	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
+	//如果是其他错误，就正常报错
+	if err != nil && errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))

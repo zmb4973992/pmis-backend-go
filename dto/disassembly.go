@@ -1,16 +1,14 @@
 package dto
 
-//以下dto均为入参格式
+//以下为入参
 
-type DisassemblyTreeDTO struct {
-	BaseDTO
+type DisassemblyTree struct {
+	Base
 	ProjectID *int `json:"project_id" binding:"required"`
 }
 
-// DisassemblyCreateOrUpdateDTO
-// 除id外，所有字段都设置为必须绑定
-type DisassemblyCreateOrUpdateDTO struct {
-	BaseDTO
+type DisassemblyCreateOrUpdate struct {
+	Base
 	Name       *string  `json:"name" binding:"required"`        //拆解项名称
 	ProjectID  *int     `json:"project_id" binding:"required"`  //所属项目id
 	Level      *int     `json:"level" binding:"required"`       //层级
@@ -18,21 +16,19 @@ type DisassemblyCreateOrUpdateDTO struct {
 	SuperiorID *int     `json:"superior_id" binding:"required"` //上级拆解项ID
 }
 
-// DisassemblyListDTO 是list查询的过滤器
-// 在dto传递给sqlCondition时，空值会被忽略
-type DisassemblyListDTO struct {
-	ListDTO
-	ProjectID  *int `form:"project_id"`
-	SuperiorID *int `form:"superior_id"`
-	Level      *int `form:"level"`
-	LevelGte   *int `form:"level_gte"`
-	LevelLte   *int `form:"level_lte"`
+type DisassemblyList struct {
+	ListInput
+	ProjectID  *int `json:"project_id"`
+	SuperiorID *int `json:"superior_id"`
+	Level      *int `json:"level"`
+	LevelGte   *int `json:"level_gte"`
+	LevelLte   *int `json:"level_lte"`
 }
 
-//以下dto均为出参格式
+//以下为出参
 
-type DisassemblyOutputDTO struct {
-	BaseDTO    `mapstructure:",squash"` //这里是嵌套结构体，mapstructure必须加squash，否则无法匹配
+type DisassemblyOutput struct {
+	Base       `mapstructure:",squash"` //这里是嵌套结构体，mapstructure必须加squash，否则无法匹配
 	Name       *string                  `json:"name" mapstructure:"name"`               //名称
 	ProjectID  *int                     `json:"project_id" mapstructure:"project_id"`   //所属项目id
 	Level      *int                     `json:"level" mapstructure:"level"`             //层级
@@ -40,10 +36,10 @@ type DisassemblyOutputDTO struct {
 	SuperiorID *int                     `json:"superior_id" mapstructure:"superior_id"` //上级拆解项id
 }
 
-// DisassemblyOutputForTreeDTO 根据前端需求准备的数据结构
-type DisassemblyOutputForTreeDTO struct {
-	Name     *string                       `json:"title"`
-	ID       int                           `json:"key"`
-	Level    int                           `json:"level"`
-	Children []DisassemblyOutputForTreeDTO `json:"children" gorm:"-"`
+// DisassemblyTreeOutput 根据前端需求准备的数据结构
+type DisassemblyTreeOutput struct {
+	Name     *string                 `json:"title"`
+	ID       int                     `json:"key"`
+	Level    int                     `json:"level"`
+	Children []DisassemblyTreeOutput `json:"children" gorm:"-"`
 }

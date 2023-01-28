@@ -5,7 +5,7 @@ import "time"
 type DisassemblySnapshot struct {
 	BaseModel
 	Name               *string    //名称
-	Date               *time.Time `gorm:"type:date"` //添加记录的日期
+	Date               *time.Time `gorm:"type:datetime"` //添加记录的日期
 	IDWithDate         *string    //带日期的拆解情况id
 	ProjectID          *int       //项目id，外键
 	SuperiorIDWithDate *string    //带日期的上级id

@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
@@ -28,7 +30,7 @@ func (userController) Get(c *gin.Context) {
 
 func (userController) Create(c *gin.Context) {
 	//先声明空的dto，再把context里的数据绑到dto上
-	var param dto.UserCreateDTO
+	var param dto.UserCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -53,7 +55,7 @@ func (userController) Create(c *gin.Context) {
 // Update controller的功能：解析uri参数、json参数，拦截非法参数，然后传给service层处理
 func (userController) Update(c *gin.Context) {
 	//这里只更新传过来的参数，所以采用map形式
-	var param dto.UserUpdateDTO
+	var param dto.UserUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -98,9 +100,12 @@ func (userController) Delete(c *gin.Context) {
 }
 
 func (userController) List(c *gin.Context) {
-	var param dto.UserListDTO
-	err := c.ShouldBindQuery(&param)
-	if err != nil {
+	var param dto.UserList
+	err := c.ShouldBindJSON(&param)
+
+	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
+	//如果是其他错误，就正常报错
+	if err != nil && errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))

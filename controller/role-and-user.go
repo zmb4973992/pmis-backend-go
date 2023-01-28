@@ -35,7 +35,7 @@ func (roleAndUserController) CreateByRoleID(c *gin.Context) {
 		return
 	}
 
-	var param dto.RoleAndUserCreateOrUpdateDTO
+	var param dto.RoleAndUserCreateOrUpdate
 	err = c.ShouldBindJSON(&param)
 	if err != nil || len(param.UserIDs) == 0 {
 		global.SugaredLogger.Errorln(err)
@@ -65,7 +65,7 @@ func (roleAndUserController) UpdateByRoleID(c *gin.Context) {
 		return
 	}
 
-	var param dto.RoleAndUserCreateOrUpdateDTO
+	var param dto.RoleAndUserCreateOrUpdate
 	err = c.ShouldBindJSON(&param)
 	if err != nil || len(param.UserIDs) == 0 {
 		global.SugaredLogger.Errorln(err)
@@ -120,7 +120,7 @@ func (roleAndUserController) CreateByUserID(c *gin.Context) {
 		return
 	}
 
-	var param dto.RoleAndUserCreateOrUpdateDTO
+	var param dto.RoleAndUserCreateOrUpdate
 	err = c.ShouldBindJSON(&param)
 	if err != nil || len(param.RoleIDs) == 0 {
 		global.SugaredLogger.Errorln(err)
@@ -150,7 +150,7 @@ func (roleAndUserController) UpdateByUserID(c *gin.Context) {
 		return
 	}
 
-	var param dto.RoleAndUserCreateOrUpdateDTO
+	var param dto.RoleAndUserCreateOrUpdate
 	err = c.ShouldBindJSON(&param)
 	if err != nil || len(param.RoleIDs) == 0 {
 		global.SugaredLogger.Errorln(err)

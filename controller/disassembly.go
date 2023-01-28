@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
@@ -27,7 +29,7 @@ func (disassemblyController) Get(c *gin.Context) {
 }
 
 func (disassemblyController) Tree(c *gin.Context) {
-	var param dto.DisassemblyTreeDTO
+	var param dto.DisassemblyTree
 	err := c.ShouldBindJSON(&param)
 	//这里json参数必填，否则无法知道要找哪条记录。因此不能忽略掉EOF错误
 	if err != nil {
@@ -42,7 +44,7 @@ func (disassemblyController) Tree(c *gin.Context) {
 }
 
 func (disassemblyController) Create(c *gin.Context) {
-	var param dto.DisassemblyCreateOrUpdateDTO
+	var param dto.DisassemblyCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -66,7 +68,7 @@ func (disassemblyController) Create(c *gin.Context) {
 }
 
 func (disassemblyController) CreateInBatches(c *gin.Context) {
-	var param []dto.DisassemblyCreateOrUpdateDTO
+	var param []dto.DisassemblyCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -91,7 +93,7 @@ func (disassemblyController) CreateInBatches(c *gin.Context) {
 }
 
 func (disassemblyController) Update(c *gin.Context) {
-	var param dto.DisassemblyCreateOrUpdateDTO
+	var param dto.DisassemblyCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -144,10 +146,12 @@ func (disassemblyController) DeleteWithSubitems(c *gin.Context) {
 }
 
 func (disassemblyController) List(c *gin.Context) {
-	var param dto.DisassemblyListDTO
-	err := c.ShouldBindQuery(&param)
+	var param dto.DisassemblyList
+	err := c.ShouldBindJSON(&param)
 
-	if err != nil {
+	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
+	//如果是其他错误，就正常报错
+	if err != nil && errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))

@@ -15,7 +15,7 @@ import (
 type projectService struct{}
 
 func (projectService) Get(projectID int) response.Common {
-	var result dto.ProjectGetDTO
+	var result dto.ProjectOutput
 	//查主表
 	err := global.DB.Model(model.Project{}).
 		Where("id = ?", projectID).First(&result).Error
@@ -35,7 +35,7 @@ func (projectService) Get(projectID int) response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (projectService) Create(paramIn *dto.ProjectCreateOrUpdateDTO) response.Common {
+func (projectService) Create(paramIn *dto.ProjectCreateOrUpdate) response.Common {
 	//对dto进行清洗，生成需要的model
 	var paramOut model.Project
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -99,7 +99,7 @@ func (projectService) Create(paramIn *dto.ProjectCreateOrUpdateDTO) response.Com
 	return response.Success()
 }
 
-func (projectService) CreateInBatches(paramIn []dto.ProjectCreateOrUpdateDTO) response.Common {
+func (projectService) CreateInBatches(paramIn []dto.ProjectCreateOrUpdate) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut []model.Project
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -171,7 +171,7 @@ func (projectService) CreateInBatches(paramIn []dto.ProjectCreateOrUpdateDTO) re
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (projectService) Update(paramIn *dto.ProjectCreateOrUpdateDTO) response.Common {
+func (projectService) Update(paramIn *dto.ProjectCreateOrUpdate) response.Common {
 	var paramOut model.Project
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -241,7 +241,7 @@ func (projectService) Delete(projectID int) response.Common {
 	return response.Success()
 }
 
-func (projectService) List(paramIn dto.ProjectListDTO) response.List {
+func (projectService) List(paramIn dto.ProjectList) response.List {
 	db := global.DB
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
@@ -333,7 +333,7 @@ func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 	}
 
 	//tempList是map，需要转成structure才能使用
-	var list []dto.ProjectGetDTO
+	var list []dto.ProjectOutput
 	_ = mapstructure.Decode(&tempList, &list)
 
 	for i := range list {
@@ -350,7 +350,7 @@ func (projectService) List(paramIn dto.ProjectListDTO) response.List {
 
 	return response.List{
 		Data: list,
-		Paging: &dto.PagingDTO{
+		Paging: &dto.PagingOutput{
 			Page:         sqlCondition.Paging.Page,
 			PageSize:     sqlCondition.Paging.PageSize,
 			TotalPages:   totalPages,

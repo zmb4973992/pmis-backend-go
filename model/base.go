@@ -12,6 +12,7 @@ type BaseModel struct {
 	DeletedAt    gorm.DeletedAt `json:"deleted_at" gorm:"type:datetime;size:0"`
 	Creator      *int           `json:"creator"`
 	LastModifier *int           `json:"last_modifier"`
+	Deleter      *int           `json:"deleter"`
 }
 
 // IModel 定义接口，用于sqlCondition传参

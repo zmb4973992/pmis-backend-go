@@ -28,7 +28,7 @@ func (roleAndUserService) ListByRoleID(roleID int) response.Common {
 	return response.SuccessWithData(data)
 }
 
-func (roleAndUserService) CreateByRoleID(roleID int, paramIn dto.RoleAndUserCreateOrUpdateDTO) response.Common {
+func (roleAndUserService) CreateByRoleID(roleID int, paramIn dto.RoleAndUserCreateOrUpdate) response.Common {
 	var paramOut []model.RoleAndUser
 	for i := range paramIn.UserIDs {
 		var record model.RoleAndUser
@@ -53,7 +53,7 @@ func (roleAndUserService) CreateByRoleID(roleID int, paramIn dto.RoleAndUserCrea
 	return response.Success()
 }
 
-func (roleAndUserService) UpdateByRoleID(roleID int, paramIn dto.RoleAndUserCreateOrUpdateDTO) response.Common {
+func (roleAndUserService) UpdateByRoleID(roleID int, paramIn dto.RoleAndUserCreateOrUpdate) response.Common {
 	//先删掉原始记录
 	err := global.DB.Where("role_id = ?", roleID).Delete(&model.RoleAndUser{}).Error
 	if err != nil {
@@ -120,7 +120,7 @@ func (roleAndUserService) ListByUserID(userID int) response.Common {
 	return response.SuccessWithData(data)
 }
 
-func (roleAndUserService) CreateByUserID(userID int, paramIn dto.RoleAndUserCreateOrUpdateDTO) response.Common {
+func (roleAndUserService) CreateByUserID(userID int, paramIn dto.RoleAndUserCreateOrUpdate) response.Common {
 	var paramOut []model.RoleAndUser
 	for i := range paramIn.RoleIDs {
 		var record model.RoleAndUser
@@ -145,7 +145,7 @@ func (roleAndUserService) CreateByUserID(userID int, paramIn dto.RoleAndUserCrea
 	return response.Success()
 }
 
-func (roleAndUserService) UpdateByUserID(userID int, paramIn dto.RoleAndUserCreateOrUpdateDTO) response.Common {
+func (roleAndUserService) UpdateByUserID(userID int, paramIn dto.RoleAndUserCreateOrUpdate) response.Common {
 	//先删掉原始记录
 	err := global.DB.Where("user_id = ?", userID).Delete(&model.RoleAndUser{}).Error
 	if err != nil {

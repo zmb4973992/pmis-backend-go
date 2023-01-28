@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
@@ -14,8 +16,12 @@ import (
 type dictionaryTypeController struct {
 }
 
+func (c dictionaryTypeController) test() int {
+	return 666
+}
+
 func (dictionaryTypeController) Create(c *gin.Context) {
-	var param dto.DictionaryTypeCreateOrUpdateDTO
+	var param dto.DictionaryTypeCreateOrUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -37,7 +43,7 @@ func (dictionaryTypeController) Create(c *gin.Context) {
 }
 
 func (dictionaryTypeController) CreateInBatches(c *gin.Context) {
-	var param []dto.DictionaryTypeCreateOrUpdateDTO
+	var param []dto.DictionaryTypeCreateOrUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -61,7 +67,7 @@ func (dictionaryTypeController) CreateInBatches(c *gin.Context) {
 }
 
 func (dictionaryTypeController) Update(c *gin.Context) {
-	var param dto.DictionaryTypeCreateOrUpdateDTO
+	var param dto.DictionaryTypeCreateOrUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -90,21 +96,33 @@ func (dictionaryTypeController) Update(c *gin.Context) {
 }
 
 func (dictionaryTypeController) Delete(c *gin.Context) {
-	dictionaryTypeID, err := strconv.Atoi(c.Param("dictionary-type-id"))
+	var param dto.DictionaryTypeDelete
+	var err error
+	param.DictionaryTypeID, err = strconv.Atoi(c.Param("dictionary-type-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.DictionaryTypeService.Delete(dictionaryTypeID)
+
+	//处理deleter字段
+	tempUserID, exists := c.Get("user_id")
+	if exists {
+		userID := tempUserID.(int)
+		param.Deleter = &userID
+	}
+	res := service.DictionaryTypeService.Delete(param)
 	c.JSON(http.StatusOK, res)
 }
 
 func (dictionaryTypeController) List(c *gin.Context) {
-	var param dto.DictionaryTypeListDTO
+	var param dto.DictionaryTypeList
 	err := c.ShouldBindJSON(&param)
-	if err != nil {
+
+	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
+	//如果是其他错误，就正常报错
+	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))

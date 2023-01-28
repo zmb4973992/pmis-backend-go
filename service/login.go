@@ -11,7 +11,7 @@ import (
 
 type loginService struct{}
 
-func (loginService) Login(param dto.LoginDTO) response.Common {
+func (loginService) Login(param dto.Login) response.Common {
 	var user model.User
 	//根据入参的用户名，从数据库取出记录赋值给user
 	err := global.DB.Where("username=?", param.Username).First(&user).Error

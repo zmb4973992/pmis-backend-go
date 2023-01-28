@@ -2,39 +2,32 @@ package util
 
 // 自定义错误的code
 const (
-	Success int = 0
-	Error   int = 500
-
-	ErrorRecordNotFound                   int = 1001
-	ErrorNotEnoughParameters              int = 1002
-	ErrorInvalidURIParameters             int = 1003
-	ErrorInvalidFormDataParameters        int = 1004
-	ErrorInvalidJSONParameters            int = 1005
-	ErrorInvalidQueryParameters           int = 1006
-	ErrorFailToDeleteRecord               int = 1011
-	ErrorFileTooLarge                     int = 1012
-	ErrorFailToUploadFiles                int = 1013
-	ErrorFailToTransferDataFromDtoToModel int = 1014
-	ErrorInvalidBaseController            int = 1015
-	ErrorFailToCreateRecord               int = 1016
-	ErrorFailToUpdateRecord               int = 1017
-
-	ErrorInvalidUsernameOrPassword int = 2001
-	ErrorUsernameExist             int = 2002
-	ErrorPasswordIncorrect         int = 2003
-
-	ErrorAccessTokenInvalid  int = 3001
-	ErrorAccessTokenNotFound int = 3002
-	ErrorPermissionDenied    int = 3100
-	ErrorNeedAdminPrivilege  int = 3101
-
-	ErrorFailToEncrypt  int = 4001
-	ErrorInvalidRequest int = 4002
-	ErrorOutOfRateLimit int = 4003
-
-	ErrorInvalidColumns int = 5001
-
-	ErrorRequestFrequencyTooHigh int = 6001
+	Success = iota
+	Error
+	ErrorRecordNotFound
+	ErrorNotEnoughParameters
+	ErrorInvalidURIParameters
+	ErrorInvalidFormDataParameters
+	ErrorInvalidJSONParameters
+	ErrorInvalidQueryParameters
+	ErrorFailToDeleteRecord
+	ErrorFileTooLarge
+	ErrorFailToUploadFiles
+	ErrorFailToTransferDataFromDtoToModel
+	ErrorInvalidBaseController
+	ErrorFailToCreateRecord
+	ErrorFailToUpdateRecord
+	ErrorInvalidUsernameOrPassword
+	ErrorUsernameExist
+	ErrorPasswordIncorrect
+	ErrorAccessTokenInvalid
+	ErrorAccessTokenNotFound
+	ErrorPermissionDenied
+	ErrorNeedAdminPrivilege
+	ErrorFailToEncrypt
+	ErrorInvalidRequest
+	ErrorInvalidColumns
+	ErrorRequestFrequencyTooHigh
 )
 
 // Message 自定义错误的message
@@ -67,8 +60,6 @@ var Message = map[int]string{
 
 	ErrorFailToEncrypt:  "加密失败",
 	ErrorInvalidRequest: "请求路径错误",
-	ErrorOutOfRateLimit: "请求频率过快，请稍后再试",
-
 	ErrorInvalidColumns: "列名无效",
 
 	ErrorRequestFrequencyTooHigh: "请求频率过高，请稍后再试",
@@ -77,7 +68,7 @@ var Message = map[int]string{
 func GetMessage(code int) string {
 	message, ok := Message[code]
 	if !ok {
-		return "由于错误代码未定义返回信息，导致获取错误信息失败，建议检查status/code_and_message相关配置"
+		return "由于错误代码未定义返回信息，导致获取错误信息失败，建议检查utils/code-and-message相关设置"
 	}
 	return message
 }

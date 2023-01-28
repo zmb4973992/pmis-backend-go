@@ -15,7 +15,7 @@ import (
 type disassemblyTemplateService struct{}
 
 func (disassemblyTemplateService) Get(disassemblyTemplateID int) response.Common {
-	var result dto.DisassemblyTemplateGetDTO
+	var result dto.DisassemblyTemplateGet
 	//把基础的拆解信息查出来
 	err := global.DB.Model(model.DisassemblyTemplate{}).
 		Where("id = ?", disassemblyTemplateID).First(&result).Error
@@ -27,7 +27,7 @@ func (disassemblyTemplateService) Get(disassemblyTemplateID int) response.Common
 	return response.SuccessWithData(result)
 }
 
-func (disassemblyTemplateService) Create(paramIn *dto.DisassemblyTemplateCreateOrUpdateDTO) response.Common {
+func (disassemblyTemplateService) Create(paramIn *dto.DisassemblyTemplateCreateOrUpdate) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.DisassemblyTemplate
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -69,7 +69,7 @@ func (disassemblyTemplateService) Create(paramIn *dto.DisassemblyTemplateCreateO
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (disassemblyTemplateService) Update(paramIn *dto.DisassemblyTemplateCreateOrUpdateDTO) response.Common {
+func (disassemblyTemplateService) Update(paramIn *dto.DisassemblyTemplateCreateOrUpdate) response.Common {
 	var paramOut model.DisassemblyTemplate
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -117,7 +117,7 @@ func (disassemblyTemplateService) Delete(disassemblyTemplateID int) response.Com
 	return response.Success()
 }
 
-func (disassemblyTemplateService) List(paramIn dto.DisassemblyTemplateListDTO) response.List {
+func (disassemblyTemplateService) List(paramIn dto.DisassemblyTemplateList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 
@@ -175,12 +175,12 @@ func (disassemblyTemplateService) List(paramIn dto.DisassemblyTemplateListDTO) r
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
-	var list []dto.DisassemblyTemplateGetDTO
+	var list []dto.DisassemblyTemplateGet
 	_ = mapstructure.Decode(&tempList, &list)
 
 	return response.List{
 		Data: list,
-		Paging: &dto.PagingDTO{
+		Paging: &dto.PagingOutput{
 			Page:         sqlCondition.Paging.Page,
 			PageSize:     sqlCondition.Paging.PageSize,
 			TotalPages:   totalPages,

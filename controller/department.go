@@ -28,11 +28,10 @@ func (departmentController) Get(c *gin.Context) {
 	}
 	res := service.DepartmentService.Get(departmentID)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (departmentController) Create(c *gin.Context) {
-	var param dto.DepartmentCreateOrUpdateDTO
+	var param dto.DepartmentCreateOrUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -50,11 +49,10 @@ func (departmentController) Create(c *gin.Context) {
 
 	res := service.DepartmentService.Create(&param)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (departmentController) Update(c *gin.Context) {
-	var param dto.DepartmentCreateOrUpdateDTO
+	var param dto.DepartmentCreateOrUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -92,9 +90,11 @@ func (departmentController) Delete(c *gin.Context) {
 }
 
 func (departmentController) List(c *gin.Context) {
-	var param dto.DepartmentListDTO
+	var param dto.DepartmentList
 	err := c.ShouldBindJSON(&param)
-	//如果json没有传参，会提示EOF错误，这里允许正常运行；如果是其他错误，就正常报错
+
+	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
+	//如果是其他错误，就正常报错
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,

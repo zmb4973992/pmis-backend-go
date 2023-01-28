@@ -1,7 +1,9 @@
 package main
 
 import (
+	"pmis-backend-go/cron"
 	"pmis-backend-go/global"
+	"pmis-backend-go/middleware"
 	"pmis-backend-go/model"
 	"pmis-backend-go/router"
 	"pmis-backend-go/util"
@@ -28,8 +30,14 @@ func main() {
 	//开始采用自定义的方式生成引擎
 	engine := router.Init()
 
-	//global.Logger.Debug("系统配置正常", zap.String("当前运行模式：", global.Config.AppMode))
-	//
+	//开启4个协程，用来保存访问记录到数据库
+	for i := 0; i < 4; i++ {
+		go middleware.SaveOperationLog()
+	}
+
+	//开启定时任务
+	cron.Init()
+
 	//运行服务
 	err := engine.Run(":" + global.Config.HttpPort)
 

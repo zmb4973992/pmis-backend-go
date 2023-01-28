@@ -13,7 +13,7 @@ import (
 
 type dictionaryItemController struct{}
 
-func (dictionaryItemController) Get(c *gin.Context) {
+func (x dictionaryItemController) Get(c *gin.Context) {
 	dictionaryTypeID, err := strconv.Atoi(c.Param("dictionary-type-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -30,7 +30,7 @@ func (dictionaryItemController) Get(c *gin.Context) {
 }
 
 func (dictionaryItemController) Create(c *gin.Context) {
-	var param dto.DictionaryItemCreateOrUpdateDTO
+	var param dto.DictionaryItemCreateOrUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -53,7 +53,7 @@ func (dictionaryItemController) Create(c *gin.Context) {
 }
 
 func (dictionaryItemController) CreateInBatches(c *gin.Context) {
-	var param []dto.DictionaryItemCreateOrUpdateDTO
+	var param []dto.DictionaryItemCreateOrUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -77,7 +77,7 @@ func (dictionaryItemController) CreateInBatches(c *gin.Context) {
 }
 
 func (dictionaryItemController) Update(c *gin.Context) {
-	var param dto.DictionaryItemCreateOrUpdateDTO
+	var param dto.DictionaryItemCreateOrUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)

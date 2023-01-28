@@ -15,7 +15,7 @@ import (
 type userService struct{}
 
 func (userService) Get(userID int) response.Common {
-	var result dto.UserGetDTO
+	var result dto.UserOutput
 	//把基础的账号信息查出来
 	err := global.DB.Model(model.User{}).Where("id = ?", userID).First(&result).Error
 	if err != nil {
@@ -26,7 +26,7 @@ func (userService) Get(userID int) response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (userService) Create(paramIn *dto.UserCreateDTO) response.Common {
+func (userService) Create(paramIn *dto.UserCreate) response.Common {
 	//对数据进行清洗
 	var paramOut model.User
 	paramOut.Username = paramIn.Username
@@ -69,7 +69,7 @@ func (userService) Create(paramIn *dto.UserCreateDTO) response.Common {
 	return response.Success()
 }
 
-func (userService) Update(paramIn *dto.UserUpdateDTO) response.Common {
+func (userService) Update(paramIn *dto.UserUpdate) response.Common {
 	var paramOut model.User
 
 	//先找出原始记录
@@ -120,7 +120,7 @@ func (userService) Delete(userID int) response.Common {
 	return response.Success()
 }
 
-func (userService) List(paramIn dto.UserListDTO) response.List {
+func (userService) List(paramIn dto.UserList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 
@@ -176,7 +176,7 @@ func (userService) List(paramIn dto.UserListDTO) response.List {
 
 	//这里的tempList是基于model的，不能直接传给前端，要处理成dto才行
 	//如果map的字段类型和struct的字段类型不匹配，数据不会同步过来
-	var list []dto.UserGetDTO
+	var list []dto.UserOutput
 	_ = mapstructure.Decode(&tempList, &list)
 
 	//处理字段类型不匹配、或者有特殊格式要求的字段
@@ -207,7 +207,7 @@ func (userService) List(paramIn dto.UserListDTO) response.List {
 
 	return response.List{
 		Data: list,
-		Paging: &dto.PagingDTO{
+		Paging: &dto.PagingOutput{
 			Page:         sqlCondition.Paging.Page,
 			PageSize:     sqlCondition.Paging.PageSize,
 			TotalPages:   totalPages,

@@ -1,27 +1,14 @@
 package dto
 
-type LoginDTO struct {
+//以下为入参
+
+type Login struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
-// UserGetDTO mapstructure用于list
-// list方法中返回的数据为[]map，需要借助mapstructure转换为struct，再返回给前端
-// []map中的键为数据库的字段名，mapstructure需要和[]map中的键名保持一致
-type UserGetDTO struct {
-	BaseDTO           `mapstructure:",squash"` //这里是嵌套结构体，mapstructure必须加squash，否则无法匹配
-	Username          string                   `json:"username" mapstructure:"username"`                       //用户名
-	FullName          *string                  `json:"full_name" mapstructure:"full_name"`                     //全名
-	EmailAddress      *string                  `json:"email_address" mapstructure:"email_address"`             //邮箱地址
-	IsValid           *bool                    `json:"is_valid" mapstructure:"is_valid"`                       //是否有效
-	MobilePhoneNumber *string                  `json:"mobile_phone_number" mapstructure:"mobile_phone_number"` //手机号
-	EmployeeNumber    *string                  `json:"employee_number" mapstructure:"employee_number"`         //工号
-	//Roles             []string `json:"roles" mapstructure:"-"`                                 //角色
-	//Departments       []string `json:"departments" mapstructure:"-"`                           //部门
-}
-
-type UserCreateDTO struct {
-	BaseDTO
+type UserCreate struct {
+	Base
 	Username          string  `json:"username" binding:"required"`
 	Password          string  `json:"password" binding:"required"`
 	FullName          *string `json:"full_name"  binding:"required"`           //全名
@@ -31,8 +18,8 @@ type UserCreateDTO struct {
 	EmployeeNumber    *string `json:"employee_number" binding:"required"`      //工号
 }
 
-type UserUpdateDTO struct {
-	BaseDTO
+type UserUpdate struct {
+	Base
 	FullName          *string `json:"full_name"  binding:"required"`           //全名
 	EmailAddress      *string `json:"email_address" binding:"required"`        //邮箱地址
 	IsValid           *bool   `json:"is_valid" binding:"required"`             //是否有效
@@ -40,11 +27,22 @@ type UserUpdateDTO struct {
 	EmployeeNumber    *string `json:"employee_number" binding:"required"`      //工号
 }
 
-// UserListDTO form用于接收query传参
-type UserListDTO struct {
-	ListDTO
-	IDGte        *int    `form:"id_gte"`
-	IDLte        *int    `form:"id_lte"`
-	IsValid      *bool   `form:"is_valid"`
-	UsernameLike *string `form:"username_like"`
+type UserList struct {
+	ListInput
+	IDGte        *int    `json:"id_gte"`
+	IDLte        *int    `json:"id_lte"`
+	IsValid      *bool   `json:"is_valid"`
+	UsernameLike *string `json:"username_like"`
+}
+
+// 以下为出参
+
+type UserOutput struct {
+	Base              `mapstructure:",squash"` //这里是嵌套结构体，mapstructure必须加squash，否则无法匹配
+	Username          string                   `json:"username" mapstructure:"username"`                       //用户名
+	FullName          *string                  `json:"full_name" mapstructure:"full_name"`                     //全名
+	EmailAddress      *string                  `json:"email_address" mapstructure:"email_address"`             //邮箱地址
+	IsValid           *bool                    `json:"is_valid" mapstructure:"is_valid"`                       //是否有效
+	MobilePhoneNumber *string                  `json:"mobile_phone_number" mapstructure:"mobile_phone_number"` //手机号
+	EmployeeNumber    *string                  `json:"employee_number" mapstructure:"employee_number"`         //工号
 }

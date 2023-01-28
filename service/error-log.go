@@ -16,7 +16,7 @@ import (
 type errorLogService struct{}
 
 func (errorLogService) Get(errorLogID int) response.Common {
-	var result dto.ErrorLogGetDTO
+	var result dto.ErrorLogOutput
 	err := global.DB.Model(model.ErrorLog{}).
 		Where("id = ?", errorLogID).First(&result).Error
 	if err != nil {
@@ -30,7 +30,7 @@ func (errorLogService) Get(errorLogID int) response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (errorLogService) Create(paramIn *dto.ErrorLogCreateOrUpdateDTO) response.Common {
+func (errorLogService) Create(paramIn *dto.ErrorLogCreateOrUpdate) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.ErrorLog
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -82,7 +82,7 @@ func (errorLogService) Create(paramIn *dto.ErrorLogCreateOrUpdateDTO) response.C
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (errorLogService) Update(paramIn *dto.ErrorLogCreateOrUpdateDTO) response.Common {
+func (errorLogService) Update(paramIn *dto.ErrorLogCreateOrUpdate) response.Common {
 	var paramOut model.ErrorLog
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -138,7 +138,8 @@ func (errorLogService) Delete(errorLogID int) response.Common {
 	return response.Success()
 }
 
-func (errorLogService) List(paramIn dto.DisassemblyListDTO) response.List {
+// 这个函数有问题，待修改
+func (errorLogService) List(paramIn dto.DisassemblyList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 
@@ -196,12 +197,12 @@ func (errorLogService) List(paramIn dto.DisassemblyListDTO) response.List {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
-	var list []dto.DisassemblyOutputDTO
+	var list []dto.DisassemblyOutput
 	_ = mapstructure.Decode(&tempList, &list)
 
 	return response.List{
 		Data: list,
-		Paging: &dto.PagingDTO{
+		Paging: &dto.PagingOutput{
 			Page:         sqlCondition.Paging.Page,
 			PageSize:     sqlCondition.Paging.PageSize,
 			TotalPages:   totalPages,

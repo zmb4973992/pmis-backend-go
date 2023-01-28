@@ -15,7 +15,7 @@ import (
 type disassemblyService struct{}
 
 func (disassemblyService) Get(disassemblyID int) response.Common {
-	var result dto.DisassemblyOutputDTO
+	var result dto.DisassemblyOutput
 	err := global.DB.Model(model.Disassembly{}).
 		Where("id = ?", disassemblyID).First(&result).Error
 	if err != nil {
@@ -25,7 +25,7 @@ func (disassemblyService) Get(disassemblyID int) response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (disassemblyService) Tree(paramIn dto.DisassemblyTreeDTO) response.Common {
+func (disassemblyService) Tree(paramIn dto.DisassemblyTree) response.Common {
 	//根据project_id获取disassembly_id
 	var disassemblyID int
 	err := global.DB.Model(model.Disassembly{}).Select("id").
@@ -37,7 +37,7 @@ func (disassemblyService) Tree(paramIn dto.DisassemblyTreeDTO) response.Common {
 	}
 
 	//第一轮查找
-	var result1 []dto.DisassemblyOutputForTreeDTO
+	var result1 []dto.DisassemblyTreeOutput
 	err = global.DB.Model(model.Disassembly{}).
 		Where("id = ?", disassemblyID).First(&result1).Error
 	if err != nil {
@@ -45,21 +45,21 @@ func (disassemblyService) Tree(paramIn dto.DisassemblyTreeDTO) response.Common {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	//第二轮查找
-	var result2 []dto.DisassemblyOutputForTreeDTO
+	var result2 []dto.DisassemblyTreeOutput
 	global.DB.Model(model.Disassembly{}).
 		Where("superior_id = ?", disassemblyID).Find(&result2)
 	for index2 := range result2 {
 		//第三轮查找
-		var result3 []dto.DisassemblyOutputForTreeDTO
+		var result3 []dto.DisassemblyTreeOutput
 		global.DB.Model(model.Disassembly{}).
 			Where("superior_id = ?", result2[index2].ID).Find(&result3)
 		//第四轮查找
 		for index3 := range result3 {
-			var result4 []dto.DisassemblyOutputForTreeDTO
+			var result4 []dto.DisassemblyTreeOutput
 			global.DB.Model(model.Disassembly{}).
 				Where("superior_id = ?", result3[index3].ID).Find(&result4)
 			for index4 := range result4 {
-				var result5 []dto.DisassemblyOutputForTreeDTO
+				var result5 []dto.DisassemblyTreeOutput
 				global.DB.Model(model.Disassembly{}).
 					Where("superior_id = ?", result4[index4].ID).Find(&result5)
 				result4[index4].Children = append(result4[index4].Children, result5...)
@@ -72,7 +72,7 @@ func (disassemblyService) Tree(paramIn dto.DisassemblyTreeDTO) response.Common {
 	return response.SuccessWithData(result1)
 }
 
-func (disassemblyService) Create(paramIn *dto.DisassemblyCreateOrUpdateDTO) response.Common {
+func (disassemblyService) Create(paramIn *dto.DisassemblyCreateOrUpdate) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.Disassembly
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -111,7 +111,7 @@ func (disassemblyService) Create(paramIn *dto.DisassemblyCreateOrUpdateDTO) resp
 	return response.Success()
 }
 
-func (disassemblyService) CreateInBatches(paramIn []dto.DisassemblyCreateOrUpdateDTO) response.Common {
+func (disassemblyService) CreateInBatches(paramIn []dto.DisassemblyCreateOrUpdate) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut []model.Disassembly
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -158,7 +158,7 @@ func (disassemblyService) CreateInBatches(paramIn []dto.DisassemblyCreateOrUpdat
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (disassemblyService) Update(paramIn *dto.DisassemblyCreateOrUpdateDTO) response.Common {
+func (disassemblyService) Update(paramIn *dto.DisassemblyCreateOrUpdate) response.Common {
 	var paramOut model.Disassembly
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -241,7 +241,7 @@ func (disassemblyService) DeleteWithSubitems(disassemblyID int) response.Common 
 	return response.Success()
 }
 
-func (disassemblyService) List(paramIn dto.DisassemblyListDTO) response.List {
+func (disassemblyService) List(paramIn dto.DisassemblyList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 
@@ -299,12 +299,12 @@ func (disassemblyService) List(paramIn dto.DisassemblyListDTO) response.List {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
-	var list []dto.DisassemblyOutputDTO
+	var list []dto.DisassemblyOutput
 	_ = mapstructure.Decode(&tempList, &list)
 
 	return response.List{
 		Data: list,
-		Paging: &dto.PagingDTO{
+		Paging: &dto.PagingOutput{
 			Page:         sqlCondition.Paging.Page,
 			PageSize:     sqlCondition.Paging.PageSize,
 			TotalPages:   totalPages,

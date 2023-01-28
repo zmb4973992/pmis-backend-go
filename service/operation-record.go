@@ -7,7 +7,6 @@ import (
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
-	"time"
 )
 
 // operationRecordService 没有数据、只有方法，所有的数据都放在DTO里
@@ -16,26 +15,21 @@ import (
 type operationRecordService struct{}
 
 func (operationRecordService) Get(operationRecordID int) response.Common {
-	var result dto.OperationRecordGetDTO
+	var result dto.OperationLogOutput
 	//把基础的拆解信息查出来
-	err := global.DB.Model(model.OperationRecord{}).
+	err := global.DB.Model(model.OperationLog{}).
 		Where("id = ?", operationRecordID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
-	//调整日期格式
-	if result.Date != nil {
-		date := *result.Date
-		*result.Date = date[:10]
-	}
 
 	return response.SuccessWithData(result)
 }
 
-func (operationRecordService) Create(paramIn *dto.OperationRecordCreateOrUpdateDTO) response.Common {
+func (operationRecordService) Create(paramIn *dto.OperationLogCreateOrUpdate) response.Common {
 	//对dto进行清洗，生成dao层需要的model
-	var paramOut model.OperationRecord
+	var paramOut model.OperationLog
 
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	if paramIn.Creator != nil {
@@ -46,35 +40,23 @@ func (operationRecordService) Create(paramIn *dto.OperationRecordCreateOrUpdateD
 		paramOut.LastModifier = paramIn.LastModifier
 	}
 
-	if *paramIn.ProjectID != -1 {
-		paramOut.ProjectID = paramIn.ProjectID
-	}
-
-	if *paramIn.OperatorID != -1 {
-		paramOut.OperatorID = paramIn.OperatorID
-	}
-
-	if *paramIn.ProjectID != -1 {
-		paramOut.ProjectID = paramIn.ProjectID
-	}
-
-	if *paramIn.Date != "" {
-		date, err := time.Parse("2006-01-02", *paramIn.Date)
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return response.Failure(util.ErrorInvalidJSONParameters)
-		} else {
-			paramOut.Date = &date
-		}
-	}
-
-	if *paramIn.Action != "" {
-		paramOut.Action = paramIn.Action
-	}
-
-	if *paramIn.Detail != "" {
-		paramOut.Detail = paramIn.Detail
-	}
+	//if *paramIn.Date != "" {
+	//	date, err := time.Parse("2006-01-02", *paramIn.Date)
+	//	if err != nil {
+	//		global.SugaredLogger.Errorln(err)
+	//		return response.Failure(util.ErrorInvalidJSONParameters)
+	//	} else {
+	//		//paramOut.Date = &date
+	//	}
+	//}
+	//
+	//if *paramIn.Action != "" {
+	//	paramOut.Action = paramIn.Action
+	//}
+	//
+	//if *paramIn.Detail != "" {
+	//	paramOut.Detail = paramIn.Detail
+	//}
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
@@ -87,8 +69,8 @@ func (operationRecordService) Create(paramIn *dto.OperationRecordCreateOrUpdateD
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (operationRecordService) Update(paramIn *dto.OperationRecordCreateOrUpdateDTO) response.Common {
-	var paramOut model.OperationRecord
+func (operationRecordService) Update(paramIn *dto.OperationLogCreateOrUpdate) response.Common {
+	var paramOut model.OperationLog
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	if paramIn.LastModifier != nil {
@@ -96,37 +78,37 @@ func (operationRecordService) Update(paramIn *dto.OperationRecordCreateOrUpdateD
 	}
 
 	//这里不需要进行非空判定，因为前面的dto已经设定了必须绑定
-	if *paramIn.ProjectID == -1 {
-		paramOut.ProjectID = nil
-	} else {
-		paramOut.ProjectID = paramIn.ProjectID
-	}
-
-	if *paramIn.OperatorID != -1 {
-		paramOut.OperatorID = paramIn.OperatorID
-	}
-
-	if *paramIn.ProjectID != -1 {
-		paramOut.ProjectID = paramIn.ProjectID
-	}
-
-	if *paramIn.Date != "" {
-		date, err := time.Parse("2006-01-02", *paramIn.Date)
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return response.Failure(util.ErrorInvalidJSONParameters)
-		} else {
-			paramOut.Date = &date
-		}
-	}
-
-	if *paramIn.Action != "" {
-		paramOut.Action = paramIn.Action
-	}
-
-	if *paramIn.Detail != "" {
-		paramOut.Detail = paramIn.Detail
-	}
+	//if *paramIn.ProjectID == -1 {
+	//	paramOut.ProjectID = nil
+	//} else {
+	//	paramOut.ProjectID = paramIn.ProjectID
+	//}
+	//
+	//if *paramIn.OperatorID != -1 {
+	//	paramOut.OperatorID = paramIn.OperatorID
+	//}
+	//
+	//if *paramIn.ProjectID != -1 {
+	//	paramOut.ProjectID = paramIn.ProjectID
+	//}
+	//
+	//if *paramIn.Date != "" {
+	//	date, err := time.Parse("2006-01-02", *paramIn.Date)
+	//	if err != nil {
+	//		global.SugaredLogger.Errorln(err)
+	//		return response.Failure(util.ErrorInvalidJSONParameters)
+	//	} else {
+	//		paramOut.Date = &date
+	//	}
+	//}
+	//
+	//if *paramIn.Action != "" {
+	//	paramOut.Action = paramIn.Action
+	//}
+	//
+	//if *paramIn.Detail != "" {
+	//	paramOut.Detail = paramIn.Detail
+	//}
 
 	//清洗完毕，开始update
 	err := global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
@@ -139,7 +121,7 @@ func (operationRecordService) Update(paramIn *dto.OperationRecordCreateOrUpdateD
 }
 
 func (operationRecordService) Delete(operationRecordID int) response.Common {
-	err := global.DB.Delete(&model.OperationRecord{}, operationRecordID).Error
+	err := global.DB.Delete(&model.OperationLog{}, operationRecordID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
@@ -147,7 +129,7 @@ func (operationRecordService) Delete(operationRecordID int) response.Common {
 	return response.Success()
 }
 
-func (operationRecordService) List(paramIn dto.OperationRecordListDTO) response.List {
+func (operationRecordService) List(paramIn dto.OperationRecordList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 
@@ -185,7 +167,7 @@ func (operationRecordService) List(paramIn dto.OperationRecordListDTO) response.
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
-		ok := sqlCondition.ValidateColumn(orderBy, model.OperationRecord{})
+		ok := sqlCondition.ValidateColumn(orderBy, model.OperationLog{})
 		if ok {
 			sqlCondition.Sorting.OrderBy = orderBy
 		}
@@ -197,8 +179,8 @@ func (operationRecordService) List(paramIn dto.OperationRecordListDTO) response.
 		sqlCondition.Sorting.Desc = false
 	}
 
-	tempList := sqlCondition.Find(global.DB, model.OperationRecord{})
-	totalRecords := sqlCondition.Count(global.DB, model.OperationRecord{})
+	tempList := sqlCondition.Find(global.DB, model.OperationLog{})
+	totalRecords := sqlCondition.Count(global.DB, model.OperationLog{})
 	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
@@ -207,18 +189,18 @@ func (operationRecordService) List(paramIn dto.OperationRecordListDTO) response.
 
 	//这里的tempList是基于model的，不能直接传给前端，要处理成dto才行
 	//如果map的字段类型和struct的字段类型不匹配，数据不会同步过来
-	var list []dto.OperationRecordGetDTO
+	var list []dto.OperationLogOutput
 	_ = mapstructure.Decode(&tempList, &list)
 
 	//处理字段类型不匹配、或者有特殊格式要求的字段
-	for i := range tempList {
-		a := tempList[i]["date"].(*time.Time).Format("2006-01-02")
-		list[i].Date = &a
-	}
+	//for i := range tempList {
+	//	a := tempList[i]["date"].(*time.Time).Format("2006-01-02")
+	//	list[i].Date = &a
+	//}
 
 	return response.List{
 		Data: list,
-		Paging: &dto.PagingDTO{
+		Paging: &dto.PagingOutput{
 			Page:         sqlCondition.Paging.Page,
 			PageSize:     sqlCondition.Paging.PageSize,
 			TotalPages:   totalPages,

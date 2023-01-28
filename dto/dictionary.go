@@ -1,16 +1,20 @@
 package dto
 
-type DictionaryGetDTO struct {
-	ProjectType  []string `json:"project_type"`
-	Province     []string `json:"province"`
-	ContractType []string `json:"contract_type"`
-}
+//以下为入参
 
-type DictionaryListDTO struct {
-	//ListDTO
+type DictionaryList struct {
+	//List
 	//SuperiorID *int    `form:"superior_id"`
 	//Level      *string `form:"level"`
 	//
 	//Name     *string `form:"name"`
 	//NameLike *string `form:"name_like"`
+}
+
+//以下为出参
+
+type DictionaryOutput struct {
+	ProjectType  []string `json:"project_type"`
+	Province     []string `json:"province"`
+	ContractType []string `json:"contract_type"`
 }

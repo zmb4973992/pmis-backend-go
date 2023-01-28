@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
@@ -27,7 +29,7 @@ func (disassemblyTemplateController) Get(c *gin.Context) {
 }
 
 func (disassemblyTemplateController) Create(c *gin.Context) {
-	var param dto.DisassemblyTemplateCreateOrUpdateDTO
+	var param dto.DisassemblyTemplateCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -51,7 +53,7 @@ func (disassemblyTemplateController) Create(c *gin.Context) {
 }
 
 func (disassemblyTemplateController) Update(c *gin.Context) {
-	var param dto.DisassemblyTemplateCreateOrUpdateDTO
+	var param dto.DisassemblyTemplateCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -93,10 +95,12 @@ func (disassemblyTemplateController) Delete(c *gin.Context) {
 }
 
 func (disassemblyTemplateController) List(c *gin.Context) {
-	var param dto.DisassemblyTemplateListDTO
-	err := c.ShouldBindQuery(&param)
+	var param dto.DisassemblyTemplateList
+	err := c.ShouldBindJSON(&param)
 
-	if err != nil {
+	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
+	//如果是其他错误，就正常报错
+	if err != nil && errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))

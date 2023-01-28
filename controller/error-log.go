@@ -28,7 +28,7 @@ func (errorLogController) Get(c *gin.Context) {
 }
 
 func (errorLogController) Create(c *gin.Context) {
-	var param dto.ErrorLogCreateOrUpdateDTO
+	var param dto.ErrorLogCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -52,7 +52,7 @@ func (errorLogController) Create(c *gin.Context) {
 }
 
 func (errorLogController) Update(c *gin.Context) {
-	var param dto.ErrorLogCreateOrUpdateDTO
+	var param dto.ErrorLogCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {

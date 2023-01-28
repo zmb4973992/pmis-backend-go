@@ -1,7 +1,9 @@
 package controller
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
+	"io"
 	"net/http"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
@@ -32,7 +34,7 @@ func (relatedPartyController) Get(c *gin.Context) {
 }
 
 func (relatedPartyController) Create(c *gin.Context) {
-	var param dto.RelatedPartyCreateOrUpdateDTO
+	var param dto.RelatedPartyCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -56,7 +58,7 @@ func (relatedPartyController) Create(c *gin.Context) {
 }
 
 func (relatedPartyController) Update(c *gin.Context) {
-	var param dto.RelatedPartyCreateOrUpdateDTO
+	var param dto.RelatedPartyCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -98,9 +100,12 @@ func (relatedPartyController) Delete(c *gin.Context) {
 }
 
 func (relatedPartyController) List(c *gin.Context) {
-	var param dto.RelatedPartyListDTO
+	var param dto.RelatedPartyList
 	err := c.ShouldBindJSON(&param)
-	if err != nil {
+
+	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
+	//如果是其他错误，就正常报错
+	if err != nil && errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))

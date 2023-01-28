@@ -29,7 +29,7 @@ func (projectController) Get(c *gin.Context) {
 }
 
 func (projectController) Create(c *gin.Context) {
-	var param dto.ProjectCreateOrUpdateDTO
+	var param dto.ProjectCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -53,7 +53,7 @@ func (projectController) Create(c *gin.Context) {
 }
 
 func (projectController) CreateInBatches(c *gin.Context) {
-	var param []dto.ProjectCreateOrUpdateDTO
+	var param []dto.ProjectCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -78,7 +78,7 @@ func (projectController) CreateInBatches(c *gin.Context) {
 }
 
 func (projectController) Update(c *gin.Context) {
-	var param dto.ProjectCreateOrUpdateDTO
+	var param dto.ProjectCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -119,9 +119,11 @@ func (projectController) Delete(c *gin.Context) {
 }
 
 func (projectController) List(c *gin.Context) {
-	var param dto.ProjectListDTO
+	var param dto.ProjectList
 	err := c.ShouldBindJSON(&param)
 
+	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
+	//如果是其他错误，就正常报错
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
