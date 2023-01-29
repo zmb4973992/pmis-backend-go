@@ -5,6 +5,7 @@ type BaseController struct{}
 
 type controller struct {
 	departmentController
+	noMethodController
 	noRouteController
 	disassemblyController
 	disassemblyTemplateController
@@ -21,6 +22,7 @@ type controller struct {
 
 var (
 	entrance                      = new(controller)
+	NoMethodController            = entrance.noMethodController
 	NoRouteController             = entrance.noRouteController
 	DepartmentController          = entrance.departmentController
 	DisassemblyController         = entrance.disassemblyController

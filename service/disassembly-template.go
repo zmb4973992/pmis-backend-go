@@ -98,7 +98,7 @@ func (disassemblyTemplateService) Update(paramIn *dto.DisassemblyTemplateCreateO
 	}
 
 	//清洗完毕，开始update
-	err := global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
+	err := global.DB.Where("id = ?", paramOut.ID).Omit(fieldsToBeOmittedWhenUpdating...).Save(&paramOut).Error
 
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
@@ -155,7 +155,7 @@ func (disassemblyTemplateService) List(paramIn dto.DisassemblyTemplateList) resp
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
-		ok := sqlCondition.ValidateColumn(orderBy, model.DisassemblyTemplate{})
+		ok := sqlCondition.FieldIsInModel(model.DisassemblyTemplate{}, orderBy)
 		if ok {
 			sqlCondition.Sorting.OrderBy = orderBy
 		}
@@ -169,7 +169,7 @@ func (disassemblyTemplateService) List(paramIn dto.DisassemblyTemplateList) resp
 
 	tempList := sqlCondition.Find(global.DB, model.DisassemblyTemplate{})
 	totalRecords := sqlCondition.Count(global.DB, model.DisassemblyTemplate{})
-	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
+	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
@@ -181,10 +181,10 @@ func (disassemblyTemplateService) List(paramIn dto.DisassemblyTemplateList) resp
 	return response.List{
 		Data: list,
 		Paging: &dto.PagingOutput{
-			Page:         sqlCondition.Paging.Page,
-			PageSize:     sqlCondition.Paging.PageSize,
-			TotalPages:   totalPages,
-			TotalRecords: totalRecords,
+			Page:            sqlCondition.Paging.Page,
+			PageSize:        sqlCondition.Paging.PageSize,
+			NumberOfPages:   totalPages,
+			NumberOfRecords: totalRecords,
 		},
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),

@@ -3,6 +3,7 @@ package global
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
+	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -18,6 +19,7 @@ var (
 	// https://pkg.go.dev/go.uber.org/zap#SugaredLogger
 	SugaredLogger *zap.SugaredLogger
 	v             = viper.New()
+	Validate      = validator.New()
 )
 
 // 这层只是中间的汇总层，只是包内引用、不展示，所以小写
@@ -104,40 +106,62 @@ func InitConfig() {
 }
 
 func loadConfig() {
-	Config.APPConfig.AppMode = v.GetString("app.app_mode")
-	Config.APPConfig.HttpPort = v.GetString("app.http_port")
+	Config.APPConfig.AppMode = v.GetString("app.app-mode")
+	allowedAppMode := []string{"debug", "test", "release"}
+	if !isInSlice(Config.APPConfig.AppMode, allowedAppMode) {
+		Config.APPConfig.AppMode = "debug"
+	}
+	Config.APPConfig.HttpPort = v.GetString("app.http-port")
 
-	Config.DBConfig.DbHost = v.GetString("database.db_host")
-	Config.DBConfig.DbPort = v.GetString("database.db_port")
-	Config.DBConfig.DbName = v.GetString("database.db_name")
-	Config.DBConfig.DbUsername = v.GetString("database.db_username")
-	Config.DBConfig.DbPassword = v.GetString("database.db_password")
+	Config.DBConfig.DbHost = v.GetString("database.db-host")
+	Config.DBConfig.DbPort = v.GetString("database.db-port")
+	Config.DBConfig.DbName = v.GetString("database.db-name")
+	Config.DBConfig.DbUsername = v.GetString("database.db-username")
+	Config.DBConfig.DbPassword = v.GetString("database.db-password")
 	Config.DBConfig.DSN = "sqlserver://" + Config.DBConfig.DbUsername +
 		":" + Config.DBConfig.DbPassword + "@" + Config.DBConfig.DbHost +
 		":" + Config.DBConfig.DbPort + "?database=" + Config.DBConfig.DbName
-	Config.DBConfig.OmittedColumns = v.GetStringSlice("database.omitted_columns")
+	Config.DBConfig.OmittedColumns = v.GetStringSlice("database.omitted-columns")
 
 	//配置里的密钥是string类型，jwt要求为[]byte类型，必须转换后才能使用
-	Config.JWTConfig.SecretKey = []byte(v.GetString("jwt.secret_key"))
-	Config.JWTConfig.ValidityPeriod = v.GetInt("jwt.validity_period")
+	Config.JWTConfig.SecretKey = []byte(v.GetString("jwt.secret-key"))
+	Config.JWTConfig.ValidityPeriod = v.GetInt("jwt.validity-period")
 
-	Config.LogConfig.FileName = v.GetString("log.log_path") + "/status.log"
-	Config.LogConfig.MaxSizeForLog = v.GetInt("log.log_max_size")
-	Config.LogConfig.MaxBackup = v.GetInt("log.log_max_backup")
-	Config.LogConfig.MaxAge = v.GetInt("log.log_max_age")
-	Config.LogConfig.Compress = v.GetBool("log.log_compress")
+	Config.LogConfig.FileName = v.GetString("log.log-path") + "/status.log"
+	Config.LogConfig.MaxSizeForLog = v.GetInt("log.log-max-size")
+	Config.LogConfig.MaxBackup = v.GetInt("log.log-max-backup")
+	Config.LogConfig.MaxAge = v.GetInt("log.log-max-age")
+	Config.LogConfig.Compress = v.GetBool("log.log-compress")
 
-	Config.UploadConfig.FullPath = v.GetString("upload_files.full_path") + "/"
-	Config.UploadConfig.MaxSizeForUpload = v.GetInt64("upload_files.max_size") << 20
+	Config.UploadConfig.FullPath = v.GetString("upload-files.full-path") + "/"
+	Config.UploadConfig.MaxSizeForUpload = v.GetInt64("upload-files.max-size") << 20
 
-	Config.EmailConfig.OutgoingMailServer = v.GetString("email.outgoing_mail_server")
+	Config.EmailConfig.OutgoingMailServer = v.GetString("email.outgoing-mail-server")
 	Config.EmailConfig.Port = v.GetInt("email.port")
 	Config.EmailConfig.Account = v.GetString("email.account")
 	Config.EmailConfig.Password = v.GetString("email.password")
 
-	Config.PagingConfig.DefaultPageSize = v.GetInt("paging.default_page_size")
-	Config.PagingConfig.MaxPageSize = v.GetInt("paging.max_page_size")
+	Config.PagingConfig.DefaultPageSize = v.GetInt("paging.default-page-size")
+	Config.PagingConfig.MaxPageSize = v.GetInt("paging.max-page-size")
 
 	Config.RateLimitConfig.Limit = v.GetFloat64("rate-limit.limit")
 	Config.RateLimitConfig.Burst = v.GetInt("rate-limit.burst")
+}
+
+// byte 是 uint8 的别名,rune 是 int32 的别名
+type typeForSliceComparing interface {
+	bool | string | int | int64 | int32 | int16 | int8 |
+		uint | uint64 | uint32 | uint16 | uint8 |
+		float64 | float32
+}
+
+// isInSlice 这里使用了泛型，至少需要1.18版本以上
+// 校验单个内容是否包含在切片中
+func isInSlice[T typeForSliceComparing](element T, slice []T) bool {
+	for _, v := range slice {
+		if element == v {
+			return true
+		}
+	}
+	return false
 }

@@ -59,6 +59,8 @@ func InitDatabase() {
 
 	//生成初始数据
 	generateInitialData()
+
+	//
 }
 
 func createView() {

@@ -1,15 +1,29 @@
 package router
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"pmis-backend-go/controller"
+	"pmis-backend-go/global"
 	"pmis-backend-go/middleware"
 )
 
 // Init 初始化路由器,最终返回*gin.Engine类型，给main调用
 func Init() *gin.Engine {
+	//设置运行模式
+	gin.SetMode(global.Config.APPConfig.AppMode)
+	fmt.Println("当前运行模式为：", gin.Mode())
+
 	//使用gin框架，生成默认的空引擎
 	engine := gin.New()
+
+	//路由不匹配时的处理
+	engine.NoRoute(controller.NoRouteController.NoRoute)
+
+	//请求方法被禁止时的处理（注意是被禁止，而不是找不到相应方法）
+	//暂时不知道怎么具体应用，也没什么影响，以后再说
+	engine.NoMethod(controller.NoMethodController.NoMethod)
+
 	//全局中间件
 	engine.Use(middleware.ZapLogger(), gin.Recovery(), middleware.Cors())
 
@@ -92,7 +106,7 @@ func Init() *gin.Engine {
 		dictionaryType := api.Group("/dictionary-type")
 		dictionaryType.POST("", middleware.OperationLog(), controller.DictionaryTypeController.Create)                       //新增字典类型
 		dictionaryType.POST("/batch", middleware.OperationLog(), controller.DictionaryTypeController.CreateInBatches)        //批量新增字典类型
-		dictionaryType.PUT("/:dictionary-type-id", middleware.OperationLog(), controller.DictionaryTypeController.Update)    //修改字典类型
+		dictionaryType.PATCH("/:dictionary-type-id", middleware.OperationLog(), controller.DictionaryTypeController.Update)  //修改字典类型
 		dictionaryType.DELETE("/:dictionary-type-id", middleware.OperationLog(), controller.DictionaryTypeController.Delete) //删除字典类型
 		dictionaryType.POST("/list", controller.DictionaryTypeController.List)                                               //获取字典类型的列表
 
@@ -103,8 +117,6 @@ func Init() *gin.Engine {
 		api.PUT("/dictionary-item/:dictionary-item-id", controller.DictionaryItemController.Update)    //修改字典项的单个值
 		api.DELETE("/dictionary-item/:dictionary-item-id", controller.DictionaryItemController.Delete) //删除字典项的单个值
 	}
-
-	engine.NoRoute(controller.NoRouteController.NoRoute)
 
 	//引擎处理完成后，返回
 	return engine

@@ -102,7 +102,7 @@ func (userService) Update(paramIn *dto.UserUpdate) response.Common {
 	}
 
 	err = global.DB.Where("id = ?", paramOut.ID).
-		Omit("created_at", "creator").Save(paramOut).Error
+		Omit(fieldsToBeOmittedWhenUpdating...).Save(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -154,7 +154,7 @@ func (userService) List(paramIn dto.UserList) response.List {
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
-		ok := sqlCondition.ValidateColumn(orderBy, model.User{})
+		ok := sqlCondition.FieldIsInModel(model.User{}, orderBy)
 		if ok {
 			sqlCondition.Sorting.OrderBy = orderBy
 		}
@@ -168,7 +168,7 @@ func (userService) List(paramIn dto.UserList) response.List {
 
 	tempList := sqlCondition.Find(global.DB, model.User{})
 	totalRecords := sqlCondition.Count(global.DB, model.User{})
-	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
+	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
@@ -208,10 +208,10 @@ func (userService) List(paramIn dto.UserList) response.List {
 	return response.List{
 		Data: list,
 		Paging: &dto.PagingOutput{
-			Page:         sqlCondition.Paging.Page,
-			PageSize:     sqlCondition.Paging.PageSize,
-			TotalPages:   totalPages,
-			TotalRecords: totalRecords,
+			Page:            sqlCondition.Paging.Page,
+			PageSize:        sqlCondition.Paging.PageSize,
+			NumberOfPages:   totalPages,
+			NumberOfRecords: totalRecords,
 		},
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),

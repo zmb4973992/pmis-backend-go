@@ -26,8 +26,11 @@ const (
 	ErrorNeedAdminPrivilege
 	ErrorFailToEncrypt
 	ErrorInvalidRequest
+	ErrorMethodNotAllowed
 	ErrorInvalidColumns
 	ErrorRequestFrequencyTooHigh
+	ErrorFieldsToBeUpdatedNotFound
+	ErrorSortingFieldDoesNotExist
 )
 
 // Message 自定义错误的message
@@ -58,17 +61,21 @@ var Message = map[int]string{
 	ErrorPermissionDenied:    "权限不足",
 	ErrorNeedAdminPrivilege:  "权限不足，该操作需要管理员权限",
 
-	ErrorFailToEncrypt:  "加密失败",
-	ErrorInvalidRequest: "请求路径错误",
-	ErrorInvalidColumns: "列名无效",
+	ErrorFailToEncrypt:    "加密失败",
+	ErrorInvalidRequest:   "请求路径错误",
+	ErrorMethodNotAllowed: "请求方法错误",
+	ErrorInvalidColumns:   "列名无效",
 
-	ErrorRequestFrequencyTooHigh: "请求频率过高，请稍后再试",
+	ErrorRequestFrequencyTooHigh:   "请求频率过高，请稍后再试",
+	ErrorFieldsToBeUpdatedNotFound: "未找到需要更新的字段",
+	ErrorSortingFieldDoesNotExist:  "排序字段不存在",
 }
 
 func GetMessage(code int) string {
 	message, ok := Message[code]
 	if !ok {
-		return "由于错误代码未定义返回信息，导致获取错误信息失败，建议检查utils/code-and-message相关设置"
+		return "由于错误代码未定义返回信息，导致获取错误信息失败，" +
+			"建议检查utils/code-and-message相关设置"
 	}
 	return message
 }

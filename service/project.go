@@ -224,7 +224,7 @@ func (projectService) Update(paramIn *dto.ProjectCreateOrUpdate) response.Common
 	}
 
 	//清洗完毕，开始update
-	err := global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
+	err := global.DB.Where("id = ?", paramOut.ID).Omit(fieldsToBeOmittedWhenUpdating...).Save(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -312,7 +312,7 @@ func (projectService) List(paramIn dto.ProjectList) response.List {
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
-		ok := sqlCondition.ValidateColumn(orderBy, model.Project{})
+		ok := sqlCondition.FieldIsInModel(model.Project{}, orderBy)
 		if ok {
 			sqlCondition.Sorting.OrderBy = orderBy
 		}
@@ -326,7 +326,7 @@ func (projectService) List(paramIn dto.ProjectList) response.List {
 	//需要先count再find，因为find会改变db的指针
 	totalRecords := sqlCondition.Count(db, model.Project{})
 	tempList := sqlCondition.Find(db, model.Project{})
-	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
+	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
@@ -351,10 +351,10 @@ func (projectService) List(paramIn dto.ProjectList) response.List {
 	return response.List{
 		Data: list,
 		Paging: &dto.PagingOutput{
-			Page:         sqlCondition.Paging.Page,
-			PageSize:     sqlCondition.Paging.PageSize,
-			TotalPages:   totalPages,
-			TotalRecords: totalRecords,
+			Page:            sqlCondition.Paging.Page,
+			PageSize:        sqlCondition.Paging.PageSize,
+			NumberOfPages:   totalPages,
+			NumberOfRecords: totalRecords,
 		},
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),

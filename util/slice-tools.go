@@ -1,6 +1,6 @@
 package util
 
-//byte 是 uint8 的别名,rune 是 int32 的别名
+// byte 是 uint8 的别名,rune 是 int32 的别名
 type typeForSliceComparing interface {
 	bool | string | int | int64 | int32 | int16 | int8 |
 		uint | uint64 | uint32 | uint16 | uint8 |

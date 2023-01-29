@@ -120,7 +120,7 @@ func (errorLogService) Update(paramIn *dto.ErrorLogCreateOrUpdate) response.Comm
 	}
 
 	//清洗完毕，开始update
-	err := global.DB.Where("id = ?", paramOut.ID).Omit("created_at", "creator").Save(&paramOut).Error
+	err := global.DB.Where("id = ?", paramOut.ID).Omit(fieldsToBeOmittedWhenUpdating...).Save(&paramOut).Error
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -177,7 +177,7 @@ func (errorLogService) List(paramIn dto.DisassemblyList) response.List {
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
-		ok := sqlCondition.ValidateColumn(orderBy, model.ErrorLog{})
+		ok := sqlCondition.FieldIsInModel(model.ErrorLog{}, orderBy)
 		if ok {
 			sqlCondition.Sorting.OrderBy = orderBy
 		}
@@ -191,7 +191,7 @@ func (errorLogService) List(paramIn dto.DisassemblyList) response.List {
 
 	tempList := sqlCondition.Find(global.DB, model.ErrorLog{})
 	totalRecords := sqlCondition.Count(global.DB, model.ErrorLog{})
-	totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
+	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
@@ -203,10 +203,10 @@ func (errorLogService) List(paramIn dto.DisassemblyList) response.List {
 	return response.List{
 		Data: list,
 		Paging: &dto.PagingOutput{
-			Page:         sqlCondition.Paging.Page,
-			PageSize:     sqlCondition.Paging.PageSize,
-			TotalPages:   totalPages,
-			TotalRecords: totalRecords,
+			Page:            sqlCondition.Paging.Page,
+			PageSize:        sqlCondition.Paging.PageSize,
+			NumberOfPages:   totalPages,
+			NumberOfRecords: totalRecords,
 		},
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),

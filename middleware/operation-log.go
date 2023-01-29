@@ -40,6 +40,9 @@ func OperationLog() gin.HandlerFunc {
 		tempPath := c.FullPath()
 		operationLog.Path = &tempPath
 
+		//获取URI参数
+		operationLog.URIParams = c.Params
+
 		//获取请求方式
 		tempMethod := c.Request.Method
 		operationLog.Method = &tempMethod

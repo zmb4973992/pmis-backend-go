@@ -11,24 +11,23 @@ import (
 
 type dictionaryTypeService struct{}
 
-func (dictionaryTypeService) Create(paramIn *dto.DictionaryTypeCreateOrUpdate) response.Common {
+func (dictionaryTypeService) Create(paramIn dto.DictionaryTypeCreate) response.Common {
 	var paramOut model.DictionaryType
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	if paramIn.Creator != nil {
-		paramOut.Creator = paramIn.Creator
+	if paramIn.Creator > 0 {
+		paramOut.Creator = &paramIn.Creator
 	}
 
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
+	if paramIn.LastModifier > 0 {
+		paramOut.LastModifier = &paramIn.LastModifier
 	}
 
 	paramOut.Name = paramIn.Name
 
-	if *paramIn.Sort != -1 {
+	if paramIn.Sort != nil && *paramIn.Sort != -1 {
 		paramOut.Sort = paramIn.Sort
 	}
 
-	if *paramIn.Remarks != "" {
+	if paramIn.Remarks != nil && *paramIn.Remarks != "" {
 		paramOut.Remarks = paramIn.Remarks
 	}
 
@@ -40,26 +39,27 @@ func (dictionaryTypeService) Create(paramIn *dto.DictionaryTypeCreateOrUpdate) r
 	return response.Success()
 }
 
-func (dictionaryTypeService) CreateInBatches(paramIn []dto.DictionaryTypeCreateOrUpdate) response.Common {
+func (dictionaryTypeService) CreateInBatches(paramIn []dto.DictionaryTypeCreate) response.Common {
 	var paramOut []model.DictionaryType
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	for i := range paramIn {
 		var record model.DictionaryType
-		if paramIn[i].Creator != nil {
-			record.Creator = paramIn[i].Creator
+
+		if paramIn[i].Creator > 0 {
+			record.Creator = &paramIn[i].Creator
 		}
 
-		if paramIn[i].LastModifier != nil {
-			record.LastModifier = paramIn[i].LastModifier
+		if paramIn[i].LastModifier > 0 {
+			record.LastModifier = &paramIn[i].LastModifier
 		}
 
 		record.Name = paramIn[i].Name
 
-		if *paramIn[i].Sort != -1 {
+		if paramIn[i].Sort != nil && *paramIn[i].Sort != -1 {
 			record.Sort = paramIn[i].Sort
 		}
 
-		if *paramIn[i].Remarks != "" {
+		if paramIn[i].Remarks != nil && *paramIn[i].Remarks != "" {
 			record.Remarks = paramIn[i].Remarks
 		}
 
@@ -74,34 +74,45 @@ func (dictionaryTypeService) CreateInBatches(paramIn []dto.DictionaryTypeCreateO
 	return response.Success()
 }
 
-// Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
-// 其次是需要清洗
-func (dictionaryTypeService) Update(paramIn *dto.DictionaryTypeCreateOrUpdate) response.Common {
+func (dictionaryTypeService) Update(paramIn dto.DictionaryTypeUpdate) response.Common {
+	paramOut := make(map[string]any)
 
-	var paramOut model.DictionaryType
-	paramOut.ID = paramIn.ID
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
+	if paramIn.LastModifier > 0 {
+		paramOut["last_modifier"] = paramIn.LastModifier
 	}
 
-	paramOut.Name = paramIn.Name
+	paramOut["name"] = paramIn.Name
 
-	if *paramIn.Sort != -1 {
-		paramOut.Sort = paramIn.Sort
+	if paramIn.Sort != nil {
+		if *paramIn.Sort != -1 {
+			paramOut["sort"] = paramIn.Sort
+		} else {
+			paramOut["sort"] = nil
+		}
 	}
 
-	if *paramIn.Remarks != "" {
-		paramOut.Remarks = paramIn.Remarks
+	if paramIn.Remarks != nil {
+		if *paramIn.Remarks != "" {
+			paramOut["remarks"] = paramIn.Remarks
+		} else {
+			paramOut["remarks"] = nil
+		}
 	}
 
-	//清洗完毕，开始update
-	err := global.DB.Omit("created_at", "creator").
-		Save(&paramOut).Error
+	//计算有修改值的字段数，分别进行不同处理
+	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
+
+	if len(paramOutForCounting) == 0 {
+		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
+	}
+
+	err := global.DB.Model(&model.DictionaryType{}).Where("id = ?", paramIn.ID).
+		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
+
 	return response.Success()
 }
 
@@ -110,19 +121,22 @@ func (dictionaryTypeService) Delete(paramIn dto.DictionaryTypeDelete) response.C
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		//这里记录删除人，在事务中必须放在前面
 		//如果放后面，由于是软删除，系统会找不到这条记录，导致无法更新
-		err := tx.Debug().Model(&model.DictionaryType{}).Where("id = ?", paramIn.DictionaryTypeID).
-			Update("deleter", *paramIn.Deleter).Error
+		err := tx.Debug().Model(&model.DictionaryType{}).Where("id = ?", paramIn.ID).
+			Update("deleter", paramIn.Deleter).Error
 		if err != nil {
 			return err
 		}
 		//这里删除记录
-		err = tx.Delete(&model.DictionaryType{}, paramIn.DictionaryTypeID).Error
+		err = tx.Delete(&model.DictionaryType{}, paramIn.ID).Error
 		if err != nil {
 			return err
 		}
+
 		return nil
 	})
+
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()
@@ -130,99 +144,66 @@ func (dictionaryTypeService) Delete(paramIn dto.DictionaryTypeDelete) response.C
 
 func (dictionaryTypeService) List(paramIn dto.DictionaryTypeList) response.List {
 	db := global.DB
-	//where order limit offset
-	if paramIn.NameInclude != "" {
-		db = db.Where("name like ?", "%"+paramIn.NameInclude+"%")
-	}
-
-	if paramIn.OrderBy != "" {
-		db = db.Order(paramIn.OrderBy)
-	}
-
+	// 顺序：where -> count -> order -> limit -> offset -> data
+	// count
 	var count int64
 	db.Model(&model.DictionaryType{}).Count(&count)
 
-	var res []string
-	db.Model(&model.DictionaryType{}).Select("name").
-		Find(&res)
-
-	////生成sql查询条件
-	//sqlCondition := util.NewSqlCondition()
-	//
-	////对paramIn进行清洗
-	////这部分是用于where的参数
-	//if paramIn.Page > 0 {
-	//	sqlCondition.Paging.Page = paramIn.Page
-	//}
-	////如果参数里的pageSize是整数且大于0、小于等于上限：
-	//maxPagingSize := global.Config.PagingConfig.MaxPageSize
-	//if paramIn.PageSize > 0 && paramIn.PageSize <= maxPagingSize {
-	//	sqlCondition.Paging.PageSize = paramIn.PageSize
-	//}
-	//
-	//if paramIn.ProjectID != nil {
-	//	sqlCondition.Equal("project_id", *paramIn.ProjectID)
-	//}
-	//
-	//if paramIn.SuperiorID != nil {
-	//	sqlCondition.Equal("superior_id", *paramIn.SuperiorID)
-	//}
-	//
-	//if paramIn.Level != nil {
-	//	sqlCondition.Equal("level", *paramIn.Level)
-	//}
-	//
-	//if paramIn.LevelGte != nil {
-	//	sqlCondition.Gte("level", *paramIn.LevelGte)
-	//}
-	//
-	//if paramIn.LevelLte != nil {
-	//	sqlCondition.Lte("level", *paramIn.LevelLte)
-	//}
-	//
-	////这部分是用于order的参数
-	//orderBy := paramIn.OrderBy
-	//if orderBy != "" {
-	//	ok := sqlCondition.ValidateColumn(orderBy, model.Disassembly{})
-	//	if ok {
-	//		sqlCondition.Sorting.OrderBy = orderBy
-	//	}
-	//}
-	//desc := paramIn.Desc
-	//if desc == true {
-	//	sqlCondition.Sorting.Desc = true
-	//} else {
-	//	sqlCondition.Sorting.Desc = false
-	//}
-	//
-	//tempList := sqlCondition.Find(global.DB, model.Disassembly{})
-	//totalRecords := sqlCondition.Count(global.DB, model.Disassembly{})
-	//totalPages := util.GetTotalPages(totalRecords, sqlCondition.Paging.PageSize)
-	//
-	//if len(tempList) == 0 {
-	//	return response.FailureForList(util.ErrorRecordNotFound)
-	//}
-	//
-	//var list []dto.DisassemblyOutput
-	//_ = mapstructure.Decode(&tempList, &list)
-	//
-	//return response.List{
-	//	Data: list,
-	//	Paging: &dto.Paging{
-	//		Page:         sqlCondition.Paging.Page,
-	//		PageSize:     sqlCondition.Paging.PageSize,
-	//		TotalPages:   totalPages,
-	//		TotalRecords: totalRecords,
-	//	},
-	//	Code:    util.Success,
-	//	Message: util.GetMessage(util.Success),
-	//}
-
-	return response.List{
-		Data:    res,
-		Paging:  nil,
-		Code:    int(count),
-		Message: "",
+	//order
+	orderBy := paramIn.SortingInput.OrderBy
+	desc := paramIn.SortingInput.Desc
+	//如果排序字段为空
+	if orderBy == "" {
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order("id desc")
+		}
+	} else { //如果有排序字段
+		//先看排序字段是否存在于表中
+		exists := util.FieldIsInModel(model.DictionaryType{}, orderBy)
+		if !exists {
+			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+		}
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order(orderBy + " desc")
+		} else { //如果没有要求排序方式
+			db = db.Order(orderBy)
+		}
 	}
 
+	//limit
+	page := 1
+	if paramIn.PagingInput.Page > 0 {
+		page = paramIn.PagingInput.Page
+	}
+	pageSize := global.Config.DefaultPageSize
+	if paramIn.PagingInput.PageSize > 0 &&
+		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = paramIn.PagingInput.PageSize
+	}
+	db = db.Limit(pageSize)
+
+	//offset
+	offset := (page - 1) * pageSize
+	db = db.Offset(offset)
+
+	//data
+	var data []string
+	db.Model(&model.DictionaryType{}).Select("name").Find(&data)
+
+	numberOfRecords := int(count)
+	numberOfPages := util.GetTotalNumberOfPages(numberOfRecords, pageSize)
+
+	return response.List{
+		Data: data,
+		Paging: &dto.PagingOutput{
+			Page:            page,
+			PageSize:        pageSize,
+			NumberOfPages:   numberOfPages,
+			NumberOfRecords: numberOfRecords,
+		},
+		Code:    util.Success,
+		Message: util.GetMessage(util.Success),
+	}
 }

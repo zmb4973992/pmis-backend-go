@@ -1,6 +1,9 @@
 package model
 
-import "time"
+import (
+	"github.com/gin-gonic/gin"
+	"time"
+)
 
 type OperationLog struct {
 	BaseModel
@@ -9,6 +12,7 @@ type OperationLog struct {
 	Location     *string    //所在地
 	Method       *string    //请求方式
 	Path         *string    //请求路径
+	URIParams    gin.Params `gorm:"type:nvarchar(max)"` //URI参数
 	Remarks      *string    //备注
 	ResponseCode *int       //响应码
 	StartTime    *time.Time //发起时间

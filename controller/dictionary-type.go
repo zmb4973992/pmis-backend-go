@@ -16,12 +16,8 @@ import (
 type dictionaryTypeController struct {
 }
 
-func (c dictionaryTypeController) test() int {
-	return 666
-}
-
 func (dictionaryTypeController) Create(c *gin.Context) {
-	var param dto.DictionaryTypeCreateOrUpdate
+	var param dto.DictionaryTypeCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -29,21 +25,21 @@ func (dictionaryTypeController) Create(c *gin.Context) {
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
-	//处理creator、lastModifier字段
+	//处理creator、last_modifier字段
 	tempUserID, exists := c.Get("user_id")
 	if exists {
 		userID := tempUserID.(int)
-		param.Creator = &userID
-		param.LastModifier = &userID
+		param.Creator = userID
+		param.LastModifier = userID
 	}
 
-	res := service.DictionaryTypeService.Create(&param)
+	res := service.DictionaryTypeService.Create(param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
 func (dictionaryTypeController) CreateInBatches(c *gin.Context) {
-	var param []dto.DictionaryTypeCreateOrUpdate
+	var param []dto.DictionaryTypeCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -56,8 +52,8 @@ func (dictionaryTypeController) CreateInBatches(c *gin.Context) {
 	if tempUserID != nil {
 		userID := tempUserID.(int)
 		for i := range param {
-			param[i].Creator = &userID
-			param[i].LastModifier = &userID
+			param[i].Creator = userID
+			param[i].LastModifier = userID
 		}
 	}
 
@@ -67,7 +63,7 @@ func (dictionaryTypeController) CreateInBatches(c *gin.Context) {
 }
 
 func (dictionaryTypeController) Update(c *gin.Context) {
-	var param dto.DictionaryTypeCreateOrUpdate
+	var param dto.DictionaryTypeUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -85,20 +81,19 @@ func (dictionaryTypeController) Update(c *gin.Context) {
 	}
 
 	//处理lastModifier字段
-	tempUserID, exists := c.Get("user_id")
+	userID, exists := c.Get("user_id")
 	if exists {
-		userID := tempUserID.(int)
-		param.LastModifier = &userID
+		param.LastModifier = userID.(int)
 	}
 
-	res := service.DictionaryTypeService.Update(&param)
+	res := service.DictionaryTypeService.Update(param)
 	c.JSON(http.StatusOK, res)
 }
 
 func (dictionaryTypeController) Delete(c *gin.Context) {
 	var param dto.DictionaryTypeDelete
 	var err error
-	param.DictionaryTypeID, err = strconv.Atoi(c.Param("dictionary-type-id"))
+	param.ID, err = strconv.Atoi(c.Param("dictionary-type-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -110,7 +105,7 @@ func (dictionaryTypeController) Delete(c *gin.Context) {
 	tempUserID, exists := c.Get("user_id")
 	if exists {
 		userID := tempUserID.(int)
-		param.Deleter = &userID
+		param.Deleter = userID
 	}
 	res := service.DictionaryTypeService.Delete(param)
 	c.JSON(http.StatusOK, res)
@@ -128,6 +123,7 @@ func (dictionaryTypeController) List(c *gin.Context) {
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
+
 	//生成Service,然后调用它的方法
 	res := service.DictionaryTypeService.List(param)
 	c.JSON(http.StatusOK, res)

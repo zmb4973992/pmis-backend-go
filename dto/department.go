@@ -11,11 +11,16 @@ type DepartmentCreateOrUpdate struct {
 
 type DepartmentList struct {
 	ListInput
+	AuthInput
 	ID         int     `form:"id"`
 	SuperiorID *int    `json:"superior_id"`
 	Level      *string `json:"level"`
 	Name       *string `json:"name"`
 	NameLike   *string `json:"name_like"`
+
+	RoleNames           []string //用户的角色名称数组
+	BusinessDivisionIDs []int    //用户所属的事业部id数组
+	DepartmentIDs       []int    //用户所属的部门id数组
 }
 
 //以下为出参

@@ -181,30 +181,46 @@ func (s *SqlCondition) Find(tempDb *gorm.DB, modelName model.IModel) (list []map
 	return
 }
 
-// ValidateColumn 验证提交的单个字段是否为有效字段（即数据表有相应的字段）
-func (s *SqlCondition) ValidateColumn(columnToBeValidated string, modelName model.IModel) bool {
+// FieldIsInModel 验证提交的单个字段是否存在于表中（即数据表是否有相应的字段）
+func (s *SqlCondition) FieldIsInModel(model model.IModel, field string) bool {
 	//获取自定义的数据库表名
-	tableName := modelName.TableName()
+	tableName := model.TableName()
 	//自行拼接的sql，找出对应表名的所有字段名
-	//标准sql为：Select Name FROM SysColumns Where id = Object_Id('[某某表]')
+	//sqlStatement server的标准写法为：Select Name FROM SysColumns Where id = Object_Id('[某某表]')
 	//给 某某表 加上中括号，是因为当表名中含有特殊字符时，直接使用单引号，会出现表名不被识别的问题
-	var existedColumns []string
+	var existedFields []string
 	//这里goland编译器莫名报错，函数可以正常运行，可忽略
-	sql := "Select Name FROM SysColumns Where id = OBJECT_ID('[" + tableName + "]')"
-	global.DB.Raw(sql).Find(&existedColumns)
-	if len(existedColumns) == 0 {
-		return false
-	}
-	if ok := IsInSlice(columnToBeValidated, existedColumns); ok {
+	sqlStatement := "Select Name FROM SysColumns Where id = OBJECT_ID('[" + tableName + "]')"
+	global.DB.Raw(sqlStatement).Find(&existedFields)
+	//如果表中字段数量>0且该字段在表的这些字段中
+	if len(existedFields) > 0 && IsInSlice(field, existedFields) {
 		return true
-	} //对单个传参进行校验
+	}
 	return false
 }
 
-// ValidateColumns 验证提交的多个字段是否为有效字段（即数据表有相应的字段）
-func (s *SqlCondition) ValidateColumns(columnsToBeValidated []string, modelName model.IModel) bool {
-	for _, columnToBeValidated := range columnsToBeValidated {
-		res := s.ValidateColumn(columnToBeValidated, modelName)
+// FieldIsInModel 验证提交的单个字段是否存在于表中（即数据表是否有相应的字段）
+func FieldIsInModel(model model.IModel, field string) bool {
+	//获取自定义的数据库表名
+	tableName := model.TableName()
+	var existedFields []string
+	//自行拼接的sql，找出对应表名的所有字段名
+	//sqlStatement server的标准写法为：Select Name FROM SysColumns Where id = Object_Id('[某某表]')
+	//给 某某表 加上中括号，是因为当表名中含有特殊字符时，直接使用单引号，会出现表名不被识别的问题
+	//这里goland编译器莫名报错，函数可以正常运行，可忽略
+	sqlStatement := "Select Name FROM SysColumns Where id = OBJECT_ID('[" + tableName + "]')"
+	global.DB.Raw(sqlStatement).Find(&existedFields)
+	//如果表中字段数量>0且该字段在表的这些字段中
+	if len(existedFields) > 0 && IsInSlice(field, existedFields) {
+		return true
+	}
+	return false
+}
+
+// FieldsAreInModel 验证提交的多个字段是否存在于表中（即数据表是否有相应的字段）
+func (s *SqlCondition) FieldsAreInModel(model model.IModel, fields ...string) bool {
+	for _, field := range fields {
+		res := s.FieldIsInModel(model, field)
 		//如果有任何一个字段不符合要求,则直接返回false
 		if res == false {
 			return false
@@ -213,13 +229,25 @@ func (s *SqlCondition) ValidateColumns(columnsToBeValidated []string, modelName 
 	return true
 }
 
-func GetTotalPages(totalRecords int, pageSize int) (totalPages int) {
-	if totalRecords <= 0 || pageSize <= 0 {
+// FieldsAreInModel 验证提交的多个字段是否存在于表中（即数据表是否有相应的字段）
+func FieldsAreInModel(model model.IModel, fields ...string) bool {
+	for _, field := range fields {
+		res := FieldIsInModel(model, field)
+		//如果有任何一个字段不符合要求,则直接返回false
+		if res == false {
+			return false
+		}
+	}
+	return true
+}
+
+func GetTotalNumberOfPages(totalNumberOfRecords int, pageSize int) (totalNumberOfPages int) {
+	if totalNumberOfRecords <= 0 || pageSize <= 0 {
 		return 0
 	}
-	totalPages = totalRecords / pageSize
-	if totalRecords%pageSize != 0 {
-		totalPages++
+	totalNumberOfPages = totalNumberOfRecords / pageSize
+	if totalNumberOfRecords%pageSize != 0 {
+		totalNumberOfPages++
 	}
-	return totalPages
+	return totalNumberOfPages
 }

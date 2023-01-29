@@ -1,44 +1,45 @@
 #value要加双引号，否则容易读取出错，比如0030会读取为30
 
 app:
-  app_mode: "debug"
-  http_port: "8000"
+  #由于gin的限制，可选值为：debug/test/release，不填或填其他值则视为debug
+  app-mode: "debug"
+  http-port: "8000"
 
 database:
-  db_host: "localhost"
-  db_port: "1433"
-  db_name: "test"
-  db_username: "sa"
-  db_password: "028912"
+  db-host: "localhost"
+  db-port: "1433"
+  db-name: "test"
+  db-username: "sa"
+  db-password: "028912"
   #绝对不传给前端的数据库字段名
-  omitted_columns: [ "password" ]
+  omitted-columns: [ "password" ]
 
 jwt:
-  secret_key: "e7KF3k0dj3"
+  secret-key: "e7KF3k0dj3"
   #有效期(天)，登录后可以几天免登录
-  validity_period: "30"
+  validity-period: "30"
 
 log:
   #日志文件的路径
-  log_path: "d:/test/log"
+  log-path: "d:/test/log"
   #在进行切割之前，日志文件的最大大小(MB)
-  log_max_size: "10"
+  log-max-size: "10"
   #保留旧文件的最大个数
-  log_max_backup: "100"
+  log-max-backup: "100"
   #保留旧文件的最大天数
-  log_max_age: "365"
+  log-max-age: "365"
   #是否压缩旧文件，默认为否
-  log_compress: "False"
+  log-compress: "False"
 
-upload_files:
+upload-files:
   #保存上传文件的完整路径
-  full_path: "D:/test/upload_files"
+  full-path: "D:/test/upload-files"
   #上传文件的最大尺寸(MB)，这里是50MB
-  max_size: "50"
+  max-size: "50"
 
 email:
   #发送邮件服务器，一般是smtp
-  outgoing_mail_server: "smtp.qq.com"
+  outgoing-mail-server: "smtp.qq.com"
   #端口，使用QQ邮箱时，发现587可以正常用，465用不了
   port: "587"
   account: "19725912@qq.com"
@@ -48,9 +49,9 @@ email:
 #列表分页
 paging:
   #单页默认条数
-  default_page_size: "20"
+  default-page-size: "20"
   #单页最大条数
-  max_page_size: "500"
+  max-page-size: "500"
 
 #全局限流（采用令牌桶原理）
 rate-limit:
