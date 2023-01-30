@@ -16,6 +16,9 @@ func Init() *gin.Engine {
 
 	engine := gin.New()
 
+	//将目录(root变量)下的所有文件设置为静态文件，可以直接访问
+	engine.Static("/s", "./static")
+
 	//路由不匹配时的处理
 	engine.NoRoute(controller.NoRouteController.NoRoute)
 

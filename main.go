@@ -23,6 +23,7 @@ func main() {
 
 	//初始化snowflake，用来生成唯一ID
 	snowflake.Init()
+	util.SliceIncludes([]int{1, 2}, 3)
 
 	//创建保存上传文件的文件夹
 	util.UploadInit()

@@ -22,7 +22,6 @@ func NeedLogin() gin.HandlerFunc {
 			return
 		}
 		//开始校验access_token
-
 		res, err := jwt.ParseToken(token)
 		//如果存在错误或token已过期
 		if err != nil || res.ExpiresAt < time.Now().Unix() {
@@ -37,7 +36,7 @@ func NeedLogin() gin.HandlerFunc {
 	}
 }
 
-//SetUserInfo 在请求中设置userID、roleNames、departmentIDs、departmentNames
+// SetUserInfo 在请求中设置userID、roleNames、departmentIDs、departmentNames
 func SetUserInfo(c *gin.Context, userID int) {
 	c.Set("user_id", userID)
 	var user model.User

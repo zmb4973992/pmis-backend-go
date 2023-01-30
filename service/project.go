@@ -263,7 +263,7 @@ func (projectService) List(paramIn dto.ProjectList) response.List {
 				sqlCondition.Where("department_id", -1)
 			}
 
-		} else if util.SliceIncludes(paramIn.RoleNames, "部门级") {
+		} else if util.SliceIncludesOld(paramIn.RoleNames, "部门级") {
 			if len(paramIn.DepartmentIDs) > 0 {
 				sqlCondition.In("department_id", paramIn.DepartmentIDs)
 			} else {
