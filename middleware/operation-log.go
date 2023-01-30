@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -46,6 +47,8 @@ func OperationLog() gin.HandlerFunc {
 		//获取请求方式
 		tempMethod := c.Request.Method
 		operationLog.Method = &tempMethod
+
+		fmt.Println(c.Request.Context())
 
 		//获取ip
 		tempIP := c.ClientIP()

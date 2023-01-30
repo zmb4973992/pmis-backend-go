@@ -241,13 +241,13 @@ func FieldsAreInModel(model model.IModel, fields ...string) bool {
 	return true
 }
 
-func GetTotalNumberOfPages(totalNumberOfRecords int, pageSize int) (totalNumberOfPages int) {
-	if totalNumberOfRecords <= 0 || pageSize <= 0 {
+func GetTotalNumberOfPages(numberOfRecords int, pageSize int) (numberOfPages int) {
+	if numberOfRecords <= 0 || pageSize <= 0 {
 		return 0
 	}
-	totalNumberOfPages = totalNumberOfRecords / pageSize
-	if totalNumberOfRecords%pageSize != 0 {
-		totalNumberOfPages++
+	numberOfPages = numberOfRecords / pageSize
+	if numberOfRecords%pageSize != 0 {
+		numberOfPages++
 	}
-	return totalNumberOfPages
+	return numberOfPages
 }

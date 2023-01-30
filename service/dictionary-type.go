@@ -11,6 +11,17 @@ import (
 
 type dictionaryTypeService struct{}
 
+func (dictionaryTypeService) Get(dictionaryTypeID int) response.Common {
+	var result dto.DictionaryTypeOutput
+	err := global.DB.Model(model.DictionaryType{}).
+		Where("id = ?", dictionaryTypeID).First(&result).Error
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return response.Failure(util.ErrorRecordNotFound)
+	}
+	return response.SuccessWithData(result)
+}
+
 func (dictionaryTypeService) Create(paramIn dto.DictionaryTypeCreate) response.Common {
 	var paramOut model.DictionaryType
 	if paramIn.Creator > 0 {
@@ -23,12 +34,12 @@ func (dictionaryTypeService) Create(paramIn dto.DictionaryTypeCreate) response.C
 
 	paramOut.Name = paramIn.Name
 
-	if paramIn.Sort != nil && *paramIn.Sort != -1 {
-		paramOut.Sort = paramIn.Sort
+	if paramIn.Sort != 0 {
+		paramOut.Sort = &paramIn.Sort
 	}
 
-	if paramIn.Remarks != nil && *paramIn.Remarks != "" {
-		paramOut.Remarks = paramIn.Remarks
+	if paramIn.Remarks != "" {
+		paramOut.Remarks = &paramIn.Remarks
 	}
 
 	err := global.DB.Create(&paramOut).Error
@@ -41,7 +52,6 @@ func (dictionaryTypeService) Create(paramIn dto.DictionaryTypeCreate) response.C
 
 func (dictionaryTypeService) CreateInBatches(paramIn []dto.DictionaryTypeCreate) response.Common {
 	var paramOut []model.DictionaryType
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	for i := range paramIn {
 		var record model.DictionaryType
 
@@ -55,12 +65,12 @@ func (dictionaryTypeService) CreateInBatches(paramIn []dto.DictionaryTypeCreate)
 
 		record.Name = paramIn[i].Name
 
-		if paramIn[i].Sort != nil && *paramIn[i].Sort != -1 {
-			record.Sort = paramIn[i].Sort
+		if paramIn[i].Sort != 0 {
+			record.Sort = &paramIn[i].Sort
 		}
 
-		if paramIn[i].Remarks != nil && *paramIn[i].Remarks != "" {
-			record.Remarks = paramIn[i].Remarks
+		if paramIn[i].Remarks != "" {
+			record.Remarks = &paramIn[i].Remarks
 		}
 
 		paramOut = append(paramOut, record)
@@ -81,13 +91,21 @@ func (dictionaryTypeService) Update(paramIn dto.DictionaryTypeUpdate) response.C
 		paramOut["last_modifier"] = paramIn.LastModifier
 	}
 
-	paramOut["name"] = paramIn.Name
+	if paramIn.Name != nil {
+		if *paramIn.Name != "" {
+			paramOut["name"] = paramIn.Name
+		} else {
+			paramOut["name"] = nil
+		}
+	}
 
 	if paramIn.Sort != nil {
-		if *paramIn.Sort != -1 {
+		if *paramIn.Sort > 0 {
 			paramOut["sort"] = paramIn.Sort
-		} else {
+		} else if *paramIn.Sort == 0 {
 			paramOut["sort"] = nil
+		} else {
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -131,7 +149,6 @@ func (dictionaryTypeService) Delete(paramIn dto.DictionaryTypeDelete) response.C
 		if err != nil {
 			return err
 		}
-
 		return nil
 	})
 
@@ -142,12 +159,81 @@ func (dictionaryTypeService) Delete(paramIn dto.DictionaryTypeDelete) response.C
 	return response.Success()
 }
 
-func (dictionaryTypeService) List(paramIn dto.DictionaryTypeList) response.List {
-	db := global.DB
+func (dictionaryTypeService) GetArray(paramIn dto.DictionaryTypeList) response.Common {
+	db := global.DB.Model(&model.DictionaryType{})
+	// 顺序：where -> count -> order -> limit -> offset -> array
+
+	//where
+	if paramIn.NameInclude != "" {
+		db = db.Where("name like ?", "%"+paramIn.NameInclude+"%")
+	}
+
+	//order
+	orderBy := paramIn.SortingInput.OrderBy
+	desc := paramIn.SortingInput.Desc
+	//如果排序字段为空
+	if orderBy == "" {
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order("id desc")
+		}
+	} else { //如果有排序字段
+		//先看排序字段是否存在于表中
+		exists := util.FieldIsInModel(model.DictionaryType{}, orderBy)
+		if !exists {
+			return response.Failure(util.ErrorSortingFieldDoesNotExist)
+		}
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order(orderBy + " desc")
+		} else { //如果没有要求排序方式
+			db = db.Order(orderBy)
+		}
+	}
+
+	//limit
+	page := 1
+	if paramIn.PagingInput.Page > 0 {
+		page = paramIn.PagingInput.Page
+	}
+	pageSize := global.Config.DefaultPageSize
+	if paramIn.PagingInput.PageSize > 0 &&
+		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = paramIn.PagingInput.PageSize
+	}
+	db = db.Limit(pageSize)
+
+	//offset
+	offset := (page - 1) * pageSize
+	db = db.Offset(offset)
+
+	//array
+	var array []string
+	db.Model(&model.DictionaryType{}).Select("name").Find(&array)
+
+	if len(array) == 0 {
+		return response.Failure(util.ErrorRecordNotFound)
+	}
+
+	return response.Common{
+		Data:    array,
+		Code:    util.Success,
+		Message: util.GetMessage(util.Success),
+	}
+}
+
+func (dictionaryTypeService) GetList(paramIn dto.DictionaryTypeList) response.List {
+	db := global.DB.Model(&model.DictionaryType{})
 	// 顺序：where -> count -> order -> limit -> offset -> data
+
+	//where
+	if paramIn.NameInclude != "" {
+		db = db.Where("name like ?", "%"+paramIn.NameInclude+"%")
+	}
+
 	// count
 	var count int64
-	db.Model(&model.DictionaryType{}).Count(&count)
+	db.Count(&count)
 
 	//order
 	orderBy := paramIn.SortingInput.OrderBy
@@ -189,8 +275,12 @@ func (dictionaryTypeService) List(paramIn dto.DictionaryTypeList) response.List 
 	db = db.Offset(offset)
 
 	//data
-	var data []string
-	db.Model(&model.DictionaryType{}).Select("name").Find(&data)
+	var data []dto.DictionaryTypeOutput
+	db.Model(&model.DictionaryType{}).Find(&data)
+
+	if len(data) == 0 {
+		return response.FailureForList(util.ErrorRecordNotFound)
+	}
 
 	numberOfRecords := int(count)
 	numberOfPages := util.GetTotalNumberOfPages(numberOfRecords, pageSize)

@@ -1,7 +1,7 @@
 #value要加双引号，否则容易读取出错，比如0030会读取为30
 
 app:
-  #由于gin的限制，可选值为：debug/test/release，不填或填其他值则视为debug
+  #由于gin的限制，可选值为：debug/test/release，不填或填其他值视为debug
   app-mode: "debug"
   http-port: "8000"
 

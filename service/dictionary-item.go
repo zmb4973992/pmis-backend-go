@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/mitchellh/mapstructure"
+	"gorm.io/gorm"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -9,44 +9,39 @@ import (
 	"pmis-backend-go/util"
 )
 
-// dictionaryItemService 没有数据、只有方法，所有的数据都放在DTO里
-// 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
-// 所有的增删改查都交给DAO层处理，否则service层会非常庞大
 type dictionaryItemService struct{}
 
-func (dictionaryItemService) Get(dictionaryTypeID int) response.Common {
-	var result []dto.DictionaryItemOutput
+func (dictionaryItemService) Get(dictionaryItemID int) response.Common {
+	var result dto.DictionaryItemOutput
 	err := global.DB.Model(model.DictionaryItem{}).
-		Where("dictionary_type_id = ?", dictionaryTypeID).Find(&result).Error
-	if err != nil || len(result) == 0 {
+		Where("id = ?", dictionaryItemID).First(&result).Error
+	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 	return response.SuccessWithData(result)
 }
 
-func (dictionaryItemService) Create(paramIn *dto.DictionaryItemCreateOrUpdate) response.Common {
-	//对dto进行清洗，生成dao层需要的model
+func (dictionaryItemService) Create(paramIn dto.DictionaryItemCreate) response.Common {
 	var paramOut model.DictionaryItem
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	if paramIn.Creator != nil {
-		paramOut.Creator = paramIn.Creator
+	if paramIn.Creator > 0 {
+		paramOut.Creator = &paramIn.Creator
 	}
 
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
+	if paramIn.LastModifier > 0 {
+		paramOut.LastModifier = &paramIn.LastModifier
 	}
 
 	paramOut.DictionaryTypeID = paramIn.DictionaryTypeID
 
 	paramOut.Name = paramIn.Name
 
-	if *paramIn.Sort != -1 {
-		paramOut.Sort = paramIn.Sort
+	if paramIn.Sort != 0 {
+		paramOut.Sort = &paramIn.Sort
 	}
 
-	if *paramIn.Remarks != "" {
-		paramOut.Remarks = paramIn.Remarks
+	if paramIn.Remarks != "" {
+		paramOut.Remarks = &paramIn.Remarks
 	}
 
 	err := global.DB.Create(&paramOut).Error
@@ -57,29 +52,29 @@ func (dictionaryItemService) Create(paramIn *dto.DictionaryItemCreateOrUpdate) r
 	return response.Success()
 }
 
-func (dictionaryItemService) CreateInBatches(paramIn []dto.DictionaryItemCreateOrUpdate) response.Common {
-	//对dto进行清洗，生成dao层需要的model
+func (dictionaryItemService) CreateInBatches(paramIn []dto.DictionaryItemCreate) response.Common {
 	var paramOut []model.DictionaryItem
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	for i := range paramIn {
 		var record model.DictionaryItem
-		if paramIn[i].Creator != nil {
-			record.Creator = paramIn[i].Creator
+
+		if paramIn[i].Creator > 0 {
+			record.Creator = &paramIn[i].Creator
 		}
 
-		if paramIn[i].LastModifier != nil {
-			record.LastModifier = paramIn[i].LastModifier
+		if paramIn[i].LastModifier > 0 {
+			record.LastModifier = &paramIn[i].LastModifier
 		}
 
 		record.DictionaryTypeID = paramIn[i].DictionaryTypeID
+
 		record.Name = paramIn[i].Name
 
-		if *paramIn[i].Sort != -1 {
-			record.Sort = paramIn[i].Sort
+		if paramIn[i].Sort != 0 {
+			record.Sort = &paramIn[i].Sort
 		}
 
-		if *paramIn[i].Remarks != "" {
-			record.Remarks = paramIn[i].Remarks
+		if paramIn[i].Remarks != "" {
+			record.Remarks = &paramIn[i].Remarks
 		}
 
 		paramOut = append(paramOut, record)
@@ -93,112 +88,225 @@ func (dictionaryItemService) CreateInBatches(paramIn []dto.DictionaryItemCreateO
 	return response.Success()
 }
 
-// Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
-// 其次是需要清洗
-func (dictionaryItemService) Update(paramIn *dto.DictionaryItemCreateOrUpdate) response.Common {
-	var paramOut model.DictionaryItem
-	paramOut.ID = paramIn.ID
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
+func (dictionaryItemService) Update(paramIn dto.DictionaryItemUpdate) response.Common {
+	paramOut := make(map[string]any)
+
+	if paramIn.LastModifier > 0 {
+		paramOut["last_modifier"] = paramIn.LastModifier
 	}
 
-	paramOut.DictionaryTypeID = paramIn.DictionaryTypeID
-	paramOut.Name = paramIn.Name
-
-	if *paramIn.Sort != -1 {
-		paramOut.Sort = paramIn.Sort
+	if paramIn.DictionaryTypeID != nil {
+		if *paramIn.DictionaryTypeID > 0 {
+			paramOut["dictionary_type_id"] = paramIn.DictionaryTypeID
+		} else if *paramIn.DictionaryTypeID == 0 {
+			paramOut["dictionary_type_id"] = nil
+		} else {
+			return response.Failure(util.ErrorInvalidJSONParameters)
+		}
 	}
 
-	if *paramIn.Remarks != "" {
-		paramOut.Remarks = paramIn.Remarks
+	if paramIn.Name != nil {
+		if *paramIn.Name != "" {
+			paramOut["name"] = paramIn.Name
+		} else {
+			paramOut["name"] = nil
+		}
 	}
 
-	err := global.DB.Omit(fieldsToBeOmittedWhenUpdating...).Save(&paramOut).Error
-	//拿到dao层的返回结果，进行处理
+	if paramIn.Sort != nil {
+		if *paramIn.Sort > 0 {
+			paramOut["sort"] = paramIn.Sort
+		} else if *paramIn.Sort == 0 {
+			paramOut["sort"] = nil
+		} else {
+			return response.Failure(util.ErrorInvalidJSONParameters)
+		}
+	}
+
+	if paramIn.Remarks != nil {
+		if *paramIn.Remarks != "" {
+			paramOut["remarks"] = paramIn.Remarks
+		} else {
+			paramOut["remarks"] = nil
+		}
+	}
+
+	//计算有修改值的字段数，分别进行不同处理
+	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
+
+	if len(paramOutForCounting) == 0 {
+		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
+	}
+
+	err := global.DB.Model(&model.DictionaryItem{}).Where("id = ?", paramIn.ID).
+		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
+
 	return response.Success()
 }
 
-func (dictionaryItemService) Delete(dictionaryItemID int) response.Common {
-	err := global.DB.Delete(&model.DictionaryItem{}, dictionaryItemID).Error
+func (dictionaryItemService) Delete(paramIn dto.DictionaryItemDelete) response.Common {
+	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
+	err := global.DB.Transaction(func(tx *gorm.DB) error {
+		//这里记录删除人，在事务中必须放在前面
+		//如果放后面，由于是软删除，系统会找不到这条记录，导致无法更新
+		err := tx.Debug().Model(&model.DictionaryItem{}).Where("id = ?", paramIn.ID).
+			Update("deleter", paramIn.Deleter).Error
+		if err != nil {
+			return err
+		}
+		//这里删除记录
+		err = tx.Delete(&model.DictionaryItem{}, paramIn.ID).Error
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()
 }
 
-func (dictionaryItemService) List(paramIn dto.DisassemblyList) response.List {
-	//生成sql查询条件
-	sqlCondition := util.NewSqlCondition()
+func (dictionaryItemService) GetArray(paramIn dto.DictionaryItemList) response.Common {
+	db := global.DB.Model(&model.DictionaryItem{})
+	// 顺序：where -> count -> order -> limit -> offset -> array
 
-	//对paramIn进行清洗
-	//这部分是用于where的参数
-	if paramIn.Page > 0 {
-		sqlCondition.Paging.Page = paramIn.Page
-	}
-	//如果参数里的pageSize是整数且大于0、小于等于上限：
-	maxPagingSize := global.Config.PagingConfig.MaxPageSize
-	if paramIn.PageSize > 0 && paramIn.PageSize <= maxPagingSize {
-		sqlCondition.Paging.PageSize = paramIn.PageSize
+	//where
+	if paramIn.DictionaryTypeID != 0 {
+		db = db.Where("dictionary_type_id = ?", paramIn.DictionaryTypeID)
 	}
 
-	if paramIn.ProjectID != nil {
-		sqlCondition.Equal("project_id", *paramIn.ProjectID)
-	}
-
-	if paramIn.SuperiorID != nil {
-		sqlCondition.Equal("superior_id", *paramIn.SuperiorID)
-	}
-
-	if paramIn.Level != nil {
-		sqlCondition.Equal("level", *paramIn.Level)
-	}
-
-	if paramIn.LevelGte != nil {
-		sqlCondition.Gte("level", *paramIn.LevelGte)
-	}
-
-	if paramIn.LevelLte != nil {
-		sqlCondition.Lte("level", *paramIn.LevelLte)
-	}
-
-	//这部分是用于order的参数
-	orderBy := paramIn.OrderBy
-	if orderBy != "" {
-		ok := sqlCondition.FieldIsInModel(model.Disassembly{}, orderBy)
-		if ok {
-			sqlCondition.Sorting.OrderBy = orderBy
+	//order
+	orderBy := paramIn.SortingInput.OrderBy
+	desc := paramIn.SortingInput.Desc
+	//如果排序字段为空
+	if orderBy == "" {
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order("id desc")
+		}
+	} else { //如果有排序字段
+		//先看排序字段是否存在于表中
+		exists := util.FieldIsInModel(model.DictionaryItem{}, orderBy)
+		if !exists {
+			return response.Failure(util.ErrorSortingFieldDoesNotExist)
+		}
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order(orderBy + " desc")
+		} else { //如果没有要求排序方式
+			db = db.Order(orderBy)
 		}
 	}
-	desc := paramIn.Desc
-	if desc == true {
-		sqlCondition.Sorting.Desc = true
-	} else {
-		sqlCondition.Sorting.Desc = false
+
+	//limit
+	page := 1
+	if paramIn.PagingInput.Page > 0 {
+		page = paramIn.PagingInput.Page
+	}
+	pageSize := global.Config.DefaultPageSize
+	if paramIn.PagingInput.PageSize > 0 &&
+		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = paramIn.PagingInput.PageSize
+	}
+	db = db.Limit(pageSize)
+
+	//offset
+	offset := (page - 1) * pageSize
+	db = db.Offset(offset)
+
+	//array
+	var array []string
+	db.Model(&model.DictionaryItem{}).Select("name").Find(&array)
+
+	if len(array) == 0 {
+		return response.Failure(util.ErrorRecordNotFound)
 	}
 
-	tempList := sqlCondition.Find(global.DB, model.Disassembly{})
-	totalRecords := sqlCondition.Count(global.DB, model.Disassembly{})
-	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
+	return response.Common{
+		Data:    array,
+		Code:    util.Success,
+		Message: util.GetMessage(util.Success),
+	}
+}
 
-	if len(tempList) == 0 {
+func (dictionaryItemService) GetList(paramIn dto.DictionaryItemList) response.List {
+	db := global.DB.Model(&model.DictionaryItem{})
+	// 顺序：where -> count -> order -> limit -> offset -> data
+
+	//where
+	if paramIn.DictionaryTypeID != 0 {
+		db = db.Where("dictionary_type_id = ?", paramIn.DictionaryTypeID)
+	}
+
+	// count
+	var count int64
+	db.Count(&count)
+
+	//order
+	orderBy := paramIn.SortingInput.OrderBy
+	desc := paramIn.SortingInput.Desc
+	//如果排序字段为空
+	if orderBy == "" {
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order("id desc")
+		}
+	} else { //如果有排序字段
+		//先看排序字段是否存在于表中
+		exists := util.FieldIsInModel(model.DictionaryItem{}, orderBy)
+		if !exists {
+			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+		}
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order(orderBy + " desc")
+		} else { //如果没有要求排序方式
+			db = db.Order(orderBy)
+		}
+	}
+
+	//limit
+	page := 1
+	if paramIn.PagingInput.Page > 0 {
+		page = paramIn.PagingInput.Page
+	}
+	pageSize := global.Config.DefaultPageSize
+	if paramIn.PagingInput.PageSize > 0 &&
+		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = paramIn.PagingInput.PageSize
+	}
+	db = db.Limit(pageSize)
+
+	//offset
+	offset := (page - 1) * pageSize
+	db = db.Offset(offset)
+
+	//data
+	var data []dto.DictionaryItemOutput
+	db.Model(&model.DictionaryItem{}).Find(&data)
+
+	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
-	var list []dto.DisassemblyOutput
-	_ = mapstructure.Decode(&tempList, &list)
+	numberOfRecords := int(count)
+	numberOfPages := util.GetTotalNumberOfPages(numberOfRecords, pageSize)
 
 	return response.List{
-		Data: list,
+		Data: data,
 		Paging: &dto.PagingOutput{
-			Page:            sqlCondition.Paging.Page,
-			PageSize:        sqlCondition.Paging.PageSize,
-			NumberOfPages:   totalPages,
-			NumberOfRecords: totalRecords,
+			Page:            page,
+			PageSize:        pageSize,
+			NumberOfPages:   numberOfPages,
+			NumberOfRecords: numberOfRecords,
 		},
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),

@@ -1,20 +1,48 @@
 package dto
 
 //以下为入参
+//有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
-type DictionaryItemCreateOrUpdate struct {
-	Base
-	DictionaryTypeID int     `json:"dictionary_type_id" binding:"required"` //字典类型id
-	Name             string  `json:"name" binding:"required"`               //名称
-	Sort             *int    `json:"sort" binding:"required"`               //顺序值
-	Remarks          *string `json:"remarks" binding:"required"`            //备注
+type DictionaryItemCreate struct {
+	Creator          int
+	LastModifier     int
+	DictionaryTypeID int    `json:"dictionary_type_id" binding:"required,gt=0"` //字典类型id
+	Name             string `json:"name" binding:"required"`                    //名称
+	Sort             int    `json:"sort,omitempty"`                             //顺序值
+	Remarks          string `json:"remarks,omitempty"`                          //备注
+}
+
+//指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
+//如果指针字段为空或0，那么数据库相应字段会改为null；
+//如果指针字段没传，那么数据库不会修改该字段
+
+type DictionaryItemUpdate struct {
+	LastModifier     int
+	ID               int
+	DictionaryTypeID *int    `json:"dictionary_type_id"` //字典类型id
+	Name             *string `json:"name"`               //名称
+	Sort             *int    `json:"sort"`               //顺序值
+	Remarks          *string `json:"remarks"`            //备注
+}
+
+type DictionaryItemDelete struct {
+	Deleter int
+	ID      int
+}
+
+type DictionaryItemList struct {
+	ListInput
+	DictionaryTypeID int `json:"dictionary_type_id,omitempty"`
 }
 
 //以下为出参
 
 type DictionaryItemOutput struct {
-	//Base `mapstructure:",squash"` //这里是嵌套结构体，mapstructure必须加squash，否则无法匹配
-	Name    string  `json:"name"  mapstructure:"name"`      //名称
-	Sort    *int    `json:"sort" mapstructure:"sort"`       //顺序值
-	Remarks *string `json:"remarks" mapstructure:"remarks"` //备注
+	Creator          *int    `json:"creator" gorm:"creator"`
+	LastModifier     *int    `json:"last_modifier" gorm:"last_modifier"`
+	ID               int     `json:"id" gorm:"id"`
+	DictionaryTypeID int     `json:"dictionary_type_id" gorm:"dictionary_type_id"` //字典类型id
+	Name             string  `json:"name" gorm:"name"`                             //名称
+	Sort             *int    `json:"sort" gorm:"sort"`                             //顺序值
+	Remarks          *string `json:"remarks" gorm:"remarks"`                       //备注
 }

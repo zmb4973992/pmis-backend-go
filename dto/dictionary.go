@@ -3,7 +3,7 @@ package dto
 //以下为入参
 
 type DictionaryList struct {
-	//List
+	//GetList
 	//SuperiorID *int    `form:"superior_id"`
 	//Level      *string `form:"level"`
 	//

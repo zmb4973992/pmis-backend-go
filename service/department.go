@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/mitchellh/mapstructure"
+	"gorm.io/gorm"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -14,7 +15,8 @@ type departmentService struct{}
 func (departmentService) Get(departmentID int) response.Common {
 	var result dto.DepartmentOutput
 
-	err := global.DB.Model(model.Department{}).Where("id = ?", departmentID).First(&result).Error
+	err := global.DB.Model(model.Department{}).
+		Where("id = ?", departmentID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -23,26 +25,22 @@ func (departmentService) Get(departmentID int) response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (departmentService) Create(paramIn *dto.DepartmentCreateOrUpdate) response.Common {
-	//对dto进行清洗，生成dao层需要的model
+func (departmentService) Create(paramIn dto.DepartmentCreate) response.Common {
 	var paramOut model.Department
 
-	if paramIn.Creator != nil {
-		paramOut.Creator = paramIn.Creator
+	if paramIn.Creator > 0 {
+		paramOut.Creator = &paramIn.Creator
 	}
 
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
+	if paramIn.LastModifier > 0 {
+		paramOut.LastModifier = &paramIn.LastModifier
 	}
 
-	//如果dto的字段是指针，那么需要看字段binding是否为required，然后判定是否为空或-1再进行处理；
-	//如果dto的字段不是指针，需要看字段binding是否为required，然后可以赋值
 	paramOut.Name = paramIn.Name
+
 	paramOut.Level = paramIn.Level
 
-	if *paramIn.SuperiorID != -1 {
-		paramOut.SuperiorID = paramIn.SuperiorID
-	}
+	paramOut.SuperiorID = &paramIn.SuperiorID
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
@@ -52,36 +50,74 @@ func (departmentService) Create(paramIn *dto.DepartmentCreateOrUpdate) response.
 	return response.Success()
 }
 
-// Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
-// 其次是需要清洗
-func (departmentService) Update(paramIn *dto.DepartmentCreateOrUpdate) response.Common {
-	var paramOut model.Department
-	paramOut.ID = paramIn.ID
+func (departmentService) Update(paramIn dto.DepartmentUpdate) response.Common {
+	paramOut := make(map[string]any)
 
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
+	if paramIn.LastModifier > 0 {
+		paramOut["last_modifier"] = paramIn.LastModifier
 	}
 
-	paramOut.Name = paramIn.Name
-	paramOut.Level = paramIn.Level
-
-	if *paramIn.SuperiorID != -1 {
-		paramOut.SuperiorID = paramIn.SuperiorID
+	if paramIn.Name != nil {
+		if *paramIn.Name != "" {
+			paramOut["name"] = paramIn.Name
+		} else {
+			paramOut["name"] = nil
+		}
 	}
 
-	//清洗完毕，开始update
-	err := global.DB.Where("id = ?", paramOut.ID).Omit(fieldsToBeOmittedWhenUpdating...).
-		Save(&paramOut).Error
-	//拿到dao层的返回结果，进行处理
+	if paramIn.Level != nil {
+		if *paramIn.Level != "" {
+			paramOut["level"] = paramIn.Level
+		} else {
+			paramOut["level"] = nil
+		}
+	}
+
+	if paramIn.SuperiorID != nil {
+		if *paramIn.SuperiorID > 0 {
+			paramOut["superior_id"] = paramIn.SuperiorID
+		} else if *paramIn.SuperiorID == 0 {
+			paramOut["superior_id"] = nil
+		} else {
+			return response.Failure(util.ErrorInvalidJSONParameters)
+		}
+	}
+
+	//计算有修改值的字段数，分别进行不同处理
+	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
+
+	if len(paramOutForCounting) == 0 {
+		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
+	}
+
+	err := global.DB.Model(&model.Department{}).
+		Where("id = ?", paramIn.ID).Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
+
 	return response.Success()
 }
 
-func (departmentService) Delete(departmentID int) response.Common {
-	err := global.DB.Delete(&model.Department{}, departmentID).Error
+func (departmentService) Delete(paramIn dto.DepartmentDelete) response.Common {
+	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
+	err := global.DB.Transaction(func(tx *gorm.DB) error {
+		//这里记录删除人，在事务中必须放在前面
+		//如果放后面，由于是软删除，系统会找不到这条记录，导致无法更新
+		err := tx.Debug().Model(&model.Department{}).Where("id = ?", paramIn.ID).
+			Update("deleter", paramIn.Deleter).Error
+		if err != nil {
+			return err
+		}
+		//这里删除记录
+		err = tx.Delete(&model.Department{}, paramIn.ID).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
@@ -89,7 +125,8 @@ func (departmentService) Delete(departmentID int) response.Common {
 	return response.Success()
 }
 
-func (departmentService) List(paramIn dto.DepartmentList) response.List {
+// 老式写法，待修改
+func (departmentService) List(paramIn dto.DepartmentListOld) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 
@@ -173,7 +210,7 @@ func (departmentService) List(paramIn dto.DepartmentList) response.List {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
-	var list []dto.DepartmentOutput
+	var list []dto.DepartmentOutputOld
 	_ = mapstructure.Decode(&tempList, &list)
 
 	return response.List{

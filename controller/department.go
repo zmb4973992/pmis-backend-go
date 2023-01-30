@@ -19,11 +19,8 @@ func (departmentController) Get(c *gin.Context) {
 	departmentID, err := strconv.Atoi(c.Param("department-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusBadRequest, response.Common{
-			Data:    nil,
-			Code:    util.ErrorInvalidURIParameters,
-			Message: util.GetMessage(util.ErrorInvalidURIParameters),
-		})
+		c.JSON(http.StatusBadRequest,
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 	res := service.DepartmentService.Get(departmentID)
@@ -31,7 +28,7 @@ func (departmentController) Get(c *gin.Context) {
 }
 
 func (departmentController) Create(c *gin.Context) {
-	var param dto.DepartmentCreateOrUpdate
+	var param dto.DepartmentCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -39,20 +36,20 @@ func (departmentController) Create(c *gin.Context) {
 			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
-	//处理creator、lastModifier字段
+	//处理creator、last_modifier字段
 	tempUserID, exists := c.Get("user_id")
 	if exists {
 		userID := tempUserID.(int)
-		param.Creator = &userID
-		param.LastModifier = &userID
+		param.Creator = userID
+		param.LastModifier = userID
 	}
 
-	res := service.DepartmentService.Create(&param)
+	res := service.DepartmentService.Create(param)
 	c.JSON(http.StatusOK, res)
 }
 
 func (departmentController) Update(c *gin.Context) {
-	var param dto.DepartmentCreateOrUpdate
+	var param dto.DepartmentUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -68,22 +65,30 @@ func (departmentController) Update(c *gin.Context) {
 	}
 
 	//处理lastModifier字段
-	tempUserID, exists := c.Get("user_id")
+	userID, exists := c.Get("user_id")
 	if exists {
-		userID := tempUserID.(int)
-		param.LastModifier = &userID
+		param.LastModifier = userID.(int)
 	}
 
 	res := service.DepartmentService.Update(&param)
-	c.JSON(200, res)
+	c.JSON(http.StatusOK, res)
 }
 
 func (departmentController) Delete(c *gin.Context) {
+	var param dto.DictionaryTypeDelete
+	var err error
 	departmentID, err := strconv.Atoi(c.Param("department-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidURIParameters))
 		return
+	}
+
+	//处理deleter字段
+	tempUserID, exists := c.Get("user_id")
+	if exists {
+		userID := tempUserID.(int)
+		param.Deleter = userID
 	}
 	res := service.DepartmentService.Delete(departmentID)
 	c.JSON(http.StatusOK, res)
@@ -102,29 +107,29 @@ func (departmentController) List(c *gin.Context) {
 		return
 	}
 
-	tempRoleNames, exists := c.Get("role_names")
-	if exists {
-		roleNames := tempRoleNames.([]string)
-		if len(roleNames) > 0 {
-			param.RoleNames = roleNames
-		}
-	}
-
-	tempBusinessDivisionIDs, exists := c.Get("business_division_ids")
-	if exists {
-		businessDivisionIDs := tempBusinessDivisionIDs.([]int)
-		if len(businessDivisionIDs) > 0 {
-			param.BusinessDivisionIDs = businessDivisionIDs
-		}
-	}
-
-	tempDepartmentIDs, exists := c.Get("department_ids")
-	if exists {
-		departmentIDs := tempDepartmentIDs.([]int)
-		if len(departmentIDs) > 0 {
-			param.DepartmentIDs = departmentIDs
-		}
-	}
+	//tempRoleNames, exists := c.Get("role_names")
+	//if exists {
+	//	roleNames := tempRoleNames.([]string)
+	//	if len(roleNames) > 0 {
+	//		param.RoleNames = roleNames
+	//	}
+	//}
+	//
+	//tempBusinessDivisionIDs, exists := c.Get("business_division_ids")
+	//if exists {
+	//	businessDivisionIDs := tempBusinessDivisionIDs.([]int)
+	//	if len(businessDivisionIDs) > 0 {
+	//		param.BusinessDivisionIDs = businessDivisionIDs
+	//	}
+	//}
+	//
+	//tempDepartmentIDs, exists := c.Get("department_ids")
+	//if exists {
+	//	departmentIDs := tempDepartmentIDs.([]int)
+	//	if len(departmentIDs) > 0 {
+	//		param.DepartmentIDs = departmentIDs
+	//	}
+	//}
 
 	//生成Service,然后调用它的方法
 	res := service.DepartmentService.List(param)

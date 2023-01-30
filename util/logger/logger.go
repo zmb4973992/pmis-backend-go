@@ -69,12 +69,5 @@ func InitLogger() {
 	global.Logger = zap.New(core, zap.AddCaller()) //根据zap的要求，生成一个日志记录器
 	global.SugaredLogger = global.Logger.Sugar()   //使用加糖模式的日志记录器，牺牲点效率，但简单一些
 
-	//这段代码的原代码为：defer global.SugaredLogger.Sync()
-	//为了处理编译器提示的“闭包错误未处理”，添加了错误处理机制
-	defer func(SugaredLogger *zap.SugaredLogger) {
-		err := SugaredLogger.Sync()
-		if err != nil {
-			panic("生成日志记录器错误，请检查")
-		}
-	}(global.SugaredLogger)
+	defer global.SugaredLogger.Sync()
 }

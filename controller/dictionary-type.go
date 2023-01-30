@@ -16,6 +16,19 @@ import (
 type dictionaryTypeController struct {
 }
 
+func (dictionaryTypeController) Get(c *gin.Context) {
+	dictionaryTypeID, err := strconv.Atoi(c.Param("dictionary-type-id"))
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		c.JSON(http.StatusBadRequest,
+			response.Failure(util.ErrorInvalidURIParameters))
+		return
+	}
+	res := service.DictionaryTypeService.Get(dictionaryTypeID)
+	c.JSON(http.StatusOK, res)
+	return
+}
+
 func (dictionaryTypeController) Create(c *gin.Context) {
 	var param dto.DictionaryTypeCreate
 	err := c.ShouldBindJSON(&param)
@@ -111,7 +124,7 @@ func (dictionaryTypeController) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (dictionaryTypeController) List(c *gin.Context) {
+func (dictionaryTypeController) GetArray(c *gin.Context) {
 	var param dto.DictionaryTypeList
 	err := c.ShouldBindJSON(&param)
 
@@ -125,6 +138,24 @@ func (dictionaryTypeController) List(c *gin.Context) {
 	}
 
 	//生成Service,然后调用它的方法
-	res := service.DictionaryTypeService.List(param)
+	res := service.DictionaryTypeService.GetArray(param)
+	c.JSON(http.StatusOK, res)
+}
+
+func (dictionaryTypeController) GetList(c *gin.Context) {
+	var param dto.DictionaryTypeList
+	err := c.ShouldBindJSON(&param)
+
+	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
+	//如果是其他错误，就正常报错
+	if err != nil && !errors.Is(err, io.EOF) {
+		global.SugaredLogger.Errorln(err)
+		c.JSON(http.StatusBadRequest,
+			response.FailureForList(util.ErrorInvalidJSONParameters))
+		return
+	}
+
+	//生成Service,然后调用它的方法
+	res := service.DictionaryTypeService.GetList(param)
 	c.JSON(http.StatusOK, res)
 }
