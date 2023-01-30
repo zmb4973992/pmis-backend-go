@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
@@ -125,103 +124,91 @@ func (departmentService) Delete(paramIn dto.DepartmentDelete) response.Common {
 	return response.Success()
 }
 
-// 老式写法，待修改
-func (departmentService) List(paramIn dto.DepartmentListOld) response.List {
-	//生成sql查询条件
-	sqlCondition := util.NewSqlCondition()
+func (departmentService) List(paramIn dto.DepartmentList) response.List {
+	db := global.DB.Model(&model.Department{})
+	// 顺序：where -> count -> order -> limit -> offset -> data
 
-	//对paramIn进行清洗
-	//这部分是用于where的参数
-	if paramIn.Page > 0 {
-		sqlCondition.Paging.Page = paramIn.Page
+	//where
+	if paramIn.SuperiorID > 0 {
+		db = db.Where("superior_id = ?", paramIn.SuperiorID)
 	}
-	//如果参数里的pageSize是整数且大于0、小于等于上限：
-	maxPagingSize := global.Config.PagingConfig.MaxPageSize
-	if paramIn.PageSize > 0 && paramIn.PageSize <= maxPagingSize {
-		sqlCondition.Paging.PageSize = paramIn.PageSize
-	}
-	if id := paramIn.ID; id > 0 {
-		sqlCondition.Equal("id", id)
-	}
-	if paramIn.SuperiorID != nil {
-		sqlCondition.Equal("superior_id", *paramIn.SuperiorID)
-	}
-	if paramIn.Level != nil && *paramIn.Level != "" {
-		sqlCondition.Equal("level", *paramIn.Level)
-	}
-	if paramIn.Name != nil && *paramIn.Name != "" {
-		sqlCondition = sqlCondition.Equal("name", *paramIn.Name)
-	}
-	if paramIn.NameLike != nil && *paramIn.NameLike != "" {
-		sqlCondition = sqlCondition.Like("name", *paramIn.NameLike)
-	}
-	if paramIn.VerifyRole != nil && *paramIn.VerifyRole == true {
-		if util.IsInSlice("管理员", paramIn.RoleNames) ||
-			util.IsInSlice("公司级", paramIn.RoleNames) {
-		} else if util.IsInSlice("事业部级", paramIn.RoleNames) {
-			var departmentIDs []int
-			if len(paramIn.BusinessDivisionIDs) > 0 {
-				global.DB.Model(&model.Department{}).
-					Where("superior_id in ?", paramIn.BusinessDivisionIDs).
-					Select("id").Find(&departmentIDs)
-			}
-			if len(departmentIDs) > 0 {
-				sqlCondition.In("id", departmentIDs)
-			} else {
-				sqlCondition.Where("id", -1)
-			}
 
-		} else if util.SliceIncludes(paramIn.RoleNames, "部门级") {
-			if len(paramIn.DepartmentIDs) > 0 {
-				sqlCondition.In("id", paramIn.DepartmentIDs)
-			} else {
-				sqlCondition.Where("id", -1)
-			}
+	if paramIn.Level != "" {
+		db = db.Where("level = ?", paramIn.Level)
+	}
 
-		} else { //为以后的”项目级“预留的功能
-			if len(paramIn.DepartmentIDs) > 0 {
-				sqlCondition.In("id", paramIn.DepartmentIDs)
-			} else {
-				sqlCondition.Where("id", -1)
-			}
+	if paramIn.Name != "" {
+		db = db.Where("name = ?", paramIn.Name)
+	}
+
+	if paramIn.NameLike != "" {
+		db = db.Where("name like ?", "%"+paramIn.NameLike+"%")
+	}
+
+	// count
+	var count int64
+	db.Count(&count)
+
+	//order
+	orderBy := paramIn.SortingInput.OrderBy
+	desc := paramIn.SortingInput.Desc
+	//如果排序字段为空
+	if orderBy == "" {
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order("id desc")
+		}
+	} else { //如果有排序字段
+		//先看排序字段是否存在于表中
+		exists := util.FieldIsInModel(model.Department{}, orderBy)
+		if !exists {
+			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+		}
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order(orderBy + " desc")
+		} else { //如果没有要求排序方式
+			db = db.Order(orderBy)
 		}
 	}
 
-	//这部分是用于order的参数
-	orderBy := paramIn.OrderBy
-	if orderBy != "" {
-		ok := sqlCondition.FieldIsInModel(model.Department{}, orderBy)
-		if ok {
-			sqlCondition.Sorting.OrderBy = orderBy
-		}
+	//limit
+	page := 1
+	if paramIn.PagingInput.Page > 0 {
+		page = paramIn.PagingInput.Page
 	}
-	desc := paramIn.Desc
-	if desc == true {
-		sqlCondition.Sorting.Desc = true
-	} else {
-		sqlCondition.Sorting.Desc = false
+	pageSize := global.Config.DefaultPageSize
+	if paramIn.PagingInput.PageSize > 0 &&
+		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = paramIn.PagingInput.PageSize
 	}
+	db = db.Limit(pageSize)
 
-	totalRecords := sqlCondition.Count(global.DB, model.Department{})
-	tempList := sqlCondition.Find(global.DB, model.Department{})
-	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
+	//offset
+	offset := (page - 1) * pageSize
+	db = db.Offset(offset)
 
-	if len(tempList) == 0 {
+	//data
+	var data []dto.DepartmentOutput
+	db.Model(&model.Department{}).Find(&data)
+
+	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
-	var list []dto.DepartmentOutputOld
-	_ = mapstructure.Decode(&tempList, &list)
+	numberOfRecords := int(count)
+	numberOfPages := util.GetTotalNumberOfPages(numberOfRecords, pageSize)
 
 	return response.List{
-		Data: list,
+		Data: data,
 		Paging: &dto.PagingOutput{
-			Page:            sqlCondition.Paging.Page,
-			PageSize:        sqlCondition.Paging.PageSize,
-			NumberOfPages:   totalPages,
-			NumberOfRecords: totalRecords,
+			Page:            page,
+			PageSize:        pageSize,
+			NumberOfPages:   numberOfPages,
+			NumberOfRecords: numberOfRecords,
 		},
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),
 	}
+
 }

@@ -70,17 +70,18 @@ func (departmentController) Update(c *gin.Context) {
 		param.LastModifier = userID.(int)
 	}
 
-	res := service.DepartmentService.Update(&param)
+	res := service.DepartmentService.Update(param)
 	c.JSON(http.StatusOK, res)
 }
 
 func (departmentController) Delete(c *gin.Context) {
-	var param dto.DictionaryTypeDelete
+	var param dto.DepartmentDelete
 	var err error
-	departmentID, err := strconv.Atoi(c.Param("department-id"))
+	param.ID, err = strconv.Atoi(c.Param("department-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidURIParameters))
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -90,7 +91,7 @@ func (departmentController) Delete(c *gin.Context) {
 		userID := tempUserID.(int)
 		param.Deleter = userID
 	}
-	res := service.DepartmentService.Delete(departmentID)
+	res := service.DepartmentService.Delete(param)
 	c.JSON(http.StatusOK, res)
 }
 
