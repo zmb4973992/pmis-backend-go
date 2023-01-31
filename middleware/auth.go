@@ -8,13 +8,13 @@ import (
 )
 
 // NeedAuth 如果需要根据角色进行鉴权（casbin进行操作），则使用该中间件
-//这里通过casbin控制哪些角色可以访问接口、哪些角色不能访问接口
+// 这里通过casbin控制哪些角色可以访问接口、哪些角色不能访问接口
 func NeedAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tempSubjects, ok := c.Get("roles") //获取用户角色,casbin规则的主体参数
 		subjects := tempSubjects.([]string)
 		if !ok || len(subjects) == 0 {
-			c.JSON(http.StatusOK, response.Failure(util.ErrorPermissionDenied))
+			c.JSON(http.StatusOK, response.Fail(util.ErrorPermissionDenied))
 			c.Abort()
 			return
 		}
@@ -33,8 +33,8 @@ func NeedAuth() gin.HandlerFunc {
 			}
 		}
 		//循环结束，没有满足条件的角色，则中断请求
+		c.JSON(http.StatusOK, response.Fail(util.ErrorPermissionDenied))
 		c.Abort()
-		c.JSON(http.StatusOK, response.Failure(util.ErrorPermissionDenied))
 		return
 	}
 }

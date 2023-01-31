@@ -20,10 +20,10 @@ func (userService) Get(userID int) response.Common {
 	err := global.DB.Model(model.User{}).Where("id = ?", userID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return response.Fail(util.ErrorRecordNotFound)
 	}
 
-	return response.SuccessWithData(result)
+	return response.SucceedWithData(result)
 }
 
 func (userService) Create(paramIn *dto.UserCreate) response.Common {
@@ -34,7 +34,7 @@ func (userService) Create(paramIn *dto.UserCreate) response.Common {
 	encryptedPassword, err := util.EncryptPassword(paramIn.Password)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToEncrypt)
+		return response.Fail(util.ErrorFailToEncrypt)
 	}
 	paramOut.Password = encryptedPassword
 	paramOut.IsValid = paramIn.IsValid
@@ -64,9 +64,9 @@ func (userService) Create(paramIn *dto.UserCreate) response.Common {
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return response.Fail(util.ErrorFailToCreateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (userService) Update(paramIn *dto.UserUpdate) response.Common {
@@ -76,7 +76,7 @@ func (userService) Update(paramIn *dto.UserUpdate) response.Common {
 	err := global.DB.Where("id = ?", paramIn.ID).First(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return response.Fail(util.ErrorFailToUpdateRecord)
 	}
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	if paramIn.LastModifier != nil {
@@ -105,19 +105,19 @@ func (userService) Update(paramIn *dto.UserUpdate) response.Common {
 		Omit(fieldsToBeOmittedWhenUpdating...).Save(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return response.Fail(util.ErrorFailToUpdateRecord)
 	}
 
-	return response.Success()
+	return response.Succeed()
 }
 
 func (userService) Delete(userID int) response.Common {
 	err := global.DB.Delete(&model.User{}, userID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return response.Fail(util.ErrorFailToDeleteRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (userService) List(paramIn dto.UserList) response.List {
@@ -171,7 +171,7 @@ func (userService) List(paramIn dto.UserList) response.List {
 	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+		return response.FailForList(util.ErrorRecordNotFound)
 	}
 
 	//这里的tempList是基于model的，不能直接传给前端，要处理成dto才行

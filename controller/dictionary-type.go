@@ -21,7 +21,7 @@ func (dictionaryTypeController) Get(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 	res := service.DictionaryTypeService.Get(dictionaryTypeID)
@@ -35,7 +35,7 @@ func (dictionaryTypeController) Create(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//处理creator、last_modifier字段
@@ -57,7 +57,7 @@ func (dictionaryTypeController) CreateInBatches(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//处理creator、lastModifier字段
@@ -81,7 +81,7 @@ func (dictionaryTypeController) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
@@ -89,7 +89,7 @@ func (dictionaryTypeController) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -110,7 +110,7 @@ func (dictionaryTypeController) Delete(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -133,7 +133,7 @@ func (dictionaryTypeController) GetArray(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailureForList(util.ErrorInvalidJSONParameters))
+			response.FailForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -151,7 +151,7 @@ func (dictionaryTypeController) GetList(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailureForList(util.ErrorInvalidJSONParameters))
+			response.FailForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 

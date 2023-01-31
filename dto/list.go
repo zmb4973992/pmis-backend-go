@@ -25,6 +25,11 @@ type SqlConditionInput struct {
 
 // AuthInput 用于校验角色、分级显示的入参，按需导入
 type AuthInput struct {
+	IsShowedByRole bool `json:"is_showed_by_role,omitempty"` //根据角色来分级显示
+	UserID         int
+}
+
+type AuthInputOld struct {
 	UserInfoInput
 	VerifyRole *bool `json:"verify_role"` //是否需要校验角色、分级显示
 }

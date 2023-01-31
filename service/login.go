@@ -18,15 +18,15 @@ func (loginService) Login(param dto.Login) response.Common {
 	//如果没有找到记录
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorInvalidUsernameOrPassword)
+		return response.Fail(util.ErrorInvalidUsernameOrPassword)
 	}
 	//如果找到记录了，但是密码错误的话
 	if util.CheckPassword(param.Password, user.Password) == false {
-		return response.Failure(util.ErrorInvalidUsernameOrPassword)
+		return response.Fail(util.ErrorInvalidUsernameOrPassword)
 	}
 	//账号密码都正确时，生成token
 	token := jwt.GenerateToken(user.ID)
-	return response.SuccessWithData(
+	return response.SucceedWithData(
 		map[string]any{
 			"access_token": token,
 		})

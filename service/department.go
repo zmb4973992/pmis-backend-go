@@ -18,10 +18,10 @@ func (departmentService) Get(departmentID int) response.Common {
 		Where("id = ?", departmentID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return response.Fail(util.ErrorRecordNotFound)
 	}
 
-	return response.SuccessWithData(result)
+	return response.SucceedWithData(result)
 }
 
 func (departmentService) Create(paramIn dto.DepartmentCreate) response.Common {
@@ -37,16 +37,16 @@ func (departmentService) Create(paramIn dto.DepartmentCreate) response.Common {
 
 	paramOut.Name = paramIn.Name
 
-	paramOut.Level = paramIn.Level
+	paramOut.LevelName = paramIn.LevelName
 
 	paramOut.SuperiorID = &paramIn.SuperiorID
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return response.Fail(util.ErrorFailToCreateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (departmentService) Update(paramIn dto.DepartmentUpdate) response.Common {
@@ -64,11 +64,11 @@ func (departmentService) Update(paramIn dto.DepartmentUpdate) response.Common {
 		}
 	}
 
-	if paramIn.Level != nil {
-		if *paramIn.Level != "" {
-			paramOut["level"] = paramIn.Level
+	if paramIn.LevelName != nil {
+		if *paramIn.LevelName != "" {
+			paramOut["level_name"] = paramIn.LevelName
 		} else {
-			paramOut["level"] = nil
+			paramOut["level_name"] = nil
 		}
 	}
 
@@ -78,7 +78,7 @@ func (departmentService) Update(paramIn dto.DepartmentUpdate) response.Common {
 		} else if *paramIn.SuperiorID == 0 {
 			paramOut["superior_id"] = nil
 		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
+			return response.Fail(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -86,17 +86,17 @@ func (departmentService) Update(paramIn dto.DepartmentUpdate) response.Common {
 	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
 
 	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
+		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
 	err := global.DB.Model(&model.Department{}).
 		Where("id = ?", paramIn.ID).Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return response.Fail(util.ErrorFailToUpdateRecord)
 	}
 
-	return response.Success()
+	return response.Succeed()
 }
 
 func (departmentService) Delete(paramIn dto.DepartmentDelete) response.Common {
@@ -119,12 +119,12 @@ func (departmentService) Delete(paramIn dto.DepartmentDelete) response.Common {
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return response.Fail(util.ErrorFailToDeleteRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
-func (departmentService) List(paramIn dto.DepartmentList) response.List {
+func (departmentService) GetArray(paramIn dto.DepartmentList) response.Common {
 	db := global.DB.Model(&model.Department{})
 	// 顺序：where -> count -> order -> limit -> offset -> data
 
@@ -133,8 +133,8 @@ func (departmentService) List(paramIn dto.DepartmentList) response.List {
 		db = db.Where("superior_id = ?", paramIn.SuperiorID)
 	}
 
-	if paramIn.Level != "" {
-		db = db.Where("level = ?", paramIn.Level)
+	if paramIn.LevelName != "" {
+		db = db.Where("level_name = ?", paramIn.LevelName)
 	}
 
 	if paramIn.Name != "" {
@@ -143,6 +143,17 @@ func (departmentService) List(paramIn dto.DepartmentList) response.List {
 
 	if paramIn.NameLike != "" {
 		db = db.Where("name like ?", "%"+paramIn.NameLike+"%")
+	}
+
+	if paramIn.IsShowedByRole {
+		biggestRoleName := util.GetBiggestRoleName(paramIn.UserID)
+		if biggestRoleName == "事业部级" {
+			businessDivisionIDs := util.GetBusinessDivisionIDs(paramIn.UserID)
+			db = db.Where("superior_id in ?", businessDivisionIDs)
+		} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
+			departmentIDs := util.GetDepartmentIDs(paramIn.UserID)
+			db = db.Where("id in ?", departmentIDs)
+		}
 	}
 
 	// count
@@ -162,7 +173,97 @@ func (departmentService) List(paramIn dto.DepartmentList) response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(model.Department{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return response.Fail(util.ErrorSortingFieldDoesNotExist)
+		}
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order(orderBy + " desc")
+		} else { //如果没有要求排序方式
+			db = db.Order(orderBy)
+		}
+	}
+
+	//limit
+	page := 1
+	if paramIn.PagingInput.Page > 0 {
+		page = paramIn.PagingInput.Page
+	}
+	pageSize := global.Config.DefaultPageSize
+	if paramIn.PagingInput.PageSize > 0 &&
+		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = paramIn.PagingInput.PageSize
+	}
+	db = db.Limit(pageSize)
+
+	//offset
+	offset := (page - 1) * pageSize
+	db = db.Offset(offset)
+
+	//array
+	var array []string
+	db.Model(&model.DictionaryType{}).Select("name").Find(&array)
+
+	if len(array) == 0 {
+		return response.Fail(util.ErrorRecordNotFound)
+	}
+
+	return response.Common{
+		Data:    array,
+		Code:    util.Success,
+		Message: util.GetMessage(util.Success),
+	}
+}
+
+func (departmentService) List(paramIn dto.DepartmentList) response.List {
+	db := global.DB.Model(&model.Department{})
+	// 顺序：where -> count -> order -> limit -> offset -> data
+
+	//where
+	if paramIn.SuperiorID > 0 {
+		db = db.Where("superior_id = ?", paramIn.SuperiorID)
+	}
+
+	if paramIn.LevelName != "" {
+		db = db.Where("level_name = ?", paramIn.LevelName)
+	}
+
+	if paramIn.Name != "" {
+		db = db.Where("name = ?", paramIn.Name)
+	}
+
+	if paramIn.NameLike != "" {
+		db = db.Where("name like ?", "%"+paramIn.NameLike+"%")
+	}
+
+	if paramIn.IsShowedByRole {
+		biggestRoleName := util.GetBiggestRoleName(paramIn.UserID)
+		if biggestRoleName == "事业部级" {
+			businessDivisionIDs := util.GetBusinessDivisionIDs(paramIn.UserID)
+			db = db.Where("superior_id in ?", businessDivisionIDs)
+		} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
+			departmentIDs := util.GetDepartmentIDs(paramIn.UserID)
+			db = db.Where("id in ?", departmentIDs)
+		}
+	}
+
+	// count
+	var count int64
+	db.Count(&count)
+
+	//order
+	orderBy := paramIn.SortingInput.OrderBy
+	desc := paramIn.SortingInput.Desc
+	//如果排序字段为空
+	if orderBy == "" {
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order("id desc")
+		}
+	} else { //如果有排序字段
+		//先看排序字段是否存在于表中
+		exists := util.FieldIsInModel(model.Department{}, orderBy)
+		if !exists {
+			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -193,7 +294,7 @@ func (departmentService) List(paramIn dto.DepartmentList) response.List {
 	db.Model(&model.Department{}).Find(&data)
 
 	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+		return response.FailForList(util.ErrorRecordNotFound)
 	}
 
 	numberOfRecords := int(count)
@@ -210,5 +311,4 @@ func (departmentService) List(paramIn dto.DepartmentList) response.List {
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),
 	}
-
 }

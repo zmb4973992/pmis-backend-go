@@ -13,7 +13,7 @@ func UploadSingle(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorFailToUploadFiles))
+			response.Fail(util.ErrorFailToUploadFiles))
 		return
 	}
 	c.JSON(http.StatusOK, response.Common{
@@ -31,7 +31,7 @@ func UploadMultiple(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorFailToUploadFiles))
+			response.Fail(util.ErrorFailToUploadFiles))
 		return
 	}
 	c.JSON(http.StatusOK, response.Common{

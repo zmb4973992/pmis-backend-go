@@ -25,9 +25,9 @@ func (relatedPartyService) Get(relatedPartyID int) response.Common {
 		Where("id = ?", relatedPartyID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return response.Fail(util.ErrorRecordNotFound)
 	}
-	return response.SuccessWithData(result)
+	return response.SucceedWithData(result)
 }
 
 func (relatedPartyService) Create(paramIn *dto.RelatedPartyCreateOrUpdate) response.Common {
@@ -64,9 +64,9 @@ func (relatedPartyService) Create(paramIn *dto.RelatedPartyCreateOrUpdate) respo
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return response.Fail(util.ErrorFailToCreateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdate) response.Common {
@@ -75,7 +75,7 @@ func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdate) respo
 	err := global.DB.Where("id = ?", paramIn.ID).First(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return response.Fail(util.ErrorFailToUpdateRecord)
 	}
 
 	//对dto进行清洗，生成dao层需要的model
@@ -108,18 +108,18 @@ func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdate) respo
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return response.Fail(util.ErrorFailToUpdateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (relatedPartyService) Delete(relatedPartyID int) response.Common {
 	err := global.DB.Delete(&model.RelatedParty{}, relatedPartyID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return response.Fail(util.ErrorFailToDeleteRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (relatedPartyService) List(paramIn dto.RelatedPartyList) response.List {
@@ -180,7 +180,7 @@ func (relatedPartyService) List(paramIn dto.RelatedPartyList) response.List {
 	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+		return response.FailForList(util.ErrorRecordNotFound)
 	}
 
 	var list []dto.RelatedPartyOutput

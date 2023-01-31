@@ -18,7 +18,7 @@ func (roleAndUserController) ListByRoleID(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -31,7 +31,7 @@ func (roleAndUserController) CreateByRoleID(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -40,7 +40,7 @@ func (roleAndUserController) CreateByRoleID(c *gin.Context) {
 	if err != nil || len(param.UserIDs) == 0 {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -61,7 +61,7 @@ func (roleAndUserController) UpdateByRoleID(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -70,7 +70,7 @@ func (roleAndUserController) UpdateByRoleID(c *gin.Context) {
 	if err != nil || len(param.UserIDs) == 0 {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -90,7 +90,7 @@ func (roleAndUserController) DeleteByRoleID(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -103,7 +103,7 @@ func (roleAndUserController) ListByUserID(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -116,7 +116,7 @@ func (roleAndUserController) CreateByUserID(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -125,7 +125,7 @@ func (roleAndUserController) CreateByUserID(c *gin.Context) {
 	if err != nil || len(param.RoleIDs) == 0 {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -146,7 +146,7 @@ func (roleAndUserController) UpdateByUserID(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -155,7 +155,7 @@ func (roleAndUserController) UpdateByUserID(c *gin.Context) {
 	if err != nil || len(param.RoleIDs) == 0 {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -175,7 +175,7 @@ func (roleAndUserController) DeleteByUserID(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -189,7 +189,7 @@ func (roleAndUserController) ListByTokenInHeader(c *gin.Context) {
 	tempUserID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorAccessTokenInvalid))
+			response.Fail(util.ErrorAccessTokenInvalid))
 		return
 	}
 	userID := tempUserID.(int)

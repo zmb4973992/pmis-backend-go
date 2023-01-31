@@ -5,7 +5,7 @@ package dto
 type DictionaryList struct {
 	//GetList
 	//SuperiorID *int    `form:"superior_id"`
-	//Level      *string `form:"level"`
+	//LevelName      *string `form:"level"`
 	//
 	//Name     *string `form:"name"`
 	//NameLike *string `form:"name_like"`

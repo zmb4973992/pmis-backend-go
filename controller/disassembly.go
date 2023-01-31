@@ -20,7 +20,7 @@ func (disassemblyController) Get(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 	res := service.DisassemblyService.Get(disassemblyID)
@@ -35,7 +35,7 @@ func (disassemblyController) Tree(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 	res := service.DisassemblyService.Tree(param)
@@ -50,7 +50,7 @@ func (disassemblyController) Create(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -74,7 +74,7 @@ func (disassemblyController) CreateInBatches(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//处理creator、lastModifier字段
@@ -99,14 +99,14 @@ func (disassemblyController) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
 	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -126,7 +126,7 @@ func (disassemblyController) Delete(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 	res := service.DisassemblyService.Delete(disassemblyID)
@@ -138,7 +138,7 @@ func (disassemblyController) DeleteWithSubitems(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 	res := service.DisassemblyService.DeleteWithSubitems(disassemblyID)
@@ -154,7 +154,7 @@ func (disassemblyController) List(c *gin.Context) {
 	if err != nil && errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailureForList(util.ErrorInvalidJSONParameters))
+			response.FailForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//生成Service,然后调用它的方法

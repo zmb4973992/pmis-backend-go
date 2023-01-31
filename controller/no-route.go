@@ -12,5 +12,5 @@ type noRouteController struct {
 
 func (noRouteController) NoRoute(c *gin.Context) {
 	c.JSON(http.StatusBadRequest,
-		response.Failure(util.ErrorInvalidRequest))
+		response.Fail(util.ErrorInvalidRequest))
 }

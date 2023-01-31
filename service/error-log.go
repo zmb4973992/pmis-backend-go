@@ -21,13 +21,13 @@ func (errorLogService) Get(errorLogID int) response.Common {
 		Where("id = ?", errorLogID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return response.Fail(util.ErrorRecordNotFound)
 	}
 	if result.Date != nil {
 		date := *result.Date
 		*result.Date = date[:10]
 	}
-	return response.SuccessWithData(result)
+	return response.SucceedWithData(result)
 }
 
 func (errorLogService) Create(paramIn *dto.ErrorLogCreateOrUpdate) response.Common {
@@ -50,7 +50,7 @@ func (errorLogService) Create(paramIn *dto.ErrorLogCreateOrUpdate) response.Comm
 		date, err := time.Parse("2006-01-02", *paramIn.Date)
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
-			return response.Failure(util.ErrorInvalidJSONParameters)
+			return response.Fail(util.ErrorInvalidJSONParameters)
 		} else {
 			paramOut.Date = &date
 		}
@@ -75,9 +75,9 @@ func (errorLogService) Create(paramIn *dto.ErrorLogCreateOrUpdate) response.Comm
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return response.Fail(util.ErrorFailToCreateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
@@ -97,7 +97,7 @@ func (errorLogService) Update(paramIn *dto.ErrorLogCreateOrUpdate) response.Comm
 	if *paramIn.Date != "" {
 		date, err := time.Parse("2006-01-02", *paramIn.Date)
 		if err != nil {
-			return response.Failure(util.ErrorInvalidJSONParameters)
+			return response.Fail(util.ErrorInvalidJSONParameters)
 		} else {
 			paramOut.Date = &date
 		}
@@ -124,18 +124,18 @@ func (errorLogService) Update(paramIn *dto.ErrorLogCreateOrUpdate) response.Comm
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return response.Fail(util.ErrorFailToUpdateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (errorLogService) Delete(errorLogID int) response.Common {
 	err := global.DB.Delete(&model.ErrorLog{}, errorLogID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return response.Fail(util.ErrorFailToDeleteRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 // 这个函数有问题，待修改
@@ -194,7 +194,7 @@ func (errorLogService) List(paramIn dto.DisassemblyList) response.List {
 	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+		return response.FailForList(util.ErrorRecordNotFound)
 	}
 
 	var list []dto.DisassemblyOutput

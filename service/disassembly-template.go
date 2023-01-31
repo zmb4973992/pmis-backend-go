@@ -21,10 +21,10 @@ func (disassemblyTemplateService) Get(disassemblyTemplateID int) response.Common
 		Where("id = ?", disassemblyTemplateID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return response.Fail(util.ErrorRecordNotFound)
 	}
 
-	return response.SuccessWithData(result)
+	return response.SucceedWithData(result)
 }
 
 func (disassemblyTemplateService) Create(paramIn *dto.DisassemblyTemplateCreateOrUpdate) response.Common {
@@ -62,9 +62,9 @@ func (disassemblyTemplateService) Create(paramIn *dto.DisassemblyTemplateCreateO
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return response.Fail(util.ErrorFailToCreateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
@@ -103,18 +103,18 @@ func (disassemblyTemplateService) Update(paramIn *dto.DisassemblyTemplateCreateO
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return response.Fail(util.ErrorFailToUpdateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (disassemblyTemplateService) Delete(disassemblyTemplateID int) response.Common {
 	err := global.DB.Delete(&model.DisassemblyTemplate{}, disassemblyTemplateID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return response.Fail(util.ErrorFailToDeleteRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (disassemblyTemplateService) List(paramIn dto.DisassemblyTemplateList) response.List {
@@ -172,7 +172,7 @@ func (disassemblyTemplateService) List(paramIn dto.DisassemblyTemplateList) resp
 	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+		return response.FailForList(util.ErrorRecordNotFound)
 	}
 
 	var list []dto.DisassemblyTemplateGet

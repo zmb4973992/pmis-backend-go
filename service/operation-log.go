@@ -21,10 +21,10 @@ func (operationRecordService) Get(operationRecordID int) response.Common {
 		Where("id = ?", operationRecordID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return response.Fail(util.ErrorRecordNotFound)
 	}
 
-	return response.SuccessWithData(result)
+	return response.SucceedWithData(result)
 }
 
 func (operationRecordService) Create(paramIn *dto.OperationLogCreateOrUpdate) response.Common {
@@ -44,7 +44,7 @@ func (operationRecordService) Create(paramIn *dto.OperationLogCreateOrUpdate) re
 	//	date, err := time.Parse("2006-01-02", *paramIn.Date)
 	//	if err != nil {
 	//		global.SugaredLogger.Errorln(err)
-	//		return response.Failure(util.ErrorInvalidJSONParameters)
+	//		return response.Fail(util.ErrorInvalidJSONParameters)
 	//	} else {
 	//		//paramOut.Date = &date
 	//	}
@@ -61,10 +61,10 @@ func (operationRecordService) Create(paramIn *dto.OperationLogCreateOrUpdate) re
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return response.Fail(util.ErrorFailToCreateRecord)
 	}
 
-	return response.Success()
+	return response.Succeed()
 }
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
@@ -96,7 +96,7 @@ func (operationRecordService) Update(paramIn *dto.OperationLogCreateOrUpdate) re
 	//	date, err := time.Parse("2006-01-02", *paramIn.Date)
 	//	if err != nil {
 	//		global.SugaredLogger.Errorln(err)
-	//		return response.Failure(util.ErrorInvalidJSONParameters)
+	//		return response.Fail(util.ErrorInvalidJSONParameters)
 	//	} else {
 	//		paramOut.Date = &date
 	//	}
@@ -115,18 +115,18 @@ func (operationRecordService) Update(paramIn *dto.OperationLogCreateOrUpdate) re
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return response.Fail(util.ErrorFailToUpdateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (operationRecordService) Delete(operationRecordID int) response.Common {
 	err := global.DB.Delete(&model.OperationLog{}, operationRecordID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return response.Fail(util.ErrorFailToDeleteRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (operationRecordService) List(paramIn dto.OperationRecordList) response.List {
@@ -184,7 +184,7 @@ func (operationRecordService) List(paramIn dto.OperationRecordList) response.Lis
 	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+		return response.FailForList(util.ErrorRecordNotFound)
 	}
 
 	//这里的tempList是基于model的，不能直接传给前端，要处理成dto才行

@@ -20,7 +20,7 @@ func (userController) Get(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 	res := service.UserService.Get(userID)
@@ -35,7 +35,7 @@ func (userController) Create(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -60,7 +60,7 @@ func (userController) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
@@ -69,7 +69,7 @@ func (userController) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -92,7 +92,7 @@ func (userController) Delete(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 	res := service.UserService.Delete(userID)
@@ -108,7 +108,7 @@ func (userController) List(c *gin.Context) {
 	if err != nil && errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailureForList(util.ErrorInvalidJSONParameters))
+			response.FailForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -124,7 +124,7 @@ func (userController) GetByToken(c *gin.Context) {
 	tempUserID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorAccessTokenInvalid))
+			response.Fail(util.ErrorAccessTokenInvalid))
 		return
 	}
 	userID := tempUserID.(int)

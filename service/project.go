@@ -9,20 +9,17 @@ import (
 	"pmis-backend-go/util"
 )
 
-// projectService 没有数据、只有方法，所有的数据都放在DTO里
-// 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
-// 所有的增删改查都交给DAO层处理，否则service层会非常庞大
 type projectService struct{}
 
 func (projectService) Get(projectID int) response.Common {
 	var result dto.ProjectOutput
-	//查主表
 	err := global.DB.Model(model.Project{}).
 		Where("id = ?", projectID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return response.Fail(util.ErrorRecordNotFound)
 	}
+
 	//如果有部门id，就查部门信息
 	if result.DepartmentID != nil {
 		err = global.DB.Model(model.Department{}).
@@ -32,216 +29,194 @@ func (projectService) Get(projectID int) response.Common {
 			result.Department = nil
 		}
 	}
-	return response.SuccessWithData(result)
+	return response.SucceedWithData(result)
 }
 
-func (projectService) Create(paramIn *dto.ProjectCreateOrUpdate) response.Common {
-	//对dto进行清洗，生成需要的model
+func (projectService) Create(paramIn dto.ProjectCreate) response.Common {
 	var paramOut model.Project
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	if paramIn.Creator != nil {
-		paramOut.Creator = paramIn.Creator
+
+	if paramIn.Creator > 0 {
+		paramOut.Creator = &paramIn.Creator
 	}
 
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
+	if paramIn.LastModifier > 0 {
+		paramOut.LastModifier = &paramIn.LastModifier
 	}
 
-	if *paramIn.ProjectCode != "" {
-		paramOut.ProjectCode = paramIn.ProjectCode
+	if paramIn.ProjectCode != "" {
+		paramOut.ProjectCode = &paramIn.ProjectCode
 	}
 
-	if *paramIn.ProjectFullName != "" {
-		paramOut.ProjectFullName = paramIn.ProjectFullName
+	if paramIn.ProjectFullName != "" {
+		paramOut.ProjectFullName = &paramIn.ProjectFullName
 	}
 
-	if *paramIn.ProjectShortName != "" {
-		paramOut.ProjectShortName = paramIn.ProjectShortName
+	if paramIn.ProjectShortName != "" {
+		paramOut.ProjectShortName = &paramIn.ProjectShortName
 	}
 
-	if *paramIn.Country != "" {
-		paramOut.Country = paramIn.Country
+	if paramIn.Country != "" {
+		paramOut.Country = &paramIn.Country
 	}
 
-	if *paramIn.Province != "" {
-		paramOut.Province = paramIn.Province
+	if paramIn.Province != "" {
+		paramOut.Province = &paramIn.Province
 	}
 
-	if *paramIn.ProjectType != "" {
-		paramOut.ProjectType = paramIn.ProjectType
+	if paramIn.ProjectType != "" {
+		paramOut.ProjectType = &paramIn.ProjectType
 	}
 
-	if *paramIn.Amount != -1 {
+	if paramIn.Amount != nil {
 		paramOut.Amount = paramIn.Amount
 	}
 
-	if *paramIn.Currency != "" {
-		paramOut.Currency = paramIn.Currency
+	if paramIn.Currency != "" {
+		paramOut.Currency = &paramIn.Currency
 	}
 
-	if *paramIn.ExchangeRate != -1 {
+	if paramIn.ExchangeRate != nil {
 		paramOut.ExchangeRate = paramIn.ExchangeRate
 	}
 
-	if *paramIn.DepartmentID != -1 {
-		paramOut.DepartmentID = paramIn.DepartmentID
+	if paramIn.DepartmentID != 0 {
+		paramOut.DepartmentID = &paramIn.DepartmentID
 	}
 
-	if *paramIn.RelatedPartyID != -1 {
-		paramOut.RelatedPartyID = paramIn.RelatedPartyID
+	if paramIn.RelatedPartyID != 0 {
+		paramOut.RelatedPartyID = &paramIn.RelatedPartyID
 	}
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return response.Fail(util.ErrorFailToCreateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
-func (projectService) CreateInBatches(paramIn []dto.ProjectCreateOrUpdate) response.Common {
-	//对dto进行清洗，生成dao层需要的model
-	var paramOut []model.Project
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	for i := range paramIn {
-		var record model.Project
-		//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-		if paramIn[i].Creator != nil {
-			record.Creator = paramIn[i].Creator
-		}
+func (projectService) Update(paramIn *dto.ProjectUpdate) response.Common {
+	paramOut := make(map[string]any)
 
-		if paramIn[i].LastModifier != nil {
-			record.LastModifier = paramIn[i].LastModifier
-		}
-
-		if *paramIn[i].ProjectCode != "" {
-			record.ProjectCode = paramIn[i].ProjectCode
-		}
-
-		if *paramIn[i].ProjectFullName != "" {
-			record.ProjectFullName = paramIn[i].ProjectFullName
-		}
-
-		if *paramIn[i].ProjectShortName != "" {
-			record.ProjectShortName = paramIn[i].ProjectShortName
-		}
-
-		if *paramIn[i].Country != "" {
-			record.Country = paramIn[i].Country
-		}
-
-		if *paramIn[i].Province != "" {
-			record.Province = paramIn[i].Province
-		}
-
-		if *paramIn[i].ProjectType != "" {
-			record.ProjectType = paramIn[i].ProjectType
-		}
-
-		if *paramIn[i].Amount != -1 {
-			record.Amount = paramIn[i].Amount
-		}
-
-		if *paramIn[i].Currency != "" {
-			record.Currency = paramIn[i].Currency
-		}
-
-		if *paramIn[i].ExchangeRate != -1 {
-			record.ExchangeRate = paramIn[i].ExchangeRate
-		}
-
-		if *paramIn[i].DepartmentID != -1 {
-			record.DepartmentID = paramIn[i].DepartmentID
-		}
-
-		if *paramIn[i].RelatedPartyID != -1 {
-			record.RelatedPartyID = paramIn[i].RelatedPartyID
-		}
-
-		paramOut = append(paramOut, record)
+	if paramIn.LastModifier > 0 {
+		paramOut["last_modifier"] = paramIn.LastModifier
 	}
 
-	err := global.DB.Create(&paramOut).Error
+	if paramIn.ProjectCode != nil {
+		if *paramIn.ProjectCode != "" {
+			paramOut["project_code"] = paramIn.ProjectCode
+		} else {
+			paramOut["project_code"] = nil
+		}
+	}
+
+	if paramIn.ProjectFullName != nil {
+		if *paramIn.ProjectFullName != "" {
+			paramOut["project_full_name"] = paramIn.ProjectFullName
+		} else {
+			paramOut["project_full_name"] = nil
+		}
+	}
+
+	if paramIn.ProjectShortName != nil {
+		if *paramIn.ProjectShortName != "" {
+			paramOut["project_short_name"] = paramIn.ProjectShortName
+		} else {
+			paramOut["project_short_name"] = nil
+		}
+	}
+
+	if paramIn.Country != nil {
+		if *paramIn.Country != "" {
+			paramOut["country"] = paramIn.Country
+		} else {
+			paramOut["country"] = nil
+		}
+	}
+
+	if paramIn.Province != nil {
+		if *paramIn.Province != "" {
+			paramOut["province"] = paramIn.Province
+		} else {
+			paramOut["province"] = nil
+		}
+	}
+
+	if paramIn.ProjectType != nil {
+		if *paramIn.ProjectType != "" {
+			paramOut["project_type"] = paramIn.ProjectType
+		} else {
+			paramOut["project_type"] = nil
+		}
+	}
+
+	if paramIn.Amount != nil {
+		if *paramIn.Amount != -1 {
+			paramOut["amount"] = paramIn.Amount
+		} else {
+			paramOut["amount"] = nil
+		}
+	}
+
+	if paramIn.Currency != nil {
+		if *paramIn.Currency != "" {
+			paramOut["currency"] = paramIn.Currency
+		} else {
+			paramOut["currency"] = nil
+		}
+	}
+
+	if paramIn.ExchangeRate != nil {
+		if *paramIn.ExchangeRate != -1 {
+			paramOut["exchange_rate"] = paramIn.ExchangeRate
+		} else {
+			paramOut["exchange_rate"] = nil
+		}
+	}
+
+	if paramIn.DepartmentID != nil {
+		if *paramIn.DepartmentID != 0 {
+			paramOut["department_id"] = paramIn.DepartmentID
+		} else {
+			paramOut["department_id"] = nil
+		}
+	}
+
+	if paramIn.RelatedPartyID != nil {
+		if *paramIn.RelatedPartyID != 0 {
+			paramOut["related_party_id"] = paramIn.RelatedPartyID
+		} else {
+			paramOut["related_party_id"] = nil
+		}
+	}
+
+	//计算有修改值的字段数，分别进行不同处理
+	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
+
+	if len(paramOutForCounting) == 0 {
+		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
+	}
+
+	err := global.DB.Model(&model.Project{}).Where("id = ?", paramIn.ID).
+		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
-	}
-	return response.Success()
-}
-
-// Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
-// 其次是需要清洗
-func (projectService) Update(paramIn *dto.ProjectCreateOrUpdate) response.Common {
-	var paramOut model.Project
-	paramOut.ID = paramIn.ID
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
+		return response.Fail(util.ErrorFailToUpdateRecord)
 	}
 
-	if *paramIn.ProjectCode != "" {
-		paramOut.ProjectCode = paramIn.ProjectCode
-	}
-
-	if *paramIn.ProjectFullName != "" {
-		paramOut.ProjectFullName = paramIn.ProjectFullName
-	}
-
-	if *paramIn.ProjectShortName != "" {
-		paramOut.ProjectShortName = paramIn.ProjectShortName
-	}
-
-	if *paramIn.Country != "" {
-		paramOut.Country = paramIn.Country
-	}
-
-	if *paramIn.Province != "" {
-		paramOut.Province = paramIn.Province
-	}
-
-	if *paramIn.ProjectType != "" {
-		paramOut.ProjectType = paramIn.ProjectType
-	}
-
-	if *paramIn.Amount != -1 {
-		paramOut.Amount = paramIn.Amount
-	}
-
-	if *paramIn.Currency != "" {
-		paramOut.Currency = paramIn.Currency
-	}
-
-	if *paramIn.ExchangeRate != -1 {
-		paramOut.ExchangeRate = paramIn.ExchangeRate
-	}
-
-	if *paramIn.DepartmentID != -1 {
-		paramOut.DepartmentID = paramIn.DepartmentID
-	}
-
-	if *paramIn.RelatedPartyID != -1 {
-		paramOut.RelatedPartyID = paramIn.RelatedPartyID
-	}
-
-	//清洗完毕，开始update
-	err := global.DB.Where("id = ?", paramOut.ID).Omit(fieldsToBeOmittedWhenUpdating...).Save(&paramOut).Error
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
-	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (projectService) Delete(projectID int) response.Common {
 	err := global.DB.Delete(&model.Project{}, projectID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return response.Fail(util.ErrorFailToDeleteRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
-func (projectService) List(paramIn dto.ProjectList) response.List {
+func (projectService) List(paramIn dto.ProjectListOld) response.List {
 	db := global.DB
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
@@ -299,7 +274,7 @@ func (projectService) List(paramIn dto.ProjectList) response.List {
 			Select("id").Find(&departmentIDs).Error
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
-			return response.FailureForList(util.ErrorInvalidJSONParameters)
+			return response.FailForList(util.ErrorInvalidJSONParameters)
 		}
 		sqlCondition.In("department_id", departmentIDs)
 	}
@@ -329,11 +304,11 @@ func (projectService) List(paramIn dto.ProjectList) response.List {
 	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+		return response.FailForList(util.ErrorRecordNotFound)
 	}
 
 	//tempList是map，需要转成structure才能使用
-	var list []dto.ProjectOutput
+	var list []dto.ProjectOutputOld
 	_ = mapstructure.Decode(&tempList, &list)
 
 	for i := range list {

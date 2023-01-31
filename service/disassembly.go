@@ -20,9 +20,9 @@ func (disassemblyService) Get(disassemblyID int) response.Common {
 		Where("id = ?", disassemblyID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return response.Fail(util.ErrorRecordNotFound)
 	}
-	return response.SuccessWithData(result)
+	return response.SucceedWithData(result)
 }
 
 func (disassemblyService) Tree(paramIn dto.DisassemblyTree) response.Common {
@@ -33,7 +33,7 @@ func (disassemblyService) Tree(paramIn dto.DisassemblyTree) response.Common {
 		First(&disassemblyID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return response.Fail(util.ErrorRecordNotFound)
 	}
 
 	//第一轮查找
@@ -42,7 +42,7 @@ func (disassemblyService) Tree(paramIn dto.DisassemblyTree) response.Common {
 		Where("id = ?", disassemblyID).First(&result1).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return response.Fail(util.ErrorRecordNotFound)
 	}
 	//第二轮查找
 	var result2 []dto.DisassemblyTreeOutput
@@ -69,7 +69,7 @@ func (disassemblyService) Tree(paramIn dto.DisassemblyTree) response.Common {
 		result2[index2].Children = append(result2[index2].Children, result3...)
 	}
 	result1[0].Children = append(result1[0].Children, result2...)
-	return response.SuccessWithData(result1)
+	return response.SucceedWithData(result1)
 }
 
 func (disassemblyService) Create(paramIn *dto.DisassemblyCreateOrUpdate) response.Common {
@@ -106,9 +106,9 @@ func (disassemblyService) Create(paramIn *dto.DisassemblyCreateOrUpdate) respons
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return response.Fail(util.ErrorFailToCreateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (disassemblyService) CreateInBatches(paramIn []dto.DisassemblyCreateOrUpdate) response.Common {
@@ -151,9 +151,9 @@ func (disassemblyService) CreateInBatches(paramIn []dto.DisassemblyCreateOrUpdat
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return response.Fail(util.ErrorFailToCreateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
@@ -190,18 +190,18 @@ func (disassemblyService) Update(paramIn *dto.DisassemblyCreateOrUpdate) respons
 	//拿到dao层的返回结果，进行处理
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return response.Fail(util.ErrorFailToUpdateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (disassemblyService) Delete(disassemblyID int) response.Common {
 	err := global.DB.Delete(&model.Disassembly{}, disassemblyID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return response.Fail(util.ErrorFailToDeleteRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (disassemblyService) DeleteWithSubitems(disassemblyID int) response.Common {
@@ -236,9 +236,9 @@ func (disassemblyService) DeleteWithSubitems(disassemblyID int) response.Common 
 	err := global.DB.Delete(&model.Disassembly{}, ToBeDeletedIDs).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return response.Fail(util.ErrorFailToDeleteRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (disassemblyService) List(paramIn dto.DisassemblyList) response.List {
@@ -296,7 +296,7 @@ func (disassemblyService) List(paramIn dto.DisassemblyList) response.List {
 	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+		return response.FailForList(util.ErrorRecordNotFound)
 	}
 
 	var list []dto.DisassemblyOutput

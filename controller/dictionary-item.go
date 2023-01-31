@@ -37,7 +37,7 @@ func (dictionaryItemController) Create(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//处理creator、last_modifier字段
@@ -59,7 +59,7 @@ func (dictionaryItemController) CreateInBatches(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//处理creator、lastModifier字段
@@ -83,7 +83,7 @@ func (dictionaryItemController) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
@@ -91,7 +91,7 @@ func (dictionaryItemController) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -112,7 +112,7 @@ func (dictionaryItemController) Delete(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -135,7 +135,7 @@ func (dictionaryItemController) GetArray(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailureForList(util.ErrorInvalidJSONParameters))
+			response.FailForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -153,7 +153,7 @@ func (dictionaryItemController) GetList(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailureForList(util.ErrorInvalidJSONParameters))
+			response.FailForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 

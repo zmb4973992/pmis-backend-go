@@ -15,7 +15,7 @@ func Login(c *gin.Context) {
 	err := c.ShouldBindJSON(&loginDTO)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidJSONParameters))
+		c.JSON(http.StatusOK, response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 	res := service.LoginService.Login(loginDTO)

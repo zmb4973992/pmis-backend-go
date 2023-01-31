@@ -13,7 +13,6 @@ type User struct {
 	Roles           []RoleAndUser       `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	Departments     []DepartmentAndUser `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	ProjectAndUsers []ProjectAndUser    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
-	OperationLogs   []OperationLog      `gorm:"constraint:OnUpdate:CASCADE;"`
 }
 
 // TableName 将表名改为user

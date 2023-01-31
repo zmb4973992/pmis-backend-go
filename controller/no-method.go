@@ -12,5 +12,5 @@ type noMethodController struct {
 
 func (noMethodController) NoMethod(c *gin.Context) {
 	c.JSON(http.StatusMethodNotAllowed,
-		response.Failure(util.ErrorMethodNotAllowed))
+		response.Fail(util.ErrorMethodNotAllowed))
 }

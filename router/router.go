@@ -34,7 +34,7 @@ func Init() *gin.Engine {
 
 	//依次加载所有的路由组，以下都需要jwt验证
 	api := engine.Group("/api")
-	api.Use(middleware.NeedLogin(), middleware.RateLimit())
+	api.Use(middleware.ValidateToken(), middleware.RateLimit())
 	{
 		user := api.Group("/user")
 		{
@@ -72,7 +72,8 @@ func Init() *gin.Engine {
 			department.POST("", controller.DepartmentController.Create)                  //新增部门
 			department.PUT("/:department-id", controller.DepartmentController.Update)    //修改部门
 			department.DELETE("/:department-id", controller.DepartmentController.Delete) //删除部门
-			department.POST("/list", controller.DepartmentController.List)               //获取部门列表
+			department.POST("/array", controller.DepartmentController.GetArray)          //获取部门数组
+			department.POST("/list", controller.DepartmentController.GetList)            //获取部门列表
 		}
 		project := api.Group("/project")
 		{

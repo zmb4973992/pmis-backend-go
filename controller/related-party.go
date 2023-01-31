@@ -25,7 +25,7 @@ func (relatedPartyController) Get(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 	res := service.RelatedPartyService.Get(relatedPartyID)
@@ -40,7 +40,7 @@ func (relatedPartyController) Create(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -64,7 +64,7 @@ func (relatedPartyController) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidJSONParameters))
+			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
@@ -72,7 +72,7 @@ func (relatedPartyController) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -92,7 +92,7 @@ func (relatedPartyController) Delete(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
 	res := service.RelatedPartyService.Delete(relatedPartyID)
@@ -108,7 +108,7 @@ func (relatedPartyController) List(c *gin.Context) {
 	if err != nil && errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailureForList(util.ErrorInvalidJSONParameters))
+			response.FailForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//生成userService,然后调用它的方法

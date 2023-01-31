@@ -17,9 +17,9 @@ func (dictionaryTypeService) Get(dictionaryTypeID int) response.Common {
 		Where("id = ?", dictionaryTypeID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return response.Fail(util.ErrorRecordNotFound)
 	}
-	return response.SuccessWithData(result)
+	return response.SucceedWithData(result)
 }
 
 func (dictionaryTypeService) Create(paramIn dto.DictionaryTypeCreate) response.Common {
@@ -45,9 +45,9 @@ func (dictionaryTypeService) Create(paramIn dto.DictionaryTypeCreate) response.C
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return response.Fail(util.ErrorFailToCreateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (dictionaryTypeService) CreateInBatches(paramIn []dto.DictionaryTypeCreate) response.Common {
@@ -79,9 +79,9 @@ func (dictionaryTypeService) CreateInBatches(paramIn []dto.DictionaryTypeCreate)
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return response.Fail(util.ErrorFailToCreateRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (dictionaryTypeService) Update(paramIn dto.DictionaryTypeUpdate) response.Common {
@@ -105,7 +105,7 @@ func (dictionaryTypeService) Update(paramIn dto.DictionaryTypeUpdate) response.C
 		} else if *paramIn.Sort == 0 {
 			paramOut["sort"] = nil
 		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
+			return response.Fail(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -121,17 +121,17 @@ func (dictionaryTypeService) Update(paramIn dto.DictionaryTypeUpdate) response.C
 	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
 
 	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
+		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
 	err := global.DB.Model(&model.DictionaryType{}).Where("id = ?", paramIn.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return response.Fail(util.ErrorFailToUpdateRecord)
 	}
 
-	return response.Success()
+	return response.Succeed()
 }
 
 func (dictionaryTypeService) Delete(paramIn dto.DictionaryTypeDelete) response.Common {
@@ -154,9 +154,9 @@ func (dictionaryTypeService) Delete(paramIn dto.DictionaryTypeDelete) response.C
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return response.Fail(util.ErrorFailToDeleteRecord)
 	}
-	return response.Success()
+	return response.Succeed()
 }
 
 func (dictionaryTypeService) GetArray(paramIn dto.DictionaryTypeList) response.Common {
@@ -181,7 +181,7 @@ func (dictionaryTypeService) GetArray(paramIn dto.DictionaryTypeList) response.C
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(model.DictionaryType{}, orderBy)
 		if !exists {
-			return response.Failure(util.ErrorSortingFieldDoesNotExist)
+			return response.Fail(util.ErrorSortingFieldDoesNotExist)
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -212,7 +212,7 @@ func (dictionaryTypeService) GetArray(paramIn dto.DictionaryTypeList) response.C
 	db.Model(&model.DictionaryType{}).Select("name").Find(&array)
 
 	if len(array) == 0 {
-		return response.Failure(util.ErrorRecordNotFound)
+		return response.Fail(util.ErrorRecordNotFound)
 	}
 
 	return response.Common{
@@ -248,7 +248,7 @@ func (dictionaryTypeService) GetList(paramIn dto.DictionaryTypeList) response.Li
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(model.DictionaryType{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -279,7 +279,7 @@ func (dictionaryTypeService) GetList(paramIn dto.DictionaryTypeList) response.Li
 	db.Model(&model.DictionaryType{}).Find(&data)
 
 	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+		return response.FailForList(util.ErrorRecordNotFound)
 	}
 
 	numberOfRecords := int(count)
