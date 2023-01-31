@@ -24,22 +24,22 @@ func UploadInit() {
 // 上传单个文件专用，经过uuid加持后返回唯一文件名和错误信息。
 // 第二个入参为前端的关键词名称。
 func UploadSingleFile(c *gin.Context, key string) (uniqueFilename string, err error) {
-	_, header, err := c.Request.FormFile(key)
+	file, err := c.FormFile(key)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return "", err
 	}
-	if header.Size > global.Config.MaxSizeForUpload {
+	if file.Size > global.Config.MaxSizeForUpload {
 		return "", errors.New("文件过大")
 	}
 	id := uuid.New().String()
-	header.Filename = id + "--" + header.Filename
-	err = c.SaveUploadedFile(header, global.Config.FullPath+header.Filename)
+	file.Filename = id + "--" + file.Filename
+	err = c.SaveUploadedFile(file, global.Config.FullPath+file.Filename)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return "", err
 	}
-	return header.Filename, nil
+	return file.Filename, nil
 }
 
 // UploadMultipleFiles 上传多个文件专用，经过uuid加持后返回唯一文件名和错误信息，文件名之间用竖线 | 分隔。
