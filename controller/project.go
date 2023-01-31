@@ -132,6 +132,6 @@ func (projectController) List(c *gin.Context) {
 	}
 
 	//生成Service,然后调用它的方法
-	res := service.ProjectService.List(param)
+	res := service.ProjectService.GetList(param)
 	c.JSON(http.StatusOK, res)
 }

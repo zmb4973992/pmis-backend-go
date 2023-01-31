@@ -77,12 +77,11 @@ func Init() *gin.Engine {
 		}
 		project := api.Group("/project")
 		{
-			project.GET("/:project-id", controller.ProjectController.Get)        //获取项目详情
-			project.POST("", controller.ProjectController.Create)                //新增项目
-			project.POST("/batch", controller.ProjectController.CreateInBatches) //批量新增项目
-			project.PUT("/:project-id", controller.ProjectController.Update)     //修改项目
-			project.DELETE("/:project-id", controller.ProjectController.Delete)  //删除项目
-			project.POST("/list", controller.ProjectController.List)             //获取项目列表
+			project.GET("/:project-id", controller.ProjectController.Get)       //获取项目详情
+			project.POST("", controller.ProjectController.Create)               //新增项目
+			project.PUT("/:project-id", controller.ProjectController.Update)    //修改项目
+			project.DELETE("/:project-id", controller.ProjectController.Delete) //删除项目
+			project.POST("/list", controller.ProjectController.List)            //获取项目列表
 		}
 		disassembly := api.Group("/disassembly")
 		{

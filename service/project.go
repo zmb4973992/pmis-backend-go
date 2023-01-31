@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/mitchellh/mapstructure"
+	"gorm.io/gorm"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -95,7 +95,7 @@ func (projectService) Create(paramIn dto.ProjectCreate) response.Common {
 	return response.Succeed()
 }
 
-func (projectService) Update(paramIn *dto.ProjectUpdate) response.Common {
+func (projectService) Update(paramIn dto.ProjectUpdate) response.Common {
 	paramOut := make(map[string]any)
 
 	if paramIn.LastModifier > 0 {
@@ -207,8 +207,24 @@ func (projectService) Update(paramIn *dto.ProjectUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (projectService) Delete(projectID int) response.Common {
-	err := global.DB.Delete(&model.Project{}, projectID).Error
+func (projectService) Delete(paramIn dto.ProjectDelete) response.Common {
+	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
+	err := global.DB.Transaction(func(tx *gorm.DB) error {
+		//这里记录删除人，在事务中必须放在前面
+		//如果放后面，由于是软删除，系统会找不到这条记录，导致无法更新
+		err := tx.Debug().Model(&model.Project{}).Where("id = ?", paramIn.ID).
+			Update("deleter", paramIn.Deleter).Error
+		if err != nil {
+			return err
+		}
+		//这里删除记录
+		err = tx.Delete(&model.Project{}, paramIn.ID).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToDeleteRecord)
@@ -216,120 +232,193 @@ func (projectService) Delete(projectID int) response.Common {
 	return response.Succeed()
 }
 
-func (projectService) List(paramIn dto.ProjectListOld) response.List {
-	db := global.DB
-	//生成sql查询条件
-	sqlCondition := util.NewSqlCondition()
-	//对paramIn进行清洗
-	//这部分是用于where的参数
-	if paramIn.VerifyRole != nil && *paramIn.VerifyRole == true {
-		if util.IsInSlice("管理员", paramIn.RoleNames) ||
-			util.IsInSlice("公司级", paramIn.RoleNames) {
-		} else if util.IsInSlice("事业部级", paramIn.RoleNames) {
-			var departmentIDs []int
-			if len(paramIn.BusinessDivisionIDs) > 0 {
-				global.DB.Model(&model.Department{}).
-					Where("superior_id in ?", paramIn.BusinessDivisionIDs).
-					Select("id").Find(&departmentIDs)
-			}
-			if len(departmentIDs) > 0 {
-				sqlCondition.In("department_id", departmentIDs)
-			} else {
-				sqlCondition.Where("department_id", -1)
-			}
+func (projectService) GetArray(paramIn dto.ProjectList) response.Common {
+	db := global.DB.Model(&model.Project{})
+	// 顺序：where -> count -> order -> limit -> offset -> data
 
-		} else if util.SliceIncludesOld(paramIn.RoleNames, "部门级") {
-			if len(paramIn.DepartmentIDs) > 0 {
-				sqlCondition.In("department_id", paramIn.DepartmentIDs)
-			} else {
-				sqlCondition.Where("department_id", -1)
-			}
+	//where
+	if paramIn.ProjectNameLike != "" {
+		db = db.Where("project_full_name like ?", "%"+paramIn.ProjectNameLike+"%").
+			Or("project_short_name like ?", "%"+paramIn.ProjectNameLike+"%")
+	}
 
-		} else { //为以后的”项目级“预留的功能
-			if len(paramIn.DepartmentIDs) > 0 {
-				sqlCondition.In("department_id", paramIn.DepartmentIDs)
-			} else {
-				sqlCondition.Where("department_id", -1)
-			}
+	if paramIn.DepartmentNameLike != "" {
+		var departmentIDs []int
+		global.DB.Model(&model.Department{}).Where("name like ?", "%"+paramIn.DepartmentNameLike+"%").
+			Select("id").Find(&departmentIDs)
+		if len(departmentIDs) > 0 {
+			db = db.Where("department_id in ?", departmentIDs)
 		}
-	}
-
-	if paramIn.Page > 0 {
-		sqlCondition.Paging.Page = paramIn.Page
-	}
-	//如果参数里的pageSize是整数且大于0、小于等于上限：
-	maxPagingSize := global.Config.PagingConfig.MaxPageSize
-	if paramIn.PageSize > 0 && paramIn.PageSize <= maxPagingSize {
-		sqlCondition.Paging.PageSize = paramIn.PageSize
 	}
 
 	if len(paramIn.DepartmentIDIn) > 0 {
-		sqlCondition.In("department_id", paramIn.DepartmentIDIn)
+		db = db.Where("department_id in ?", paramIn.DepartmentIDIn)
 	}
 
-	if paramIn.DepartmentNameLike != nil && *paramIn.DepartmentNameLike != "" {
+	if paramIn.IsShowedByRole {
+		biggestRoleName := util.GetBiggestRoleName(paramIn.UserID)
+		if biggestRoleName == "事业部级" {
+			businessDivisionIDs := util.GetBusinessDivisionIDs(paramIn.UserID)
+			db = db.Where("superior_id in ?", businessDivisionIDs)
+		} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
+			departmentIDs := util.GetDepartmentIDs(paramIn.UserID)
+			db = db.Where("id in ?", departmentIDs)
+		}
+	}
+
+	// count
+	var count int64
+	db.Count(&count)
+
+	//order
+	orderBy := paramIn.SortingInput.OrderBy
+	desc := paramIn.SortingInput.Desc
+	//如果排序字段为空
+	if orderBy == "" {
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order("id desc")
+		}
+	} else { //如果有排序字段
+		//先看排序字段是否存在于表中
+		exists := util.FieldIsInModel(model.Project{}, orderBy)
+		if !exists {
+			return response.Fail(util.ErrorSortingFieldDoesNotExist)
+		}
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order(orderBy + " desc")
+		} else { //如果没有要求排序方式
+			db = db.Order(orderBy)
+		}
+	}
+
+	//limit
+	page := 1
+	if paramIn.PagingInput.Page > 0 {
+		page = paramIn.PagingInput.Page
+	}
+	pageSize := global.Config.DefaultPageSize
+	if paramIn.PagingInput.PageSize > 0 &&
+		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = paramIn.PagingInput.PageSize
+	}
+	db = db.Limit(pageSize)
+
+	//offset
+	offset := (page - 1) * pageSize
+	db = db.Offset(offset)
+
+	//array
+	var array []string
+	db.Model(&model.Project{}).Select("project_full_name").Find(&array)
+
+	if len(array) == 0 {
+		return response.Fail(util.ErrorRecordNotFound)
+	}
+
+	return response.Common{
+		Data:    array,
+		Code:    util.Success,
+		Message: util.GetMessage(util.Success),
+	}
+}
+
+func (projectService) GetList(paramIn dto.ProjectList) response.List {
+	db := global.DB.Model(&model.Project{})
+	// 顺序：where -> count -> order -> limit -> offset -> data
+
+	//where
+	if paramIn.ProjectNameLike != "" {
+		db = db.Where("project_full_name like ?", "%"+paramIn.ProjectNameLike+"%").
+			Or("project_short_name like ?", "%"+paramIn.ProjectNameLike+"%")
+	}
+
+	if paramIn.DepartmentNameLike != "" {
 		var departmentIDs []int
-		err := global.DB.Model(model.Department{}).
-			Where("name LIKE ?", "%"+*paramIn.DepartmentNameLike+"%").
-			Select("id").Find(&departmentIDs).Error
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return response.FailForList(util.ErrorInvalidJSONParameters)
-		}
-		sqlCondition.In("department_id", departmentIDs)
-	}
-
-	if paramIn.ProjectNameLike != nil && *paramIn.ProjectNameLike != "" {
-		db = db.Where("project_full_name like ?", "%"+*paramIn.ProjectNameLike+"%").
-			Or("project_short_name like ?", "%"+*paramIn.ProjectNameLike+"%")
-	}
-
-	//这部分是用于order的参数
-	orderBy := paramIn.OrderBy
-	if orderBy != "" {
-		ok := sqlCondition.FieldIsInModel(model.Project{}, orderBy)
-		if ok {
-			sqlCondition.Sorting.OrderBy = orderBy
+		global.DB.Model(&model.Department{}).Where("name like ?", "%"+paramIn.DepartmentNameLike+"%").
+			Select("id").Find(&departmentIDs)
+		if len(departmentIDs) > 0 {
+			db = db.Where("department_id in ?", departmentIDs)
 		}
 	}
-	desc := paramIn.Desc
-	if desc == true {
-		sqlCondition.Sorting.Desc = true
-	} else {
-		sqlCondition.Sorting.Desc = false
-	}
-	//需要先count再find，因为find会改变db的指针
-	totalRecords := sqlCondition.Count(db, model.Project{})
-	tempList := sqlCondition.Find(db, model.Project{})
-	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
-	if len(tempList) == 0 {
+	if len(paramIn.DepartmentIDIn) > 0 {
+		db = db.Where("department_id in ?", paramIn.DepartmentIDIn)
+	}
+
+	if paramIn.IsShowedByRole {
+		biggestRoleName := util.GetBiggestRoleName(paramIn.UserID)
+		if biggestRoleName == "事业部级" {
+			businessDivisionIDs := util.GetBusinessDivisionIDs(paramIn.UserID)
+			db = db.Where("superior_id in ?", businessDivisionIDs)
+		} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
+			departmentIDs := util.GetDepartmentIDs(paramIn.UserID)
+			db = db.Where("id in ?", departmentIDs)
+		}
+	}
+
+	// count
+	var count int64
+	db.Count(&count)
+
+	//order
+	orderBy := paramIn.SortingInput.OrderBy
+	desc := paramIn.SortingInput.Desc
+	//如果排序字段为空
+	if orderBy == "" {
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order("id desc")
+		}
+	} else { //如果有排序字段
+		//先看排序字段是否存在于表中
+		exists := util.FieldIsInModel(model.Project{}, orderBy)
+		if !exists {
+			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
+		}
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order(orderBy + " desc")
+		} else { //如果没有要求排序方式
+			db = db.Order(orderBy)
+		}
+	}
+
+	//limit
+	page := 1
+	if paramIn.PagingInput.Page > 0 {
+		page = paramIn.PagingInput.Page
+	}
+	pageSize := global.Config.DefaultPageSize
+	if paramIn.PagingInput.PageSize > 0 &&
+		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = paramIn.PagingInput.PageSize
+	}
+	db = db.Limit(pageSize)
+
+	//offset
+	offset := (page - 1) * pageSize
+	db = db.Offset(offset)
+
+	//data
+	var data []dto.ProjectOutput
+	db.Model(&model.Project{}).Find(&data)
+
+	if len(data) == 0 {
 		return response.FailForList(util.ErrorRecordNotFound)
 	}
 
-	//tempList是map，需要转成structure才能使用
-	var list []dto.ProjectOutputOld
-	_ = mapstructure.Decode(&tempList, &list)
-
-	for i := range list {
-		//如果有部门id，就查部门信息
-		if list[i].DepartmentID != nil {
-			err := global.DB.Model(model.Department{}).
-				Where("id=?", list[i].DepartmentID).First(&list[i].Department).Error
-			if err != nil {
-				global.SugaredLogger.Errorln(err)
-				list[i].Department = nil
-			}
-		}
-	}
+	numberOfRecords := int(count)
+	numberOfPages := util.GetTotalNumberOfPages(numberOfRecords, pageSize)
 
 	return response.List{
-		Data: list,
+		Data: data,
 		Paging: &dto.PagingOutput{
-			Page:            sqlCondition.Paging.Page,
-			PageSize:        sqlCondition.Paging.PageSize,
-			NumberOfPages:   totalPages,
-			NumberOfRecords: totalRecords,
+			Page:            page,
+			PageSize:        pageSize,
+			NumberOfPages:   numberOfPages,
+			NumberOfRecords: numberOfRecords,
 		},
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),
