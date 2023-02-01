@@ -16,15 +16,20 @@ import (
 type departmentController struct{}
 
 func (departmentController) Get(c *gin.Context) {
-	departmentID, err := strconv.Atoi(c.Param("department-id"))
+	departmentGet := new(service.DepartmentGet)
+	var err error
+	departmentGet.DepartmentID, err = strconv.Atoi(c.Param("department-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.DepartmentService.Get(departmentID)
+	//res := service.DepartmentService.Get(departmentID)
+
+	res := departmentGet.Do()
 	c.JSON(http.StatusOK, res)
+
 }
 
 func (departmentController) Create(c *gin.Context) {

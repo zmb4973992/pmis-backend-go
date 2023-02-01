@@ -38,3 +38,9 @@ var (
 	fieldsToBeOmittedWhenUpdating = []string{
 		"created_at", "iCreate", "deleted_at", "deleter"}
 )
+
+type A struct{}
+
+func (A) name() {
+
+}
