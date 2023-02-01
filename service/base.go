@@ -36,5 +36,5 @@ var (
 var (
 	//更新数据库记录时一定需要省略的字段：创建者和删除者的相关字段
 	fieldsToBeOmittedWhenUpdating = []string{
-		"created_at", "creator", "deleted_at", "deleter"}
+		"created_at", "iCreate", "deleted_at", "deleter"}
 )

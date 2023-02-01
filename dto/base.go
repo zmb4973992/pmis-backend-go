@@ -1,5 +1,6 @@
 package dto
 
+// deprecated
 type Base struct {
 	//mapstructure不能删，用于service list中从model到dto的转换
 	Creator      *int `json:"creator" mapstructure:"creator" gorm:"creator"`
