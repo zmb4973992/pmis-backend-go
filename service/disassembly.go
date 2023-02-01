@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/mitchellh/mapstructure"
+	"gorm.io/gorm"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -9,9 +9,6 @@ import (
 	"pmis-backend-go/util"
 )
 
-// disassemblyService 没有数据、只有方法，所有的数据都放在DTO里
-// 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
-// 所有的增删改查都交给DAO层处理，否则service层会非常庞大
 type disassemblyService struct{}
 
 func (disassemblyService) Get(disassemblyID int) response.Common {
@@ -72,37 +69,25 @@ func (disassemblyService) Tree(paramIn dto.DisassemblyTree) response.Common {
 	return response.SucceedWithData(result1)
 }
 
-func (disassemblyService) Create(paramIn *dto.DisassemblyCreateOrUpdate) response.Common {
-	//对dto进行清洗，生成dao层需要的model
+func (disassemblyService) Create(paramIn dto.DisassemblyCreate) response.Common {
 	var paramOut model.Disassembly
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	if paramIn.Creator != nil {
-		paramOut.Creator = paramIn.Creator
+	if paramIn.Creator > 0 {
+		paramOut.Creator = &paramIn.Creator
 	}
 
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
+	if paramIn.LastModifier > 0 {
+		paramOut.LastModifier = &paramIn.LastModifier
 	}
 
-	if *paramIn.Name != "" {
-		paramOut.Name = paramIn.Name
-	}
+	paramOut.Name = &paramIn.Name
 
-	if *paramIn.Level != -1 {
-		paramOut.Level = paramIn.Level
-	}
+	paramOut.ProjectID = &paramIn.ProjectID
 
-	if *paramIn.ProjectID != -1 {
-		paramOut.ProjectID = paramIn.ProjectID
-	}
+	paramOut.Level = &paramIn.Level
 
-	if *paramIn.Weight != -1 {
-		paramOut.Weight = paramIn.Weight
-	}
+	paramOut.Weight = &paramIn.Weight
 
-	if *paramIn.SuperiorID != -1 {
-		paramOut.SuperiorID = paramIn.SuperiorID
-	}
+	paramOut.SuperiorID = &paramIn.SuperiorID
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
@@ -111,39 +96,27 @@ func (disassemblyService) Create(paramIn *dto.DisassemblyCreateOrUpdate) respons
 	return response.Succeed()
 }
 
-func (disassemblyService) CreateInBatches(paramIn []dto.DisassemblyCreateOrUpdate) response.Common {
-	//对dto进行清洗，生成dao层需要的model
+func (disassemblyService) CreateInBatches(paramIn []dto.DisassemblyCreate) response.Common {
 	var paramOut []model.Disassembly
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
 	for i := range paramIn {
 		var record model.Disassembly
-		if paramIn[i].Creator != nil {
-			record.Creator = paramIn[i].Creator
+		if paramIn[i].Creator > 0 {
+			record.Creator = &paramIn[i].Creator
 		}
 
-		if paramIn[i].LastModifier != nil {
-			record.LastModifier = paramIn[i].LastModifier
+		if paramIn[i].LastModifier > 0 {
+			record.LastModifier = &paramIn[i].LastModifier
 		}
 
-		if *paramIn[i].Name != "" {
-			record.Name = paramIn[i].Name
-		}
+		record.Name = &paramIn[i].Name
 
-		if *paramIn[i].Level != -1 {
-			record.Level = paramIn[i].Level
-		}
+		record.Level = &paramIn[i].Level
 
-		if *paramIn[i].ProjectID != -1 {
-			record.ProjectID = paramIn[i].ProjectID
-		}
+		record.ProjectID = &paramIn[i].ProjectID
 
-		if *paramIn[i].Weight != -1 {
-			record.Weight = paramIn[i].Weight
-		}
+		record.Weight = &paramIn[i].Weight
 
-		if *paramIn[i].SuperiorID != -1 {
-			record.SuperiorID = paramIn[i].SuperiorID
-		}
+		record.SuperiorID = &paramIn[i].SuperiorID
 
 		paramOut = append(paramOut, record)
 	}
@@ -156,38 +129,62 @@ func (disassemblyService) CreateInBatches(paramIn []dto.DisassemblyCreateOrUpdat
 	return response.Succeed()
 }
 
-// Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
-// 其次是需要清洗
-func (disassemblyService) Update(paramIn *dto.DisassemblyCreateOrUpdate) response.Common {
-	var paramOut model.Disassembly
-	paramOut.ID = paramIn.ID
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
+func (disassemblyService) Update(paramIn dto.DisassemblyUpdate) response.Common {
+	paramOut := make(map[string]any)
+
+	if paramIn.LastModifier > 0 {
+		paramOut["last_modifier"] = paramIn.LastModifier
 	}
 
-	if *paramIn.Name != "" {
-		paramOut.Name = paramIn.Name
-	}
-	if *paramIn.Level != -1 {
-		paramOut.Level = paramIn.Level
-	}
-
-	if *paramIn.ProjectID != -1 {
-		paramOut.ProjectID = paramIn.ProjectID
+	if paramIn.Name != nil {
+		if *paramIn.Name != "" {
+			paramOut["name"] = paramIn.Name
+		} else {
+			paramOut["name"] = nil
+		}
 	}
 
-	if *paramIn.Weight != -1 {
-		paramOut.Weight = paramIn.Weight
+	if paramIn.ProjectID != nil {
+		if *paramIn.ProjectID != 0 {
+			paramOut["project_id"] = paramIn.ProjectID
+		} else {
+			paramOut["project_id"] = nil
+		}
 	}
 
-	if *paramIn.SuperiorID != -1 {
-		paramOut.SuperiorID = paramIn.SuperiorID
+	if paramIn.Level != nil {
+		if *paramIn.Level != 0 {
+			paramOut["level"] = paramIn.Level
+		} else {
+			paramOut["level"] = nil
+		}
 	}
 
-	//清洗完毕，开始update
-	err := global.DB.Where("id = ?", paramOut.ID).Omit(fieldsToBeOmittedWhenUpdating...).Save(&paramOut).Error
-	//拿到dao层的返回结果，进行处理
+	if paramIn.Weight != nil {
+		if *paramIn.Weight != 0 {
+			paramOut["weight"] = paramIn.Weight
+		} else {
+			paramOut["weight"] = nil
+		}
+	}
+
+	if paramIn.SuperiorID != nil {
+		if *paramIn.SuperiorID != 0 {
+			paramOut["superior_id"] = paramIn.SuperiorID
+		} else {
+			paramOut["superior_id"] = nil
+		}
+	}
+
+	//计算有修改值的字段数，分别进行不同处理
+	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
+
+	if len(paramOutForCounting) == 0 {
+		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
+	}
+
+	err := global.DB.Model(&model.Disassembly{}).Where("id = ?", paramIn.ID).
+		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToUpdateRecord)
@@ -195,8 +192,24 @@ func (disassemblyService) Update(paramIn *dto.DisassemblyCreateOrUpdate) respons
 	return response.Succeed()
 }
 
-func (disassemblyService) Delete(disassemblyID int) response.Common {
-	err := global.DB.Delete(&model.Disassembly{}, disassemblyID).Error
+func (disassemblyService) Delete(paramIn dto.DisassemblyDelete) response.Common {
+	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
+	err := global.DB.Transaction(func(tx *gorm.DB) error {
+		//这里记录删除人，在事务中必须放在前面
+		//如果放后面，由于是软删除，系统会找不到这条记录，导致无法更新
+		err := tx.Debug().Model(&model.Disassembly{}).Where("id = ?", paramIn.ID).
+			Update("deleter", paramIn.Deleter).Error
+		if err != nil {
+			return err
+		}
+		//这里删除记录
+		err = tx.Delete(&model.Disassembly{}, paramIn.ID).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToDeleteRecord)
@@ -204,12 +217,13 @@ func (disassemblyService) Delete(disassemblyID int) response.Common {
 	return response.Succeed()
 }
 
-func (disassemblyService) DeleteWithSubitems(disassemblyID int) response.Common {
+// 有错误，待完善
+func (disassemblyService) DeleteWithSubitems(paramIn dto.DisassemblyDelete) response.Common {
 	var ToBeDeletedIDs []int
-	ToBeDeletedIDs = append(ToBeDeletedIDs, disassemblyID)
+	ToBeDeletedIDs = append(ToBeDeletedIDs, paramIn.ID)
 	//第一轮查找
 	var result1 []int
-	global.DB.Model(&model.Disassembly{}).Where("superior_id = ?", disassemblyID).
+	global.DB.Model(&model.Disassembly{}).Where("superior_id = ?", paramIn.ID).
 		Select("id").Find(&result1)
 	//第二轮查找
 	if len(result1) > 0 {
@@ -233,7 +247,24 @@ func (disassemblyService) DeleteWithSubitems(disassemblyID int) response.Common 
 			}
 		}
 	}
-	err := global.DB.Delete(&model.Disassembly{}, ToBeDeletedIDs).Error
+
+	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
+	err := global.DB.Transaction(func(tx *gorm.DB) error {
+		//这里记录删除人，在事务中必须放在前面
+		//如果放后面，由于是软删除，系统会找不到这条记录，导致无法更新
+		err := tx.Debug().Model(&model.Disassembly{}).Where("id in ?", ToBeDeletedIDs).
+			Update("deleter", paramIn.Deleter).Error
+		if err != nil {
+			return err
+		}
+		//这里删除记录
+		err = tx.Delete(&model.Disassembly{}, ToBeDeletedIDs).Error
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToDeleteRecord)
@@ -241,74 +272,96 @@ func (disassemblyService) DeleteWithSubitems(disassemblyID int) response.Common 
 	return response.Succeed()
 }
 
-func (disassemblyService) List(paramIn dto.DisassemblyList) response.List {
-	//生成sql查询条件
-	sqlCondition := util.NewSqlCondition()
+func (disassemblyService) GetList(paramIn dto.DisassemblyList) response.List {
+	db := global.DB.Model(&model.Disassembly{})
+	// 顺序：where -> count -> order -> limit -> offset -> data
 
-	//对paramIn进行清洗
-	//这部分是用于where的参数
-	if paramIn.Page > 0 {
-		sqlCondition.Paging.Page = paramIn.Page
-	}
-	//如果参数里的pageSize是整数且大于0、小于等于上限：
-	maxPagingSize := global.Config.PagingConfig.MaxPageSize
-	if paramIn.PageSize > 0 && paramIn.PageSize <= maxPagingSize {
-		sqlCondition.Paging.PageSize = paramIn.PageSize
+	//where
+	if paramIn.NameInclude != "" {
+		db = db.Where("name like ?", "%"+paramIn.NameInclude+"%")
 	}
 
-	if paramIn.ProjectID != nil {
-		sqlCondition.Equal("project_id", *paramIn.ProjectID)
+	if paramIn.ProjectID > 0 {
+		db = db.Where("project_id = ?", paramIn.ProjectID)
 	}
 
-	if paramIn.SuperiorID != nil {
-		sqlCondition.Equal("superior_id", *paramIn.SuperiorID)
+	if paramIn.SuperiorID > 0 {
+		db = db.Where("superior_id = ?", paramIn.SuperiorID)
 	}
 
-	if paramIn.Level != nil {
-		sqlCondition.Equal("level", *paramIn.Level)
+	if paramIn.Level > 0 {
+		db = db.Where("level = ?", paramIn.Level)
 	}
 
-	if paramIn.LevelGte != nil {
-		sqlCondition.Gte("level", *paramIn.LevelGte)
+	if paramIn.LevelGte != nil && *paramIn.LevelGte >= 0 {
+		db = db.Where("level >= ?", paramIn.LevelGte)
 	}
 
-	if paramIn.LevelLte != nil {
-		sqlCondition.Lte("level", *paramIn.LevelLte)
+	if paramIn.LevelLte != nil && *paramIn.LevelLte >= 0 {
+		db = db.Where("level <= ?", paramIn.LevelLte)
 	}
 
-	//这部分是用于order的参数
-	orderBy := paramIn.OrderBy
-	if orderBy != "" {
-		ok := sqlCondition.FieldIsInModel(model.Disassembly{}, orderBy)
-		if ok {
-			sqlCondition.Sorting.OrderBy = orderBy
+	// count
+	var count int64
+	db.Count(&count)
+
+	//order
+	orderBy := paramIn.SortingInput.OrderBy
+	desc := paramIn.SortingInput.Desc
+	//如果排序字段为空
+	if orderBy == "" {
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order("id desc")
+		}
+	} else { //如果有排序字段
+		//先看排序字段是否存在于表中
+		exists := util.FieldIsInModel(model.Disassembly{}, orderBy)
+		if !exists {
+			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
+		}
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order(orderBy + " desc")
+		} else { //如果没有要求排序方式
+			db = db.Order(orderBy)
 		}
 	}
-	desc := paramIn.Desc
-	if desc == true {
-		sqlCondition.Sorting.Desc = true
-	} else {
-		sqlCondition.Sorting.Desc = false
+
+	//limit
+	page := 1
+	if paramIn.PagingInput.Page > 0 {
+		page = paramIn.PagingInput.Page
 	}
+	pageSize := global.Config.DefaultPageSize
+	if paramIn.PagingInput.PageSize > 0 &&
+		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = paramIn.PagingInput.PageSize
+	}
+	db = db.Limit(pageSize)
 
-	tempList := sqlCondition.Find(global.DB, model.Disassembly{})
-	totalRecords := sqlCondition.Count(global.DB, model.Disassembly{})
-	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
+	//offset
+	offset := (page - 1) * pageSize
+	db = db.Offset(offset)
 
-	if len(tempList) == 0 {
+	//data
+	var data []dto.DisassemblyOutput
+	db.Model(&model.Disassembly{}).Find(&data)
+
+	if len(data) == 0 {
 		return response.FailForList(util.ErrorRecordNotFound)
 	}
 
-	var list []dto.DisassemblyOutput
-	_ = mapstructure.Decode(&tempList, &list)
+	numberOfRecords := int(count)
+	numberOfPages := util.GetTotalNumberOfPages(numberOfRecords, pageSize)
 
 	return response.List{
-		Data: list,
+		Data: data,
 		Paging: &dto.PagingOutput{
-			Page:            sqlCondition.Paging.Page,
-			PageSize:        sqlCondition.Paging.PageSize,
-			NumberOfPages:   totalPages,
-			NumberOfRecords: totalRecords,
+			Page:            page,
+			PageSize:        pageSize,
+			NumberOfPages:   numberOfPages,
+			NumberOfRecords: numberOfRecords,
 		},
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),

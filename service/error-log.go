@@ -139,7 +139,7 @@ func (errorLogService) Delete(errorLogID int) response.Common {
 }
 
 // 这个函数有问题，待修改
-func (errorLogService) List(paramIn dto.DisassemblyList) response.List {
+func (errorLogService) List(paramIn dto.DisassemblyListOld) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 
@@ -197,7 +197,7 @@ func (errorLogService) List(paramIn dto.DisassemblyList) response.List {
 		return response.FailForList(util.ErrorRecordNotFound)
 	}
 
-	var list []dto.DisassemblyOutput
+	var list []dto.ErrorLogOutput
 	_ = mapstructure.Decode(&tempList, &list)
 
 	return response.List{

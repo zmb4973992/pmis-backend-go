@@ -38,6 +38,7 @@ func (dictionaryTypeController) Create(c *gin.Context) {
 			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
+
 	//处理creator、last_modifier字段
 	tempUserID, exists := c.Get("user_id")
 	if exists {
@@ -60,6 +61,7 @@ func (dictionaryTypeController) CreateInBatches(c *gin.Context) {
 			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
+
 	//处理creator、lastModifier字段
 	tempUserID, _ := c.Get("user_id")
 	if tempUserID != nil {
@@ -93,7 +95,7 @@ func (dictionaryTypeController) Update(c *gin.Context) {
 		return
 	}
 
-	//处理lastModifier字段
+	//处理last_modifier字段
 	userID, exists := c.Get("user_id")
 	if exists {
 		param.LastModifier = userID.(int)
@@ -155,7 +157,6 @@ func (dictionaryTypeController) GetList(c *gin.Context) {
 		return
 	}
 
-	//生成Service,然后调用它的方法
 	res := service.DictionaryTypeService.GetList(param)
 	c.JSON(http.StatusOK, res)
 }

@@ -92,7 +92,7 @@ func Init() *gin.Engine {
 			disassembly.PUT("/:disassembly-id", controller.DisassemblyController.Update)                        //修改项目拆解
 			disassembly.DELETE("/:disassembly-id", controller.DisassemblyController.Delete)                     //删除项目拆解
 			disassembly.DELETE("/cascade/:disassembly-id", controller.DisassemblyController.DeleteWithSubitems) //删除项目拆解（子项一并删除）
-			disassembly.POST("/list", controller.DisassemblyController.List)                                    //获取项目拆解列表
+			disassembly.POST("/list", controller.DisassemblyController.GetList)                                 //获取项目拆解列表
 		}
 		disassemblyTemplate := api.Group("/disassembly-template")
 		{

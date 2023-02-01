@@ -44,8 +44,7 @@ func (disassemblyController) Tree(c *gin.Context) {
 }
 
 func (disassemblyController) Create(c *gin.Context) {
-	var param dto.DisassemblyCreateOrUpdate
-	//先把json参数绑定到model
+	var param dto.DisassemblyCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -54,22 +53,21 @@ func (disassemblyController) Create(c *gin.Context) {
 		return
 	}
 
-	//处理creator、lastModifier字段
+	//处理creator、last_modifier字段
 	tempUserID, exists := c.Get("user_id")
 	if exists {
 		userID := tempUserID.(int)
-		param.Creator = &userID
-		param.LastModifier = &userID
+		param.Creator = userID
+		param.LastModifier = userID
 	}
 
-	res := service.DisassemblyService.Create(&param)
+	res := service.DisassemblyService.Create(param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
 func (disassemblyController) CreateInBatches(c *gin.Context) {
-	var param []dto.DisassemblyCreateOrUpdate
-	//先把json参数绑定到model
+	var param []dto.DisassemblyCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -77,13 +75,14 @@ func (disassemblyController) CreateInBatches(c *gin.Context) {
 			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
+
 	//处理creator、lastModifier字段
 	tempUserID, _ := c.Get("user_id")
 	if tempUserID != nil {
 		userID := tempUserID.(int)
 		for i := range param {
-			param[i].Creator = &userID
-			param[i].LastModifier = &userID
+			param[i].Creator = userID
+			param[i].LastModifier = userID
 		}
 	}
 
@@ -93,8 +92,7 @@ func (disassemblyController) CreateInBatches(c *gin.Context) {
 }
 
 func (disassemblyController) Update(c *gin.Context) {
-	var param dto.DisassemblyCreateOrUpdate
-	//先把json参数绑定到model
+	var param dto.DisassemblyUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -110,42 +108,60 @@ func (disassemblyController) Update(c *gin.Context) {
 		return
 	}
 
-	//处理lastModifier字段
-	tempUserID, exists := c.Get("user_id")
+	//处理last_modifier字段
+	userID, exists := c.Get("user_id")
 	if exists {
-		userID := tempUserID.(int)
-		param.LastModifier = &userID
+		param.LastModifier = userID.(int)
 	}
 
-	res := service.DisassemblyService.Update(&param)
+	res := service.DisassemblyService.Update(param)
 	c.JSON(http.StatusOK, res)
 }
 
 func (disassemblyController) Delete(c *gin.Context) {
-	disassemblyID, err := strconv.Atoi(c.Param("disassembly-id"))
+	var param dto.DisassemblyDelete
+	var err error
+	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.DisassemblyService.Delete(disassemblyID)
+
+	//处理deleter字段
+	tempUserID, exists := c.Get("user_id")
+	if exists {
+		userID := tempUserID.(int)
+		param.Deleter = userID
+	}
+	res := service.DisassemblyService.Delete(param)
 	c.JSON(http.StatusOK, res)
 }
 
 func (disassemblyController) DeleteWithSubitems(c *gin.Context) {
-	disassemblyID, err := strconv.Atoi(c.Param("disassembly-id"))
+	var param dto.DisassemblyDelete
+	var err error
+	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.DisassemblyService.DeleteWithSubitems(disassemblyID)
+
+	//处理deleter字段
+	tempUserID, exists := c.Get("user_id")
+	if exists {
+		userID := tempUserID.(int)
+		param.Deleter = userID
+	}
+
+	res := service.DisassemblyService.DeleteWithSubitems(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (disassemblyController) List(c *gin.Context) {
+func (disassemblyController) GetList(c *gin.Context) {
 	var param dto.DisassemblyList
 	err := c.ShouldBindJSON(&param)
 
@@ -157,7 +173,6 @@ func (disassemblyController) List(c *gin.Context) {
 			response.FailForList(util.ErrorInvalidJSONParameters))
 		return
 	}
-	//生成Service,然后调用它的方法
-	res := service.DisassemblyService.List(param)
+	res := service.DisassemblyService.GetList(param)
 	c.JSON(http.StatusOK, res)
 }
