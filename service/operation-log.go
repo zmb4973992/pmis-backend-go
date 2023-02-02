@@ -9,12 +9,12 @@ import (
 	"pmis-backend-go/util"
 )
 
-// operationRecordService 没有数据、只有方法，所有的数据都放在DTO里
+// operationRecord 没有数据、只有方法，所有的数据都放在DTO里
 // 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
 // 所有的增删改查都交给DAO层处理，否则service层会非常庞大
-type operationRecordService struct{}
+type operationRecord struct{}
 
-func (operationRecordService) Get(operationRecordID int) response.Common {
+func (operationRecord) Get(operationRecordID int) response.Common {
 	var result dto.OperationLogOutput
 	//把基础的拆解信息查出来
 	err := global.DB.Model(model.OperationLog{}).
@@ -27,7 +27,7 @@ func (operationRecordService) Get(operationRecordID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (operationRecordService) Create(paramIn *dto.OperationLogCreateOrUpdate) response.Common {
+func (operationRecord) Create(paramIn *dto.OperationLogCreateOrUpdate) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.OperationLog
 
@@ -69,7 +69,7 @@ func (operationRecordService) Create(paramIn *dto.OperationLogCreateOrUpdate) re
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (operationRecordService) Update(paramIn *dto.OperationLogCreateOrUpdate) response.Common {
+func (operationRecord) Update(paramIn *dto.OperationLogCreateOrUpdate) response.Common {
 	var paramOut model.OperationLog
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -120,7 +120,7 @@ func (operationRecordService) Update(paramIn *dto.OperationLogCreateOrUpdate) re
 	return response.Succeed()
 }
 
-func (operationRecordService) Delete(operationRecordID int) response.Common {
+func (operationRecord) Delete(operationRecordID int) response.Common {
 	err := global.DB.Delete(&model.OperationLog{}, operationRecordID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -129,7 +129,7 @@ func (operationRecordService) Delete(operationRecordID int) response.Common {
 	return response.Succeed()
 }
 
-func (operationRecordService) List(paramIn dto.OperationRecordList) response.List {
+func (operationRecord) List(paramIn dto.OperationRecordList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 

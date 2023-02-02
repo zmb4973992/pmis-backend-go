@@ -13,10 +13,10 @@ import (
 	"strconv"
 )
 
-type dictionaryTypeController struct {
+type dictionaryType struct {
 }
 
-func (dictionaryTypeController) Get(c *gin.Context) {
+func (dictionaryType) Get(c *gin.Context) {
 	dictionaryTypeID, err := strconv.Atoi(c.Param("dictionary-type-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -24,12 +24,12 @@ func (dictionaryTypeController) Get(c *gin.Context) {
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.DictionaryTypeService.Get(dictionaryTypeID)
+	res := service.DictionaryType.Get(dictionaryTypeID)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (dictionaryTypeController) Create(c *gin.Context) {
+func (dictionaryType) Create(c *gin.Context) {
 	var param dto.DictionaryTypeCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -47,12 +47,12 @@ func (dictionaryTypeController) Create(c *gin.Context) {
 		param.LastModifier = userID
 	}
 
-	res := service.DictionaryTypeService.Create(param)
+	res := service.DictionaryType.Create(param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (dictionaryTypeController) CreateInBatches(c *gin.Context) {
+func (dictionaryType) CreateInBatches(c *gin.Context) {
 	var param []dto.DictionaryTypeCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -72,12 +72,12 @@ func (dictionaryTypeController) CreateInBatches(c *gin.Context) {
 		}
 	}
 
-	res := service.DictionaryTypeService.CreateInBatches(param)
+	res := service.DictionaryType.CreateInBatches(param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (dictionaryTypeController) Update(c *gin.Context) {
+func (dictionaryType) Update(c *gin.Context) {
 	var param dto.DictionaryTypeUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -101,11 +101,11 @@ func (dictionaryTypeController) Update(c *gin.Context) {
 		param.LastModifier = userID.(int)
 	}
 
-	res := service.DictionaryTypeService.Update(param)
+	res := service.DictionaryType.Update(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (dictionaryTypeController) Delete(c *gin.Context) {
+func (dictionaryType) Delete(c *gin.Context) {
 	var param dto.DictionaryTypeDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("dictionary-type-id"))
@@ -122,11 +122,11 @@ func (dictionaryTypeController) Delete(c *gin.Context) {
 		userID := tempUserID.(int)
 		param.Deleter = userID
 	}
-	res := service.DictionaryTypeService.Delete(param)
+	res := service.DictionaryType.Delete(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (dictionaryTypeController) GetArray(c *gin.Context) {
+func (dictionaryType) GetArray(c *gin.Context) {
 	var param dto.DictionaryTypeList
 	err := c.ShouldBindJSON(&param)
 
@@ -140,11 +140,11 @@ func (dictionaryTypeController) GetArray(c *gin.Context) {
 	}
 
 	//生成Service,然后调用它的方法
-	res := service.DictionaryTypeService.GetArray(param)
+	res := service.DictionaryType.GetArray(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (dictionaryTypeController) GetList(c *gin.Context) {
+func (dictionaryType) GetList(c *gin.Context) {
 	var param dto.DictionaryTypeList
 	err := c.ShouldBindJSON(&param)
 
@@ -157,6 +157,6 @@ func (dictionaryTypeController) GetList(c *gin.Context) {
 		return
 	}
 
-	res := service.DictionaryTypeService.GetList(param)
+	res := service.DictionaryType.GetList(param)
 	c.JSON(http.StatusOK, res)
 }

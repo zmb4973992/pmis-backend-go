@@ -9,9 +9,9 @@ import (
 	"pmis-backend-go/util"
 )
 
-type projectService struct{}
+type project struct{}
 
-func (projectService) Get(projectID int) response.Common {
+func (project) Get(projectID int) response.Common {
 	var result dto.ProjectOutput
 	err := global.DB.Model(model.Project{}).
 		Where("id = ?", projectID).First(&result).Error
@@ -32,7 +32,7 @@ func (projectService) Get(projectID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (projectService) Create(paramIn dto.ProjectCreate) response.Common {
+func (project) Create(paramIn dto.ProjectCreate) response.Common {
 	var paramOut model.Project
 
 	if paramIn.Creator > 0 {
@@ -95,7 +95,7 @@ func (projectService) Create(paramIn dto.ProjectCreate) response.Common {
 	return response.Succeed()
 }
 
-func (projectService) Update(paramIn dto.ProjectUpdate) response.Common {
+func (project) Update(paramIn dto.ProjectUpdate) response.Common {
 	paramOut := make(map[string]any)
 
 	if paramIn.LastModifier > 0 {
@@ -207,7 +207,7 @@ func (projectService) Update(paramIn dto.ProjectUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (projectService) Delete(paramIn dto.ProjectDelete) response.Common {
+func (project) Delete(paramIn dto.ProjectDelete) response.Common {
 	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		//这里记录删除人，在事务中必须放在前面
@@ -232,9 +232,9 @@ func (projectService) Delete(paramIn dto.ProjectDelete) response.Common {
 	return response.Succeed()
 }
 
-func (projectService) GetArray(paramIn dto.ProjectList) response.Common {
+func (project) GetArray(paramIn dto.ProjectList) response.Common {
 	db := global.DB.Model(&model.Project{})
-	// 顺序：where -> count -> order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
 	if paramIn.ProjectNameLike != "" {
@@ -270,7 +270,7 @@ func (projectService) GetArray(paramIn dto.ProjectList) response.Common {
 	var count int64
 	db.Count(&count)
 
-	//order
+	//Order
 	orderBy := paramIn.SortingInput.OrderBy
 	desc := paramIn.SortingInput.Desc
 	//如果排序字段为空
@@ -324,9 +324,9 @@ func (projectService) GetArray(paramIn dto.ProjectList) response.Common {
 	}
 }
 
-func (projectService) GetList(paramIn dto.ProjectList) response.List {
+func (project) GetList(paramIn dto.ProjectList) response.List {
 	db := global.DB.Model(&model.Project{})
-	// 顺序：where -> count -> order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
 	if paramIn.ProjectNameLike != "" {
@@ -362,7 +362,7 @@ func (projectService) GetList(paramIn dto.ProjectList) response.List {
 	var count int64
 	db.Count(&count)
 
-	//order
+	//Order
 	orderBy := paramIn.SortingInput.OrderBy
 	desc := paramIn.SortingInput.Desc
 	//如果排序字段为空

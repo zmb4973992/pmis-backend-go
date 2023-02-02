@@ -9,12 +9,12 @@ import (
 	"pmis-backend-go/util"
 )
 
-// disassemblyService 没有数据、只有方法，所有的数据都放在DTO里
+// disassembly 没有数据、只有方法，所有的数据都放在DTO里
 // 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
 // 所有的增删改查都交给DAO层处理，否则service层会非常庞大
-type disassemblyTemplateService struct{}
+type disassemblyTemplate struct{}
 
-func (disassemblyTemplateService) Get(disassemblyTemplateID int) response.Common {
+func (disassemblyTemplate) Get(disassemblyTemplateID int) response.Common {
 	var result dto.DisassemblyTemplateGet
 	//把基础的拆解信息查出来
 	err := global.DB.Model(model.DisassemblyTemplate{}).
@@ -27,7 +27,7 @@ func (disassemblyTemplateService) Get(disassemblyTemplateID int) response.Common
 	return response.SucceedWithData(result)
 }
 
-func (disassemblyTemplateService) Create(paramIn *dto.DisassemblyTemplateCreateOrUpdate) response.Common {
+func (disassemblyTemplate) Create(paramIn *dto.DisassemblyTemplateCreateOrUpdate) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.DisassemblyTemplate
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -69,7 +69,7 @@ func (disassemblyTemplateService) Create(paramIn *dto.DisassemblyTemplateCreateO
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (disassemblyTemplateService) Update(paramIn *dto.DisassemblyTemplateCreateOrUpdate) response.Common {
+func (disassemblyTemplate) Update(paramIn *dto.DisassemblyTemplateCreateOrUpdate) response.Common {
 	var paramOut model.DisassemblyTemplate
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -108,7 +108,7 @@ func (disassemblyTemplateService) Update(paramIn *dto.DisassemblyTemplateCreateO
 	return response.Succeed()
 }
 
-func (disassemblyTemplateService) Delete(disassemblyTemplateID int) response.Common {
+func (disassemblyTemplate) Delete(disassemblyTemplateID int) response.Common {
 	err := global.DB.Delete(&model.DisassemblyTemplate{}, disassemblyTemplateID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -117,7 +117,7 @@ func (disassemblyTemplateService) Delete(disassemblyTemplateID int) response.Com
 	return response.Succeed()
 }
 
-func (disassemblyTemplateService) List(paramIn dto.DisassemblyTemplateList) response.List {
+func (disassemblyTemplate) List(paramIn dto.DisassemblyTemplateList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 

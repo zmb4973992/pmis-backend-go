@@ -1,36 +1,36 @@
 package service
 
-// AllService 所有服务的入口
-type AllService struct {
-	loginService
-	userService
-	relatedPartyService
-	departmentService
-	disassemblyService
-	operationRecordService
-	roleAndUserService
-	disassemblyTemplateService
-	errorLogService
-	projectService
-	dictionaryItemService
-	dictionaryTypeService
+// service 所有服务的入口
+type service struct {
+	login
+	user
+	relatedParty
+	department
+	disassembly
+	operationRecord
+	roleAndUser
+	disassemblyTemplate
+	errorLog
+	project
+	dictionaryItem
+	dictionaryType
 }
 
 // 定义各个服务的入口,避免反复new service
 var (
-	entrance                   = new(AllService)
-	LoginService               = entrance.loginService
-	UserService                = entrance.userService
-	RelatedPartyService        = entrance.relatedPartyService
-	DepartmentService          = entrance.departmentService
-	DisassemblyService         = entrance.disassemblyService
-	DisassemblyTemplateService = entrance.disassemblyTemplateService
-	OperationRecordService     = entrance.operationRecordService
-	RoleAndUserService         = entrance.roleAndUserService
-	ErrorLogService            = entrance.errorLogService
-	ProjectService             = entrance.projectService
-	DictionaryItemService      = entrance.dictionaryItemService
-	DictionaryTypeService      = entrance.dictionaryTypeService
+	entrance            = new(service)
+	Login               = entrance.login
+	User                = entrance.user
+	RelatedParty        = entrance.relatedParty
+	Department          = entrance.department
+	Disassembly         = entrance.disassembly
+	DisassemblyTemplate = entrance.disassemblyTemplate
+	OperationRecord     = entrance.operationRecord
+	RoleAndUser         = entrance.roleAndUser
+	ErrorLog            = entrance.errorLog
+	Project             = entrance.project
+	DictionaryItem      = entrance.dictionaryItem
+	DictionaryType      = entrance.dictionaryType
 )
 
 var (
@@ -38,9 +38,3 @@ var (
 	fieldsToBeOmittedWhenUpdating = []string{
 		"created_at", "iCreate", "deleted_at", "deleter"}
 )
-
-type A struct{}
-
-func (A) name() {
-
-}

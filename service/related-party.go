@@ -17,9 +17,9 @@ Service层没有数据结构、只有方法，所有的数据结构都放在DTO�
 生成出参response后，交给controller展示。
 */
 
-type relatedPartyService struct{}
+type relatedParty struct{}
 
-func (relatedPartyService) Get(relatedPartyID int) response.Common {
+func (relatedParty) Get(relatedPartyID int) response.Common {
 	var result dto.RelatedPartyOutput
 	err := global.DB.Model(&model.RelatedParty{}).
 		Where("id = ?", relatedPartyID).First(&result).Error
@@ -30,7 +30,7 @@ func (relatedPartyService) Get(relatedPartyID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (relatedPartyService) Create(paramIn *dto.RelatedPartyCreateOrUpdate) response.Common {
+func (relatedParty) Create(paramIn *dto.RelatedPartyCreateOrUpdate) response.Common {
 	//对model进行清洗，生成dao层需要的model
 	var paramOut model.RelatedParty
 	if paramIn.Creator != nil {
@@ -69,7 +69,7 @@ func (relatedPartyService) Create(paramIn *dto.RelatedPartyCreateOrUpdate) respo
 	return response.Succeed()
 }
 
-func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdate) response.Common {
+func (relatedParty) Update(paramIn *dto.RelatedPartyCreateOrUpdate) response.Common {
 	var paramOut model.RelatedParty
 	//先找出原始记录
 	err := global.DB.Where("id = ?", paramIn.ID).First(&paramOut).Error
@@ -113,7 +113,7 @@ func (relatedPartyService) Update(paramIn *dto.RelatedPartyCreateOrUpdate) respo
 	return response.Succeed()
 }
 
-func (relatedPartyService) Delete(relatedPartyID int) response.Common {
+func (relatedParty) Delete(relatedPartyID int) response.Common {
 	err := global.DB.Delete(&model.RelatedParty{}, relatedPartyID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -122,7 +122,7 @@ func (relatedPartyService) Delete(relatedPartyID int) response.Common {
 	return response.Succeed()
 }
 
-func (relatedPartyService) List(paramIn dto.RelatedPartyList) response.List {
+func (relatedParty) List(paramIn dto.RelatedPartyList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 	//对paramIn进行清洗

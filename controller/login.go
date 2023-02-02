@@ -18,6 +18,6 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusOK, response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
-	res := service.LoginService.Login(loginDTO)
+	res := service.Login.Login(loginDTO)
 	c.JSON(http.StatusOK, res)
 }

@@ -13,9 +13,9 @@ import (
 	"strconv"
 )
 
-type disassemblyController struct{}
+type disassembly struct{}
 
-func (disassemblyController) Get(c *gin.Context) {
+func (disassembly) Get(c *gin.Context) {
 	disassemblyID, err := strconv.Atoi(c.Param("disassembly-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -23,12 +23,12 @@ func (disassemblyController) Get(c *gin.Context) {
 			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
-	res := service.DisassemblyService.Get(disassemblyID)
+	res := service.Disassembly.Get(disassemblyID)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (disassemblyController) Tree(c *gin.Context) {
+func (disassembly) Tree(c *gin.Context) {
 	var param dto.DisassemblyTree
 	err := c.ShouldBindJSON(&param)
 	//这里json参数必填，否则无法知道要找哪条记录。因此不能忽略掉EOF错误
@@ -38,12 +38,12 @@ func (disassemblyController) Tree(c *gin.Context) {
 			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
-	res := service.DisassemblyService.Tree(param)
+	res := service.Disassembly.Tree(param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (disassemblyController) Create(c *gin.Context) {
+func (disassembly) Create(c *gin.Context) {
 	var param dto.DisassemblyCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -61,12 +61,12 @@ func (disassemblyController) Create(c *gin.Context) {
 		param.LastModifier = userID
 	}
 
-	res := service.DisassemblyService.Create(param)
+	res := service.Disassembly.Create(param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (disassemblyController) CreateInBatches(c *gin.Context) {
+func (disassembly) CreateInBatches(c *gin.Context) {
 	var param []dto.DisassemblyCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -86,12 +86,12 @@ func (disassemblyController) CreateInBatches(c *gin.Context) {
 		}
 	}
 
-	res := service.DisassemblyService.CreateInBatches(param)
+	res := service.Disassembly.CreateInBatches(param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (disassemblyController) Update(c *gin.Context) {
+func (disassembly) Update(c *gin.Context) {
 	var param dto.DisassemblyUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -114,11 +114,11 @@ func (disassemblyController) Update(c *gin.Context) {
 		param.LastModifier = userID.(int)
 	}
 
-	res := service.DisassemblyService.Update(param)
+	res := service.Disassembly.Update(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (disassemblyController) Delete(c *gin.Context) {
+func (disassembly) Delete(c *gin.Context) {
 	var param dto.DisassemblyDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
@@ -135,11 +135,11 @@ func (disassemblyController) Delete(c *gin.Context) {
 		userID := tempUserID.(int)
 		param.Deleter = userID
 	}
-	res := service.DisassemblyService.Delete(param)
+	res := service.Disassembly.Delete(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (disassemblyController) DeleteWithSubitems(c *gin.Context) {
+func (disassembly) DeleteWithSubitems(c *gin.Context) {
 	var param dto.DisassemblyDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
@@ -157,11 +157,11 @@ func (disassemblyController) DeleteWithSubitems(c *gin.Context) {
 		param.Deleter = userID
 	}
 
-	res := service.DisassemblyService.DeleteWithSubitems(param)
+	res := service.Disassembly.DeleteWithSubitems(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (disassemblyController) GetList(c *gin.Context) {
+func (disassembly) GetList(c *gin.Context) {
 	var param dto.DisassemblyList
 	err := c.ShouldBindJSON(&param)
 
@@ -173,6 +173,6 @@ func (disassemblyController) GetList(c *gin.Context) {
 			response.FailForList(util.ErrorInvalidJSONParameters))
 		return
 	}
-	res := service.DisassemblyService.GetList(param)
+	res := service.Disassembly.GetList(param)
 	c.JSON(http.StatusOK, res)
 }

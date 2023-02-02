@@ -9,9 +9,9 @@ import (
 	"pmis-backend-go/util"
 )
 
-type departmentService struct{}
+type department struct{}
 
-func (departmentService) Get(departmentID int) response.Common {
+func (*department) Get(departmentID int) response.Common {
 	var result dto.DepartmentOutput
 
 	err := global.DB.Model(model.Department{}).
@@ -24,7 +24,7 @@ func (departmentService) Get(departmentID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (departmentService) Create(paramIn dto.DepartmentCreate) response.Common {
+func (*department) Create(paramIn dto.DepartmentCreate) response.Common {
 	var paramOut model.Department
 
 	if paramIn.Creator > 0 {
@@ -49,7 +49,7 @@ func (departmentService) Create(paramIn dto.DepartmentCreate) response.Common {
 	return response.Succeed()
 }
 
-func (departmentService) Update(paramIn dto.DepartmentUpdate) response.Common {
+func (*department) Update(paramIn dto.DepartmentUpdate) response.Common {
 	paramOut := make(map[string]any)
 
 	if paramIn.LastModifier > 0 {
@@ -99,7 +99,7 @@ func (departmentService) Update(paramIn dto.DepartmentUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (departmentService) Delete(paramIn dto.DepartmentDelete) response.Common {
+func (*department) Delete(paramIn dto.DepartmentDelete) response.Common {
 	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		//这里记录删除人，在事务中必须放在前面
@@ -124,9 +124,9 @@ func (departmentService) Delete(paramIn dto.DepartmentDelete) response.Common {
 	return response.Succeed()
 }
 
-func (departmentService) GetArray(paramIn dto.DepartmentList) response.Common {
+func (*department) GetArray(paramIn dto.DepartmentList) response.Common {
 	db := global.DB.Model(&model.Department{})
-	// 顺序：where -> count -> order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
 	if paramIn.SuperiorID > 0 {
@@ -160,7 +160,7 @@ func (departmentService) GetArray(paramIn dto.DepartmentList) response.Common {
 	var count int64
 	db.Count(&count)
 
-	//order
+	//Order
 	orderBy := paramIn.SortingInput.OrderBy
 	desc := paramIn.SortingInput.Desc
 	//如果排序字段为空
@@ -214,9 +214,9 @@ func (departmentService) GetArray(paramIn dto.DepartmentList) response.Common {
 	}
 }
 
-func (departmentService) List(paramIn dto.DepartmentList) response.List {
+func (*department) List(paramIn dto.DepartmentList) response.List {
 	db := global.DB.Model(&model.Department{})
-	// 顺序：where -> count -> order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
 	if paramIn.SuperiorID > 0 {
@@ -250,7 +250,7 @@ func (departmentService) List(paramIn dto.DepartmentList) response.List {
 	var count int64
 	db.Count(&count)
 
-	//order
+	//Order
 	orderBy := paramIn.SortingInput.OrderBy
 	desc := paramIn.SortingInput.Desc
 	//如果排序字段为空

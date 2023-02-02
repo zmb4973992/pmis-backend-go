@@ -13,26 +13,21 @@ import (
 	"strconv"
 )
 
-type departmentController struct{}
+type department struct{}
 
-func (departmentController) Get(c *gin.Context) {
-	departmentGet := new(service.DepartmentGet)
-	var err error
-	departmentGet.DepartmentID, err = strconv.Atoi(c.Param("department-id"))
+func (department) Get(c *gin.Context) {
+	departmentID, err := strconv.Atoi(c.Param("department-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	//res := service.DepartmentService.Get(departmentID)
-
-	res := departmentGet.Do()
+	res := service.Department.Get(departmentID)
 	c.JSON(http.StatusOK, res)
-
 }
 
-func (departmentController) Create(c *gin.Context) {
+func (department) Create(c *gin.Context) {
 	var param dto.DepartmentCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -49,11 +44,11 @@ func (departmentController) Create(c *gin.Context) {
 		param.LastModifier = userID
 	}
 
-	res := service.DepartmentService.Create(param)
+	res := service.Department.Create(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (departmentController) Update(c *gin.Context) {
+func (department) Update(c *gin.Context) {
 	var param dto.DepartmentUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -75,11 +70,11 @@ func (departmentController) Update(c *gin.Context) {
 		param.LastModifier = userID.(int)
 	}
 
-	res := service.DepartmentService.Update(param)
+	res := service.Department.Update(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (departmentController) Delete(c *gin.Context) {
+func (department) Delete(c *gin.Context) {
 	var param dto.DepartmentDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("department-id"))
@@ -96,11 +91,11 @@ func (departmentController) Delete(c *gin.Context) {
 		userID := tempUserID.(int)
 		param.Deleter = userID
 	}
-	res := service.DepartmentService.Delete(param)
+	res := service.Department.Delete(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (departmentController) GetArray(c *gin.Context) {
+func (department) GetArray(c *gin.Context) {
 	var param dto.DepartmentList
 	err := c.ShouldBindJSON(&param)
 
@@ -121,11 +116,11 @@ func (departmentController) GetArray(c *gin.Context) {
 	}
 
 	//生成Service,然后调用它的方法
-	res := service.DepartmentService.GetArray(param)
+	res := service.Department.GetArray(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (departmentController) GetList(c *gin.Context) {
+func (department) GetList(c *gin.Context) {
 	var param dto.DepartmentList
 	err := c.ShouldBindJSON(&param)
 
@@ -145,6 +140,6 @@ func (departmentController) GetList(c *gin.Context) {
 	}
 
 	//生成Service,然后调用它的方法
-	res := service.DepartmentService.List(param)
+	res := service.Department.List(param)
 	c.JSON(http.StatusOK, res)
 }

@@ -13,9 +13,9 @@ import (
 	"strconv"
 )
 
-type operationRecordController struct{}
+type operationRecord struct{}
 
-func (operationRecordController) Get(c *gin.Context) {
+func (operationRecord) Get(c *gin.Context) {
 	operationRecordID, err := strconv.Atoi(c.Param("operation-record-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -23,12 +23,12 @@ func (operationRecordController) Get(c *gin.Context) {
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.OperationRecordService.Get(operationRecordID)
+	res := service.OperationRecord.Get(operationRecordID)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (operationRecordController) Create(c *gin.Context) {
+func (operationRecord) Create(c *gin.Context) {
 	var param dto.OperationLogCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
@@ -46,12 +46,12 @@ func (operationRecordController) Create(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.OperationRecordService.Create(&param)
+	res := service.OperationRecord.Create(&param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (operationRecordController) Update(c *gin.Context) {
+func (operationRecord) Update(c *gin.Context) {
 	var param dto.OperationLogCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
@@ -78,11 +78,11 @@ func (operationRecordController) Update(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.OperationRecordService.Update(&param)
+	res := service.OperationRecord.Update(&param)
 	c.JSON(200, res)
 }
 
-func (operationRecordController) Delete(c *gin.Context) {
+func (operationRecord) Delete(c *gin.Context) {
 	operationRecordID, err := strconv.Atoi(c.Param("operation-record-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -90,11 +90,11 @@ func (operationRecordController) Delete(c *gin.Context) {
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.OperationRecordService.Delete(operationRecordID)
+	res := service.OperationRecord.Delete(operationRecordID)
 	c.JSON(http.StatusOK, res)
 }
 
-func (operationRecordController) List(c *gin.Context) {
+func (operationRecord) List(c *gin.Context) {
 	var param dto.OperationRecordList
 	err := c.ShouldBindJSON(&param)
 
@@ -107,6 +107,6 @@ func (operationRecordController) List(c *gin.Context) {
 		return
 	}
 	//生成Service,然后调用它的方法
-	res := service.OperationRecordService.List(param)
+	res := service.OperationRecord.List(param)
 	c.JSON(http.StatusOK, res)
 }

@@ -9,9 +9,9 @@ import (
 	"pmis-backend-go/util"
 )
 
-type dictionaryItemService struct{}
+type dictionaryItem struct{}
 
-func (dictionaryItemService) Get(dictionaryItemID int) response.Common {
+func (dictionaryItem) Get(dictionaryItemID int) response.Common {
 	var result dto.DictionaryItemOutput
 	err := global.DB.Model(model.DictionaryItem{}).
 		Where("id = ?", dictionaryItemID).First(&result).Error
@@ -22,7 +22,7 @@ func (dictionaryItemService) Get(dictionaryItemID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (dictionaryItemService) Create(paramIn dto.DictionaryItemCreate) response.Common {
+func (dictionaryItem) Create(paramIn dto.DictionaryItemCreate) response.Common {
 	var paramOut model.DictionaryItem
 	if paramIn.Creator > 0 {
 		paramOut.Creator = &paramIn.Creator
@@ -52,7 +52,7 @@ func (dictionaryItemService) Create(paramIn dto.DictionaryItemCreate) response.C
 	return response.Succeed()
 }
 
-func (dictionaryItemService) CreateInBatches(paramIn []dto.DictionaryItemCreate) response.Common {
+func (dictionaryItem) CreateInBatches(paramIn []dto.DictionaryItemCreate) response.Common {
 	var paramOut []model.DictionaryItem
 	for i := range paramIn {
 		var record model.DictionaryItem
@@ -88,7 +88,7 @@ func (dictionaryItemService) CreateInBatches(paramIn []dto.DictionaryItemCreate)
 	return response.Succeed()
 }
 
-func (dictionaryItemService) Update(paramIn dto.DictionaryItemUpdate) response.Common {
+func (dictionaryItem) Update(paramIn dto.DictionaryItemUpdate) response.Common {
 	paramOut := make(map[string]any)
 
 	if paramIn.LastModifier > 0 {
@@ -148,7 +148,7 @@ func (dictionaryItemService) Update(paramIn dto.DictionaryItemUpdate) response.C
 	return response.Succeed()
 }
 
-func (dictionaryItemService) Delete(paramIn dto.DictionaryItemDelete) response.Common {
+func (dictionaryItem) Delete(paramIn dto.DictionaryItemDelete) response.Common {
 	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		//这里记录删除人，在事务中必须放在前面
@@ -174,16 +174,16 @@ func (dictionaryItemService) Delete(paramIn dto.DictionaryItemDelete) response.C
 	return response.Succeed()
 }
 
-func (dictionaryItemService) GetArray(paramIn dto.DictionaryItemList) response.Common {
+func (dictionaryItem) GetArray(paramIn dto.DictionaryItemList) response.Common {
 	db := global.DB.Model(&model.DictionaryItem{})
-	// 顺序：where -> count -> order -> limit -> offset -> array
+	// 顺序：where -> count -> Order -> limit -> offset -> array
 
 	//where
 	if paramIn.DictionaryTypeID != 0 {
 		db = db.Where("dictionary_type_id = ?", paramIn.DictionaryTypeID)
 	}
 
-	//order
+	//Order
 	orderBy := paramIn.SortingInput.OrderBy
 	desc := paramIn.SortingInput.Desc
 	//如果排序字段为空
@@ -237,9 +237,9 @@ func (dictionaryItemService) GetArray(paramIn dto.DictionaryItemList) response.C
 	}
 }
 
-func (dictionaryItemService) GetList(paramIn dto.DictionaryItemList) response.List {
+func (dictionaryItem) GetList(paramIn dto.DictionaryItemList) response.List {
 	db := global.DB.Model(&model.DictionaryItem{})
-	// 顺序：where -> count -> order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
 	if paramIn.DictionaryTypeID != 0 {
@@ -250,7 +250,7 @@ func (dictionaryItemService) GetList(paramIn dto.DictionaryItemList) response.Li
 	var count int64
 	db.Count(&count)
 
-	//order
+	//Order
 	orderBy := paramIn.SortingInput.OrderBy
 	desc := paramIn.SortingInput.Desc
 	//如果排序字段为空

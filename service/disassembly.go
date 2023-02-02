@@ -9,9 +9,9 @@ import (
 	"pmis-backend-go/util"
 )
 
-type disassemblyService struct{}
+type disassembly struct{}
 
-func (disassemblyService) Get(disassemblyID int) response.Common {
+func (disassembly) Get(disassemblyID int) response.Common {
 	var result dto.DisassemblyOutput
 	err := global.DB.Model(model.Disassembly{}).
 		Where("id = ?", disassemblyID).First(&result).Error
@@ -22,7 +22,7 @@ func (disassemblyService) Get(disassemblyID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (disassemblyService) Tree(paramIn dto.DisassemblyTree) response.Common {
+func (disassembly) Tree(paramIn dto.DisassemblyTree) response.Common {
 	//根据project_id获取disassembly_id
 	var disassemblyID int
 	err := global.DB.Model(model.Disassembly{}).Select("id").
@@ -69,7 +69,7 @@ func (disassemblyService) Tree(paramIn dto.DisassemblyTree) response.Common {
 	return response.SucceedWithData(result1)
 }
 
-func (disassemblyService) Create(paramIn dto.DisassemblyCreate) response.Common {
+func (disassembly) Create(paramIn dto.DisassemblyCreate) response.Common {
 	var paramOut model.Disassembly
 	if paramIn.Creator > 0 {
 		paramOut.Creator = &paramIn.Creator
@@ -96,7 +96,7 @@ func (disassemblyService) Create(paramIn dto.DisassemblyCreate) response.Common 
 	return response.Succeed()
 }
 
-func (disassemblyService) CreateInBatches(paramIn []dto.DisassemblyCreate) response.Common {
+func (disassembly) CreateInBatches(paramIn []dto.DisassemblyCreate) response.Common {
 	var paramOut []model.Disassembly
 	for i := range paramIn {
 		var record model.Disassembly
@@ -129,7 +129,7 @@ func (disassemblyService) CreateInBatches(paramIn []dto.DisassemblyCreate) respo
 	return response.Succeed()
 }
 
-func (disassemblyService) Update(paramIn dto.DisassemblyUpdate) response.Common {
+func (disassembly) Update(paramIn dto.DisassemblyUpdate) response.Common {
 	paramOut := make(map[string]any)
 
 	if paramIn.LastModifier > 0 {
@@ -192,7 +192,7 @@ func (disassemblyService) Update(paramIn dto.DisassemblyUpdate) response.Common 
 	return response.Succeed()
 }
 
-func (disassemblyService) Delete(paramIn dto.DisassemblyDelete) response.Common {
+func (disassembly) Delete(paramIn dto.DisassemblyDelete) response.Common {
 	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		//这里记录删除人，在事务中必须放在前面
@@ -218,7 +218,7 @@ func (disassemblyService) Delete(paramIn dto.DisassemblyDelete) response.Common 
 }
 
 // 有错误，待完善
-func (disassemblyService) DeleteWithSubitems(paramIn dto.DisassemblyDelete) response.Common {
+func (disassembly) DeleteWithSubitems(paramIn dto.DisassemblyDelete) response.Common {
 	var ToBeDeletedIDs []int
 	ToBeDeletedIDs = append(ToBeDeletedIDs, paramIn.ID)
 	//第一轮查找
@@ -272,9 +272,9 @@ func (disassemblyService) DeleteWithSubitems(paramIn dto.DisassemblyDelete) resp
 	return response.Succeed()
 }
 
-func (disassemblyService) GetList(paramIn dto.DisassemblyList) response.List {
+func (disassembly) GetList(paramIn dto.DisassemblyList) response.List {
 	db := global.DB.Model(&model.Disassembly{})
-	// 顺序：where -> count -> order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
 	if paramIn.NameInclude != "" {
@@ -305,7 +305,7 @@ func (disassemblyService) GetList(paramIn dto.DisassemblyList) response.List {
 	var count int64
 	db.Count(&count)
 
-	//order
+	//Order
 	orderBy := paramIn.SortingInput.OrderBy
 	desc := paramIn.SortingInput.Desc
 	//如果排序字段为空

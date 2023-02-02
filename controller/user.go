@@ -13,9 +13,9 @@ import (
 	"strconv"
 )
 
-type userController struct{}
+type user struct{}
 
-func (userController) Get(c *gin.Context) {
+func (user) Get(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -23,12 +23,12 @@ func (userController) Get(c *gin.Context) {
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.UserService.Get(userID)
+	res := service.User.Get(userID)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (userController) Create(c *gin.Context) {
+func (user) Create(c *gin.Context) {
 	//先声明空的dto，再把context里的数据绑到dto上
 	var param dto.UserCreate
 	err := c.ShouldBindJSON(&param)
@@ -47,13 +47,13 @@ func (userController) Create(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.UserService.Create(&param)
+	res := service.User.Create(&param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
 // Update controller的功能：解析uri参数、json参数，拦截非法参数，然后传给service层处理
-func (userController) Update(c *gin.Context) {
+func (user) Update(c *gin.Context) {
 	//这里只更新传过来的参数，所以采用map形式
 	var param dto.UserUpdate
 	err := c.ShouldBindJSON(&param)
@@ -81,11 +81,11 @@ func (userController) Update(c *gin.Context) {
 	}
 
 	//参数解析完毕，交给service层处理
-	res := service.UserService.Update(&param)
+	res := service.User.Update(&param)
 	c.JSON(200, res)
 }
 
-func (userController) Delete(c *gin.Context) {
+func (user) Delete(c *gin.Context) {
 	//把uri上的id参数传递给结构体形式的入参
 	userID, err := strconv.Atoi(c.Param("user-id"))
 	//如果解析失败，例如URI的参数不是数字
@@ -95,11 +95,11 @@ func (userController) Delete(c *gin.Context) {
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.UserService.Delete(userID)
+	res := service.User.Delete(userID)
 	c.JSON(http.StatusOK, res)
 }
 
-func (userController) List(c *gin.Context) {
+func (user) List(c *gin.Context) {
 	var param dto.UserList
 	err := c.ShouldBindJSON(&param)
 
@@ -113,12 +113,12 @@ func (userController) List(c *gin.Context) {
 	}
 
 	//生成userService,然后调用它的方法
-	res := service.UserService.List(param)
+	res := service.User.List(param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (userController) GetByToken(c *gin.Context) {
+func (user) GetByToken(c *gin.Context) {
 	//通过中间件，设定header必须带有token才能访问
 	//header里有token后，中间件会自动在context里添加user_id属性，详见自定义的中间件
 	tempUserID, exists := c.Get("user_id")
@@ -128,7 +128,7 @@ func (userController) GetByToken(c *gin.Context) {
 		return
 	}
 	userID := tempUserID.(int)
-	res := service.UserService.Get(userID)
+	res := service.User.Get(userID)
 	c.JSON(http.StatusOK, res)
 	return
 }

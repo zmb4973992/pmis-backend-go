@@ -13,9 +13,9 @@ import (
 	"strconv"
 )
 
-type dictionaryItemController struct{}
+type dictionaryItem struct{}
 
-func (x dictionaryItemController) Get(c *gin.Context) {
+func (x dictionaryItem) Get(c *gin.Context) {
 	dictionaryItemID, err := strconv.Atoi(c.Param("dictionary-item-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -27,11 +27,11 @@ func (x dictionaryItemController) Get(c *gin.Context) {
 		return
 	}
 	//生成Service,然后调用它的方法
-	res := service.DictionaryItemService.Get(dictionaryItemID)
+	res := service.DictionaryItem.Get(dictionaryItemID)
 	c.JSON(http.StatusOK, res)
 }
 
-func (dictionaryItemController) Create(c *gin.Context) {
+func (dictionaryItem) Create(c *gin.Context) {
 	var param dto.DictionaryItemCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -48,12 +48,12 @@ func (dictionaryItemController) Create(c *gin.Context) {
 		param.LastModifier = userID
 	}
 
-	res := service.DictionaryItemService.Create(param)
+	res := service.DictionaryItem.Create(param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (dictionaryItemController) CreateInBatches(c *gin.Context) {
+func (dictionaryItem) CreateInBatches(c *gin.Context) {
 	var param []dto.DictionaryItemCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -72,12 +72,12 @@ func (dictionaryItemController) CreateInBatches(c *gin.Context) {
 		}
 	}
 
-	res := service.DictionaryItemService.CreateInBatches(param)
+	res := service.DictionaryItem.CreateInBatches(param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (dictionaryItemController) Update(c *gin.Context) {
+func (dictionaryItem) Update(c *gin.Context) {
 	var param dto.DictionaryItemUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -101,11 +101,11 @@ func (dictionaryItemController) Update(c *gin.Context) {
 		param.LastModifier = userID.(int)
 	}
 
-	res := service.DictionaryItemService.Update(param)
+	res := service.DictionaryItem.Update(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (dictionaryItemController) Delete(c *gin.Context) {
+func (dictionaryItem) Delete(c *gin.Context) {
 	var param dto.DictionaryItemDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("dictionary-item-id"))
@@ -122,11 +122,11 @@ func (dictionaryItemController) Delete(c *gin.Context) {
 		userID := tempUserID.(int)
 		param.Deleter = userID
 	}
-	res := service.DictionaryItemService.Delete(param)
+	res := service.DictionaryItem.Delete(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (dictionaryItemController) GetArray(c *gin.Context) {
+func (dictionaryItem) GetArray(c *gin.Context) {
 	var param dto.DictionaryItemList
 	err := c.ShouldBindJSON(&param)
 
@@ -140,11 +140,11 @@ func (dictionaryItemController) GetArray(c *gin.Context) {
 	}
 
 	//生成Service,然后调用它的方法
-	res := service.DictionaryItemService.GetArray(param)
+	res := service.DictionaryItem.GetArray(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (dictionaryItemController) GetList(c *gin.Context) {
+func (dictionaryItem) GetList(c *gin.Context) {
 	var param dto.DictionaryItemList
 	err := c.ShouldBindJSON(&param)
 
@@ -158,6 +158,6 @@ func (dictionaryItemController) GetList(c *gin.Context) {
 	}
 
 	//生成Service,然后调用它的方法
-	res := service.DictionaryItemService.GetList(param)
+	res := service.DictionaryItem.GetList(param)
 	c.JSON(http.StatusOK, res)
 }

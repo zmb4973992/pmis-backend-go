@@ -9,12 +9,12 @@ import (
 	"pmis-backend-go/util"
 )
 
-// UserService 没有数据、只有方法，所有的数据都放在DTO里
+// User 没有数据、只有方法，所有的数据都放在DTO里
 // 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
 // 所有的增删改查都交给DAO层处理，否则service层会非常庞大
-type userService struct{}
+type user struct{}
 
-func (userService) Get(userID int) response.Common {
+func (user) Get(userID int) response.Common {
 	var result dto.UserOutput
 	//把基础的账号信息查出来
 	err := global.DB.Model(model.User{}).Where("id = ?", userID).First(&result).Error
@@ -26,7 +26,7 @@ func (userService) Get(userID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (userService) Create(paramIn *dto.UserCreate) response.Common {
+func (user) Create(paramIn *dto.UserCreate) response.Common {
 	//对数据进行清洗
 	var paramOut model.User
 	paramOut.Username = paramIn.Username
@@ -69,7 +69,7 @@ func (userService) Create(paramIn *dto.UserCreate) response.Common {
 	return response.Succeed()
 }
 
-func (userService) Update(paramIn *dto.UserUpdate) response.Common {
+func (user) Update(paramIn *dto.UserUpdate) response.Common {
 	var paramOut model.User
 
 	//先找出原始记录
@@ -111,7 +111,7 @@ func (userService) Update(paramIn *dto.UserUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (userService) Delete(userID int) response.Common {
+func (user) Delete(userID int) response.Common {
 	err := global.DB.Delete(&model.User{}, userID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -120,7 +120,7 @@ func (userService) Delete(userID int) response.Common {
 	return response.Succeed()
 }
 
-func (userService) List(paramIn dto.UserList) response.List {
+func (user) List(paramIn dto.UserList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 

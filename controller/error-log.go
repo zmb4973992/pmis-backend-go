@@ -12,9 +12,9 @@ import (
 	"strconv"
 )
 
-type errorLogController struct{}
+type errorLog struct{}
 
-func (errorLogController) Get(c *gin.Context) {
+func (errorLog) Get(c *gin.Context) {
 	errorLogID, err := strconv.Atoi(c.Param("error-log-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -22,12 +22,12 @@ func (errorLogController) Get(c *gin.Context) {
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.ErrorLogService.Get(errorLogID)
+	res := service.ErrorLog.Get(errorLogID)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (errorLogController) Create(c *gin.Context) {
+func (errorLog) Create(c *gin.Context) {
 	var param dto.ErrorLogCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
@@ -46,12 +46,12 @@ func (errorLogController) Create(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.ErrorLogService.Create(&param)
+	res := service.ErrorLog.Create(&param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (errorLogController) Update(c *gin.Context) {
+func (errorLog) Update(c *gin.Context) {
 	var param dto.ErrorLogCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
@@ -78,11 +78,11 @@ func (errorLogController) Update(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.ErrorLogService.Update(&param)
+	res := service.ErrorLog.Update(&param)
 	c.JSON(200, res)
 }
 
-func (errorLogController) Delete(c *gin.Context) {
+func (errorLog) Delete(c *gin.Context) {
 	errorLogID, err := strconv.Atoi(c.Param("error-log-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -90,6 +90,6 @@ func (errorLogController) Delete(c *gin.Context) {
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.ErrorLogService.Delete(errorLogID)
+	res := service.ErrorLog.Delete(errorLogID)
 	c.JSON(http.StatusOK, res)
 }

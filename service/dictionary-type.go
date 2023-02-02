@@ -9,9 +9,9 @@ import (
 	"pmis-backend-go/util"
 )
 
-type dictionaryTypeService struct{}
+type dictionaryType struct{}
 
-func (dictionaryTypeService) Get(dictionaryTypeID int) response.Common {
+func (dictionaryType) Get(dictionaryTypeID int) response.Common {
 	var result dto.DictionaryTypeOutput
 	err := global.DB.Model(model.DictionaryType{}).
 		Where("id = ?", dictionaryTypeID).First(&result).Error
@@ -22,7 +22,7 @@ func (dictionaryTypeService) Get(dictionaryTypeID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (dictionaryTypeService) Create(paramIn dto.DictionaryTypeCreate) response.Common {
+func (dictionaryType) Create(paramIn dto.DictionaryTypeCreate) response.Common {
 	var paramOut model.DictionaryType
 	if paramIn.Creator > 0 {
 		paramOut.Creator = &paramIn.Creator
@@ -50,7 +50,7 @@ func (dictionaryTypeService) Create(paramIn dto.DictionaryTypeCreate) response.C
 	return response.Succeed()
 }
 
-func (dictionaryTypeService) CreateInBatches(paramIn []dto.DictionaryTypeCreate) response.Common {
+func (dictionaryType) CreateInBatches(paramIn []dto.DictionaryTypeCreate) response.Common {
 	var paramOut []model.DictionaryType
 	for i := range paramIn {
 		var record model.DictionaryType
@@ -84,7 +84,7 @@ func (dictionaryTypeService) CreateInBatches(paramIn []dto.DictionaryTypeCreate)
 	return response.Succeed()
 }
 
-func (dictionaryTypeService) Update(paramIn dto.DictionaryTypeUpdate) response.Common {
+func (dictionaryType) Update(paramIn dto.DictionaryTypeUpdate) response.Common {
 	paramOut := make(map[string]any)
 
 	if paramIn.LastModifier > 0 {
@@ -134,7 +134,7 @@ func (dictionaryTypeService) Update(paramIn dto.DictionaryTypeUpdate) response.C
 	return response.Succeed()
 }
 
-func (dictionaryTypeService) Delete(paramIn dto.DictionaryTypeDelete) response.Common {
+func (dictionaryType) Delete(paramIn dto.DictionaryTypeDelete) response.Common {
 	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		//这里记录删除人，在事务中必须放在前面
@@ -159,16 +159,16 @@ func (dictionaryTypeService) Delete(paramIn dto.DictionaryTypeDelete) response.C
 	return response.Succeed()
 }
 
-func (dictionaryTypeService) GetArray(paramIn dto.DictionaryTypeList) response.Common {
+func (dictionaryType) GetArray(paramIn dto.DictionaryTypeList) response.Common {
 	db := global.DB.Model(&model.DictionaryType{})
-	// 顺序：where -> count -> order -> limit -> offset -> array
+	// 顺序：where -> count -> Order -> limit -> offset -> array
 
 	//where
 	if paramIn.NameInclude != "" {
 		db = db.Where("name like ?", "%"+paramIn.NameInclude+"%")
 	}
 
-	//order
+	//Order
 	orderBy := paramIn.SortingInput.OrderBy
 	desc := paramIn.SortingInput.Desc
 	//如果排序字段为空
@@ -222,9 +222,9 @@ func (dictionaryTypeService) GetArray(paramIn dto.DictionaryTypeList) response.C
 	}
 }
 
-func (dictionaryTypeService) GetList(paramIn dto.DictionaryTypeList) response.List {
+func (dictionaryType) GetList(paramIn dto.DictionaryTypeList) response.List {
 	db := global.DB.Model(&model.DictionaryType{})
-	// 顺序：where -> count -> order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
 	if paramIn.NameInclude != "" {
@@ -235,7 +235,7 @@ func (dictionaryTypeService) GetList(paramIn dto.DictionaryTypeList) response.Li
 	var count int64
 	db.Count(&count)
 
-	//order
+	//Order
 	orderBy := paramIn.SortingInput.OrderBy
 	desc := paramIn.SortingInput.Desc
 	//如果排序字段为空

@@ -18,9 +18,9 @@ import (
 最后拿到service层返回的结果进行展现
 */
 
-type relatedPartyController struct{}
+type relatedParty struct{}
 
-func (relatedPartyController) Get(c *gin.Context) {
+func (relatedParty) Get(c *gin.Context) {
 	relatedPartyID, err := strconv.Atoi(c.Param("related-party-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -28,12 +28,12 @@ func (relatedPartyController) Get(c *gin.Context) {
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.RelatedPartyService.Get(relatedPartyID)
+	res := service.RelatedParty.Get(relatedPartyID)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (relatedPartyController) Create(c *gin.Context) {
+func (relatedParty) Create(c *gin.Context) {
 	var param dto.RelatedPartyCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
@@ -52,12 +52,12 @@ func (relatedPartyController) Create(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.RelatedPartyService.Create(&param)
+	res := service.RelatedParty.Create(&param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (relatedPartyController) Update(c *gin.Context) {
+func (relatedParty) Update(c *gin.Context) {
 	var param dto.RelatedPartyCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
@@ -83,11 +83,11 @@ func (relatedPartyController) Update(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.RelatedPartyService.Update(&param)
+	res := service.RelatedParty.Update(&param)
 	c.JSON(200, res)
 }
 
-func (relatedPartyController) Delete(c *gin.Context) {
+func (relatedParty) Delete(c *gin.Context) {
 	relatedPartyID, err := strconv.Atoi(c.Param("related-party-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -95,11 +95,11 @@ func (relatedPartyController) Delete(c *gin.Context) {
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.RelatedPartyService.Delete(relatedPartyID)
+	res := service.RelatedParty.Delete(relatedPartyID)
 	c.JSON(http.StatusOK, res)
 }
 
-func (relatedPartyController) List(c *gin.Context) {
+func (relatedParty) List(c *gin.Context) {
 	var param dto.RelatedPartyList
 	err := c.ShouldBindJSON(&param)
 
@@ -112,6 +112,6 @@ func (relatedPartyController) List(c *gin.Context) {
 		return
 	}
 	//生成userService,然后调用它的方法
-	res := service.RelatedPartyService.List(param)
+	res := service.RelatedParty.List(param)
 	c.JSON(http.StatusOK, res)
 }

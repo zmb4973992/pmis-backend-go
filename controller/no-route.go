@@ -7,10 +7,10 @@ import (
 	"pmis-backend-go/util"
 )
 
-type noRouteController struct {
+type noRoute struct {
 }
 
-func (noRouteController) NoRoute(c *gin.Context) {
+func (noRoute) NoRoute(c *gin.Context) {
 	c.JSON(http.StatusBadRequest,
 		response.Fail(util.ErrorInvalidRequest))
 }

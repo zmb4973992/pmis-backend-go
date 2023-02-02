@@ -11,9 +11,9 @@ import (
 	"strconv"
 )
 
-type roleAndUserController struct{}
+type roleAndUser struct{}
 
-func (roleAndUserController) ListByRoleID(c *gin.Context) {
+func (roleAndUser) ListByRoleID(c *gin.Context) {
 	roleID, err := strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -22,11 +22,11 @@ func (roleAndUserController) ListByRoleID(c *gin.Context) {
 		return
 	}
 
-	res := service.RoleAndUserService.ListByRoleID(roleID)
+	res := service.RoleAndUser.ListByRoleID(roleID)
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUserController) CreateByRoleID(c *gin.Context) {
+func (roleAndUser) CreateByRoleID(c *gin.Context) {
 	roleID, err := strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -52,11 +52,11 @@ func (roleAndUserController) CreateByRoleID(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.RoleAndUserService.CreateByRoleID(roleID, param)
+	res := service.RoleAndUser.CreateByRoleID(roleID, param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUserController) UpdateByRoleID(c *gin.Context) {
+func (roleAndUser) UpdateByRoleID(c *gin.Context) {
 	roleID, err := strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -81,11 +81,11 @@ func (roleAndUserController) UpdateByRoleID(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.RoleAndUserService.UpdateByRoleID(roleID, param)
+	res := service.RoleAndUser.UpdateByRoleID(roleID, param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUserController) DeleteByRoleID(c *gin.Context) {
+func (roleAndUser) DeleteByRoleID(c *gin.Context) {
 	roleID, err := strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -94,11 +94,11 @@ func (roleAndUserController) DeleteByRoleID(c *gin.Context) {
 		return
 	}
 
-	res := service.RoleAndUserService.DeleteByRoleID(roleID)
+	res := service.RoleAndUser.DeleteByRoleID(roleID)
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUserController) ListByUserID(c *gin.Context) {
+func (roleAndUser) ListByUserID(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -107,11 +107,11 @@ func (roleAndUserController) ListByUserID(c *gin.Context) {
 		return
 	}
 
-	res := service.RoleAndUserService.ListByUserID(userID)
+	res := service.RoleAndUser.ListByUserID(userID)
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUserController) CreateByUserID(c *gin.Context) {
+func (roleAndUser) CreateByUserID(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -137,11 +137,11 @@ func (roleAndUserController) CreateByUserID(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.RoleAndUserService.CreateByUserID(userID, param)
+	res := service.RoleAndUser.CreateByUserID(userID, param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUserController) UpdateByUserID(c *gin.Context) {
+func (roleAndUser) UpdateByUserID(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -166,11 +166,11 @@ func (roleAndUserController) UpdateByUserID(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.RoleAndUserService.UpdateByUserID(userID, param)
+	res := service.RoleAndUser.UpdateByUserID(userID, param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUserController) DeleteByUserID(c *gin.Context) {
+func (roleAndUser) DeleteByUserID(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -179,11 +179,11 @@ func (roleAndUserController) DeleteByUserID(c *gin.Context) {
 		return
 	}
 
-	res := service.RoleAndUserService.DeleteByUserID(userID)
+	res := service.RoleAndUser.DeleteByUserID(userID)
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUserController) ListByTokenInHeader(c *gin.Context) {
+func (roleAndUser) ListByTokenInHeader(c *gin.Context) {
 	//通过中间件，设定header必须带有token才能访问
 	//header里有token后，中间件会自动在context里添加user_id属性，详见自定义的中间件
 	tempUserID, exists := c.Get("user_id")
@@ -193,6 +193,6 @@ func (roleAndUserController) ListByTokenInHeader(c *gin.Context) {
 		return
 	}
 	userID := tempUserID.(int)
-	res := service.RoleAndUserService.ListByUserID(userID)
+	res := service.RoleAndUser.ListByUserID(userID)
 	c.JSON(http.StatusOK, res)
 }

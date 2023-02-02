@@ -13,9 +13,9 @@ import (
 	"strconv"
 )
 
-type disassemblyTemplateController struct{}
+type disassemblyTemplate struct{}
 
-func (disassemblyTemplateController) Get(c *gin.Context) {
+func (disassemblyTemplate) Get(c *gin.Context) {
 	disassemblyTemplateID, err := strconv.Atoi(c.Param("disassembly-template-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -23,12 +23,12 @@ func (disassemblyTemplateController) Get(c *gin.Context) {
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.DisassemblyTemplateService.Get(disassemblyTemplateID)
+	res := service.DisassemblyTemplate.Get(disassemblyTemplateID)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (disassemblyTemplateController) Create(c *gin.Context) {
+func (disassemblyTemplate) Create(c *gin.Context) {
 	var param dto.DisassemblyTemplateCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
@@ -47,12 +47,12 @@ func (disassemblyTemplateController) Create(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.DisassemblyTemplateService.Create(&param)
+	res := service.DisassemblyTemplate.Create(&param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (disassemblyTemplateController) Update(c *gin.Context) {
+func (disassemblyTemplate) Update(c *gin.Context) {
 	var param dto.DisassemblyTemplateCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
@@ -78,11 +78,11 @@ func (disassemblyTemplateController) Update(c *gin.Context) {
 		param.LastModifier = &userID
 	}
 
-	res := service.DisassemblyTemplateService.Update(&param)
+	res := service.DisassemblyTemplate.Update(&param)
 	c.JSON(200, res)
 }
 
-func (disassemblyTemplateController) Delete(c *gin.Context) {
+func (disassemblyTemplate) Delete(c *gin.Context) {
 	disassemblyTemplateID, err := strconv.Atoi(c.Param("disassembly-template-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -90,11 +90,11 @@ func (disassemblyTemplateController) Delete(c *gin.Context) {
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.DisassemblyTemplateService.Delete(disassemblyTemplateID)
+	res := service.DisassemblyTemplate.Delete(disassemblyTemplateID)
 	c.JSON(http.StatusOK, res)
 }
 
-func (disassemblyTemplateController) List(c *gin.Context) {
+func (disassemblyTemplate) List(c *gin.Context) {
 	var param dto.DisassemblyTemplateList
 	err := c.ShouldBindJSON(&param)
 
@@ -107,6 +107,6 @@ func (disassemblyTemplateController) List(c *gin.Context) {
 		return
 	}
 	//生成Service,然后调用它的方法
-	res := service.DisassemblyTemplateService.List(param)
+	res := service.DisassemblyTemplate.List(param)
 	c.JSON(http.StatusOK, res)
 }

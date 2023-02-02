@@ -10,12 +10,12 @@ import (
 	"time"
 )
 
-// errorLogService 没有数据、只有方法，所有的数据都放在DTO里
+// errorLog 没有数据、只有方法，所有的数据都放在DTO里
 // 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
 // 所有的增删改查都交给DAO层处理，否则service层会非常庞大
-type errorLogService struct{}
+type errorLog struct{}
 
-func (errorLogService) Get(errorLogID int) response.Common {
+func (errorLog) Get(errorLogID int) response.Common {
 	var result dto.ErrorLogOutput
 	err := global.DB.Model(model.ErrorLog{}).
 		Where("id = ?", errorLogID).First(&result).Error
@@ -30,7 +30,7 @@ func (errorLogService) Get(errorLogID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (errorLogService) Create(paramIn *dto.ErrorLogCreateOrUpdate) response.Common {
+func (errorLog) Create(paramIn *dto.ErrorLogCreateOrUpdate) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.ErrorLog
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -82,7 +82,7 @@ func (errorLogService) Create(paramIn *dto.ErrorLogCreateOrUpdate) response.Comm
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (errorLogService) Update(paramIn *dto.ErrorLogCreateOrUpdate) response.Common {
+func (errorLog) Update(paramIn *dto.ErrorLogCreateOrUpdate) response.Common {
 	var paramOut model.ErrorLog
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -129,7 +129,7 @@ func (errorLogService) Update(paramIn *dto.ErrorLogCreateOrUpdate) response.Comm
 	return response.Succeed()
 }
 
-func (errorLogService) Delete(errorLogID int) response.Common {
+func (errorLog) Delete(errorLogID int) response.Common {
 	err := global.DB.Delete(&model.ErrorLog{}, errorLogID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -139,7 +139,7 @@ func (errorLogService) Delete(errorLogID int) response.Common {
 }
 
 // 这个函数有问题，待修改
-func (errorLogService) List(paramIn dto.DisassemblyListOld) response.List {
+func (errorLog) List(paramIn dto.DisassemblyListOld) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 

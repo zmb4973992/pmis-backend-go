@@ -13,9 +13,9 @@ import (
 	"strconv"
 )
 
-type projectController struct{}
+type project struct{}
 
-func (projectController) Get(c *gin.Context) {
+func (project) Get(c *gin.Context) {
 	projectID, err := strconv.Atoi(c.Param("project-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -23,12 +23,12 @@ func (projectController) Get(c *gin.Context) {
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.ProjectService.Get(projectID)
+	res := service.Project.Get(projectID)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (projectController) Create(c *gin.Context) {
+func (project) Create(c *gin.Context) {
 	var param dto.ProjectCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -46,12 +46,12 @@ func (projectController) Create(c *gin.Context) {
 		param.LastModifier = userID
 	}
 
-	res := service.ProjectService.Create(param)
+	res := service.Project.Create(param)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (projectController) Update(c *gin.Context) {
+func (project) Update(c *gin.Context) {
 	var param dto.ProjectUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -75,11 +75,11 @@ func (projectController) Update(c *gin.Context) {
 		param.LastModifier = userID.(int)
 	}
 
-	res := service.ProjectService.Update(param)
+	res := service.Project.Update(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (projectController) Delete(c *gin.Context) {
+func (project) Delete(c *gin.Context) {
 	var param dto.ProjectDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("project-id"))
@@ -96,11 +96,11 @@ func (projectController) Delete(c *gin.Context) {
 		userID := tempUserID.(int)
 		param.Deleter = userID
 	}
-	res := service.ProjectService.Delete(param)
+	res := service.Project.Delete(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (projectController) GetArray(c *gin.Context) {
+func (project) GetArray(c *gin.Context) {
 	var param dto.ProjectList
 	err := c.ShouldBindJSON(&param)
 
@@ -114,11 +114,11 @@ func (projectController) GetArray(c *gin.Context) {
 	}
 
 	//生成Service,然后调用它的方法
-	res := service.ProjectService.GetArray(param)
+	res := service.Project.GetArray(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (projectController) List(c *gin.Context) {
+func (project) List(c *gin.Context) {
 	var param dto.ProjectList
 	err := c.ShouldBindJSON(&param)
 
@@ -132,6 +132,6 @@ func (projectController) List(c *gin.Context) {
 	}
 
 	//生成Service,然后调用它的方法
-	res := service.ProjectService.GetList(param)
+	res := service.Project.GetList(param)
 	c.JSON(http.StatusOK, res)
 }

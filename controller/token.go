@@ -9,9 +9,9 @@ import (
 	"time"
 )
 
-type tokenController struct{}
+type token struct{}
 
-func (tokenController) Validate(c *gin.Context) {
+func (token) Validate(c *gin.Context) {
 	token := c.Param("token")
 	if token == "" {
 		c.JSON(http.StatusBadRequest,
