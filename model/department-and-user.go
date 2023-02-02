@@ -8,6 +8,6 @@ type DepartmentAndUser struct {
 }
 
 // TableName 修改表名
-func (DepartmentAndUser) TableName() string {
+func (*DepartmentAndUser) TableName() string {
 	return "department_and_user"
 }

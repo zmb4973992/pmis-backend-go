@@ -21,6 +21,6 @@ type OperationLog struct {
 }
 
 // TableName 修改数据库的表名
-func (OperationLog) TableName() string {
+func (*OperationLog) TableName() string {
 	return "operation_log"
 }

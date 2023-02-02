@@ -11,21 +11,21 @@ import (
 
 type login struct{}
 
-func (login) Login(param dto.Login) response.Common {
-	var user model.User
+func (*login) Login(param dto.Login) response.Common {
+	var record model.User
 	//根据入参的用户名，从数据库取出记录赋值给user
-	err := global.DB.Where("username=?", param.Username).First(&user).Error
+	err := global.DB.Where("username=?", param.Username).First(&record).Error
 	//如果没有找到记录
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorInvalidUsernameOrPassword)
 	}
-	//如果找到记录了，但是密码错误的话
-	if util.CheckPassword(param.Password, user.Password) == false {
+	//如果密码错误
+	if util.CheckPassword(param.Password, record.Password) == false {
 		return response.Fail(util.ErrorInvalidUsernameOrPassword)
 	}
 	//账号密码都正确时，生成token
-	token := jwt.GenerateToken(user.ID)
+	token := jwt.GenerateToken(record.ID)
 	return response.SucceedWithData(
 		map[string]any{
 			"access_token": token,

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"gorm.io/gorm"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -11,7 +10,7 @@ import (
 
 type disassembly struct{}
 
-func (disassembly) Get(disassemblyID int) response.Common {
+func (*disassembly) Get(disassemblyID int) response.Common {
 	var result dto.DisassemblyOutput
 	err := global.DB.Model(model.Disassembly{}).
 		Where("id = ?", disassemblyID).First(&result).Error
@@ -22,7 +21,7 @@ func (disassembly) Get(disassemblyID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (disassembly) Tree(paramIn dto.DisassemblyTree) response.Common {
+func (*disassembly) Tree(paramIn dto.DisassemblyTree) response.Common {
 	//根据project_id获取disassembly_id
 	var disassemblyID int
 	err := global.DB.Model(model.Disassembly{}).Select("id").
@@ -69,7 +68,7 @@ func (disassembly) Tree(paramIn dto.DisassemblyTree) response.Common {
 	return response.SucceedWithData(result1)
 }
 
-func (disassembly) Create(paramIn dto.DisassemblyCreate) response.Common {
+func (*disassembly) Create(paramIn dto.DisassemblyCreate) response.Common {
 	var paramOut model.Disassembly
 	if paramIn.Creator > 0 {
 		paramOut.Creator = &paramIn.Creator
@@ -96,7 +95,7 @@ func (disassembly) Create(paramIn dto.DisassemblyCreate) response.Common {
 	return response.Succeed()
 }
 
-func (disassembly) CreateInBatches(paramIn []dto.DisassemblyCreate) response.Common {
+func (*disassembly) CreateInBatches(paramIn []dto.DisassemblyCreate) response.Common {
 	var paramOut []model.Disassembly
 	for i := range paramIn {
 		var record model.Disassembly
@@ -129,7 +128,7 @@ func (disassembly) CreateInBatches(paramIn []dto.DisassemblyCreate) response.Com
 	return response.Succeed()
 }
 
-func (disassembly) Update(paramIn dto.DisassemblyUpdate) response.Common {
+func (*disassembly) Update(paramIn dto.DisassemblyUpdate) response.Common {
 	paramOut := make(map[string]any)
 
 	if paramIn.LastModifier > 0 {
@@ -192,23 +191,12 @@ func (disassembly) Update(paramIn dto.DisassemblyUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (disassembly) Delete(paramIn dto.DisassemblyDelete) response.Common {
-	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
-	err := global.DB.Transaction(func(tx *gorm.DB) error {
-		//这里记录删除人，在事务中必须放在前面
-		//如果放后面，由于是软删除，系统会找不到这条记录，导致无法更新
-		err := tx.Debug().Model(&model.Disassembly{}).Where("id = ?", paramIn.ID).
-			Update("deleter", paramIn.Deleter).Error
-		if err != nil {
-			return err
-		}
-		//这里删除记录
-		err = tx.Delete(&model.Disassembly{}, paramIn.ID).Error
-		if err != nil {
-			return err
-		}
-		return nil
-	})
+func (*disassembly) Delete(paramIn dto.DisassemblyDelete) response.Common {
+	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
+	var record model.Disassembly
+	global.DB.Where("id = ?", paramIn.ID).Find(&record)
+	record.Deleter = &paramIn.Deleter
+	err := global.DB.Where("id = ?", paramIn.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -217,8 +205,7 @@ func (disassembly) Delete(paramIn dto.DisassemblyDelete) response.Common {
 	return response.Succeed()
 }
 
-// 有错误，待完善
-func (disassembly) DeleteWithSubitems(paramIn dto.DisassemblyDelete) response.Common {
+func (*disassembly) DeleteWithSubitems(paramIn dto.DisassemblyDelete) response.Common {
 	var ToBeDeletedIDs []int
 	ToBeDeletedIDs = append(ToBeDeletedIDs, paramIn.ID)
 	//第一轮查找
@@ -248,22 +235,13 @@ func (disassembly) DeleteWithSubitems(paramIn dto.DisassemblyDelete) response.Co
 		}
 	}
 
-	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
-	err := global.DB.Transaction(func(tx *gorm.DB) error {
-		//这里记录删除人，在事务中必须放在前面
-		//如果放后面，由于是软删除，系统会找不到这条记录，导致无法更新
-		err := tx.Debug().Model(&model.Disassembly{}).Where("id in ?", ToBeDeletedIDs).
-			Update("deleter", paramIn.Deleter).Error
-		if err != nil {
-			return err
-		}
-		//这里删除记录
-		err = tx.Delete(&model.Disassembly{}, ToBeDeletedIDs).Error
-		if err != nil {
-			return err
-		}
-		return nil
-	})
+	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
+	var records []model.Disassembly
+	global.DB.Where("id in ?", ToBeDeletedIDs).Find(&records)
+	for i := range records {
+		records[i].Deleter = &paramIn.Deleter
+	}
+	err := global.DB.Where("id in ?", ToBeDeletedIDs).Delete(&records).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -272,7 +250,7 @@ func (disassembly) DeleteWithSubitems(paramIn dto.DisassemblyDelete) response.Co
 	return response.Succeed()
 }
 
-func (disassembly) GetList(paramIn dto.DisassemblyList) response.List {
+func (*disassembly) GetList(paramIn dto.DisassemblyList) response.List {
 	db := global.DB.Model(&model.Disassembly{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
@@ -316,7 +294,7 @@ func (disassembly) GetList(paramIn dto.DisassemblyList) response.List {
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(model.Disassembly{}, orderBy)
+		exists := util.FieldIsInModel(&model.Disassembly{}, orderBy)
 		if !exists {
 			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
 		}

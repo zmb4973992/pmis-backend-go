@@ -13,7 +13,7 @@ import (
 
 type roleAndUser struct{}
 
-func (roleAndUser) ListByRoleID(c *gin.Context) {
+func (*roleAndUser) ListByRoleID(c *gin.Context) {
 	roleID, err := strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -26,7 +26,7 @@ func (roleAndUser) ListByRoleID(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUser) CreateByRoleID(c *gin.Context) {
+func (*roleAndUser) CreateByRoleID(c *gin.Context) {
 	roleID, err := strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -56,7 +56,7 @@ func (roleAndUser) CreateByRoleID(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUser) UpdateByRoleID(c *gin.Context) {
+func (*roleAndUser) UpdateByRoleID(c *gin.Context) {
 	roleID, err := strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -85,7 +85,7 @@ func (roleAndUser) UpdateByRoleID(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUser) DeleteByRoleID(c *gin.Context) {
+func (*roleAndUser) DeleteByRoleID(c *gin.Context) {
 	roleID, err := strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -98,7 +98,7 @@ func (roleAndUser) DeleteByRoleID(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUser) ListByUserID(c *gin.Context) {
+func (*roleAndUser) ListByUserID(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -111,7 +111,7 @@ func (roleAndUser) ListByUserID(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUser) CreateByUserID(c *gin.Context) {
+func (*roleAndUser) CreateByUserID(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -141,7 +141,7 @@ func (roleAndUser) CreateByUserID(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUser) UpdateByUserID(c *gin.Context) {
+func (*roleAndUser) UpdateByUserID(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -170,7 +170,7 @@ func (roleAndUser) UpdateByUserID(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUser) DeleteByUserID(c *gin.Context) {
+func (*roleAndUser) DeleteByUserID(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -183,7 +183,7 @@ func (roleAndUser) DeleteByUserID(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (roleAndUser) ListByTokenInHeader(c *gin.Context) {
+func (*roleAndUser) ListByTokenInHeader(c *gin.Context) {
 	//通过中间件，设定header必须带有token才能访问
 	//header里有token后，中间件会自动在context里添加user_id属性，详见自定义的中间件
 	tempUserID, exists := c.Get("user_id")

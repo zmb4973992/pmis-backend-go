@@ -15,7 +15,7 @@ import (
 
 type user struct{}
 
-func (user) Get(c *gin.Context) {
+func (*user) Get(c *gin.Context) {
 	userID, err := strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -28,7 +28,7 @@ func (user) Get(c *gin.Context) {
 	return
 }
 
-func (user) Create(c *gin.Context) {
+func (*user) Create(c *gin.Context) {
 	//先声明空的dto，再把context里的数据绑到dto上
 	var param dto.UserCreate
 	err := c.ShouldBindJSON(&param)
@@ -53,7 +53,7 @@ func (user) Create(c *gin.Context) {
 }
 
 // Update controller的功能：解析uri参数、json参数，拦截非法参数，然后传给service层处理
-func (user) Update(c *gin.Context) {
+func (*user) Update(c *gin.Context) {
 	//这里只更新传过来的参数，所以采用map形式
 	var param dto.UserUpdate
 	err := c.ShouldBindJSON(&param)
@@ -85,7 +85,7 @@ func (user) Update(c *gin.Context) {
 	c.JSON(200, res)
 }
 
-func (user) Delete(c *gin.Context) {
+func (*user) Delete(c *gin.Context) {
 	//把uri上的id参数传递给结构体形式的入参
 	userID, err := strconv.Atoi(c.Param("user-id"))
 	//如果解析失败，例如URI的参数不是数字
@@ -99,7 +99,7 @@ func (user) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (user) List(c *gin.Context) {
+func (*user) List(c *gin.Context) {
 	var param dto.UserList
 	err := c.ShouldBindJSON(&param)
 
@@ -118,7 +118,7 @@ func (user) List(c *gin.Context) {
 	return
 }
 
-func (user) GetByToken(c *gin.Context) {
+func (*user) GetByToken(c *gin.Context) {
 	//通过中间件，设定header必须带有token才能访问
 	//header里有token后，中间件会自动在context里添加user_id属性，详见自定义的中间件
 	tempUserID, exists := c.Get("user_id")

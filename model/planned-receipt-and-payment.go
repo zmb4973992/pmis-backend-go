@@ -17,6 +17,6 @@ type PlannedReceiptAndPayment struct {
 	Attachment               *string  //附件
 }
 
-func (PlannedReceiptAndPayment) TableName() string {
+func (*PlannedReceiptAndPayment) TableName() string {
 	return "planned_receipt_and_payment"
 }

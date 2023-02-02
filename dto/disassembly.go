@@ -72,12 +72,3 @@ type DisassemblyTreeOutput struct {
 	Level    int                     `json:"level" gorm:"level"`
 	Children []DisassemblyTreeOutput `json:"children"`
 }
-
-type DisassemblyListOld struct {
-	ListInput
-	ProjectID  *int `json:"project_id"`
-	SuperiorID *int `json:"superior_id"`
-	Level      *int `json:"level"`
-	LevelGte   *int `json:"level_gte"`
-	LevelLte   *int `json:"level_lte"`
-}

@@ -15,7 +15,7 @@ import (
 
 type disassembly struct{}
 
-func (disassembly) Get(c *gin.Context) {
+func (*disassembly) Get(c *gin.Context) {
 	disassemblyID, err := strconv.Atoi(c.Param("disassembly-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -28,7 +28,7 @@ func (disassembly) Get(c *gin.Context) {
 	return
 }
 
-func (disassembly) Tree(c *gin.Context) {
+func (*disassembly) Tree(c *gin.Context) {
 	var param dto.DisassemblyTree
 	err := c.ShouldBindJSON(&param)
 	//这里json参数必填，否则无法知道要找哪条记录。因此不能忽略掉EOF错误
@@ -43,7 +43,7 @@ func (disassembly) Tree(c *gin.Context) {
 	return
 }
 
-func (disassembly) Create(c *gin.Context) {
+func (*disassembly) Create(c *gin.Context) {
 	var param dto.DisassemblyCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -66,7 +66,7 @@ func (disassembly) Create(c *gin.Context) {
 	return
 }
 
-func (disassembly) CreateInBatches(c *gin.Context) {
+func (*disassembly) CreateInBatches(c *gin.Context) {
 	var param []dto.DisassemblyCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -91,7 +91,7 @@ func (disassembly) CreateInBatches(c *gin.Context) {
 	return
 }
 
-func (disassembly) Update(c *gin.Context) {
+func (*disassembly) Update(c *gin.Context) {
 	var param dto.DisassemblyUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -118,7 +118,7 @@ func (disassembly) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (disassembly) Delete(c *gin.Context) {
+func (*disassembly) Delete(c *gin.Context) {
 	var param dto.DisassemblyDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
@@ -139,7 +139,7 @@ func (disassembly) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (disassembly) DeleteWithSubitems(c *gin.Context) {
+func (*disassembly) DeleteWithSubitems(c *gin.Context) {
 	var param dto.DisassemblyDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))

@@ -11,6 +11,6 @@ type RelatedParty struct {
 }
 
 // TableName 修改数据库的表名
-func (RelatedParty) TableName() string {
+func (*RelatedParty) TableName() string {
 	return "related_party"
 }

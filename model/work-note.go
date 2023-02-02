@@ -14,6 +14,6 @@ type WorkNote struct {
 }
 
 // TableName 修改表名
-func (WorkNote) TableName() string {
+func (*WorkNote) TableName() string {
 	return "work_note"
 }

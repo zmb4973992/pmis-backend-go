@@ -11,6 +11,6 @@ type WorkReview struct {
 }
 
 // TableName 修改表名
-func (WorkReview) TableName() string {
+func (*WorkReview) TableName() string {
 	return "work_review"
 }

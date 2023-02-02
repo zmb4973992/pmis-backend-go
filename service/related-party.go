@@ -19,7 +19,7 @@ Service层没有数据结构、只有方法，所有的数据结构都放在DTO�
 
 type relatedParty struct{}
 
-func (relatedParty) Get(relatedPartyID int) response.Common {
+func (*relatedParty) Get(relatedPartyID int) response.Common {
 	var result dto.RelatedPartyOutput
 	err := global.DB.Model(&model.RelatedParty{}).
 		Where("id = ?", relatedPartyID).First(&result).Error
@@ -30,7 +30,7 @@ func (relatedParty) Get(relatedPartyID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (relatedParty) Create(paramIn *dto.RelatedPartyCreateOrUpdate) response.Common {
+func (*relatedParty) Create(paramIn *dto.RelatedPartyCreateOrUpdate) response.Common {
 	//对model进行清洗，生成dao层需要的model
 	var paramOut model.RelatedParty
 	if paramIn.Creator != nil {
@@ -69,7 +69,7 @@ func (relatedParty) Create(paramIn *dto.RelatedPartyCreateOrUpdate) response.Com
 	return response.Succeed()
 }
 
-func (relatedParty) Update(paramIn *dto.RelatedPartyCreateOrUpdate) response.Common {
+func (*relatedParty) Update(paramIn *dto.RelatedPartyCreateOrUpdate) response.Common {
 	var paramOut model.RelatedParty
 	//先找出原始记录
 	err := global.DB.Where("id = ?", paramIn.ID).First(&paramOut).Error
@@ -113,7 +113,7 @@ func (relatedParty) Update(paramIn *dto.RelatedPartyCreateOrUpdate) response.Com
 	return response.Succeed()
 }
 
-func (relatedParty) Delete(relatedPartyID int) response.Common {
+func (*relatedParty) Delete(relatedPartyID int) response.Common {
 	err := global.DB.Delete(&model.RelatedParty{}, relatedPartyID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -122,7 +122,7 @@ func (relatedParty) Delete(relatedPartyID int) response.Common {
 	return response.Succeed()
 }
 
-func (relatedParty) List(paramIn dto.RelatedPartyList) response.List {
+func (*relatedParty) List(paramIn dto.RelatedPartyList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 	//对paramIn进行清洗
@@ -163,7 +163,7 @@ func (relatedParty) List(paramIn dto.RelatedPartyList) response.List {
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
-		ok := sqlCondition.FieldIsInModel(model.RelatedParty{}, orderBy)
+		ok := sqlCondition.FieldIsInModel(&model.RelatedParty{}, orderBy)
 		if ok {
 			sqlCondition.Sorting.OrderBy = orderBy
 		}
@@ -175,8 +175,8 @@ func (relatedParty) List(paramIn dto.RelatedPartyList) response.List {
 		sqlCondition.Sorting.Desc = false
 	}
 
-	tempList := sqlCondition.Find(global.DB, model.RelatedParty{})
-	totalRecords := sqlCondition.Count(global.DB, model.RelatedParty{})
+	tempList := sqlCondition.Find(global.DB, &model.RelatedParty{})
+	totalRecords := sqlCondition.Count(global.DB, &model.RelatedParty{})
 	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {

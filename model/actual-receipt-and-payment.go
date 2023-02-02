@@ -18,6 +18,6 @@ type ActualReceiptAndPayment struct {
 	Attachment               *string    //附件
 }
 
-func (ActualReceiptAndPayment) TableName() string {
+func (*ActualReceiptAndPayment) TableName() string {
 	return "actual_receipt_and_payment"
 }

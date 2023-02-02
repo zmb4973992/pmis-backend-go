@@ -14,7 +14,7 @@ import (
 // 所有的增删改查都交给DAO层处理，否则service层会非常庞大
 type operationRecord struct{}
 
-func (operationRecord) Get(operationRecordID int) response.Common {
+func (*operationRecord) Get(operationRecordID int) response.Common {
 	var result dto.OperationLogOutput
 	//把基础的拆解信息查出来
 	err := global.DB.Model(model.OperationLog{}).
@@ -27,7 +27,7 @@ func (operationRecord) Get(operationRecordID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (operationRecord) Create(paramIn *dto.OperationLogCreateOrUpdate) response.Common {
+func (*operationRecord) Create(paramIn *dto.OperationLogCreateOrUpdate) response.Common {
 	//对dto进行清洗，生成dao层需要的model
 	var paramOut model.OperationLog
 
@@ -54,8 +54,8 @@ func (operationRecord) Create(paramIn *dto.OperationLogCreateOrUpdate) response.
 	//	paramOut.Action = paramIn.Action
 	//}
 	//
-	//if *paramIn.Detail != "" {
-	//	paramOut.Detail = paramIn.Detail
+	//if *paramIn.DetailInclude != "" {
+	//	paramOut.DetailInclude = paramIn.DetailInclude
 	//}
 
 	err := global.DB.Create(&paramOut).Error
@@ -69,7 +69,7 @@ func (operationRecord) Create(paramIn *dto.OperationLogCreateOrUpdate) response.
 
 // Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
 // 其次是需要清洗
-func (operationRecord) Update(paramIn *dto.OperationLogCreateOrUpdate) response.Common {
+func (*operationRecord) Update(paramIn *dto.OperationLogCreateOrUpdate) response.Common {
 	var paramOut model.OperationLog
 	paramOut.ID = paramIn.ID
 	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
@@ -106,8 +106,8 @@ func (operationRecord) Update(paramIn *dto.OperationLogCreateOrUpdate) response.
 	//	paramOut.Action = paramIn.Action
 	//}
 	//
-	//if *paramIn.Detail != "" {
-	//	paramOut.Detail = paramIn.Detail
+	//if *paramIn.DetailInclude != "" {
+	//	paramOut.DetailInclude = paramIn.DetailInclude
 	//}
 
 	//清洗完毕，开始update
@@ -120,7 +120,7 @@ func (operationRecord) Update(paramIn *dto.OperationLogCreateOrUpdate) response.
 	return response.Succeed()
 }
 
-func (operationRecord) Delete(operationRecordID int) response.Common {
+func (*operationRecord) Delete(operationRecordID int) response.Common {
 	err := global.DB.Delete(&model.OperationLog{}, operationRecordID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -129,7 +129,7 @@ func (operationRecord) Delete(operationRecordID int) response.Common {
 	return response.Succeed()
 }
 
-func (operationRecord) List(paramIn dto.OperationRecordList) response.List {
+func (*operationRecord) List(paramIn dto.OperationRecordList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 
@@ -167,7 +167,7 @@ func (operationRecord) List(paramIn dto.OperationRecordList) response.List {
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
-		ok := sqlCondition.FieldIsInModel(model.OperationLog{}, orderBy)
+		ok := sqlCondition.FieldIsInModel(&model.OperationLog{}, orderBy)
 		if ok {
 			sqlCondition.Sorting.OrderBy = orderBy
 		}
@@ -179,8 +179,8 @@ func (operationRecord) List(paramIn dto.OperationRecordList) response.List {
 		sqlCondition.Sorting.Desc = false
 	}
 
-	tempList := sqlCondition.Find(global.DB, model.OperationLog{})
-	totalRecords := sqlCondition.Count(global.DB, model.OperationLog{})
+	tempList := sqlCondition.Find(global.DB, &model.OperationLog{})
+	totalRecords := sqlCondition.Count(global.DB, &model.OperationLog{})
 	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {

@@ -47,10 +47,3 @@ type DepartmentOutput struct {
 	LevelName    *string `json:"level_name" gorm:"level_name"`   //级别，如公司、事业部、部门等
 	SuperiorID   *int    `json:"superior_id" gorm:"superior_id"` //上级机构id
 }
-
-type DepartmentOutputOld struct {
-	Base       `mapstructure:",squash"` //这里是嵌套结构体，mapstructure必须加squash，否则无法匹配
-	Name       string                   `json:"name"  mapstructure:"name"`              //部门名称
-	Level      string                   `json:"level" mapstructure:"level"`             //级别，如公司、事业部、部门等
-	SuperiorID *int                     `json:"superior_id" mapstructure:"superior_id"` //上级机构
-}

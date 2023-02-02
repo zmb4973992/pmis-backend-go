@@ -13,22 +13,22 @@ import (
 	"strconv"
 )
 
-type operationRecord struct{}
+type operationLog struct{}
 
-func (operationRecord) Get(c *gin.Context) {
-	operationRecordID, err := strconv.Atoi(c.Param("operation-record-id"))
+func (*operationLog) Get(c *gin.Context) {
+	operationLogID, err := strconv.Atoi(c.Param("operation-log-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.OperationRecord.Get(operationRecordID)
+	res := service.OperationRecord.Get(operationLogID)
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (operationRecord) Create(c *gin.Context) {
+func (*operationLog) Create(c *gin.Context) {
 	var param dto.OperationLogCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
@@ -51,7 +51,7 @@ func (operationRecord) Create(c *gin.Context) {
 	return
 }
 
-func (operationRecord) Update(c *gin.Context) {
+func (*operationLog) Update(c *gin.Context) {
 	var param dto.OperationLogCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
@@ -62,7 +62,7 @@ func (operationRecord) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.ID, err = strconv.Atoi(c.Param("operation-record-id"))
+	param.ID, err = strconv.Atoi(c.Param("operation-log-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -82,8 +82,8 @@ func (operationRecord) Update(c *gin.Context) {
 	c.JSON(200, res)
 }
 
-func (operationRecord) Delete(c *gin.Context) {
-	operationRecordID, err := strconv.Atoi(c.Param("operation-record-id"))
+func (*operationLog) Delete(c *gin.Context) {
+	operationRecordID, err := strconv.Atoi(c.Param("operation-log-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -94,7 +94,7 @@ func (operationRecord) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (operationRecord) List(c *gin.Context) {
+func (*operationLog) List(c *gin.Context) {
 	var param dto.OperationRecordList
 	err := c.ShouldBindJSON(&param)
 

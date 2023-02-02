@@ -10,7 +10,7 @@ import (
 type noRoute struct {
 }
 
-func (noRoute) NoRoute(c *gin.Context) {
+func (*noRoute) NoRoute(c *gin.Context) {
 	c.JSON(http.StatusBadRequest,
 		response.Fail(util.ErrorInvalidRequest))
 }

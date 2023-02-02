@@ -24,6 +24,6 @@ type WorkProgress struct {
 }
 
 // TableName 修改表名
-func (WorkProgress) TableName() string {
+func (*WorkProgress) TableName() string {
 	return "work_progress"
 }

@@ -15,7 +15,7 @@ import (
 
 type department struct{}
 
-func (department) Get(c *gin.Context) {
+func (*department) Get(c *gin.Context) {
 	departmentID, err := strconv.Atoi(c.Param("department-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -27,7 +27,7 @@ func (department) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (department) Create(c *gin.Context) {
+func (*department) Create(c *gin.Context) {
 	var param dto.DepartmentCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -48,7 +48,7 @@ func (department) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (department) Update(c *gin.Context) {
+func (*department) Update(c *gin.Context) {
 	var param dto.DepartmentUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -56,7 +56,7 @@ func (department) Update(c *gin.Context) {
 		c.JSON(http.StatusOK, response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
-	//把uri上的id参数传递给结构体形式的入参
+
 	param.ID, err = strconv.Atoi(c.Param("department-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -64,7 +64,7 @@ func (department) Update(c *gin.Context) {
 		return
 	}
 
-	//处理lastModifier字段
+	//处理last_modifier字段
 	userID, exists := c.Get("user_id")
 	if exists {
 		param.LastModifier = userID.(int)
@@ -74,7 +74,7 @@ func (department) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (department) Delete(c *gin.Context) {
+func (*department) Delete(c *gin.Context) {
 	var param dto.DepartmentDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("department-id"))
@@ -95,7 +95,7 @@ func (department) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (department) GetArray(c *gin.Context) {
+func (*department) GetArray(c *gin.Context) {
 	var param dto.DepartmentList
 	err := c.ShouldBindJSON(&param)
 
@@ -120,7 +120,7 @@ func (department) GetArray(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (department) GetList(c *gin.Context) {
+func (*department) GetList(c *gin.Context) {
 	var param dto.DepartmentList
 	err := c.ShouldBindJSON(&param)
 

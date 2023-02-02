@@ -94,21 +94,13 @@ func Init() *gin.Engine {
 			disassembly.DELETE("/cascade/:disassembly-id", controller.Disassembly.DeleteWithSubitems) //删除项目拆解（子项一并删除）
 			disassembly.POST("/list", controller.Disassembly.GetList)                                 //获取项目拆解列表
 		}
-		disassemblyTemplate := api.Group("/disassembly-template")
+		operationLog := api.Group("/operation-log")
 		{
-			disassemblyTemplate.GET("/:disassembly-template-id", controller.DisassemblyTemplate.Get)       //获取项目拆解模板详情
-			disassemblyTemplate.POST("", controller.DisassemblyTemplate.Create)                            //新增项目拆解模板
-			disassemblyTemplate.PUT("/:disassembly-template-id", controller.DisassemblyTemplate.Update)    //修改项目拆解模板
-			disassemblyTemplate.DELETE("/:disassembly-template-id", controller.DisassemblyTemplate.Delete) //删除项目拆解模板
-			disassemblyTemplate.POST("/list", controller.DisassemblyTemplate.List)                         //获取项目拆解模板列表
-		}
-		operationRecord := api.Group("/operation-record")
-		{
-			operationRecord.GET("/:operation-record-id", controller.OperationRecord.Get)       //获取操作记录详情
-			operationRecord.POST("", controller.OperationRecord.Create)                        //新增操作记录
-			operationRecord.PUT("/:operation-record-id", controller.OperationRecord.Update)    //修改操作记录
-			operationRecord.DELETE("/:operation-record-id", controller.OperationRecord.Delete) //删除操作记录
-			operationRecord.POST("/list", controller.OperationRecord.List)                     //获取操作详情列表
+			operationLog.GET("/:operation-log-id", controller.OperationRecord.Get)       //获取操作记录详情
+			operationLog.POST("", controller.OperationRecord.Create)                     //新增操作记录
+			operationLog.PUT("/:operation-log-id", controller.OperationRecord.Update)    //修改操作记录
+			operationLog.DELETE("/:operation-log-id", controller.OperationRecord.Delete) //删除操作记录
+			operationLog.POST("/list", controller.OperationRecord.List)                  //获取操作详情列表
 		}
 		errorLog := api.Group("/error-log")
 		{

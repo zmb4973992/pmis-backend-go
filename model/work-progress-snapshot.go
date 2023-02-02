@@ -2,6 +2,7 @@ package model
 
 import "time"
 
+// deprecated
 type WorkProgressSnapshot struct {
 	BaseModel
 
@@ -26,6 +27,6 @@ type WorkProgressSnapshot struct {
 }
 
 // TableName 修改表名
-func (WorkProgressSnapshot) TableName() string {
+func (*WorkProgressSnapshot) TableName() string {
 	return "work_progress_snapshot"
 }

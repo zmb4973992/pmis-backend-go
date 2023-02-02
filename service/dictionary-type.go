@@ -1,7 +1,6 @@
 package service
 
 import (
-	"gorm.io/gorm"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -11,7 +10,7 @@ import (
 
 type dictionaryType struct{}
 
-func (dictionaryType) Get(dictionaryTypeID int) response.Common {
+func (*dictionaryType) Get(dictionaryTypeID int) response.Common {
 	var result dto.DictionaryTypeOutput
 	err := global.DB.Model(model.DictionaryType{}).
 		Where("id = ?", dictionaryTypeID).First(&result).Error
@@ -22,7 +21,7 @@ func (dictionaryType) Get(dictionaryTypeID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (dictionaryType) Create(paramIn dto.DictionaryTypeCreate) response.Common {
+func (*dictionaryType) Create(paramIn dto.DictionaryTypeCreate) response.Common {
 	var paramOut model.DictionaryType
 	if paramIn.Creator > 0 {
 		paramOut.Creator = &paramIn.Creator
@@ -50,7 +49,7 @@ func (dictionaryType) Create(paramIn dto.DictionaryTypeCreate) response.Common {
 	return response.Succeed()
 }
 
-func (dictionaryType) CreateInBatches(paramIn []dto.DictionaryTypeCreate) response.Common {
+func (*dictionaryType) CreateInBatches(paramIn []dto.DictionaryTypeCreate) response.Common {
 	var paramOut []model.DictionaryType
 	for i := range paramIn {
 		var record model.DictionaryType
@@ -84,7 +83,7 @@ func (dictionaryType) CreateInBatches(paramIn []dto.DictionaryTypeCreate) respon
 	return response.Succeed()
 }
 
-func (dictionaryType) Update(paramIn dto.DictionaryTypeUpdate) response.Common {
+func (*dictionaryType) Update(paramIn dto.DictionaryTypeUpdate) response.Common {
 	paramOut := make(map[string]any)
 
 	if paramIn.LastModifier > 0 {
@@ -134,23 +133,12 @@ func (dictionaryType) Update(paramIn dto.DictionaryTypeUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (dictionaryType) Delete(paramIn dto.DictionaryTypeDelete) response.Common {
-	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
-	err := global.DB.Transaction(func(tx *gorm.DB) error {
-		//这里记录删除人，在事务中必须放在前面
-		//如果放后面，由于是软删除，系统会找不到这条记录，导致无法更新
-		err := tx.Debug().Model(&model.DictionaryType{}).Where("id = ?", paramIn.ID).
-			Update("deleter", paramIn.Deleter).Error
-		if err != nil {
-			return err
-		}
-		//这里删除记录
-		err = tx.Delete(&model.DictionaryType{}, paramIn.ID).Error
-		if err != nil {
-			return err
-		}
-		return nil
-	})
+func (*dictionaryType) Delete(paramIn dto.DictionaryTypeDelete) response.Common {
+	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
+	var record model.DictionaryType
+	global.DB.Where("id = ?", paramIn.ID).Find(&record)
+	record.Deleter = &paramIn.Deleter
+	err := global.DB.Where("id = ?", paramIn.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -159,7 +147,7 @@ func (dictionaryType) Delete(paramIn dto.DictionaryTypeDelete) response.Common {
 	return response.Succeed()
 }
 
-func (dictionaryType) GetArray(paramIn dto.DictionaryTypeList) response.Common {
+func (*dictionaryType) GetArray(paramIn dto.DictionaryTypeList) response.Common {
 	db := global.DB.Model(&model.DictionaryType{})
 	// 顺序：where -> count -> Order -> limit -> offset -> array
 
@@ -179,7 +167,7 @@ func (dictionaryType) GetArray(paramIn dto.DictionaryTypeList) response.Common {
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(model.DictionaryType{}, orderBy)
+		exists := util.FieldIsInModel(&model.DictionaryType{}, orderBy)
 		if !exists {
 			return response.Fail(util.ErrorSortingFieldDoesNotExist)
 		}
@@ -222,7 +210,7 @@ func (dictionaryType) GetArray(paramIn dto.DictionaryTypeList) response.Common {
 	}
 }
 
-func (dictionaryType) GetList(paramIn dto.DictionaryTypeList) response.List {
+func (*dictionaryType) GetList(paramIn dto.DictionaryTypeList) response.List {
 	db := global.DB.Model(&model.DictionaryType{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
@@ -246,7 +234,7 @@ func (dictionaryType) GetList(paramIn dto.DictionaryTypeList) response.List {
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(model.DictionaryType{}, orderBy)
+		exists := util.FieldIsInModel(&model.DictionaryType{}, orderBy)
 		if !exists {
 			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
 		}

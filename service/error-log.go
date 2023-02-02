@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/mitchellh/mapstructure"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -10,12 +9,9 @@ import (
 	"time"
 )
 
-// errorLog 没有数据、只有方法，所有的数据都放在DTO里
-// 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
-// 所有的增删改查都交给DAO层处理，否则service层会非常庞大
 type errorLog struct{}
 
-func (errorLog) Get(errorLogID int) response.Common {
+func (*errorLog) Get(errorLogID int) response.Common {
 	var result dto.ErrorLogOutput
 	err := global.DB.Model(model.ErrorLog{}).
 		Where("id = ?", errorLogID).First(&result).Error
@@ -30,24 +26,22 @@ func (errorLog) Get(errorLogID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (errorLog) Create(paramIn *dto.ErrorLogCreateOrUpdate) response.Common {
-	//对dto进行清洗，生成dao层需要的model
+func (*errorLog) Create(paramIn dto.ErrorLogCreate) response.Common {
 	var paramOut model.ErrorLog
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	if paramIn.Creator != nil {
-		paramOut.Creator = paramIn.Creator
+	if paramIn.Creator > 0 {
+		paramOut.Creator = &paramIn.Creator
 	}
 
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
+	if paramIn.LastModifier > 0 {
+		paramOut.LastModifier = &paramIn.LastModifier
 	}
 
-	if *paramIn.Detail != "" {
-		paramOut.Detail = paramIn.Detail
+	if paramIn.Detail != "" {
+		paramOut.Detail = &paramIn.Detail
 	}
 
-	if *paramIn.Date != "" {
-		date, err := time.Parse("2006-01-02", *paramIn.Date)
+	if paramIn.Date != "" {
+		date, err := time.Parse("2006-01-02", paramIn.Date)
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
 			return response.Fail(util.ErrorInvalidJSONParameters)
@@ -56,20 +50,16 @@ func (errorLog) Create(paramIn *dto.ErrorLogCreateOrUpdate) response.Common {
 		}
 	}
 
-	if *paramIn.MajorCategory != "" {
-		paramOut.MajorCategory = paramIn.MajorCategory
+	if paramIn.MajorCategory != "" {
+		paramOut.MajorCategory = &paramIn.MajorCategory
 	}
 
-	if *paramIn.MinorCategory != "" {
-		paramOut.MinorCategory = paramIn.MinorCategory
+	if paramIn.MinorCategory != "" {
+		paramOut.MinorCategory = &paramIn.MinorCategory
 	}
 
-	if *paramIn.IsResolved == false {
-		temp := false
-		paramOut.IsResolved = &temp
-	} else {
-		temp := true
-		paramOut.IsResolved = &temp
+	if paramIn.IsResolved != false {
+		paramOut.IsResolved = &paramIn.IsResolved
 	}
 
 	err := global.DB.Create(&paramOut).Error
@@ -80,57 +70,80 @@ func (errorLog) Create(paramIn *dto.ErrorLogCreateOrUpdate) response.Common {
 	return response.Succeed()
 }
 
-// Update 更新为什么要用dto？首先因为很多数据需要绑定，也就是一定要传参；
-// 其次是需要清洗
-func (errorLog) Update(paramIn *dto.ErrorLogCreateOrUpdate) response.Common {
-	var paramOut model.ErrorLog
-	paramOut.ID = paramIn.ID
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
+func (*errorLog) Update(paramIn dto.ErrorLogUpdate) response.Common {
+	paramOut := make(map[string]any)
+
+	if paramIn.LastModifier > 0 {
+		paramOut["last_modifier"] = paramIn.LastModifier
 	}
 
-	if *paramIn.Detail != "" {
-		paramOut.Detail = paramIn.Detail
-	}
-
-	if *paramIn.Date != "" {
-		date, err := time.Parse("2006-01-02", *paramIn.Date)
-		if err != nil {
-			return response.Fail(util.ErrorInvalidJSONParameters)
+	if paramIn.Detail != nil {
+		if *paramIn.Detail != "" {
+			paramOut["detail"] = paramIn.Detail
 		} else {
-			paramOut.Date = &date
+			paramOut["detail"] = nil
 		}
 	}
 
-	if *paramIn.MajorCategory != "" {
-		paramOut.MajorCategory = paramIn.MajorCategory
+	if paramIn.Date != nil {
+		if *paramIn.Date != "" {
+			date, err := time.Parse("2006-01-02", *paramIn.Date)
+			if err != nil {
+				return response.Fail(util.ErrorInvalidJSONParameters)
+			}
+			paramOut["date"] = date
+		} else {
+			paramOut["date"] = nil
+		}
 	}
 
-	if *paramIn.MinorCategory != "" {
-		paramOut.MinorCategory = paramIn.MinorCategory
+	if paramIn.MajorCategory != nil {
+		if *paramIn.MajorCategory != "" {
+			paramOut["major_category"] = paramIn.MajorCategory
+		} else {
+			paramOut["major_category"] = nil
+		}
 	}
 
-	if *paramIn.IsResolved == false {
-		temp := false
-		paramOut.IsResolved = &temp
-	} else {
-		temp := true
-		paramOut.IsResolved = &temp
+	if paramIn.MinorCategory != nil {
+		if *paramIn.MinorCategory != "" {
+			paramOut["minor-category"] = paramIn.MinorCategory
+		} else {
+			paramOut["minor-category"] = nil
+		}
 	}
 
-	//清洗完毕，开始update
-	err := global.DB.Where("id = ?", paramOut.ID).Omit(fieldsToBeOmittedWhenUpdating...).Save(&paramOut).Error
-	//拿到dao层的返回结果，进行处理
+	if paramIn.IsResolved != nil {
+		if *paramIn.IsResolved != false {
+			paramOut["is_resolved"] = paramIn.IsResolved
+		} else {
+			paramOut["is_resolved"] = nil
+		}
+	}
+	//计算有修改值的字段数，分别进行不同处理
+	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
+
+	if len(paramOutForCounting) == 0 {
+		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
+	}
+
+	err := global.DB.Model(&model.ErrorLog{}).Where("id = ?", paramIn.ID).
+		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToUpdateRecord)
 	}
+
 	return response.Succeed()
 }
 
-func (errorLog) Delete(errorLogID int) response.Common {
-	err := global.DB.Delete(&model.ErrorLog{}, errorLogID).Error
+func (*errorLog) Delete(paramIn dto.ErrorLogDelete) response.Common {
+	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
+	var record model.ErrorLog
+	global.DB.Where("id = ?", paramIn.ID).Find(&record)
+	record.Deleter = &paramIn.Deleter
+	err := global.DB.Where("id = ?", paramIn.ID).Delete(&record).Error
+
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToDeleteRecord)
@@ -138,75 +151,94 @@ func (errorLog) Delete(errorLogID int) response.Common {
 	return response.Succeed()
 }
 
-// 这个函数有问题，待修改
-func (errorLog) List(paramIn dto.DisassemblyListOld) response.List {
-	//生成sql查询条件
-	sqlCondition := util.NewSqlCondition()
+// GetList date待修改
+func (*errorLog) GetList(paramIn dto.ErrorLogList) response.List {
+	db := global.DB.Model(&model.ErrorLog{})
+	// 顺序：where -> count -> Order -> limit -> offset -> data
 
-	//对paramIn进行清洗
-	//这部分是用于where的参数
-	if paramIn.Page > 0 {
-		sqlCondition.Paging.Page = paramIn.Page
-	}
-	//如果参数里的pageSize是整数且大于0、小于等于上限：
-	maxPagingSize := global.Config.PagingConfig.MaxPageSize
-	if paramIn.PageSize > 0 && paramIn.PageSize <= maxPagingSize {
-		sqlCondition.Paging.PageSize = paramIn.PageSize
+	//where
+	if paramIn.DetailInclude != "" {
+		db = db.Where("detail like ?", "%"+paramIn.DetailInclude+"%")
 	}
 
-	if paramIn.ProjectID != nil {
-		sqlCondition.Equal("project_id", *paramIn.ProjectID)
+	//待完成
+	if paramIn.Date != "" {
+
 	}
 
-	if paramIn.SuperiorID != nil {
-		sqlCondition.Equal("superior_id", *paramIn.SuperiorID)
+	if paramIn.MajorCategory != "" {
+		db = db.Where("major_category = ?", paramIn.MajorCategory)
 	}
 
-	if paramIn.Level != nil {
-		sqlCondition.Equal("level", *paramIn.Level)
+	if paramIn.MinorCategory != "" {
+		db = db.Where("minor_category = ?", paramIn.MinorCategory)
 	}
 
-	if paramIn.LevelGte != nil {
-		sqlCondition.Gte("level", *paramIn.LevelGte)
+	if paramIn.IsResolved != false {
+		db = db.Where("is_resolved = ?", paramIn.IsResolved)
 	}
 
-	if paramIn.LevelLte != nil {
-		sqlCondition.Lte("level", *paramIn.LevelLte)
-	}
+	// count
+	var count int64
+	db.Count(&count)
 
-	//这部分是用于order的参数
-	orderBy := paramIn.OrderBy
-	if orderBy != "" {
-		ok := sqlCondition.FieldIsInModel(model.ErrorLog{}, orderBy)
-		if ok {
-			sqlCondition.Sorting.OrderBy = orderBy
+	//Order
+	orderBy := paramIn.SortingInput.OrderBy
+	desc := paramIn.SortingInput.Desc
+	//如果排序字段为空
+	if orderBy == "" {
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order("id desc")
+		}
+	} else { //如果有排序字段
+		//先看排序字段是否存在于表中
+		exists := util.FieldIsInModel(&model.ErrorLog{}, orderBy)
+		if !exists {
+			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
+		}
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order(orderBy + " desc")
+		} else { //如果没有要求排序方式
+			db = db.Order(orderBy)
 		}
 	}
-	desc := paramIn.Desc
-	if desc == true {
-		sqlCondition.Sorting.Desc = true
-	} else {
-		sqlCondition.Sorting.Desc = false
+
+	//limit
+	page := 1
+	if paramIn.PagingInput.Page > 0 {
+		page = paramIn.PagingInput.Page
 	}
+	pageSize := global.Config.DefaultPageSize
+	if paramIn.PagingInput.PageSize > 0 &&
+		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = paramIn.PagingInput.PageSize
+	}
+	db = db.Limit(pageSize)
 
-	tempList := sqlCondition.Find(global.DB, model.ErrorLog{})
-	totalRecords := sqlCondition.Count(global.DB, model.ErrorLog{})
-	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
+	//offset
+	offset := (page - 1) * pageSize
+	db = db.Offset(offset)
 
-	if len(tempList) == 0 {
+	//data
+	var data []dto.ErrorLogOutput
+	db.Model(&model.ErrorLog{}).Find(&data)
+
+	if len(data) == 0 {
 		return response.FailForList(util.ErrorRecordNotFound)
 	}
 
-	var list []dto.ErrorLogOutput
-	_ = mapstructure.Decode(&tempList, &list)
+	numberOfRecords := int(count)
+	numberOfPages := util.GetTotalNumberOfPages(numberOfRecords, pageSize)
 
 	return response.List{
-		Data: list,
+		Data: data,
 		Paging: &dto.PagingOutput{
-			Page:            sqlCondition.Paging.Page,
-			PageSize:        sqlCondition.Paging.PageSize,
-			NumberOfPages:   totalPages,
-			NumberOfRecords: totalRecords,
+			Page:            page,
+			PageSize:        pageSize,
+			NumberOfPages:   numberOfPages,
+			NumberOfRecords: numberOfRecords,
 		},
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),

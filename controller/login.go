@@ -11,13 +11,13 @@ import (
 )
 
 func Login(c *gin.Context) {
-	var loginDTO dto.Login
-	err := c.ShouldBindJSON(&loginDTO)
+	var param dto.Login
+	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK, response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
-	res := service.Login.Login(loginDTO)
+	res := service.Login.Login(param)
 	c.JSON(http.StatusOK, res)
 }

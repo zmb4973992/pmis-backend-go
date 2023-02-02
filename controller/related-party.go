@@ -20,7 +20,7 @@ import (
 
 type relatedParty struct{}
 
-func (relatedParty) Get(c *gin.Context) {
+func (*relatedParty) Get(c *gin.Context) {
 	relatedPartyID, err := strconv.Atoi(c.Param("related-party-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -33,7 +33,7 @@ func (relatedParty) Get(c *gin.Context) {
 	return
 }
 
-func (relatedParty) Create(c *gin.Context) {
+func (*relatedParty) Create(c *gin.Context) {
 	var param dto.RelatedPartyCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
@@ -57,7 +57,7 @@ func (relatedParty) Create(c *gin.Context) {
 	return
 }
 
-func (relatedParty) Update(c *gin.Context) {
+func (*relatedParty) Update(c *gin.Context) {
 	var param dto.RelatedPartyCreateOrUpdate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
@@ -87,7 +87,7 @@ func (relatedParty) Update(c *gin.Context) {
 	c.JSON(200, res)
 }
 
-func (relatedParty) Delete(c *gin.Context) {
+func (*relatedParty) Delete(c *gin.Context) {
 	relatedPartyID, err := strconv.Atoi(c.Param("related-party-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -99,7 +99,7 @@ func (relatedParty) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (relatedParty) List(c *gin.Context) {
+func (*relatedParty) List(c *gin.Context) {
 	var param dto.RelatedPartyList
 	err := c.ShouldBindJSON(&param)
 

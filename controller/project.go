@@ -15,7 +15,7 @@ import (
 
 type project struct{}
 
-func (project) Get(c *gin.Context) {
+func (*project) Get(c *gin.Context) {
 	projectID, err := strconv.Atoi(c.Param("project-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -28,7 +28,7 @@ func (project) Get(c *gin.Context) {
 	return
 }
 
-func (project) Create(c *gin.Context) {
+func (*project) Create(c *gin.Context) {
 	var param dto.ProjectCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -51,7 +51,7 @@ func (project) Create(c *gin.Context) {
 	return
 }
 
-func (project) Update(c *gin.Context) {
+func (*project) Update(c *gin.Context) {
 	var param dto.ProjectUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -79,7 +79,7 @@ func (project) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (project) Delete(c *gin.Context) {
+func (*project) Delete(c *gin.Context) {
 	var param dto.ProjectDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("project-id"))
@@ -100,7 +100,7 @@ func (project) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (project) GetArray(c *gin.Context) {
+func (*project) GetArray(c *gin.Context) {
 	var param dto.ProjectList
 	err := c.ShouldBindJSON(&param)
 
@@ -118,7 +118,7 @@ func (project) GetArray(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (project) List(c *gin.Context) {
+func (*project) List(c *gin.Context) {
 	var param dto.ProjectList
 	err := c.ShouldBindJSON(&param)
 

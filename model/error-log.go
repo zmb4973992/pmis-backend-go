@@ -12,6 +12,6 @@ type ErrorLog struct {
 }
 
 // TableName 修改表名
-func (ErrorLog) TableName() string {
+func (*ErrorLog) TableName() string {
 	return "error_log"
 }

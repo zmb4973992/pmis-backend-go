@@ -9,7 +9,6 @@ type service struct {
 	disassembly
 	operationRecord
 	roleAndUser
-	disassemblyTemplate
 	errorLog
 	project
 	dictionaryItem
@@ -18,19 +17,18 @@ type service struct {
 
 // 定义各个服务的入口,避免反复new service
 var (
-	entrance            = new(service)
-	Login               = entrance.login
-	User                = entrance.user
-	RelatedParty        = entrance.relatedParty
-	Department          = entrance.department
-	Disassembly         = entrance.disassembly
-	DisassemblyTemplate = entrance.disassemblyTemplate
-	OperationRecord     = entrance.operationRecord
-	RoleAndUser         = entrance.roleAndUser
-	ErrorLog            = entrance.errorLog
-	Project             = entrance.project
-	DictionaryItem      = entrance.dictionaryItem
-	DictionaryType      = entrance.dictionaryType
+	entrance        = new(service)
+	Login           = entrance.login
+	User            = entrance.user
+	RelatedParty    = entrance.relatedParty
+	Department      = entrance.department
+	Disassembly     = entrance.disassembly
+	OperationRecord = entrance.operationRecord
+	RoleAndUser     = entrance.roleAndUser
+	ErrorLog        = entrance.errorLog
+	Project         = entrance.project
+	DictionaryItem  = entrance.dictionaryItem
+	DictionaryType  = entrance.dictionaryType
 )
 
 var (

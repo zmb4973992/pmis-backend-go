@@ -11,7 +11,7 @@ type DictionaryItem struct {
 }
 
 // TableName 修改数据库的表名
-func (DictionaryItem) TableName() string {
+func (*DictionaryItem) TableName() string {
 	return "dictionary_item"
 }
 

@@ -13,6 +13,6 @@ type ProjectAndUser struct {
 }
 
 // TableName 修改表名
-func (ProjectAndUser) TableName() string {
+func (*ProjectAndUser) TableName() string {
 	return "project_and_user"
 }

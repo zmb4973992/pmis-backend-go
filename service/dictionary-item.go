@@ -1,7 +1,6 @@
 package service
 
 import (
-	"gorm.io/gorm"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -11,7 +10,7 @@ import (
 
 type dictionaryItem struct{}
 
-func (dictionaryItem) Get(dictionaryItemID int) response.Common {
+func (*dictionaryItem) Get(dictionaryItemID int) response.Common {
 	var result dto.DictionaryItemOutput
 	err := global.DB.Model(model.DictionaryItem{}).
 		Where("id = ?", dictionaryItemID).First(&result).Error
@@ -22,7 +21,7 @@ func (dictionaryItem) Get(dictionaryItemID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (dictionaryItem) Create(paramIn dto.DictionaryItemCreate) response.Common {
+func (*dictionaryItem) Create(paramIn dto.DictionaryItemCreate) response.Common {
 	var paramOut model.DictionaryItem
 	if paramIn.Creator > 0 {
 		paramOut.Creator = &paramIn.Creator
@@ -52,7 +51,7 @@ func (dictionaryItem) Create(paramIn dto.DictionaryItemCreate) response.Common {
 	return response.Succeed()
 }
 
-func (dictionaryItem) CreateInBatches(paramIn []dto.DictionaryItemCreate) response.Common {
+func (*dictionaryItem) CreateInBatches(paramIn []dto.DictionaryItemCreate) response.Common {
 	var paramOut []model.DictionaryItem
 	for i := range paramIn {
 		var record model.DictionaryItem
@@ -88,7 +87,7 @@ func (dictionaryItem) CreateInBatches(paramIn []dto.DictionaryItemCreate) respon
 	return response.Succeed()
 }
 
-func (dictionaryItem) Update(paramIn dto.DictionaryItemUpdate) response.Common {
+func (*dictionaryItem) Update(paramIn dto.DictionaryItemUpdate) response.Common {
 	paramOut := make(map[string]any)
 
 	if paramIn.LastModifier > 0 {
@@ -148,24 +147,12 @@ func (dictionaryItem) Update(paramIn dto.DictionaryItemUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (dictionaryItem) Delete(paramIn dto.DictionaryItemDelete) response.Common {
-	//由于删除需要做两件事：软删除+记录删除人，所以需要用事务
-	err := global.DB.Transaction(func(tx *gorm.DB) error {
-		//这里记录删除人，在事务中必须放在前面
-		//如果放后面，由于是软删除，系统会找不到这条记录，导致无法更新
-		err := tx.Debug().Model(&model.DictionaryItem{}).Where("id = ?", paramIn.ID).
-			Update("deleter", paramIn.Deleter).Error
-		if err != nil {
-			return err
-		}
-		//这里删除记录
-		err = tx.Delete(&model.DictionaryItem{}, paramIn.ID).Error
-		if err != nil {
-			return err
-		}
-
-		return nil
-	})
+func (*dictionaryItem) Delete(paramIn dto.DictionaryItemDelete) response.Common {
+	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
+	var record model.DictionaryItem
+	global.DB.Where("id = ?", paramIn.ID).Find(&record)
+	record.Deleter = &paramIn.Deleter
+	err := global.DB.Where("id = ?", paramIn.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -174,7 +161,7 @@ func (dictionaryItem) Delete(paramIn dto.DictionaryItemDelete) response.Common {
 	return response.Succeed()
 }
 
-func (dictionaryItem) GetArray(paramIn dto.DictionaryItemList) response.Common {
+func (*dictionaryItem) GetArray(paramIn dto.DictionaryItemList) response.Common {
 	db := global.DB.Model(&model.DictionaryItem{})
 	// 顺序：where -> count -> Order -> limit -> offset -> array
 
@@ -194,7 +181,7 @@ func (dictionaryItem) GetArray(paramIn dto.DictionaryItemList) response.Common {
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(model.DictionaryItem{}, orderBy)
+		exists := util.FieldIsInModel(&model.DictionaryItem{}, orderBy)
 		if !exists {
 			return response.Fail(util.ErrorSortingFieldDoesNotExist)
 		}
@@ -237,7 +224,7 @@ func (dictionaryItem) GetArray(paramIn dto.DictionaryItemList) response.Common {
 	}
 }
 
-func (dictionaryItem) GetList(paramIn dto.DictionaryItemList) response.List {
+func (*dictionaryItem) GetList(paramIn dto.DictionaryItemList) response.List {
 	db := global.DB.Model(&model.DictionaryItem{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
@@ -261,7 +248,7 @@ func (dictionaryItem) GetList(paramIn dto.DictionaryItemList) response.List {
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(model.DictionaryItem{}, orderBy)
+		exists := util.FieldIsInModel(&model.DictionaryItem{}, orderBy)
 		if !exists {
 			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
 		}

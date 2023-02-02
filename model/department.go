@@ -1,6 +1,10 @@
 package model
 
-import "pmis-backend-go/global"
+import (
+	"gorm.io/gorm"
+	"pmis-backend-go/global"
+	"time"
+)
 
 type Department struct {
 	BaseModel
@@ -16,12 +20,34 @@ type Department struct {
 	//数据库规则限制，自引用不能设置级联更新和级联删除
 	//暂时不添加自引用的外键了，因为删除、更新都是麻烦事
 	//多对多的中间表需要外键，因为需要级联更新、级联删除
-	Users []DepartmentAndUser `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // TableName 修改表名
-func (Department) TableName() string {
+func (*Department) TableName() string {
 	return "department"
+}
+
+func (d *Department) BeforeDelete(tx *gorm.DB) error {
+	if d.ID > 0 {
+		//如果有删除人的id，则记录下来
+		if d.Deleter != nil && *d.Deleter > 0 {
+			err := tx.Model(&Department{}).Where("id = ?", d.ID).
+				Update("deleter", d.Deleter).Error
+			if err != nil {
+				return err
+			}
+		}
+		//删除相关的子表记录
+		err = tx.Model(&DepartmentAndUser{}).Where("department_id = ?", d.ID).
+			Updates(map[string]any{
+				"deleted_at": time.Now(),
+				"deleter":    d.Deleter,
+			}).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func generateDepartments() error {

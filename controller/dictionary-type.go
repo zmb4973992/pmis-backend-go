@@ -16,7 +16,7 @@ import (
 type dictionaryType struct {
 }
 
-func (dictionaryType) Get(c *gin.Context) {
+func (*dictionaryType) Get(c *gin.Context) {
 	dictionaryTypeID, err := strconv.Atoi(c.Param("dictionary-type-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -29,7 +29,7 @@ func (dictionaryType) Get(c *gin.Context) {
 	return
 }
 
-func (dictionaryType) Create(c *gin.Context) {
+func (*dictionaryType) Create(c *gin.Context) {
 	var param dto.DictionaryTypeCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -52,7 +52,7 @@ func (dictionaryType) Create(c *gin.Context) {
 	return
 }
 
-func (dictionaryType) CreateInBatches(c *gin.Context) {
+func (*dictionaryType) CreateInBatches(c *gin.Context) {
 	var param []dto.DictionaryTypeCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -77,7 +77,7 @@ func (dictionaryType) CreateInBatches(c *gin.Context) {
 	return
 }
 
-func (dictionaryType) Update(c *gin.Context) {
+func (*dictionaryType) Update(c *gin.Context) {
 	var param dto.DictionaryTypeUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -105,7 +105,7 @@ func (dictionaryType) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (dictionaryType) Delete(c *gin.Context) {
+func (*dictionaryType) Delete(c *gin.Context) {
 	var param dto.DictionaryTypeDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("dictionary-type-id"))
@@ -126,7 +126,7 @@ func (dictionaryType) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (dictionaryType) GetArray(c *gin.Context) {
+func (*dictionaryType) GetArray(c *gin.Context) {
 	var param dto.DictionaryTypeList
 	err := c.ShouldBindJSON(&param)
 
@@ -144,7 +144,7 @@ func (dictionaryType) GetArray(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 }
 
-func (dictionaryType) GetList(c *gin.Context) {
+func (*dictionaryType) GetList(c *gin.Context) {
 	var param dto.DictionaryTypeList
 	err := c.ShouldBindJSON(&param)
 

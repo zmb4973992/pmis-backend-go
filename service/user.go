@@ -14,7 +14,7 @@ import (
 // 所有的增删改查都交给DAO层处理，否则service层会非常庞大
 type user struct{}
 
-func (user) Get(userID int) response.Common {
+func (*user) Get(userID int) response.Common {
 	var result dto.UserOutput
 	//把基础的账号信息查出来
 	err := global.DB.Model(model.User{}).Where("id = ?", userID).First(&result).Error
@@ -26,7 +26,7 @@ func (user) Get(userID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (user) Create(paramIn *dto.UserCreate) response.Common {
+func (*user) Create(paramIn *dto.UserCreate) response.Common {
 	//对数据进行清洗
 	var paramOut model.User
 	paramOut.Username = paramIn.Username
@@ -69,7 +69,7 @@ func (user) Create(paramIn *dto.UserCreate) response.Common {
 	return response.Succeed()
 }
 
-func (user) Update(paramIn *dto.UserUpdate) response.Common {
+func (*user) Update(paramIn *dto.UserUpdate) response.Common {
 	var paramOut model.User
 
 	//先找出原始记录
@@ -111,7 +111,7 @@ func (user) Update(paramIn *dto.UserUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (user) Delete(userID int) response.Common {
+func (*user) Delete(userID int) response.Common {
 	err := global.DB.Delete(&model.User{}, userID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -120,7 +120,7 @@ func (user) Delete(userID int) response.Common {
 	return response.Succeed()
 }
 
-func (user) List(paramIn dto.UserList) response.List {
+func (*user) List(paramIn dto.UserList) response.List {
 	//生成sql查询条件
 	sqlCondition := util.NewSqlCondition()
 
@@ -154,7 +154,7 @@ func (user) List(paramIn dto.UserList) response.List {
 	//这部分是用于order的参数
 	orderBy := paramIn.OrderBy
 	if orderBy != "" {
-		ok := sqlCondition.FieldIsInModel(model.User{}, orderBy)
+		ok := sqlCondition.FieldIsInModel(&model.User{}, orderBy)
 		if ok {
 			sqlCondition.Sorting.OrderBy = orderBy
 		}
@@ -166,8 +166,8 @@ func (user) List(paramIn dto.UserList) response.List {
 		sqlCondition.Sorting.Desc = false
 	}
 
-	tempList := sqlCondition.Find(global.DB, model.User{})
-	totalRecords := sqlCondition.Count(global.DB, model.User{})
+	tempList := sqlCondition.Find(global.DB, &model.User{})
+	totalRecords := sqlCondition.Count(global.DB, &model.User{})
 	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
 
 	if len(tempList) == 0 {

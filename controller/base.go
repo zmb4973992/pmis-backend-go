@@ -7,10 +7,9 @@ type controller struct {
 	department
 	noRoute
 	disassembly
-	disassemblyTemplate
 	relatedParty
 	user
-	operationRecord
+	operationLog
 	roleAndUser
 	errorLog
 	token
@@ -20,18 +19,17 @@ type controller struct {
 }
 
 var (
-	entrance            = new(controller)
-	NoRoute             = entrance.noRoute
-	Department          = entrance.department
-	Disassembly         = entrance.disassembly
-	DisassemblyTemplate = entrance.disassemblyTemplate
-	RelatedParty        = entrance.relatedParty
-	User                = entrance.user
-	OperationRecord     = entrance.operationRecord
-	RoleAndUser         = entrance.roleAndUser
-	ErrorLog            = entrance.errorLog
-	Token               = entrance.token
-	Project             = entrance.project
-	DictionaryType      = entrance.dictionaryType
-	DictionaryItem      = entrance.dictionaryItem
+	entrance        = new(controller)
+	NoRoute         = entrance.noRoute
+	Department      = entrance.department
+	Disassembly     = entrance.disassembly
+	RelatedParty    = entrance.relatedParty
+	User            = entrance.user
+	OperationRecord = entrance.operationLog
+	RoleAndUser     = entrance.roleAndUser
+	ErrorLog        = entrance.errorLog
+	Token           = entrance.token
+	Project         = entrance.project
+	DictionaryType  = entrance.dictionaryType
+	DictionaryItem  = entrance.dictionaryItem
 )

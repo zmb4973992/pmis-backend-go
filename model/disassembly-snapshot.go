@@ -1,7 +1,11 @@
 package model
 
-import "time"
+import (
+	"gorm.io/gorm"
+	"time"
+)
 
+// deprecated
 type DisassemblySnapshot struct {
 	BaseModel
 	Name               *string    //名称
@@ -15,6 +19,29 @@ type DisassemblySnapshot struct {
 }
 
 // TableName 修改表名
-func (DisassemblySnapshot) TableName() string {
+func (*DisassemblySnapshot) TableName() string {
 	return "disassembly_snapshot"
+}
+
+func (d *DisassemblySnapshot) BeforeDelete(tx *gorm.DB) error {
+	if d.ID > 0 {
+		//如果有删除人的id，则记录下来
+		if d.Deleter != nil && *d.Deleter > 0 {
+			err := tx.Model(&DisassemblySnapshot{}).Where("id = ?", d.ID).
+				Update("deleter", d.Deleter).Error
+			if err != nil {
+				return err
+			}
+		}
+		//删除相关的子表记录
+		err = tx.Model(&WorkProgress{}).Where("disassembly_id = ?", d.ID).
+			Updates(map[string]any{
+				"deleted_at": time.Now(),
+				"deleter":    d.Deleter,
+			}).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

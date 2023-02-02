@@ -37,7 +37,6 @@ func InitDatabase() {
 		&DisassemblySnapshot{},        //项目拆解快照
 		&WorkProgress{},               //工作进度
 		&WorkProgressSnapshot{},       // 工作进度快照
-		&DisassemblyTemplate{},        //拆解模板
 		&ActualReceiptAndPayment{},    //实际收付款
 		&PlannedReceiptAndPayment{},   //计划收付款
 		&PredictedReceiptAndPayment{}, //预测收付款
