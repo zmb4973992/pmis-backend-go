@@ -13,11 +13,6 @@ import (
 	"strconv"
 )
 
-/* controller层负责接收参数、校验参数
-然后把id或dto传给service层进行业务处理
-最后拿到service层返回的结果进行展现
-*/
-
 type relatedParty struct{}
 
 func (*relatedParty) Get(c *gin.Context) {

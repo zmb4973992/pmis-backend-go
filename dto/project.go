@@ -23,21 +23,6 @@ type ProjectCreate struct {
 //如果指针字段为空或0，那么数据库相应字段会改为null；
 //如果指针字段没传，那么数据库不会修改该字段
 
-type ProjectCreateOrUpdate struct {
-	Base
-	ProjectCode      *string  `json:"project_code" binding:"required"`
-	ProjectFullName  *string  `json:"project_full_name" binding:"required"`
-	ProjectShortName *string  `json:"project_short_name" binding:"required"`
-	Country          *string  `json:"country" binding:"required"`
-	Province         *string  `json:"province" binding:"required"`
-	ProjectType      *string  `json:"project_type" binding:"required"`
-	Amount           *float64 `json:"amount" binding:"required"`
-	Currency         *string  `json:"currency" binding:"required"`
-	ExchangeRate     *float64 `json:"exchange_rate" binding:"required"`
-	DepartmentID     *int     `json:"department_id" binding:"required"`
-	RelatedPartyID   *int     `json:"related_party_id" binding:"required"`
-}
-
 type ProjectUpdate struct {
 	LastModifier     int
 	ID               int
@@ -67,14 +52,6 @@ type ProjectList struct {
 	DepartmentIDIn     []int  `json:"department_id_in"`
 }
 
-type ProjectListOld struct {
-	ListInput
-	AuthInputOld
-	ProjectNameLike    *string `json:"project_name_like"` //包含项目全称和项目简称
-	DepartmentNameLike *string `json:"department_name_like"`
-	DepartmentIDIn     []int   `json:"department_id_in"`
-}
-
 //以下为出参
 
 type ProjectOutput struct {
@@ -94,20 +71,4 @@ type ProjectOutput struct {
 	RelatedPartyID   *int              `json:"related_party_id" gorm:"related_party_id"`
 	DepartmentID     *int              `json:"-" gorm:"department_id"`
 	Department       *DepartmentOutput `json:"department" gorm:"-"` //gorm -  要不要删除？
-}
-
-type ProjectOutputOld struct {
-	Base             `mapstructure:",squash"` //这里是嵌套结构体，mapstructure必须加squash，否则无法匹配
-	ProjectCode      *string                  `json:"project_code" mapstructure:"project_code"`
-	ProjectFullName  *string                  `json:"project_full_name" mapstructure:"project_full_name"`
-	ProjectShortName *string                  `json:"project_short_name" mapstructure:"project_short_name"`
-	Country          *string                  `json:"country" mapstructure:"country"`
-	Province         *string                  `json:"province" mapstructure:"province"`
-	ProjectType      *string                  `json:"project_type" mapstructure:"project_type"`
-	Amount           *float64                 `json:"amount" mapstructure:"amount"`
-	Currency         *string                  `json:"currency" mapstructure:"currency"`
-	ExchangeRate     *float64                 `json:"exchange_rate" mapstructure:"exchange_rate"`
-	RelatedPartyID   *int                     `json:"related_party_id" mapstructure:"related_party_id"`
-	DepartmentID     *int                     `json:"-" mapstructure:"department_id"`
-	Department       *DepartmentOutput        `json:"department" gorm:"-"`
 }

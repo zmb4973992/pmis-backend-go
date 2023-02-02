@@ -29,7 +29,7 @@ func (*operationLog) Get(c *gin.Context) {
 }
 
 func (*operationLog) Create(c *gin.Context) {
-	var param dto.OperationLogCreateOrUpdate
+	var param dto.OperationLogCreate
 	//先把json参数绑定到model
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
