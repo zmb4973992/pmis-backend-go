@@ -8,6 +8,21 @@ import (
 	"pmis-backend-go/util"
 )
 
+type DictionaryType interface {
+	Get() response.Common
+	Create() response.Common
+}
+
+type DictionaryTypeOperation struct {
+	DictionaryTypeGet
+	DictionaryTypeCreate
+	DictionaryTypeUpdate
+	DictionaryTypeCreateInBatches
+	DictionaryTypeDelete
+	DictionaryTypeGetArray
+	DictionaryTypeGetList
+}
+
 type DictionaryTypeGet struct {
 	ID int
 }
@@ -23,6 +38,10 @@ type DictionaryTypeCreate struct {
 type DictionaryTypeCreateInBatches struct {
 	Data []DictionaryTypeCreate `json:"data"`
 }
+
+//指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
+//如果指针字段为空或0，那么数据库相应字段会改为null；
+//如果指针字段没传，那么数据库不会修改该字段
 
 type DictionaryTypeUpdate struct {
 	LastModifier int
@@ -47,8 +66,17 @@ type DictionaryTypeGetList struct {
 	NameInclude string `json:"name_include,omitempty"`
 }
 
+type dictionaryTypeOutput struct {
+	Creator      *int    `json:"creator" gorm:"creator"`
+	LastModifier *int    `json:"last_modifier" gorm:"last_modifier"`
+	ID           int     `json:"id" gorm:"id"`
+	Name         string  `json:"name" gorm:"name"`       //名称
+	Sort         *int    `json:"sort" gorm:"sort"`       //顺序值
+	Remarks      *string `json:"remarks" gorm:"remarks"` //备注
+}
+
 func (d *DictionaryTypeGet) Get() response.Common {
-	var result dto.DictionaryTypeOutput
+	var result dictionaryTypeOutput
 	err := global.DB.Model(model.DictionaryType{}).
 		Where("id = ?", d.ID).First(&result).Error
 	if err != nil {
@@ -501,7 +529,7 @@ func (d *DictionaryTypeGetList) GetList() response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []dto.DictionaryTypeOutput
+	var data []dictionaryTypeOutput
 	db.Model(&model.DictionaryType{}).Find(&data)
 
 	if len(data) == 0 {
