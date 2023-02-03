@@ -29,5 +29,4 @@ func (*token) Validate(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response.Succeed())
-	return
 }

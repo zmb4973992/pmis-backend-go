@@ -25,11 +25,9 @@ func (*user) Get(c *gin.Context) {
 	}
 	res := service.User.Get(userID)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*user) Create(c *gin.Context) {
-	//先声明空的dto，再把context里的数据绑到dto上
 	var param dto.UserCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -39,22 +37,19 @@ func (*user) Create(c *gin.Context) {
 		return
 	}
 
-	//处理creator、lastModifier字段
+	//处理creator、last_modifier字段
 	tempUserID, exists := c.Get("user_id")
 	if exists {
 		userID := tempUserID.(int)
-		param.Creator = &userID
-		param.LastModifier = &userID
+		param.Creator = userID
+		param.LastModifier = userID
 	}
 
-	res := service.User.Create(&param)
+	res := service.User.Create(param)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
-// Update controller的功能：解析uri参数、json参数，拦截非法参数，然后传给service层处理
 func (*user) Update(c *gin.Context) {
-	//这里只更新传过来的参数，所以采用map形式
 	var param dto.UserUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -63,9 +58,8 @@ func (*user) Update(c *gin.Context) {
 			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
-	//把uri上的id参数传递给结构体形式的入参
+
 	param.ID, err = strconv.Atoi(c.Param("user-id"))
-	//如果解析失败，例如URI的参数不是数字
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -73,29 +67,34 @@ func (*user) Update(c *gin.Context) {
 		return
 	}
 
-	//处理lastModifier字段
-	tempUserID, exists := c.Get("user_id")
+	//处理last_modifier字段
+	userID, exists := c.Get("user_id")
 	if exists {
-		userID := tempUserID.(int)
-		param.LastModifier = &userID
+		param.LastModifier = userID.(int)
 	}
 
-	//参数解析完毕，交给service层处理
-	res := service.User.Update(&param)
-	c.JSON(200, res)
+	res := service.User.Update(param)
+	c.JSON(http.StatusOK, res)
 }
 
 func (*user) Delete(c *gin.Context) {
-	//把uri上的id参数传递给结构体形式的入参
-	userID, err := strconv.Atoi(c.Param("user-id"))
-	//如果解析失败，例如URI的参数不是数字
+	var param dto.UserDelete
+	var err error
+	param.ID, err = strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.User.Delete(userID)
+
+	//处理deleter字段
+	tempUserID, exists := c.Get("user_id")
+	if exists {
+		userID := tempUserID.(int)
+		param.Deleter = userID
+	}
+	res := service.User.Delete(param)
 	c.JSON(http.StatusOK, res)
 }
 
@@ -112,10 +111,8 @@ func (*user) List(c *gin.Context) {
 		return
 	}
 
-	//生成userService,然后调用它的方法
 	res := service.User.List(param)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*user) GetByToken(c *gin.Context) {
@@ -130,5 +127,4 @@ func (*user) GetByToken(c *gin.Context) {
 	userID := tempUserID.(int)
 	res := service.User.Get(userID)
 	c.JSON(http.StatusOK, res)
-	return
 }

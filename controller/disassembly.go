@@ -25,7 +25,6 @@ func (*disassembly) Get(c *gin.Context) {
 	}
 	res := service.Disassembly.Get(disassemblyID)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*disassembly) Tree(c *gin.Context) {
@@ -40,7 +39,6 @@ func (*disassembly) Tree(c *gin.Context) {
 	}
 	res := service.Disassembly.Tree(param)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*disassembly) Create(c *gin.Context) {
@@ -63,7 +61,6 @@ func (*disassembly) Create(c *gin.Context) {
 
 	res := service.Disassembly.Create(param)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*disassembly) CreateInBatches(c *gin.Context) {
@@ -88,7 +85,6 @@ func (*disassembly) CreateInBatches(c *gin.Context) {
 
 	res := service.Disassembly.CreateInBatches(param)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*disassembly) Update(c *gin.Context) {

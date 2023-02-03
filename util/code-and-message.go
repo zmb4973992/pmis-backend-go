@@ -29,6 +29,7 @@ const (
 	ErrorMethodNotAllowed
 	ErrorInvalidColumns
 	ErrorRequestFrequencyTooHigh
+	ErrorFieldsToBeCreatedNotFound
 	ErrorFieldsToBeUpdatedNotFound
 	ErrorSortingFieldDoesNotExist
 )
@@ -67,6 +68,7 @@ var Message = map[int]string{
 	ErrorInvalidColumns:   "列名无效",
 
 	ErrorRequestFrequencyTooHigh:   "请求频率过高，请稍后再试",
+	ErrorFieldsToBeCreatedNotFound: "未找到需要新增的字段",
 	ErrorFieldsToBeUpdatedNotFound: "未找到需要更新的字段",
 	ErrorSortingFieldDoesNotExist:  "排序字段不存在",
 }

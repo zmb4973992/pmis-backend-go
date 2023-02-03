@@ -26,7 +26,6 @@ func (*dictionaryItem) Get(c *gin.Context) {
 		})
 		return
 	}
-	//生成Service,然后调用它的方法
 	res := service.DictionaryItem.Get(dictionaryItemID)
 	c.JSON(http.StatusOK, res)
 }
@@ -50,7 +49,6 @@ func (*dictionaryItem) Create(c *gin.Context) {
 
 	res := service.DictionaryItem.Create(param)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*dictionaryItem) CreateInBatches(c *gin.Context) {
@@ -62,7 +60,7 @@ func (*dictionaryItem) CreateInBatches(c *gin.Context) {
 			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
-	//处理creator、lastModifier字段
+	//处理creator、last_modifier字段
 	tempUserID, _ := c.Get("user_id")
 	if tempUserID != nil {
 		userID := tempUserID.(int)
@@ -74,7 +72,6 @@ func (*dictionaryItem) CreateInBatches(c *gin.Context) {
 
 	res := service.DictionaryItem.CreateInBatches(param)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*dictionaryItem) Update(c *gin.Context) {
@@ -95,7 +92,7 @@ func (*dictionaryItem) Update(c *gin.Context) {
 		return
 	}
 
-	//处理lastModifier字段
+	//处理last_modifier字段
 	userID, exists := c.Get("user_id")
 	if exists {
 		param.LastModifier = userID.(int)
@@ -139,7 +136,6 @@ func (*dictionaryItem) GetArray(c *gin.Context) {
 		return
 	}
 
-	//生成Service,然后调用它的方法
 	res := service.DictionaryItem.GetArray(param)
 	c.JSON(http.StatusOK, res)
 }
@@ -157,7 +153,6 @@ func (*dictionaryItem) GetList(c *gin.Context) {
 		return
 	}
 
-	//生成Service,然后调用它的方法
 	res := service.DictionaryItem.GetList(param)
 	c.JSON(http.StatusOK, res)
 }

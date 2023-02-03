@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/mitchellh/mapstructure"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -9,55 +8,55 @@ import (
 	"pmis-backend-go/util"
 )
 
-// User 没有数据、只有方法，所有的数据都放在DTO里
-// 这里的方法从controller拿来初步处理的入参，重点是处理业务逻辑
-// 所有的增删改查都交给DAO层处理，否则service层会非常庞大
 type user struct{}
 
 func (*user) Get(userID int) response.Common {
 	var result dto.UserOutput
-	//把基础的账号信息查出来
-	err := global.DB.Model(model.User{}).Where("id = ?", userID).First(&result).Error
+	err := global.DB.Model(model.User{}).
+		Where("id = ?", userID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorRecordNotFound)
 	}
-
 	return response.SucceedWithData(result)
 }
 
-func (*user) Create(paramIn *dto.UserCreate) response.Common {
-	//对数据进行清洗
+func (*user) Create(paramIn dto.UserCreate) response.Common {
 	var paramOut model.User
+	if paramIn.Creator > 0 {
+		paramOut.Creator = &paramIn.Creator
+	}
+
+	if paramIn.LastModifier > 0 {
+		paramOut.LastModifier = &paramIn.LastModifier
+	}
+
 	paramOut.Username = paramIn.Username
-	//对密码进行加密
-	encryptedPassword, err := util.EncryptPassword(paramIn.Password)
+	encryptedPassword, err := util.Encrypt(paramIn.Password)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToEncrypt)
 	}
+
 	paramOut.Password = encryptedPassword
-	paramOut.IsValid = paramIn.IsValid
 
-	if paramIn.Creator != nil {
-		paramOut.Creator = paramIn.Creator
-	}
-
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
+	if paramIn.IsValid != nil {
+		paramOut.IsValid = paramIn.IsValid
 	}
 
-	if *paramIn.FullName != "" {
-		paramOut.FullName = paramIn.FullName
+	if paramIn.FullName != "" {
+		paramOut.FullName = &paramIn.FullName
 	}
-	if *paramIn.EmailAddress != "" {
-		paramOut.EmailAddress = paramIn.EmailAddress
+
+	if paramIn.EmailAddress != "" {
+		paramOut.EmailAddress = &paramIn.EmailAddress
 	}
-	if *paramIn.MobilePhoneNumber != "" {
-		paramOut.MobilePhoneNumber = paramIn.MobilePhoneNumber
+
+	if paramIn.MobilePhoneNumber != "" {
+		paramOut.MobilePhoneNumber = &paramIn.MobilePhoneNumber
 	}
-	if *paramIn.EmployeeNumber != "" {
-		paramOut.EmployeeNumber = paramIn.EmployeeNumber
+	if paramIn.EmployeeNumber != "" {
+		paramOut.EmployeeNumber = &paramIn.EmployeeNumber
 	}
 
 	err = global.DB.Create(&paramOut).Error
@@ -69,40 +68,58 @@ func (*user) Create(paramIn *dto.UserCreate) response.Common {
 	return response.Succeed()
 }
 
-func (*user) Update(paramIn *dto.UserUpdate) response.Common {
-	var paramOut model.User
+func (*user) Update(paramIn dto.UserUpdate) response.Common {
+	paramOut := make(map[string]any)
 
-	//先找出原始记录
-	err := global.DB.Where("id = ?", paramIn.ID).First(&paramOut).Error
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToUpdateRecord)
-	}
-	//把dto的数据传递给model，由于下面的结构体字段为指针，所以需要进行处理
-	if paramIn.LastModifier != nil {
-		paramOut.LastModifier = paramIn.LastModifier
+	if paramIn.LastModifier > 0 {
+		paramOut["last_modifier"] = paramIn.LastModifier
 	}
 
-	if *paramIn.FullName != "" {
-		paramOut.FullName = paramIn.FullName
+	if paramIn.FullName != nil {
+		if *paramIn.FullName != "" {
+			paramOut["full_name"] = paramIn.FullName
+		} else {
+			paramOut["full_name"] = nil
+		}
 	}
 
-	if *paramIn.EmailAddress != "" {
-		paramOut.EmailAddress = paramIn.EmailAddress
+	if paramIn.EmailAddress != nil {
+		if *paramIn.EmailAddress != "" {
+			paramOut["email_address"] = paramIn.EmailAddress
+		} else {
+			paramOut["email_address"] = nil
+		}
 	}
 
-	paramOut.IsValid = paramIn.IsValid
-
-	if *paramIn.MobilePhoneNumber != "" {
-		paramOut.MobilePhoneNumber = paramIn.MobilePhoneNumber
+	if paramIn.IsValid != nil {
+		paramOut["is_valid"] = paramIn.IsValid
 	}
 
-	if *paramIn.EmployeeNumber != "" {
-		paramOut.EmployeeNumber = paramIn.EmployeeNumber
+	if paramIn.MobilePhoneNumber != nil {
+		if *paramIn.MobilePhoneNumber != "" {
+			paramOut["mobile_phone_number"] = paramIn.MobilePhoneNumber
+		} else {
+			paramOut["mobile_phone_number"] = nil
+		}
 	}
 
-	err = global.DB.Where("id = ?", paramOut.ID).
-		Omit(fieldsToBeOmittedWhenUpdating...).Save(paramOut).Error
+	if paramIn.EmployeeNumber != nil {
+		if *paramIn.EmployeeNumber != "" {
+			paramOut["employee_number"] = paramIn.EmployeeNumber
+		} else {
+			paramOut["employee_number"] = nil
+		}
+	}
+
+	//计算有修改值的字段数，分别进行不同处理
+	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
+
+	if len(paramOutForCounting) == 0 {
+		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
+	}
+
+	err := global.DB.Model(&model.User{}).Where("id = ?", paramIn.ID).
+		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToUpdateRecord)
@@ -111,8 +128,13 @@ func (*user) Update(paramIn *dto.UserUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (*user) Delete(userID int) response.Common {
-	err := global.DB.Delete(&model.User{}, userID).Error
+func (*user) Delete(paramIn dto.UserDelete) response.Common {
+	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
+	var record model.User
+	global.DB.Where("id = ?", paramIn.ID).Find(&record)
+	record.Deleter = &paramIn.Deleter
+	err := global.DB.Where("id = ?", paramIn.ID).Delete(&record).Error
+
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToDeleteRecord)
@@ -121,97 +143,79 @@ func (*user) Delete(userID int) response.Common {
 }
 
 func (*user) List(paramIn dto.UserList) response.List {
-	//生成sql查询条件
-	sqlCondition := util.NewSqlCondition()
+	db := global.DB.Model(&model.User{})
+	// 顺序：where -> count -> Order -> limit -> offset -> data
 
-	//这部分是用于where的参数
-	if paramIn.Page > 0 {
-		sqlCondition.Paging.Page = paramIn.Page
-	}
-
-	//如果参数里的pageSize是整数且大于0、小于等于上限：
-	maxPagingSize := global.Config.PagingConfig.MaxPageSize
-	if paramIn.PageSize > 0 && paramIn.PageSize <= maxPagingSize {
-		sqlCondition.Paging.PageSize = paramIn.PageSize
-	}
-
-	if paramIn.IDGte != nil {
-		sqlCondition.Gte("id", *paramIn.IDGte)
-	}
-
-	if paramIn.IDLte != nil {
-		sqlCondition.Lte("id", *paramIn.IDLte)
-	}
-
+	//where
 	if paramIn.IsValid != nil {
-		sqlCondition.Equal("is_valid", *paramIn.IsValid)
+		db = db.Where("is_valid = ?", *paramIn.IsValid)
 	}
 
-	if paramIn.UsernameLike != nil && *paramIn.UsernameLike != "" {
-		sqlCondition = sqlCondition.Like("username", *paramIn.UsernameLike)
+	if paramIn.UsernameInclude != "" {
+		db = db.Where("username like ?", "%"+paramIn.UsernameInclude+"%")
 	}
 
-	//这部分是用于order的参数
-	orderBy := paramIn.OrderBy
-	if orderBy != "" {
-		ok := sqlCondition.FieldIsInModel(&model.User{}, orderBy)
-		if ok {
-			sqlCondition.Sorting.OrderBy = orderBy
+	// count
+	var count int64
+	db.Count(&count)
+
+	//Order
+	orderBy := paramIn.SortingInput.OrderBy
+	desc := paramIn.SortingInput.Desc
+	//如果排序字段为空
+	if orderBy == "" {
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order("id desc")
+		}
+	} else { //如果有排序字段
+		//先看排序字段是否存在于表中
+		exists := util.FieldIsInModel(&model.User{}, orderBy)
+		if !exists {
+			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
+		}
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order(orderBy + " desc")
+		} else { //如果没有要求排序方式
+			db = db.Order(orderBy)
 		}
 	}
-	desc := paramIn.Desc
-	if desc == true {
-		sqlCondition.Sorting.Desc = true
-	} else {
-		sqlCondition.Sorting.Desc = false
+
+	//limit
+	page := 1
+	if paramIn.PagingInput.Page > 0 {
+		page = paramIn.PagingInput.Page
 	}
+	pageSize := global.Config.DefaultPageSize
+	if paramIn.PagingInput.PageSize > 0 &&
+		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = paramIn.PagingInput.PageSize
+	}
+	db = db.Limit(pageSize)
 
-	tempList := sqlCondition.Find(global.DB, &model.User{})
-	totalRecords := sqlCondition.Count(global.DB, &model.User{})
-	totalPages := util.GetTotalNumberOfPages(totalRecords, sqlCondition.Paging.PageSize)
+	//offset
+	offset := (page - 1) * pageSize
+	db = db.Offset(offset)
 
-	if len(tempList) == 0 {
+	//data
+	var data []dto.UserOutput
+	db.Model(&model.User{}).Find(&data)
+
+	if len(data) == 0 {
 		return response.FailForList(util.ErrorRecordNotFound)
 	}
 
-	//这里的tempList是基于model的，不能直接传给前端，要处理成dto才行
-	//如果map的字段类型和struct的字段类型不匹配，数据不会同步过来
-	var list []dto.UserOutput
-	_ = mapstructure.Decode(&tempList, &list)
-
-	//处理字段类型不匹配、或者有特殊格式要求的字段
-	for i := range tempList {
-		userID := tempList[i]["id"]
-		//把该userID的所有role_and_user记录查出来
-		var roleAndUsers []model.RoleAndUser
-		global.DB.Where("user_id = ?", userID).Find(&roleAndUsers)
-		//把所有的roleID提取出来，查出相应的角色名称
-		var roleNames []string
-		for _, roleAndUser := range roleAndUsers {
-			var role model.Role
-			global.DB.Where("id = ?", roleAndUser.RoleID).First(&role)
-			roleNames = append(roleNames, role.Name)
-		}
-
-		//把该userID的所有department_and_user记录查出来
-		var departmentAndUsers []model.DepartmentAndUser
-		global.DB.Where("user_id = ?", userID).Find(&departmentAndUsers)
-		//把所有的departmentID提取出来，查出相应的部门名称
-		var departmentNames []string
-		for _, departmentAndUser := range departmentAndUsers {
-			var department model.Department
-			global.DB.Where("id = ?", departmentAndUser.DepartmentID).First(&department)
-			departmentNames = append(departmentNames, department.Name)
-		}
-	}
+	numberOfRecords := int(count)
+	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
 	return response.List{
-		Data: list,
+		Data: data,
 		Paging: &dto.PagingOutput{
-			Page:            sqlCondition.Paging.Page,
-			PageSize:        sqlCondition.Paging.PageSize,
-			NumberOfPages:   totalPages,
-			NumberOfRecords: totalRecords,
+			Page:            page,
+			PageSize:        pageSize,
+			NumberOfPages:   numberOfPages,
+			NumberOfRecords: numberOfRecords,
 		},
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),

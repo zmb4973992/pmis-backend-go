@@ -25,12 +25,10 @@ func (*relatedParty) Get(c *gin.Context) {
 	}
 	res := service.RelatedParty.Get(relatedPartyID)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*relatedParty) Create(c *gin.Context) {
-	var param dto.RelatedPartyCreateOrUpdate
-	//先把json参数绑定到model
+	var param dto.RelatedPartyCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -39,22 +37,20 @@ func (*relatedParty) Create(c *gin.Context) {
 		return
 	}
 
-	//处理creator、lastModifier字段
+	//处理creator、last_modifier字段
 	tempUserID, exists := c.Get("user_id")
 	if exists {
 		userID := tempUserID.(int)
-		param.Creator = &userID
-		param.LastModifier = &userID
+		param.Creator = userID
+		param.LastModifier = userID
 	}
 
-	res := service.RelatedParty.Create(&param)
+	res := service.RelatedParty.Create(param)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*relatedParty) Update(c *gin.Context) {
-	var param dto.RelatedPartyCreateOrUpdate
-	//先把json参数绑定到model
+	var param dto.RelatedPartyUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -62,7 +58,7 @@ func (*relatedParty) Update(c *gin.Context) {
 			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
-	//把uri上的id参数传递给结构体形式的入参
+
 	param.ID, err = strconv.Atoi(c.Param("related-party-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -71,30 +67,38 @@ func (*relatedParty) Update(c *gin.Context) {
 		return
 	}
 
-	//处理lastModifier字段
-	tempUserID, exists := c.Get("user_id")
+	//处理last_modifier字段
+	userID, exists := c.Get("user_id")
 	if exists {
-		userID := tempUserID.(int)
-		param.LastModifier = &userID
+		param.LastModifier = userID.(int)
 	}
 
-	res := service.RelatedParty.Update(&param)
-	c.JSON(200, res)
+	res := service.RelatedParty.Update(param)
+	c.JSON(http.StatusOK, res)
 }
 
 func (*relatedParty) Delete(c *gin.Context) {
-	relatedPartyID, err := strconv.Atoi(c.Param("related-party-id"))
+	var param dto.RelatedPartyDelete
+	var err error
+	param.ID, err = strconv.Atoi(c.Param("related-party-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.RelatedParty.Delete(relatedPartyID)
+
+	//处理deleter字段
+	tempUserID, exists := c.Get("user_id")
+	if exists {
+		userID := tempUserID.(int)
+		param.Deleter = userID
+	}
+	res := service.RelatedParty.Delete(param)
 	c.JSON(http.StatusOK, res)
 }
 
-func (*relatedParty) List(c *gin.Context) {
+func (*relatedParty) GetList(c *gin.Context) {
 	var param dto.RelatedPartyList
 	err := c.ShouldBindJSON(&param)
 
@@ -106,7 +110,7 @@ func (*relatedParty) List(c *gin.Context) {
 			response.FailForList(util.ErrorInvalidJSONParameters))
 		return
 	}
-	//生成userService,然后调用它的方法
-	res := service.RelatedParty.List(param)
+
+	res := service.RelatedParty.GetList(param)
 	c.JSON(http.StatusOK, res)
 }

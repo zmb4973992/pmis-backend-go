@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service"
@@ -17,20 +16,21 @@ type dictionaryType struct {
 }
 
 func (*dictionaryType) Get(c *gin.Context) {
-	dictionaryTypeID, err := strconv.Atoi(c.Param("dictionary-type-id"))
+	var param service.DictionaryTypeGet
+	var err error
+	param.ID, err = strconv.Atoi(c.Param("dictionary-type-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.DictionaryType.Get(dictionaryTypeID)
+	res := param.Get()
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*dictionaryType) Create(c *gin.Context) {
-	var param dto.DictionaryTypeCreate
+	var param service.DictionaryTypeCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -47,13 +47,13 @@ func (*dictionaryType) Create(c *gin.Context) {
 		param.LastModifier = userID
 	}
 
-	res := service.DictionaryType.Create(param)
+	res := param.Create()
+
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*dictionaryType) CreateInBatches(c *gin.Context) {
-	var param []dto.DictionaryTypeCreate
+	var param service.DictionaryTypeCreateInBatches
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -66,19 +66,18 @@ func (*dictionaryType) CreateInBatches(c *gin.Context) {
 	tempUserID, _ := c.Get("user_id")
 	if tempUserID != nil {
 		userID := tempUserID.(int)
-		for i := range param {
-			param[i].Creator = userID
-			param[i].LastModifier = userID
+		for i := range param.Data {
+			param.Data[i].Creator = userID
+			param.Data[i].LastModifier = userID
 		}
 	}
 
-	res := service.DictionaryType.CreateInBatches(param)
+	res := param.CreateInBatches()
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*dictionaryType) Update(c *gin.Context) {
-	var param dto.DictionaryTypeUpdate
+	var param service.DictionaryTypeUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -86,7 +85,7 @@ func (*dictionaryType) Update(c *gin.Context) {
 			response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
-	//把uri上的id参数传递给结构体形式的入参
+
 	param.ID, err = strconv.Atoi(c.Param("dictionary-type-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -101,12 +100,12 @@ func (*dictionaryType) Update(c *gin.Context) {
 		param.LastModifier = userID.(int)
 	}
 
-	res := service.DictionaryType.Update(param)
+	res := param.Update()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*dictionaryType) Delete(c *gin.Context) {
-	var param dto.DictionaryTypeDelete
+	var param service.DictionaryTypeDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("dictionary-type-id"))
 	if err != nil {
@@ -122,12 +121,12 @@ func (*dictionaryType) Delete(c *gin.Context) {
 		userID := tempUserID.(int)
 		param.Deleter = userID
 	}
-	res := service.DictionaryType.Delete(param)
+	res := param.Delete()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*dictionaryType) GetArray(c *gin.Context) {
-	var param dto.DictionaryTypeList
+	var param service.DictionaryTypeGetArray
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
@@ -140,12 +139,12 @@ func (*dictionaryType) GetArray(c *gin.Context) {
 	}
 
 	//生成Service,然后调用它的方法
-	res := service.DictionaryType.GetArray(param)
+	res := param.GetArray()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*dictionaryType) GetList(c *gin.Context) {
-	var param dto.DictionaryTypeList
+	var param service.DictionaryTypeGetList
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
@@ -157,6 +156,6 @@ func (*dictionaryType) GetList(c *gin.Context) {
 		return
 	}
 
-	res := service.DictionaryType.GetList(param)
+	res := param.GetList()
 	c.JSON(http.StatusOK, res)
 }

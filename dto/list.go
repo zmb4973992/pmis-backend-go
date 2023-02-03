@@ -29,11 +29,6 @@ type AuthInput struct {
 	UserID         int
 }
 
-type AuthInputOld struct {
-	UserInfoInput
-	VerifyRole *bool `json:"verify_role"` //是否需要校验角色、分级显示
-}
-
 type UserInfoInput struct {
 	RoleNames           []string //用户的角色名称数组
 	BusinessDivisionIDs []int    //用户所属的事业部id数组

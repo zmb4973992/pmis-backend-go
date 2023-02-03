@@ -5,15 +5,15 @@ import (
 	"pmis-backend-go/global"
 )
 
-func EncryptPassword(originalPassword string) (encryptedPassword string, err error) {
-	//10为加密难度，取值范围为4-31，官方建议10
-	bytes, err := bcrypt.GenerateFromPassword([]byte(originalPassword), 10)
+func Encrypt(original string) (encrypted string, err error) {
+	//第二个参数为加密难度，取值范围为4-31，官方建议10。值越大，越占用cpu
+	bytes, err := bcrypt.GenerateFromPassword([]byte(original), 4)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return "", err
 	}
-	encryptedPassword = string(bytes)
-	return encryptedPassword, nil
+	encrypted = string(bytes)
+	return encrypted, nil
 }
 
 func CheckPassword(originalPassword string, encryptedPassword string) bool {

@@ -25,7 +25,6 @@ func (*errorLog) Get(c *gin.Context) {
 	}
 	res := service.ErrorLog.Get(errorLogID)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*errorLog) Create(c *gin.Context) {
@@ -48,7 +47,6 @@ func (*errorLog) Create(c *gin.Context) {
 
 	res := service.ErrorLog.Create(param)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*errorLog) Update(c *gin.Context) {

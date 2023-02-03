@@ -25,7 +25,6 @@ func (*project) Get(c *gin.Context) {
 	}
 	res := service.Project.Get(projectID)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*project) Create(c *gin.Context) {
@@ -48,7 +47,6 @@ func (*project) Create(c *gin.Context) {
 
 	res := service.Project.Create(param)
 	c.JSON(http.StatusOK, res)
-	return
 }
 
 func (*project) Update(c *gin.Context) {

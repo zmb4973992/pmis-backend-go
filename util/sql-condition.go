@@ -24,15 +24,15 @@ type ParamPair struct {
 
 // NewSqlCondition 生成自定义的查询条件,参数可不填
 // 必须为指针，因为下面的方法要用到指针进行修改入参
-func NewSqlCondition() *SqlCondition {
-	pageSize := global.Config.PagingConfig.DefaultPageSize
-	return &SqlCondition{
-		Paging: dto.PagingInput{
-			Page:     1,
-			PageSize: pageSize,
-		},
-	}
-}
+//func NewSqlCondition() *SqlCondition {
+//	pageSize := global.Config.PagingConfig.DefaultPageSize
+//	return &SqlCondition{
+//		Paging: dto.PagingInput{
+//			Page:     1,
+//			PageSize: pageSize,
+//		},
+//	}
+//}
 
 // Where 建议不要直接用，如果是“等于赋值”，可以用equal
 // 给SqlCondition自定义where方法，将参数保存到ParameterPair中
@@ -218,16 +218,16 @@ func FieldIsInModel(model model.IModel, field string) bool {
 }
 
 // FieldsAreInModel 验证提交的多个字段是否存在于表中（即数据表是否有相应的字段）
-func (s *SqlCondition) FieldsAreInModel(model model.IModel, fields ...string) bool {
-	for _, field := range fields {
-		res := s.FieldIsInModel(model, field)
-		//如果有任何一个字段不符合要求,则直接返回false
-		if res == false {
-			return false
-		}
-	}
-	return true
-}
+//func (s *SqlCondition) FieldsAreInModel(model model.IModel, fields ...string) bool {
+//	for _, field := range fields {
+//		res := s.FieldIsInModel(model, field)
+//		//如果有任何一个字段不符合要求,则直接返回false
+//		if res == false {
+//			return false
+//		}
+//	}
+//	return true
+//}
 
 // FieldsAreInModel 验证提交的多个字段是否存在于表中（即数据表是否有相应的字段）
 func FieldsAreInModel(model model.IModel, fields ...string) bool {
@@ -241,7 +241,7 @@ func FieldsAreInModel(model model.IModel, fields ...string) bool {
 	return true
 }
 
-func GetTotalNumberOfPages(numberOfRecords int, pageSize int) (numberOfPages int) {
+func GetNumberOfPages(numberOfRecords int, pageSize int) (numberOfPages int) {
 	if numberOfRecords <= 0 || pageSize <= 0 {
 		return 0
 	}

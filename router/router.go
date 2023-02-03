@@ -61,10 +61,10 @@ func Init() *gin.Engine {
 		relatedParty := api.Group("/related-party")
 		{
 			relatedParty.GET("/:related-party-id", controller.RelatedParty.Get)       //获取相关方详情
-			relatedParty.PUT("/:related-party-id", controller.RelatedParty.Update)    //修改相关方
+			relatedParty.PATCH("/:related-party-id", controller.RelatedParty.Update)  //修改相关方
 			relatedParty.POST("", controller.RelatedParty.Create)                     //新增相关方
 			relatedParty.DELETE("/:related-party-id", controller.RelatedParty.Delete) //删除相关方
-			relatedParty.POST("/list", controller.RelatedParty.List)                  //获取相关方列表
+			relatedParty.POST("/list", controller.RelatedParty.GetList)               //获取相关方列表
 		}
 		department := api.Group("/department")
 		{
@@ -97,10 +97,8 @@ func Init() *gin.Engine {
 		operationLog := api.Group("/operation-log")
 		{
 			operationLog.GET("/:operation-log-id", controller.OperationRecord.Get)       //获取操作记录详情
-			operationLog.POST("", controller.OperationRecord.Create)                     //新增操作记录
-			operationLog.PUT("/:operation-log-id", controller.OperationRecord.Update)    //修改操作记录
 			operationLog.DELETE("/:operation-log-id", controller.OperationRecord.Delete) //删除操作记录
-			operationLog.POST("/list", controller.OperationRecord.List)                  //获取操作详情列表
+			operationLog.POST("/list", controller.OperationRecord.GetList)               //获取操作详情列表
 		}
 		errorLog := api.Group("/error-log")
 		{

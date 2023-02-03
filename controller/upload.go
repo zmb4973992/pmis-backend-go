@@ -23,7 +23,6 @@ func UploadSingle(c *gin.Context) {
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),
 	})
-	return
 }
 
 func UploadMultiple(c *gin.Context) {
@@ -41,5 +40,4 @@ func UploadMultiple(c *gin.Context) {
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),
 	})
-	return
 }

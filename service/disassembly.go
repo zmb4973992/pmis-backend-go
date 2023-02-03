@@ -331,7 +331,7 @@ func (*disassembly) GetList(paramIn dto.DisassemblyList) response.List {
 	}
 
 	numberOfRecords := int(count)
-	numberOfPages := util.GetTotalNumberOfPages(numberOfRecords, pageSize)
+	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
 	return response.List{
 		Data: data,

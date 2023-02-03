@@ -285,7 +285,7 @@ func (*dictionaryItem) GetList(paramIn dto.DictionaryItemList) response.List {
 	}
 
 	numberOfRecords := int(count)
-	numberOfPages := util.GetTotalNumberOfPages(numberOfRecords, pageSize)
+	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
 	return response.List{
 		Data: data,
