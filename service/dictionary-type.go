@@ -11,6 +11,11 @@ import (
 type DictionaryType interface {
 	Get() response.Common
 	Create() response.Common
+	CreateInBatches() response.Common
+	Update() response.Common
+	Delete() response.Common
+	GetArray() response.Common
+	GetList() response.List
 }
 
 type DictionaryTypeOperation struct {

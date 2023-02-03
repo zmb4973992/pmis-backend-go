@@ -16,7 +16,7 @@ type dictionaryType struct {
 }
 
 func (*dictionaryType) Get(c *gin.Context) {
-	var param service.DictionaryTypeGet
+	var param = service.DictionaryTypeGet{}
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("dictionary-type-id"))
 	if err != nil {
