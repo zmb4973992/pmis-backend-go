@@ -8,25 +8,25 @@ import (
 	"pmis-backend-go/util"
 )
 
-type DictionaryType interface {
-	Get() response.Common
-	Create() response.Common
-	CreateInBatches() response.Common
-	Update() response.Common
-	Delete() response.Common
-	GetArray() response.Common
-	GetList() response.List
-}
+//type DictionaryType interface {
+//	Get() response.Common
+//	Create() response.Common
+//	CreateInBatches() response.Common
+//	Update() response.Common
+//	Delete() response.Common
+//	GetArray() response.Common
+//	GetList() response.List
+//}
 
-type DictionaryTypeOperation struct {
-	DictionaryTypeGet
-	DictionaryTypeCreate
-	DictionaryTypeUpdate
-	DictionaryTypeCreateInBatches
-	DictionaryTypeDelete
-	DictionaryTypeGetArray
-	DictionaryTypeGetList
-}
+//type DictionaryTypeOperation struct {
+//	DictionaryTypeGet
+//	DictionaryTypeCreate
+//	DictionaryTypeUpdate
+//	DictionaryTypeCreateInBatches
+//	DictionaryTypeDelete
+//	DictionaryTypeGetArray
+//	DictionaryTypeGetList
+//}
 
 type DictionaryTypeGet struct {
 	ID int
