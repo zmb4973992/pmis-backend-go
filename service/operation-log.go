@@ -6,14 +6,52 @@ import (
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
+	"time"
 )
 
-type operationLog struct{}
+//以下为入参
+//有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
-func (*operationLog) Get(operationLogID int) response.Common {
-	var result dto.OperationLogOutput
+//指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
+//如果指针字段为空或0，那么数据库相应字段会改为null；
+//如果指针字段没传，那么数据库不会修改该字段
+
+type OperationLogGet struct {
+	ID int
+}
+
+type OperationLogDelete struct {
+	Deleter int
+	ID      int
+}
+
+type OperationLogGetList struct {
+	ListInput
+	UserID int `json:"user_id,omitempty"`
+}
+
+//以下为出参
+
+type OperationLogOutput struct {
+	Creator      *int       `json:"creator" gorm:"creator"`
+	LastModifier *int       `json:"last_modifier" gorm:"last_modifier"`
+	ID           int        `json:"id" gorm:"id"`
+	UserID       *int       `json:"user_id" gorm:"user_id"`             //操作人id
+	IP           *string    `json:"ip" gorm:"ip"`                       //IP
+	Location     *string    `json:"location" gorm:"location"`           //所在地
+	Method       *string    `json:"method" gorm:"method"`               //请求方式
+	Path         *string    `json:"path" gorm:"path"`                   //请求路径
+	Remarks      *string    `json:"remarks" gorm:"remarks"`             //备注
+	ResponseCode *int       `json:"response_code" gorm:"response_code"` //响应码
+	StartTime    *time.Time `json:"start_time" gorm:"start_time"`       //发起时间
+	TimeElapsed  *int       `json:"time_elapsed" gorm:"time_elapsed"`   //处理耗时（毫秒）
+	UserAgent    *string    `json:"user_agent" gorm:"user_agent"`       //浏览器标识
+}
+
+func (o *OperationLogGet) Get() response.Common {
+	var result OperationLogOutput
 	err := global.DB.Model(model.OperationLog{}).
-		Where("id = ?", operationLogID).First(&result).Error
+		Where("id = ?", o.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorRecordNotFound)
@@ -21,12 +59,12 @@ func (*operationLog) Get(operationLogID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (*operationLog) Delete(paramIn dto.OperationLogDelete) response.Common {
+func (o *OperationLogDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.OperationLog
-	global.DB.Where("id = ?", paramIn.ID).Find(&record)
-	record.Deleter = &paramIn.Deleter
-	err := global.DB.Where("id = ?", paramIn.ID).Delete(&record).Error
+	global.DB.Where("id = ?", o.ID).Find(&record)
+	record.Deleter = &o.Deleter
+	err := global.DB.Where("id = ?", o.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -35,13 +73,13 @@ func (*operationLog) Delete(paramIn dto.OperationLogDelete) response.Common {
 	return response.Succeed()
 }
 
-func (*operationLog) GetList(paramIn dto.OperationLogList) response.List {
+func (o *OperationLogGetList) GetList() response.List {
 	db := global.DB.Model(&model.OperationLog{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if paramIn.UserID > 0 {
-		db = db.Where("user_id = ?", paramIn.UserID)
+	if o.UserID > 0 {
+		db = db.Where("user_id = ?", o.UserID)
 	}
 
 	// count
@@ -49,8 +87,8 @@ func (*operationLog) GetList(paramIn dto.OperationLogList) response.List {
 	db.Count(&count)
 
 	//Order
-	orderBy := paramIn.SortingInput.OrderBy
-	desc := paramIn.SortingInput.Desc
+	orderBy := o.SortingInput.OrderBy
+	desc := o.SortingInput.Desc
 	//如果排序字段为空
 	if orderBy == "" {
 		//如果要求降序排列
@@ -73,13 +111,13 @@ func (*operationLog) GetList(paramIn dto.OperationLogList) response.List {
 
 	//limit
 	page := 1
-	if paramIn.PagingInput.Page > 0 {
-		page = paramIn.PagingInput.Page
+	if o.PagingInput.Page > 0 {
+		page = o.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if paramIn.PagingInput.PageSize > 0 &&
-		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = paramIn.PagingInput.PageSize
+	if o.PagingInput.PageSize > 0 &&
+		o.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = o.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
@@ -88,7 +126,7 @@ func (*operationLog) GetList(paramIn dto.OperationLogList) response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []dto.OperationLogOutput
+	var data []OperationLogOutput
 	db.Model(&model.OperationLog{}).Find(&data)
 
 	if len(data) == 0 {

@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service"
@@ -16,19 +15,21 @@ import (
 type project struct{}
 
 func (*project) Get(c *gin.Context) {
-	projectID, err := strconv.Atoi(c.Param("project-id"))
+	var param service.ProjectGet
+	var err error
+	param.ID, err = strconv.Atoi(c.Param("project-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.Project.Get(projectID)
+	res := param.Get()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*project) Create(c *gin.Context) {
-	var param dto.ProjectCreate
+	var param service.ProjectCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -45,12 +46,12 @@ func (*project) Create(c *gin.Context) {
 		param.LastModifier = userID
 	}
 
-	res := service.Project.Create(param)
+	res := param.Create()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*project) Update(c *gin.Context) {
-	var param dto.ProjectUpdate
+	var param service.ProjectUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -73,12 +74,12 @@ func (*project) Update(c *gin.Context) {
 		param.LastModifier = userID.(int)
 	}
 
-	res := service.Project.Update(param)
+	res := param.Update()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*project) Delete(c *gin.Context) {
-	var param dto.ProjectDelete
+	var param service.ProjectDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("project-id"))
 	if err != nil {
@@ -94,12 +95,12 @@ func (*project) Delete(c *gin.Context) {
 		userID := tempUserID.(int)
 		param.Deleter = userID
 	}
-	res := service.Project.Delete(param)
+	res := param.Delete()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*project) GetArray(c *gin.Context) {
-	var param dto.ProjectList
+	var param service.ProjectGetArray
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
@@ -112,12 +113,12 @@ func (*project) GetArray(c *gin.Context) {
 	}
 
 	//生成Service,然后调用它的方法
-	res := service.Project.GetArray(param)
+	res := param.GetArray()
 	c.JSON(http.StatusOK, res)
 }
 
-func (*project) List(c *gin.Context) {
-	var param dto.ProjectList
+func (*project) GetList(c *gin.Context) {
+	var param service.ProjectGetList
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
@@ -129,7 +130,6 @@ func (*project) List(c *gin.Context) {
 		return
 	}
 
-	//生成Service,然后调用它的方法
-	res := service.Project.GetList(param)
+	res := param.GetList()
 	c.JSON(http.StatusOK, res)
 }

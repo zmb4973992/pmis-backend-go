@@ -8,12 +8,95 @@ import (
 	"pmis-backend-go/util"
 )
 
-type project struct{}
+//以下为入参
+//有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
-func (*project) Get(projectID int) response.Common {
-	var result dto.ProjectOutput
+type ProjectGet struct {
+	ID int
+}
+
+type ProjectCreate struct {
+	Creator          int
+	LastModifier     int
+	ProjectCode      string   `json:"project_code,omitempty"`
+	ProjectFullName  string   `json:"project_full_name,omitempty"`
+	ProjectShortName string   `json:"project_short_name,omitempty"`
+	Country          string   `json:"country,omitempty"`
+	Province         string   `json:"province,omitempty"`
+	ProjectType      string   `json:"project_type,omitempty"`
+	Amount           *float64 `json:"amount"`
+	Currency         string   `json:"currency,omitempty"`
+	ExchangeRate     *float64 `json:"exchange_rate,omitempty"`
+	DepartmentID     int      `json:"department_id,omitempty"`
+	RelatedPartyID   int      `json:"related_party_id,omitempty"`
+}
+
+//指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
+//如果指针字段为空或0，那么数据库相应字段会改为null；
+//如果指针字段没传，那么数据库不会修改该字段
+
+type ProjectUpdate struct {
+	LastModifier     int
+	ID               int
+	ProjectCode      *string  `json:"project_code"`
+	ProjectFullName  *string  `json:"project_full_name"`
+	ProjectShortName *string  `json:"project_short_name"`
+	Country          *string  `json:"country"`
+	Province         *string  `json:"province"`
+	ProjectType      *string  `json:"project_type"`
+	Amount           *float64 `json:"amount"`
+	Currency         *string  `json:"currency"`
+	ExchangeRate     *float64 `json:"exchange_rate"`
+	DepartmentID     *int     `json:"department_id"`
+	RelatedPartyID   *int     `json:"related_party_id"`
+}
+
+type ProjectDelete struct {
+	Deleter int
+	ID      int
+}
+
+type ProjectGetList struct {
+	ListInput
+	AuthInput
+	ProjectNameLike    string `json:"project_name_like,omitempty"` //包含项目全称和项目简称
+	DepartmentNameLike string `json:"department_name_like,omitempty"`
+	DepartmentIDIn     []int  `json:"department_id_in"`
+}
+
+type ProjectGetArray struct {
+	ListInput
+	AuthInput
+	ProjectNameLike    string `json:"project_name_like,omitempty"` //包含项目全称和项目简称
+	DepartmentNameLike string `json:"department_name_like,omitempty"`
+	DepartmentIDIn     []int  `json:"department_id_in"`
+}
+
+//以下为出参
+
+type ProjectOutput struct {
+	Creator      *int `json:"creator" gorm:"creator"`
+	LastModifier *int `json:"last_modifier" gorm:"last_modifier"`
+	ID           int  `json:"id" gorm:"id"`
+
+	ProjectCode      *string           `json:"project_code" gorm:"project_code"`
+	ProjectFullName  *string           `json:"project_full_name" gorm:"project_full_name"`
+	ProjectShortName *string           `json:"project_short_name" gorm:"project_short_name"`
+	Country          *string           `json:"country" gorm:"country"`
+	Province         *string           `json:"province" gorm:"province"`
+	ProjectType      *string           `json:"project_type" gorm:"project_type"`
+	Amount           *float64          `json:"amount" gorm:"amount"`
+	Currency         *string           `json:"currency" gorm:"currency"`
+	ExchangeRate     *float64          `json:"exchange_rate" gorm:"exchange_rate"`
+	RelatedPartyID   *int              `json:"related_party_id" gorm:"related_party_id"`
+	DepartmentID     *int              `json:"-" gorm:"department_id"`
+	Department       *DepartmentOutput `json:"department"` //gorm "-"  要不要删除？
+}
+
+func (p *ProjectGet) Get() response.Common {
+	var result ProjectOutput
 	err := global.DB.Model(model.Project{}).
-		Where("id = ?", projectID).First(&result).Error
+		Where("id = ?", p.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorRecordNotFound)
@@ -31,59 +114,59 @@ func (*project) Get(projectID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (*project) Create(paramIn dto.ProjectCreate) response.Common {
+func (p *ProjectCreate) Create() response.Common {
 	var paramOut model.Project
 
-	if paramIn.Creator > 0 {
-		paramOut.Creator = &paramIn.Creator
+	if p.Creator > 0 {
+		paramOut.Creator = &p.Creator
 	}
 
-	if paramIn.LastModifier > 0 {
-		paramOut.LastModifier = &paramIn.LastModifier
+	if p.LastModifier > 0 {
+		paramOut.LastModifier = &p.LastModifier
 	}
 
-	if paramIn.ProjectCode != "" {
-		paramOut.ProjectCode = &paramIn.ProjectCode
+	if p.ProjectCode != "" {
+		paramOut.ProjectCode = &p.ProjectCode
 	}
 
-	if paramIn.ProjectFullName != "" {
-		paramOut.ProjectFullName = &paramIn.ProjectFullName
+	if p.ProjectFullName != "" {
+		paramOut.ProjectFullName = &p.ProjectFullName
 	}
 
-	if paramIn.ProjectShortName != "" {
-		paramOut.ProjectShortName = &paramIn.ProjectShortName
+	if p.ProjectShortName != "" {
+		paramOut.ProjectShortName = &p.ProjectShortName
 	}
 
-	if paramIn.Country != "" {
-		paramOut.Country = &paramIn.Country
+	if p.Country != "" {
+		paramOut.Country = &p.Country
 	}
 
-	if paramIn.Province != "" {
-		paramOut.Province = &paramIn.Province
+	if p.Province != "" {
+		paramOut.Province = &p.Province
 	}
 
-	if paramIn.ProjectType != "" {
-		paramOut.ProjectType = &paramIn.ProjectType
+	if p.ProjectType != "" {
+		paramOut.ProjectType = &p.ProjectType
 	}
 
-	if paramIn.Amount != nil {
-		paramOut.Amount = paramIn.Amount
+	if p.Amount != nil {
+		paramOut.Amount = p.Amount
 	}
 
-	if paramIn.Currency != "" {
-		paramOut.Currency = &paramIn.Currency
+	if p.Currency != "" {
+		paramOut.Currency = &p.Currency
 	}
 
-	if paramIn.ExchangeRate != nil {
-		paramOut.ExchangeRate = paramIn.ExchangeRate
+	if p.ExchangeRate != nil {
+		paramOut.ExchangeRate = p.ExchangeRate
 	}
 
-	if paramIn.DepartmentID != 0 {
-		paramOut.DepartmentID = &paramIn.DepartmentID
+	if p.DepartmentID != 0 {
+		paramOut.DepartmentID = &p.DepartmentID
 	}
 
-	if paramIn.RelatedPartyID != 0 {
-		paramOut.RelatedPartyID = &paramIn.RelatedPartyID
+	if p.RelatedPartyID != 0 {
+		paramOut.RelatedPartyID = &p.RelatedPartyID
 	}
 
 	err := global.DB.Create(&paramOut).Error
@@ -94,96 +177,96 @@ func (*project) Create(paramIn dto.ProjectCreate) response.Common {
 	return response.Succeed()
 }
 
-func (*project) Update(paramIn dto.ProjectUpdate) response.Common {
+func (p *ProjectUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if paramIn.LastModifier > 0 {
-		paramOut["last_modifier"] = paramIn.LastModifier
+	if p.LastModifier > 0 {
+		paramOut["last_modifier"] = p.LastModifier
 	}
 
-	if paramIn.ProjectCode != nil {
-		if *paramIn.ProjectCode != "" {
-			paramOut["project_code"] = paramIn.ProjectCode
+	if p.ProjectCode != nil {
+		if *p.ProjectCode != "" {
+			paramOut["project_code"] = p.ProjectCode
 		} else {
 			paramOut["project_code"] = nil
 		}
 	}
 
-	if paramIn.ProjectFullName != nil {
-		if *paramIn.ProjectFullName != "" {
-			paramOut["project_full_name"] = paramIn.ProjectFullName
+	if p.ProjectFullName != nil {
+		if *p.ProjectFullName != "" {
+			paramOut["project_full_name"] = p.ProjectFullName
 		} else {
 			paramOut["project_full_name"] = nil
 		}
 	}
 
-	if paramIn.ProjectShortName != nil {
-		if *paramIn.ProjectShortName != "" {
-			paramOut["project_short_name"] = paramIn.ProjectShortName
+	if p.ProjectShortName != nil {
+		if *p.ProjectShortName != "" {
+			paramOut["project_short_name"] = p.ProjectShortName
 		} else {
 			paramOut["project_short_name"] = nil
 		}
 	}
 
-	if paramIn.Country != nil {
-		if *paramIn.Country != "" {
-			paramOut["country"] = paramIn.Country
+	if p.Country != nil {
+		if *p.Country != "" {
+			paramOut["country"] = p.Country
 		} else {
 			paramOut["country"] = nil
 		}
 	}
 
-	if paramIn.Province != nil {
-		if *paramIn.Province != "" {
-			paramOut["province"] = paramIn.Province
+	if p.Province != nil {
+		if *p.Province != "" {
+			paramOut["province"] = p.Province
 		} else {
 			paramOut["province"] = nil
 		}
 	}
 
-	if paramIn.ProjectType != nil {
-		if *paramIn.ProjectType != "" {
-			paramOut["project_type"] = paramIn.ProjectType
+	if p.ProjectType != nil {
+		if *p.ProjectType != "" {
+			paramOut["project_type"] = p.ProjectType
 		} else {
 			paramOut["project_type"] = nil
 		}
 	}
 
-	if paramIn.Amount != nil {
-		if *paramIn.Amount != -1 {
-			paramOut["amount"] = paramIn.Amount
+	if p.Amount != nil {
+		if *p.Amount != -1 {
+			paramOut["amount"] = p.Amount
 		} else {
 			paramOut["amount"] = nil
 		}
 	}
 
-	if paramIn.Currency != nil {
-		if *paramIn.Currency != "" {
-			paramOut["currency"] = paramIn.Currency
+	if p.Currency != nil {
+		if *p.Currency != "" {
+			paramOut["currency"] = p.Currency
 		} else {
 			paramOut["currency"] = nil
 		}
 	}
 
-	if paramIn.ExchangeRate != nil {
-		if *paramIn.ExchangeRate != -1 {
-			paramOut["exchange_rate"] = paramIn.ExchangeRate
+	if p.ExchangeRate != nil {
+		if *p.ExchangeRate != -1 {
+			paramOut["exchange_rate"] = p.ExchangeRate
 		} else {
 			paramOut["exchange_rate"] = nil
 		}
 	}
 
-	if paramIn.DepartmentID != nil {
-		if *paramIn.DepartmentID != 0 {
-			paramOut["department_id"] = paramIn.DepartmentID
+	if p.DepartmentID != nil {
+		if *p.DepartmentID != 0 {
+			paramOut["department_id"] = p.DepartmentID
 		} else {
 			paramOut["department_id"] = nil
 		}
 	}
 
-	if paramIn.RelatedPartyID != nil {
-		if *paramIn.RelatedPartyID != 0 {
-			paramOut["related_party_id"] = paramIn.RelatedPartyID
+	if p.RelatedPartyID != nil {
+		if *p.RelatedPartyID != 0 {
+			paramOut["related_party_id"] = p.RelatedPartyID
 		} else {
 			paramOut["related_party_id"] = nil
 		}
@@ -196,7 +279,7 @@ func (*project) Update(paramIn dto.ProjectUpdate) response.Common {
 		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.Project{}).Where("id = ?", paramIn.ID).
+	err := global.DB.Model(&model.Project{}).Where("id = ?", p.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -206,12 +289,12 @@ func (*project) Update(paramIn dto.ProjectUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (*project) Delete(paramIn dto.ProjectDelete) response.Common {
+func (p *ProjectDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.Project
-	global.DB.Where("id = ?", paramIn.ID).Find(&record)
-	record.Deleter = &paramIn.Deleter
-	err := global.DB.Where("id = ?", paramIn.ID).Delete(&record).Error
+	global.DB.Where("id = ?", p.ID).Find(&record)
+	record.Deleter = &p.Deleter
+	err := global.DB.Where("id = ?", p.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -220,36 +303,36 @@ func (*project) Delete(paramIn dto.ProjectDelete) response.Common {
 	return response.Succeed()
 }
 
-func (*project) GetArray(paramIn dto.ProjectList) response.Common {
+func (p *ProjectGetArray) GetArray() response.Common {
 	db := global.DB.Model(&model.Project{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if paramIn.ProjectNameLike != "" {
-		db = db.Where("project_full_name like ?", "%"+paramIn.ProjectNameLike+"%").
-			Or("project_short_name like ?", "%"+paramIn.ProjectNameLike+"%")
+	if p.ProjectNameLike != "" {
+		db = db.Where("project_full_name like ?", "%"+p.ProjectNameLike+"%").
+			Or("project_short_name like ?", "%"+p.ProjectNameLike+"%")
 	}
 
-	if paramIn.DepartmentNameLike != "" {
+	if p.DepartmentNameLike != "" {
 		var departmentIDs []int
-		global.DB.Model(&model.Department{}).Where("name like ?", "%"+paramIn.DepartmentNameLike+"%").
+		global.DB.Model(&model.Department{}).Where("name like ?", "%"+p.DepartmentNameLike+"%").
 			Select("id").Find(&departmentIDs)
 		if len(departmentIDs) > 0 {
 			db = db.Where("department_id in ?", departmentIDs)
 		}
 	}
 
-	if len(paramIn.DepartmentIDIn) > 0 {
-		db = db.Where("department_id in ?", paramIn.DepartmentIDIn)
+	if len(p.DepartmentIDIn) > 0 {
+		db = db.Where("department_id in ?", p.DepartmentIDIn)
 	}
 
-	if paramIn.IsShowedByRole {
-		biggestRoleName := util.GetBiggestRoleName(paramIn.UserID)
+	if p.IsShowedByRole {
+		biggestRoleName := util.GetBiggestRoleName(p.UserID)
 		if biggestRoleName == "事业部级" {
-			businessDivisionIDs := util.GetBusinessDivisionIDs(paramIn.UserID)
+			businessDivisionIDs := util.GetBusinessDivisionIDs(p.UserID)
 			db = db.Where("superior_id in ?", businessDivisionIDs)
 		} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
-			departmentIDs := util.GetDepartmentIDs(paramIn.UserID)
+			departmentIDs := util.GetDepartmentIDs(p.UserID)
 			db = db.Where("id in ?", departmentIDs)
 		}
 	}
@@ -259,8 +342,8 @@ func (*project) GetArray(paramIn dto.ProjectList) response.Common {
 	db.Count(&count)
 
 	//Order
-	orderBy := paramIn.SortingInput.OrderBy
-	desc := paramIn.SortingInput.Desc
+	orderBy := p.SortingInput.OrderBy
+	desc := p.SortingInput.Desc
 	//如果排序字段为空
 	if orderBy == "" {
 		//如果要求降序排列
@@ -283,13 +366,13 @@ func (*project) GetArray(paramIn dto.ProjectList) response.Common {
 
 	//limit
 	page := 1
-	if paramIn.PagingInput.Page > 0 {
-		page = paramIn.PagingInput.Page
+	if p.PagingInput.Page > 0 {
+		page = p.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if paramIn.PagingInput.PageSize > 0 &&
-		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = paramIn.PagingInput.PageSize
+	if p.PagingInput.PageSize > 0 &&
+		p.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = p.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
@@ -312,36 +395,36 @@ func (*project) GetArray(paramIn dto.ProjectList) response.Common {
 	}
 }
 
-func (*project) GetList(paramIn dto.ProjectList) response.List {
+func (p *ProjectGetList) GetList() response.List {
 	db := global.DB.Model(&model.Project{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if paramIn.ProjectNameLike != "" {
-		db = db.Where("project_full_name like ?", "%"+paramIn.ProjectNameLike+"%").
-			Or("project_short_name like ?", "%"+paramIn.ProjectNameLike+"%")
+	if p.ProjectNameLike != "" {
+		db = db.Where("project_full_name like ?", "%"+p.ProjectNameLike+"%").
+			Or("project_short_name like ?", "%"+p.ProjectNameLike+"%")
 	}
 
-	if paramIn.DepartmentNameLike != "" {
+	if p.DepartmentNameLike != "" {
 		var departmentIDs []int
-		global.DB.Model(&model.Department{}).Where("name like ?", "%"+paramIn.DepartmentNameLike+"%").
+		global.DB.Model(&model.Department{}).Where("name like ?", "%"+p.DepartmentNameLike+"%").
 			Select("id").Find(&departmentIDs)
 		if len(departmentIDs) > 0 {
 			db = db.Where("department_id in ?", departmentIDs)
 		}
 	}
 
-	if len(paramIn.DepartmentIDIn) > 0 {
-		db = db.Where("department_id in ?", paramIn.DepartmentIDIn)
+	if len(p.DepartmentIDIn) > 0 {
+		db = db.Where("department_id in ?", p.DepartmentIDIn)
 	}
 
-	if paramIn.IsShowedByRole {
-		biggestRoleName := util.GetBiggestRoleName(paramIn.UserID)
+	if p.IsShowedByRole {
+		biggestRoleName := util.GetBiggestRoleName(p.UserID)
 		if biggestRoleName == "事业部级" {
-			businessDivisionIDs := util.GetBusinessDivisionIDs(paramIn.UserID)
+			businessDivisionIDs := util.GetBusinessDivisionIDs(p.UserID)
 			db = db.Where("superior_id in ?", businessDivisionIDs)
 		} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
-			departmentIDs := util.GetDepartmentIDs(paramIn.UserID)
+			departmentIDs := util.GetDepartmentIDs(p.UserID)
 			db = db.Where("id in ?", departmentIDs)
 		}
 	}
@@ -351,8 +434,8 @@ func (*project) GetList(paramIn dto.ProjectList) response.List {
 	db.Count(&count)
 
 	//Order
-	orderBy := paramIn.SortingInput.OrderBy
-	desc := paramIn.SortingInput.Desc
+	orderBy := p.SortingInput.OrderBy
+	desc := p.SortingInput.Desc
 	//如果排序字段为空
 	if orderBy == "" {
 		//如果要求降序排列
@@ -375,13 +458,13 @@ func (*project) GetList(paramIn dto.ProjectList) response.List {
 
 	//limit
 	page := 1
-	if paramIn.PagingInput.Page > 0 {
-		page = paramIn.PagingInput.Page
+	if p.PagingInput.Page > 0 {
+		page = p.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if paramIn.PagingInput.PageSize > 0 &&
-		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = paramIn.PagingInput.PageSize
+	if p.PagingInput.PageSize > 0 &&
+		p.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = p.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
@@ -390,7 +473,7 @@ func (*project) GetList(paramIn dto.ProjectList) response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []dto.ProjectOutput
+	var data []ProjectOutput
 	db.Model(&model.Project{}).Find(&data)
 
 	if len(data) == 0 {

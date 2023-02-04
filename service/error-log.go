@@ -9,12 +9,72 @@ import (
 	"time"
 )
 
-type errorLog struct{}
+//以下为入参
+//有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
-func (*errorLog) Get(errorLogID int) response.Common {
-	var result dto.ErrorLogOutput
+type ErrorLogGet struct {
+	ID int
+}
+
+type ErrorLogCreate struct {
+	Creator      int
+	LastModifier int
+
+	Detail        string `json:"detail,omitempty" `
+	Date          string `json:"date,omitempty"`
+	MajorCategory string `json:"major_category,omitempty"`
+	MinorCategory string `json:"minor_category,omitempty"`
+	IsResolved    bool   `json:"is_resolved,omitempty"`
+}
+
+//指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
+//如果指针字段为空或0，那么数据库相应字段会改为null；
+//如果指针字段没传，那么数据库不会修改该字段
+
+type ErrorLogUpdate struct {
+	LastModifier int
+	ID           int
+
+	Detail        *string `json:"detail"`
+	Date          *string `json:"date"`
+	MajorCategory *string `json:"major_category"`
+	MinorCategory *string `json:"minor_category"`
+	IsResolved    *bool   `json:"is_resolved"`
+}
+
+type ErrorLogDelete struct {
+	Deleter int
+	ID      int
+}
+
+type ErrorLogGetList struct {
+	ListInput
+
+	DetailInclude string `json:"detail_include,omitempty" `
+	Date          string `json:"date,omitempty"`
+	MajorCategory string `json:"major_category,omitempty"`
+	MinorCategory string `json:"minor_category,omitempty"`
+	IsResolved    bool   `json:"is_resolved,omitempty"`
+}
+
+//以下为出参
+
+type ErrorLogOutput struct {
+	Creator      *int `json:"creator" gorm:"creator"`
+	LastModifier *int `json:"last_modifier" gorm:"last_modifier"`
+	ID           int  `json:"id" gorm:"id"`
+
+	Detail        *string `json:"detail" gorm:"detail"`
+	Date          *string `json:"date" gorm:"date"`
+	MajorCategory *string `json:"major_category" gorm:"major_category"`
+	MinorCategory *string `json:"minor_category" gorm:"minor_category"`
+	IsResolved    *bool   `json:"is_resolved" gorm:"is_resolved"`
+}
+
+func (e *ErrorLogGet) Get() response.Common {
+	var result ErrorLogOutput
 	err := global.DB.Model(model.ErrorLog{}).
-		Where("id = ?", errorLogID).First(&result).Error
+		Where("id = ?", e.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorRecordNotFound)
@@ -26,22 +86,22 @@ func (*errorLog) Get(errorLogID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (*errorLog) Create(paramIn dto.ErrorLogCreate) response.Common {
+func (e *ErrorLogCreate) Create() response.Common {
 	var paramOut model.ErrorLog
-	if paramIn.Creator > 0 {
-		paramOut.Creator = &paramIn.Creator
+	if e.Creator > 0 {
+		paramOut.Creator = &e.Creator
 	}
 
-	if paramIn.LastModifier > 0 {
-		paramOut.LastModifier = &paramIn.LastModifier
+	if e.LastModifier > 0 {
+		paramOut.LastModifier = &e.LastModifier
 	}
 
-	if paramIn.Detail != "" {
-		paramOut.Detail = &paramIn.Detail
+	if e.Detail != "" {
+		paramOut.Detail = &e.Detail
 	}
 
-	if paramIn.Date != "" {
-		date, err := time.Parse("2006-01-02", paramIn.Date)
+	if e.Date != "" {
+		date, err := time.Parse("2006-01-02", e.Date)
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
 			return response.Fail(util.ErrorInvalidJSONParameters)
@@ -50,16 +110,16 @@ func (*errorLog) Create(paramIn dto.ErrorLogCreate) response.Common {
 		}
 	}
 
-	if paramIn.MajorCategory != "" {
-		paramOut.MajorCategory = &paramIn.MajorCategory
+	if e.MajorCategory != "" {
+		paramOut.MajorCategory = &e.MajorCategory
 	}
 
-	if paramIn.MinorCategory != "" {
-		paramOut.MinorCategory = &paramIn.MinorCategory
+	if e.MinorCategory != "" {
+		paramOut.MinorCategory = &e.MinorCategory
 	}
 
-	if paramIn.IsResolved != false {
-		paramOut.IsResolved = &paramIn.IsResolved
+	if e.IsResolved != false {
+		paramOut.IsResolved = &e.IsResolved
 	}
 
 	err := global.DB.Create(&paramOut).Error
@@ -70,24 +130,24 @@ func (*errorLog) Create(paramIn dto.ErrorLogCreate) response.Common {
 	return response.Succeed()
 }
 
-func (*errorLog) Update(paramIn dto.ErrorLogUpdate) response.Common {
+func (e *ErrorLogUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if paramIn.LastModifier > 0 {
-		paramOut["last_modifier"] = paramIn.LastModifier
+	if e.LastModifier > 0 {
+		paramOut["last_modifier"] = e.LastModifier
 	}
 
-	if paramIn.Detail != nil {
-		if *paramIn.Detail != "" {
-			paramOut["detail"] = paramIn.Detail
+	if e.Detail != nil {
+		if *e.Detail != "" {
+			paramOut["detail"] = e.Detail
 		} else {
 			paramOut["detail"] = nil
 		}
 	}
 
-	if paramIn.Date != nil {
-		if *paramIn.Date != "" {
-			date, err := time.Parse("2006-01-02", *paramIn.Date)
+	if e.Date != nil {
+		if *e.Date != "" {
+			date, err := time.Parse("2006-01-02", *e.Date)
 			if err != nil {
 				return response.Fail(util.ErrorInvalidJSONParameters)
 			}
@@ -97,25 +157,25 @@ func (*errorLog) Update(paramIn dto.ErrorLogUpdate) response.Common {
 		}
 	}
 
-	if paramIn.MajorCategory != nil {
-		if *paramIn.MajorCategory != "" {
-			paramOut["major_category"] = paramIn.MajorCategory
+	if e.MajorCategory != nil {
+		if *e.MajorCategory != "" {
+			paramOut["major_category"] = e.MajorCategory
 		} else {
 			paramOut["major_category"] = nil
 		}
 	}
 
-	if paramIn.MinorCategory != nil {
-		if *paramIn.MinorCategory != "" {
-			paramOut["minor-category"] = paramIn.MinorCategory
+	if e.MinorCategory != nil {
+		if *e.MinorCategory != "" {
+			paramOut["minor-category"] = e.MinorCategory
 		} else {
 			paramOut["minor-category"] = nil
 		}
 	}
 
-	if paramIn.IsResolved != nil {
-		if *paramIn.IsResolved != false {
-			paramOut["is_resolved"] = paramIn.IsResolved
+	if e.IsResolved != nil {
+		if *e.IsResolved != false {
+			paramOut["is_resolved"] = e.IsResolved
 		} else {
 			paramOut["is_resolved"] = nil
 		}
@@ -127,7 +187,7 @@ func (*errorLog) Update(paramIn dto.ErrorLogUpdate) response.Common {
 		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.ErrorLog{}).Where("id = ?", paramIn.ID).
+	err := global.DB.Model(&model.ErrorLog{}).Where("id = ?", e.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -137,12 +197,12 @@ func (*errorLog) Update(paramIn dto.ErrorLogUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (*errorLog) Delete(paramIn dto.ErrorLogDelete) response.Common {
+func (e *ErrorLogDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.ErrorLog
-	global.DB.Where("id = ?", paramIn.ID).Find(&record)
-	record.Deleter = &paramIn.Deleter
-	err := global.DB.Where("id = ?", paramIn.ID).Delete(&record).Error
+	global.DB.Where("id = ?", e.ID).Find(&record)
+	record.Deleter = &e.Deleter
+	err := global.DB.Where("id = ?", e.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -152,30 +212,30 @@ func (*errorLog) Delete(paramIn dto.ErrorLogDelete) response.Common {
 }
 
 // GetList date待修改
-func (*errorLog) GetList(paramIn dto.ErrorLogList) response.List {
+func (e *ErrorLogGetList) GetList() response.List {
 	db := global.DB.Model(&model.ErrorLog{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if paramIn.DetailInclude != "" {
-		db = db.Where("detail like ?", "%"+paramIn.DetailInclude+"%")
+	if e.DetailInclude != "" {
+		db = db.Where("detail like ?", "%"+e.DetailInclude+"%")
 	}
 
 	//待完成
-	if paramIn.Date != "" {
+	if e.Date != "" {
 
 	}
 
-	if paramIn.MajorCategory != "" {
-		db = db.Where("major_category = ?", paramIn.MajorCategory)
+	if e.MajorCategory != "" {
+		db = db.Where("major_category = ?", e.MajorCategory)
 	}
 
-	if paramIn.MinorCategory != "" {
-		db = db.Where("minor_category = ?", paramIn.MinorCategory)
+	if e.MinorCategory != "" {
+		db = db.Where("minor_category = ?", e.MinorCategory)
 	}
 
-	if paramIn.IsResolved != false {
-		db = db.Where("is_resolved = ?", paramIn.IsResolved)
+	if e.IsResolved != false {
+		db = db.Where("is_resolved = ?", e.IsResolved)
 	}
 
 	// count
@@ -183,8 +243,8 @@ func (*errorLog) GetList(paramIn dto.ErrorLogList) response.List {
 	db.Count(&count)
 
 	//Order
-	orderBy := paramIn.SortingInput.OrderBy
-	desc := paramIn.SortingInput.Desc
+	orderBy := e.SortingInput.OrderBy
+	desc := e.SortingInput.Desc
 	//如果排序字段为空
 	if orderBy == "" {
 		//如果要求降序排列
@@ -207,13 +267,13 @@ func (*errorLog) GetList(paramIn dto.ErrorLogList) response.List {
 
 	//limit
 	page := 1
-	if paramIn.PagingInput.Page > 0 {
-		page = paramIn.PagingInput.Page
+	if e.PagingInput.Page > 0 {
+		page = e.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if paramIn.PagingInput.PageSize > 0 &&
-		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = paramIn.PagingInput.PageSize
+	if e.PagingInput.PageSize > 0 &&
+		e.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = e.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
@@ -222,7 +282,7 @@ func (*errorLog) GetList(paramIn dto.ErrorLogList) response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []dto.ErrorLogOutput
+	var data []ErrorLogOutput
 	db.Model(&model.ErrorLog{}).Find(&data)
 
 	if len(data) == 0 {

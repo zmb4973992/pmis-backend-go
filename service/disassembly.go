@@ -8,12 +8,95 @@ import (
 	"pmis-backend-go/util"
 )
 
-type disassembly struct{}
+//以下为入参
+//有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
-func (*disassembly) Get(disassemblyID int) response.Common {
-	var result dto.DisassemblyOutput
+type DisassemblyGet struct {
+	ID int
+}
+
+type DisassemblyTree struct {
+	Creator      int
+	LastModifier int
+	ProjectID    int `json:"project_id" binding:"required"`
+}
+
+type DisassemblyCreate struct {
+	Creator      int
+	LastModifier int
+
+	Name       string  `json:"name" binding:"required"`        //拆解项名称
+	ProjectID  int     `json:"project_id" binding:"required"`  //所属项目id
+	Level      int     `json:"level" binding:"required"`       //层级
+	Weight     float64 `json:"weight" binding:"required"`      //权重
+	SuperiorID int     `json:"superior_id" binding:"required"` //上级拆解项ID
+}
+
+type DisassemblyCreateInBatches struct {
+	Data []DisassemblyCreate `json:"data"`
+}
+
+//指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
+//如果指针字段为空或0，那么数据库相应字段会改为null；
+//如果指针字段没传，那么数据库不会修改该字段
+
+type DisassemblyUpdate struct {
+	LastModifier int
+	ID           int
+
+	Name       *string  `json:"name"`        //拆解项名称
+	ProjectID  *int     `json:"project_id"`  //所属项目id
+	Level      *int     `json:"level"`       //层级
+	Weight     *float64 `json:"weight"`      //权重
+	SuperiorID *int     `json:"superior_id"` //上级拆解项ID
+}
+
+type DisassemblyDelete struct {
+	Deleter int
+	ID      int
+}
+
+type DisassemblyDeleteWithSubitems struct {
+	Deleter int
+	ID      int
+}
+
+type DisassemblyGetList struct {
+	ListInput
+	NameInclude string `json:"name_include,omitempty"`
+
+	ProjectID  int  `json:"project_id"`
+	SuperiorID int  `json:"superior_id"`
+	Level      int  `json:"level"`
+	LevelGte   *int `json:"level_gte"`
+	LevelLte   *int `json:"level_lte"`
+}
+
+//以下为出参
+
+type DisassemblyOutput struct {
+	Creator      *int `json:"creator" gorm:"creator"`
+	LastModifier *int `json:"last_modifier" gorm:"last_modifier"`
+	ID           int  `json:"id" gorm:"id"`
+
+	Name       *string  `json:"name" gorm:"name"`               //名称
+	ProjectID  *int     `json:"project_id" gorm:"project_id"`   //所属项目id
+	Level      *int     `json:"level" gorm:"level"`             //层级
+	Weight     *float64 `json:"weight" gorm:"weight"`           //权重
+	SuperiorID *int     `json:"superior_id" gorm:"superior_id"` //上级拆解项id
+}
+
+type DisassemblyTreeOutput struct {
+	Name     *string                 `json:"title" gorm:"name"`
+	ID       int                     `json:"key" gorm:"id"`
+	Level    int                     `json:"level" gorm:"level"`
+	Children []DisassemblyTreeOutput `json:"children"`
+}
+
+func (d *DisassemblyGet) Get() response.Common {
+	var result DisassemblyOutput
 	err := global.DB.Model(model.Disassembly{}).
-		Where("id = ?", disassemblyID).First(&result).Error
+		Where("id = ?", d.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorRecordNotFound)
@@ -21,11 +104,11 @@ func (*disassembly) Get(disassemblyID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (*disassembly) Tree(paramIn dto.DisassemblyTree) response.Common {
+func (d *DisassemblyTree) Tree() response.Common {
 	//根据project_id获取disassembly_id
 	var disassemblyID int
 	err := global.DB.Model(model.Disassembly{}).Select("id").
-		Where("project_id = ?", paramIn.ProjectID).Where("level = 1").
+		Where("project_id = ?", d.ProjectID).Where("level = 1").
 		First(&disassemblyID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -33,7 +116,7 @@ func (*disassembly) Tree(paramIn dto.DisassemblyTree) response.Common {
 	}
 
 	//第一轮查找
-	var result1 []dto.DisassemblyTreeOutput
+	var result1 []DisassemblyTreeOutput
 	err = global.DB.Model(model.Disassembly{}).
 		Where("id = ?", disassemblyID).First(&result1).Error
 	if err != nil {
@@ -41,21 +124,21 @@ func (*disassembly) Tree(paramIn dto.DisassemblyTree) response.Common {
 		return response.Fail(util.ErrorRecordNotFound)
 	}
 	//第二轮查找
-	var result2 []dto.DisassemblyTreeOutput
+	var result2 []DisassemblyTreeOutput
 	global.DB.Model(model.Disassembly{}).
 		Where("superior_id = ?", disassemblyID).Find(&result2)
 	for index2 := range result2 {
 		//第三轮查找
-		var result3 []dto.DisassemblyTreeOutput
+		var result3 []DisassemblyTreeOutput
 		global.DB.Model(model.Disassembly{}).
 			Where("superior_id = ?", result2[index2].ID).Find(&result3)
 		//第四轮查找
 		for index3 := range result3 {
-			var result4 []dto.DisassemblyTreeOutput
+			var result4 []DisassemblyTreeOutput
 			global.DB.Model(model.Disassembly{}).
 				Where("superior_id = ?", result3[index3].ID).Find(&result4)
 			for index4 := range result4 {
-				var result5 []dto.DisassemblyTreeOutput
+				var result5 []DisassemblyTreeOutput
 				global.DB.Model(model.Disassembly{}).
 					Where("superior_id = ?", result4[index4].ID).Find(&result5)
 				result4[index4].Children = append(result4[index4].Children, result5...)
@@ -68,25 +151,25 @@ func (*disassembly) Tree(paramIn dto.DisassemblyTree) response.Common {
 	return response.SucceedWithData(result1)
 }
 
-func (*disassembly) Create(paramIn dto.DisassemblyCreate) response.Common {
+func (d *DisassemblyCreate) Create() response.Common {
 	var paramOut model.Disassembly
-	if paramIn.Creator > 0 {
-		paramOut.Creator = &paramIn.Creator
+	if d.Creator > 0 {
+		paramOut.Creator = &d.Creator
 	}
 
-	if paramIn.LastModifier > 0 {
-		paramOut.LastModifier = &paramIn.LastModifier
+	if d.LastModifier > 0 {
+		paramOut.LastModifier = &d.LastModifier
 	}
 
-	paramOut.Name = &paramIn.Name
+	paramOut.Name = &d.Name
 
-	paramOut.ProjectID = &paramIn.ProjectID
+	paramOut.ProjectID = &d.ProjectID
 
-	paramOut.Level = &paramIn.Level
+	paramOut.Level = &d.Level
 
-	paramOut.Weight = &paramIn.Weight
+	paramOut.Weight = &d.Weight
 
-	paramOut.SuperiorID = &paramIn.SuperiorID
+	paramOut.SuperiorID = &d.SuperiorID
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
@@ -95,27 +178,27 @@ func (*disassembly) Create(paramIn dto.DisassemblyCreate) response.Common {
 	return response.Succeed()
 }
 
-func (*disassembly) CreateInBatches(paramIn []dto.DisassemblyCreate) response.Common {
+func (d *DisassemblyCreateInBatches) CreateInBatches() response.Common {
 	var paramOut []model.Disassembly
-	for i := range paramIn {
+	for i := range d.Data {
 		var record model.Disassembly
-		if paramIn[i].Creator > 0 {
-			record.Creator = &paramIn[i].Creator
+		if d.Data[i].Creator > 0 {
+			record.Creator = &d.Data[i].Creator
 		}
 
-		if paramIn[i].LastModifier > 0 {
-			record.LastModifier = &paramIn[i].LastModifier
+		if d.Data[i].LastModifier > 0 {
+			record.LastModifier = &d.Data[i].LastModifier
 		}
 
-		record.Name = &paramIn[i].Name
+		record.Name = &d.Data[i].Name
 
-		record.Level = &paramIn[i].Level
+		record.Level = &d.Data[i].Level
 
-		record.ProjectID = &paramIn[i].ProjectID
+		record.ProjectID = &d.Data[i].ProjectID
 
-		record.Weight = &paramIn[i].Weight
+		record.Weight = &d.Data[i].Weight
 
-		record.SuperiorID = &paramIn[i].SuperiorID
+		record.SuperiorID = &d.Data[i].SuperiorID
 
 		paramOut = append(paramOut, record)
 	}
@@ -128,48 +211,48 @@ func (*disassembly) CreateInBatches(paramIn []dto.DisassemblyCreate) response.Co
 	return response.Succeed()
 }
 
-func (*disassembly) Update(paramIn dto.DisassemblyUpdate) response.Common {
+func (d *DisassemblyUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if paramIn.LastModifier > 0 {
-		paramOut["last_modifier"] = paramIn.LastModifier
+	if d.LastModifier > 0 {
+		paramOut["last_modifier"] = d.LastModifier
 	}
 
-	if paramIn.Name != nil {
-		if *paramIn.Name != "" {
-			paramOut["name"] = paramIn.Name
+	if d.Name != nil {
+		if *d.Name != "" {
+			paramOut["name"] = d.Name
 		} else {
 			paramOut["name"] = nil
 		}
 	}
 
-	if paramIn.ProjectID != nil {
-		if *paramIn.ProjectID != 0 {
-			paramOut["project_id"] = paramIn.ProjectID
+	if d.ProjectID != nil {
+		if *d.ProjectID != 0 {
+			paramOut["project_id"] = d.ProjectID
 		} else {
 			paramOut["project_id"] = nil
 		}
 	}
 
-	if paramIn.Level != nil {
-		if *paramIn.Level != 0 {
-			paramOut["level"] = paramIn.Level
+	if d.Level != nil {
+		if *d.Level != 0 {
+			paramOut["level"] = d.Level
 		} else {
 			paramOut["level"] = nil
 		}
 	}
 
-	if paramIn.Weight != nil {
-		if *paramIn.Weight != 0 {
-			paramOut["weight"] = paramIn.Weight
+	if d.Weight != nil {
+		if *d.Weight != 0 {
+			paramOut["weight"] = d.Weight
 		} else {
 			paramOut["weight"] = nil
 		}
 	}
 
-	if paramIn.SuperiorID != nil {
-		if *paramIn.SuperiorID != 0 {
-			paramOut["superior_id"] = paramIn.SuperiorID
+	if d.SuperiorID != nil {
+		if *d.SuperiorID != 0 {
+			paramOut["superior_id"] = d.SuperiorID
 		} else {
 			paramOut["superior_id"] = nil
 		}
@@ -182,7 +265,7 @@ func (*disassembly) Update(paramIn dto.DisassemblyUpdate) response.Common {
 		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.Disassembly{}).Where("id = ?", paramIn.ID).
+	err := global.DB.Model(&model.Disassembly{}).Where("id = ?", d.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -191,12 +274,12 @@ func (*disassembly) Update(paramIn dto.DisassemblyUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (*disassembly) Delete(paramIn dto.DisassemblyDelete) response.Common {
+func (d *DisassemblyDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.Disassembly
-	global.DB.Where("id = ?", paramIn.ID).Find(&record)
-	record.Deleter = &paramIn.Deleter
-	err := global.DB.Where("id = ?", paramIn.ID).Delete(&record).Error
+	global.DB.Where("id = ?", d.ID).Find(&record)
+	record.Deleter = &d.Deleter
+	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -205,12 +288,12 @@ func (*disassembly) Delete(paramIn dto.DisassemblyDelete) response.Common {
 	return response.Succeed()
 }
 
-func (*disassembly) DeleteWithSubitems(paramIn dto.DisassemblyDelete) response.Common {
+func (d *DisassemblyDeleteWithSubitems) DeleteWithSubitems() response.Common {
 	var ToBeDeletedIDs []int
-	ToBeDeletedIDs = append(ToBeDeletedIDs, paramIn.ID)
+	ToBeDeletedIDs = append(ToBeDeletedIDs, d.ID)
 	//第一轮查找
 	var result1 []int
-	global.DB.Model(&model.Disassembly{}).Where("superior_id = ?", paramIn.ID).
+	global.DB.Model(&model.Disassembly{}).Where("superior_id = ?", d.ID).
 		Select("id").Find(&result1)
 	//第二轮查找
 	if len(result1) > 0 {
@@ -239,7 +322,7 @@ func (*disassembly) DeleteWithSubitems(paramIn dto.DisassemblyDelete) response.C
 	var records []model.Disassembly
 	global.DB.Where("id in ?", ToBeDeletedIDs).Find(&records)
 	for i := range records {
-		records[i].Deleter = &paramIn.Deleter
+		records[i].Deleter = &d.Deleter
 	}
 	err := global.DB.Where("id in ?", ToBeDeletedIDs).Delete(&records).Error
 
@@ -250,33 +333,33 @@ func (*disassembly) DeleteWithSubitems(paramIn dto.DisassemblyDelete) response.C
 	return response.Succeed()
 }
 
-func (*disassembly) GetList(paramIn dto.DisassemblyList) response.List {
+func (d *DisassemblyGetList) GetList() response.List {
 	db := global.DB.Model(&model.Disassembly{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if paramIn.NameInclude != "" {
-		db = db.Where("name like ?", "%"+paramIn.NameInclude+"%")
+	if d.NameInclude != "" {
+		db = db.Where("name like ?", "%"+d.NameInclude+"%")
 	}
 
-	if paramIn.ProjectID > 0 {
-		db = db.Where("project_id = ?", paramIn.ProjectID)
+	if d.ProjectID > 0 {
+		db = db.Where("project_id = ?", d.ProjectID)
 	}
 
-	if paramIn.SuperiorID > 0 {
-		db = db.Where("superior_id = ?", paramIn.SuperiorID)
+	if d.SuperiorID > 0 {
+		db = db.Where("superior_id = ?", d.SuperiorID)
 	}
 
-	if paramIn.Level > 0 {
-		db = db.Where("level = ?", paramIn.Level)
+	if d.Level > 0 {
+		db = db.Where("level = ?", d.Level)
 	}
 
-	if paramIn.LevelGte != nil && *paramIn.LevelGte >= 0 {
-		db = db.Where("level >= ?", paramIn.LevelGte)
+	if d.LevelGte != nil && *d.LevelGte >= 0 {
+		db = db.Where("level >= ?", d.LevelGte)
 	}
 
-	if paramIn.LevelLte != nil && *paramIn.LevelLte >= 0 {
-		db = db.Where("level <= ?", paramIn.LevelLte)
+	if d.LevelLte != nil && *d.LevelLte >= 0 {
+		db = db.Where("level <= ?", d.LevelLte)
 	}
 
 	// count
@@ -284,8 +367,8 @@ func (*disassembly) GetList(paramIn dto.DisassemblyList) response.List {
 	db.Count(&count)
 
 	//Order
-	orderBy := paramIn.SortingInput.OrderBy
-	desc := paramIn.SortingInput.Desc
+	orderBy := d.SortingInput.OrderBy
+	desc := d.SortingInput.Desc
 	//如果排序字段为空
 	if orderBy == "" {
 		//如果要求降序排列
@@ -308,13 +391,13 @@ func (*disassembly) GetList(paramIn dto.DisassemblyList) response.List {
 
 	//limit
 	page := 1
-	if paramIn.PagingInput.Page > 0 {
-		page = paramIn.PagingInput.Page
+	if d.PagingInput.Page > 0 {
+		page = d.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if paramIn.PagingInput.PageSize > 0 &&
-		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = paramIn.PagingInput.PageSize
+	if d.PagingInput.PageSize > 0 &&
+		d.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = d.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
@@ -323,7 +406,7 @@ func (*disassembly) GetList(paramIn dto.DisassemblyList) response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []dto.DisassemblyOutput
+	var data []DisassemblyOutput
 	db.Model(&model.Disassembly{}).Find(&data)
 
 	if len(data) == 0 {

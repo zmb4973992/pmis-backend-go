@@ -81,7 +81,7 @@ func Init() *gin.Engine {
 			project.POST("", controller.Project.Create)               //新增项目
 			project.PUT("/:project-id", controller.Project.Update)    //修改项目
 			project.DELETE("/:project-id", controller.Project.Delete) //删除项目
-			project.POST("/list", controller.Project.List)            //获取项目列表
+			project.POST("/list", controller.Project.GetList)         //获取项目列表
 		}
 		disassembly := api.Group("/disassembly")
 		{

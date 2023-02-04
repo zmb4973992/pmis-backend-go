@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service"
@@ -16,19 +15,21 @@ import (
 type operationLog struct{}
 
 func (*operationLog) Get(c *gin.Context) {
-	operationLogID, err := strconv.Atoi(c.Param("operation-log-id"))
+	var param service.OperationLogGet
+	var err error
+	param.ID, err = strconv.Atoi(c.Param("operation-log-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.OperationLog.Get(operationLogID)
+	res := param.Get()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*operationLog) Delete(c *gin.Context) {
-	var param dto.OperationLogDelete
+	var param service.OperationLogDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("operation-log-id"))
 	if err != nil {
@@ -44,12 +45,12 @@ func (*operationLog) Delete(c *gin.Context) {
 		userID := tempUserID.(int)
 		param.Deleter = userID
 	}
-	res := service.OperationLog.Delete(param)
+	res := param.Delete()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*operationLog) GetList(c *gin.Context) {
-	var param dto.OperationLogList
+	var param service.OperationLogGetList
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
@@ -61,6 +62,6 @@ func (*operationLog) GetList(c *gin.Context) {
 		return
 	}
 	//生成Service,然后调用它的方法
-	res := service.OperationLog.GetList(param)
+	res := param.GetList()
 	c.JSON(http.StatusOK, res)
 }

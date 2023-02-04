@@ -6,11 +6,7 @@ type service struct {
 	user
 	relatedParty
 	DepartmentGet
-	disassembly
-	operationLog
 	roleAndUser
-	errorLog
-	project
 }
 
 // 定义各个服务的入口,避免反复new service
@@ -19,11 +15,7 @@ var (
 	Login        = entrance.login
 	User         = entrance.user
 	RelatedParty = entrance.relatedParty
-	Disassembly  = entrance.disassembly
-	OperationLog = entrance.operationLog
 	RoleAndUser  = entrance.roleAndUser
-	ErrorLog     = entrance.errorLog
-	Project      = entrance.project
 )
 
 //以下为入参
