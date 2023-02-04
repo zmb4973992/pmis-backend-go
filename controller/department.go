@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service"
@@ -16,19 +15,21 @@ import (
 type department struct{}
 
 func (*department) Get(c *gin.Context) {
-	departmentID, err := strconv.Atoi(c.Param("department-id"))
+	param := service.DepartmentGet{}
+	var err error
+	param.ID, err = strconv.Atoi(c.Param("department-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.Department.Get(departmentID)
+	res := param.Get()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*department) Create(c *gin.Context) {
-	var param dto.DepartmentCreate
+	var param service.DepartmentCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -44,12 +45,12 @@ func (*department) Create(c *gin.Context) {
 		param.LastModifier = userID
 	}
 
-	res := service.Department.Create(param)
+	res := param.Create()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*department) Update(c *gin.Context) {
-	var param dto.DepartmentUpdate
+	var param service.DepartmentUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -70,12 +71,12 @@ func (*department) Update(c *gin.Context) {
 		param.LastModifier = userID.(int)
 	}
 
-	res := service.Department.Update(param)
+	res := param.Update()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*department) Delete(c *gin.Context) {
-	var param dto.DepartmentDelete
+	var param service.DepartmentDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("department-id"))
 	if err != nil {
@@ -91,12 +92,12 @@ func (*department) Delete(c *gin.Context) {
 		userID := tempUserID.(int)
 		param.Deleter = userID
 	}
-	res := service.Department.Delete(param)
+	res := param.Delete()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*department) GetArray(c *gin.Context) {
-	var param dto.DepartmentList
+	var param service.DepartmentGetArray
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
@@ -108,20 +109,18 @@ func (*department) GetArray(c *gin.Context) {
 		return
 	}
 
-	//把userID传给dto，给service调用
 	tempUserID, exists := c.Get("user_id")
 	if exists {
 		userID := tempUserID.(int)
 		param.UserID = userID
 	}
 
-	//生成Service,然后调用它的方法
-	res := service.Department.GetArray(param)
+	res := param.GetArray()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*department) GetList(c *gin.Context) {
-	var param dto.DepartmentList
+	var param service.DepartmentGetList
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
@@ -139,7 +138,6 @@ func (*department) GetList(c *gin.Context) {
 		param.UserID = userID
 	}
 
-	//生成Service,然后调用它的方法
-	res := service.Department.List(param)
+	res := param.GetList()
 	c.JSON(http.StatusOK, res)
 }

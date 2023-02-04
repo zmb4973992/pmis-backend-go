@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service"
@@ -16,7 +15,9 @@ import (
 type dictionaryItem struct{}
 
 func (*dictionaryItem) Get(c *gin.Context) {
-	dictionaryItemID, err := strconv.Atoi(c.Param("dictionary-item-id"))
+	param := service.DepartmentGet{}
+	var err error
+	param.ID, err = strconv.Atoi(c.Param("dictionary-item-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest, response.Common{
@@ -26,12 +27,12 @@ func (*dictionaryItem) Get(c *gin.Context) {
 		})
 		return
 	}
-	res := service.DictionaryItem.Get(dictionaryItemID)
+	res := param.Get()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*dictionaryItem) Create(c *gin.Context) {
-	var param dto.DictionaryItemCreate
+	var param service.DictionaryItemCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -47,12 +48,12 @@ func (*dictionaryItem) Create(c *gin.Context) {
 		param.LastModifier = userID
 	}
 
-	res := service.DictionaryItem.Create(param)
+	res := param.Create()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*dictionaryItem) CreateInBatches(c *gin.Context) {
-	var param []dto.DictionaryItemCreate
+	var param service.DictionaryItemCreateInBatches
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -64,18 +65,18 @@ func (*dictionaryItem) CreateInBatches(c *gin.Context) {
 	tempUserID, _ := c.Get("user_id")
 	if tempUserID != nil {
 		userID := tempUserID.(int)
-		for i := range param {
-			param[i].Creator = userID
-			param[i].LastModifier = userID
+		for i := range param.Data {
+			param.Data[i].Creator = userID
+			param.Data[i].LastModifier = userID
 		}
 	}
 
-	res := service.DictionaryItem.CreateInBatches(param)
+	res := param.CreateInBatches()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*dictionaryItem) Update(c *gin.Context) {
-	var param dto.DictionaryItemUpdate
+	var param service.DictionaryItemUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -98,12 +99,12 @@ func (*dictionaryItem) Update(c *gin.Context) {
 		param.LastModifier = userID.(int)
 	}
 
-	res := service.DictionaryItem.Update(param)
+	res := param.Update()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*dictionaryItem) Delete(c *gin.Context) {
-	var param dto.DictionaryItemDelete
+	var param service.DictionaryItemDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("dictionary-item-id"))
 	if err != nil {
@@ -119,12 +120,12 @@ func (*dictionaryItem) Delete(c *gin.Context) {
 		userID := tempUserID.(int)
 		param.Deleter = userID
 	}
-	res := service.DictionaryItem.Delete(param)
+	res := param.Delete()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*dictionaryItem) GetArray(c *gin.Context) {
-	var param dto.DictionaryItemList
+	var param service.DictionaryItemGetArray
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
@@ -136,12 +137,12 @@ func (*dictionaryItem) GetArray(c *gin.Context) {
 		return
 	}
 
-	res := service.DictionaryItem.GetArray(param)
+	res := param.GetArray()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*dictionaryItem) GetList(c *gin.Context) {
-	var param dto.DictionaryItemList
+	var param service.DictionaryItemGetList
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
@@ -153,6 +154,6 @@ func (*dictionaryItem) GetList(c *gin.Context) {
 		return
 	}
 
-	res := service.DictionaryItem.GetList(param)
+	res := param.GetList()
 	c.JSON(http.StatusOK, res)
 }

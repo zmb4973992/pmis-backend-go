@@ -8,26 +8,6 @@ import (
 	"pmis-backend-go/util"
 )
 
-//type DictionaryType interface {
-//	Get() response.Common
-//	Create() response.Common
-//	CreateInBatches() response.Common
-//	Update() response.Common
-//	Delete() response.Common
-//	GetArray() response.Common
-//	GetList() response.List
-//}
-
-//type DictionaryTypeOperation struct {
-//	DictionaryTypeGet
-//	DictionaryTypeCreate
-//	DictionaryTypeUpdate
-//	DictionaryTypeCreateInBatches
-//	DictionaryTypeDelete
-//	DictionaryTypeGetArray
-//	DictionaryTypeGetList
-//}
-
 type DictionaryTypeGet struct {
 	ID int
 }
@@ -62,16 +42,16 @@ type DictionaryTypeDelete struct {
 }
 
 type DictionaryTypeGetArray struct {
-	dto.ListInput
+	ListInput
 	NameInclude string `json:"name_include,omitempty"`
 }
 
 type DictionaryTypeGetList struct {
-	dto.ListInput
+	ListInput
 	NameInclude string `json:"name_include,omitempty"`
 }
 
-type dictionaryTypeOutput struct {
+type DictionaryTypeOutput struct {
 	Creator      *int    `json:"creator" gorm:"creator"`
 	LastModifier *int    `json:"last_modifier" gorm:"last_modifier"`
 	ID           int     `json:"id" gorm:"id"`
@@ -81,7 +61,7 @@ type dictionaryTypeOutput struct {
 }
 
 func (d *DictionaryTypeGet) Get() response.Common {
-	var result dictionaryTypeOutput
+	var result DictionaryTypeOutput
 	err := global.DB.Model(model.DictionaryType{}).
 		Where("id = ?", d.ID).First(&result).Error
 	if err != nil {
@@ -534,7 +514,7 @@ func (d *DictionaryTypeGetList) GetList() response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []dictionaryTypeOutput
+	var data []DictionaryTypeOutput
 	db.Model(&model.DictionaryType{}).Find(&data)
 
 	if len(data) == 0 {
@@ -558,7 +538,7 @@ func (d *DictionaryTypeGetList) GetList() response.List {
 }
 
 //
-//func (*dictionaryType) GetList(paramIn dto.DictionaryTypeList) response.List {
+//func (*dictionaryType) GetList(paramIn dto.DictionaryTypeList) response.GetList {
 //	db := global.DB.Model(&model.DictionaryType{})
 //	// 顺序：where -> count -> Order -> limit -> offset -> data
 //
@@ -621,7 +601,7 @@ func (d *DictionaryTypeGetList) GetList() response.List {
 //	numberOfRecords := int(count)
 //	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 //
-//	return response.List{
+//	return response.GetList{
 //		Data: data,
 //		Paging: &dto.PagingOutput{
 //			Page:            page,

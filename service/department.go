@@ -8,13 +8,67 @@ import (
 	"pmis-backend-go/util"
 )
 
-type department struct{}
+type DepartmentGet struct {
+	ID int
+}
 
-func (*department) Get(departmentID int) response.Common {
-	var result dto.DepartmentOutput
+type DepartmentCreate struct {
+	Creator      int
+	LastModifier int
+	Name         string `json:"name" binding:"required"`             //名称
+	LevelName    string `json:"level_name" binding:"required"`       //级别，如公司、事业部、部门等
+	SuperiorID   int    `json:"superior_id" binding:"required,gt=0"` //上级机构ID
+}
+
+//指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
+//如果指针字段为空或0，那么数据库相应字段会改为null；
+//如果指针字段没传，那么数据库不会修改该字段
+
+type DepartmentUpdate struct {
+	LastModifier int
+	ID           int
+	Name         *string `json:"name"`        //名称
+	LevelName    *string `json:"level_name"`  //级别，如公司、事业部、部门等
+	SuperiorID   *int    `json:"superior_id"` //上级机构ID
+}
+
+type DepartmentDelete struct {
+	Deleter int
+	ID      int
+}
+
+type DepartmentGetArray struct {
+	ListInput
+	AuthInput
+	SuperiorID int    `json:"superior_id,omitempty"`
+	LevelName  string `json:"level_name,omitempty"`
+	Name       string `json:"name,omitempty"`
+	NameLike   string `json:"name_like,omitempty"`
+}
+
+type DepartmentGetList struct {
+	ListInput
+	AuthInput
+	SuperiorID int    `json:"superior_id,omitempty"`
+	LevelName  string `json:"level_name,omitempty"`
+	Name       string `json:"name,omitempty"`
+	NameLike   string `json:"name_like,omitempty"`
+}
+
+type DepartmentOutput struct {
+	Creator      *int    `json:"creator" gorm:"creator"`
+	LastModifier *int    `json:"last_modifier" gorm:"last_modifier"`
+	ID           int     `json:"id" gorm:"id"`
+	Name         string  `json:"name" gorm:"name"`               //名称
+	LevelName    *string `json:"level_name" gorm:"level_name"`   //级别，如公司、事业部、部门等
+	SuperiorID   *int    `json:"superior_id" gorm:"superior_id"` //上级机构id
+}
+
+func (d *DepartmentGet) Get() response.Common {
+	var result DepartmentOutput
 
 	err := global.DB.Model(model.Department{}).
-		Where("id = ?", departmentID).First(&result).Error
+		Where("id = ?", d.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorRecordNotFound)
@@ -23,22 +77,22 @@ func (*department) Get(departmentID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (*department) Create(paramIn dto.DepartmentCreate) response.Common {
+func (d *DepartmentCreate) Create() response.Common {
 	var paramOut model.Department
 
-	if paramIn.Creator > 0 {
-		paramOut.Creator = &paramIn.Creator
+	if d.Creator > 0 {
+		paramOut.Creator = &d.Creator
 	}
 
-	if paramIn.LastModifier > 0 {
-		paramOut.LastModifier = &paramIn.LastModifier
+	if d.LastModifier > 0 {
+		paramOut.LastModifier = &d.LastModifier
 	}
 
-	paramOut.Name = paramIn.Name
+	paramOut.Name = d.Name
 
-	paramOut.LevelName = paramIn.LevelName
+	paramOut.LevelName = d.LevelName
 
-	paramOut.SuperiorID = &paramIn.SuperiorID
+	paramOut.SuperiorID = &d.SuperiorID
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
@@ -48,33 +102,33 @@ func (*department) Create(paramIn dto.DepartmentCreate) response.Common {
 	return response.Succeed()
 }
 
-func (*department) Update(paramIn dto.DepartmentUpdate) response.Common {
+func (d *DepartmentUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if paramIn.LastModifier > 0 {
-		paramOut["last_modifier"] = paramIn.LastModifier
+	if d.LastModifier > 0 {
+		paramOut["last_modifier"] = d.LastModifier
 	}
 
-	if paramIn.Name != nil {
-		if *paramIn.Name != "" {
-			paramOut["name"] = paramIn.Name
+	if d.Name != nil {
+		if *d.Name != "" {
+			paramOut["name"] = d.Name
 		} else {
 			paramOut["name"] = nil
 		}
 	}
 
-	if paramIn.LevelName != nil {
-		if *paramIn.LevelName != "" {
-			paramOut["level_name"] = paramIn.LevelName
+	if d.LevelName != nil {
+		if *d.LevelName != "" {
+			paramOut["level_name"] = d.LevelName
 		} else {
 			paramOut["level_name"] = nil
 		}
 	}
 
-	if paramIn.SuperiorID != nil {
-		if *paramIn.SuperiorID > 0 {
-			paramOut["superior_id"] = paramIn.SuperiorID
-		} else if *paramIn.SuperiorID == 0 {
+	if d.SuperiorID != nil {
+		if *d.SuperiorID > 0 {
+			paramOut["superior_id"] = d.SuperiorID
+		} else if *d.SuperiorID == 0 {
 			paramOut["superior_id"] = nil
 		} else {
 			return response.Fail(util.ErrorInvalidJSONParameters)
@@ -89,7 +143,7 @@ func (*department) Update(paramIn dto.DepartmentUpdate) response.Common {
 	}
 
 	err := global.DB.Model(&model.Department{}).
-		Where("id = ?", paramIn.ID).Updates(paramOut).Error
+		Where("id = ?", d.ID).Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToUpdateRecord)
@@ -98,12 +152,12 @@ func (*department) Update(paramIn dto.DepartmentUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (*department) Delete(paramIn dto.DepartmentDelete) response.Common {
+func (d *DepartmentDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.Department
-	global.DB.Where("id = ?", paramIn.ID).Find(&record)
-	record.Deleter = &paramIn.Deleter
-	err := global.DB.Where("id = ?", paramIn.ID).Delete(&record).Error
+	global.DB.Where("id = ?", d.ID).Find(&record)
+	record.Deleter = &d.Deleter
+	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToDeleteRecord)
@@ -111,34 +165,34 @@ func (*department) Delete(paramIn dto.DepartmentDelete) response.Common {
 	return response.Succeed()
 }
 
-func (*department) GetArray(paramIn dto.DepartmentList) response.Common {
+func (d *DepartmentGetArray) GetArray() response.Common {
 	db := global.DB.Model(&model.Department{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if paramIn.SuperiorID > 0 {
-		db = db.Where("superior_id = ?", paramIn.SuperiorID)
+	if d.SuperiorID > 0 {
+		db = db.Where("superior_id = ?", d.SuperiorID)
 	}
 
-	if paramIn.LevelName != "" {
-		db = db.Where("level_name = ?", paramIn.LevelName)
+	if d.LevelName != "" {
+		db = db.Where("level_name = ?", d.LevelName)
 	}
 
-	if paramIn.Name != "" {
-		db = db.Where("name = ?", paramIn.Name)
+	if d.Name != "" {
+		db = db.Where("name = ?", d.Name)
 	}
 
-	if paramIn.NameLike != "" {
-		db = db.Where("name like ?", "%"+paramIn.NameLike+"%")
+	if d.NameLike != "" {
+		db = db.Where("name like ?", "%"+d.NameLike+"%")
 	}
 
-	if paramIn.IsShowedByRole {
-		biggestRoleName := util.GetBiggestRoleName(paramIn.UserID)
+	if d.IsShowedByRole {
+		biggestRoleName := util.GetBiggestRoleName(d.UserID)
 		if biggestRoleName == "事业部级" {
-			businessDivisionIDs := util.GetBusinessDivisionIDs(paramIn.UserID)
+			businessDivisionIDs := util.GetBusinessDivisionIDs(d.UserID)
 			db = db.Where("superior_id in ?", businessDivisionIDs)
 		} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
-			departmentIDs := util.GetDepartmentIDs(paramIn.UserID)
+			departmentIDs := util.GetDepartmentIDs(d.UserID)
 			db = db.Where("id in ?", departmentIDs)
 		}
 	}
@@ -148,8 +202,8 @@ func (*department) GetArray(paramIn dto.DepartmentList) response.Common {
 	db.Count(&count)
 
 	//Order
-	orderBy := paramIn.SortingInput.OrderBy
-	desc := paramIn.SortingInput.Desc
+	orderBy := d.SortingInput.OrderBy
+	desc := d.SortingInput.Desc
 	//如果排序字段为空
 	if orderBy == "" {
 		//如果要求降序排列
@@ -172,13 +226,13 @@ func (*department) GetArray(paramIn dto.DepartmentList) response.Common {
 
 	//limit
 	page := 1
-	if paramIn.PagingInput.Page > 0 {
-		page = paramIn.PagingInput.Page
+	if d.PagingInput.Page > 0 {
+		page = d.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if paramIn.PagingInput.PageSize > 0 &&
-		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = paramIn.PagingInput.PageSize
+	if d.PagingInput.PageSize > 0 &&
+		d.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = d.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
@@ -201,34 +255,34 @@ func (*department) GetArray(paramIn dto.DepartmentList) response.Common {
 	}
 }
 
-func (*department) List(paramIn dto.DepartmentList) response.List {
+func (d *DepartmentGetList) GetList() response.List {
 	db := global.DB.Model(&model.Department{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if paramIn.SuperiorID > 0 {
-		db = db.Where("superior_id = ?", paramIn.SuperiorID)
+	if d.SuperiorID > 0 {
+		db = db.Where("superior_id = ?", d.SuperiorID)
 	}
 
-	if paramIn.LevelName != "" {
-		db = db.Where("level_name = ?", paramIn.LevelName)
+	if d.LevelName != "" {
+		db = db.Where("level_name = ?", d.LevelName)
 	}
 
-	if paramIn.Name != "" {
-		db = db.Where("name = ?", paramIn.Name)
+	if d.Name != "" {
+		db = db.Where("name = ?", d.Name)
 	}
 
-	if paramIn.NameLike != "" {
-		db = db.Where("name like ?", "%"+paramIn.NameLike+"%")
+	if d.NameLike != "" {
+		db = db.Where("name like ?", "%"+d.NameLike+"%")
 	}
 
-	if paramIn.IsShowedByRole {
-		biggestRoleName := util.GetBiggestRoleName(paramIn.UserID)
+	if d.IsShowedByRole {
+		biggestRoleName := util.GetBiggestRoleName(d.UserID)
 		if biggestRoleName == "事业部级" {
-			businessDivisionIDs := util.GetBusinessDivisionIDs(paramIn.UserID)
+			businessDivisionIDs := util.GetBusinessDivisionIDs(d.UserID)
 			db = db.Where("superior_id in ?", businessDivisionIDs)
 		} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
-			departmentIDs := util.GetDepartmentIDs(paramIn.UserID)
+			departmentIDs := util.GetDepartmentIDs(d.UserID)
 			db = db.Where("id in ?", departmentIDs)
 		}
 	}
@@ -238,8 +292,8 @@ func (*department) List(paramIn dto.DepartmentList) response.List {
 	db.Count(&count)
 
 	//Order
-	orderBy := paramIn.SortingInput.OrderBy
-	desc := paramIn.SortingInput.Desc
+	orderBy := d.SortingInput.OrderBy
+	desc := d.SortingInput.Desc
 	//如果排序字段为空
 	if orderBy == "" {
 		//如果要求降序排列
@@ -262,13 +316,13 @@ func (*department) List(paramIn dto.DepartmentList) response.List {
 
 	//limit
 	page := 1
-	if paramIn.PagingInput.Page > 0 {
-		page = paramIn.PagingInput.Page
+	if d.PagingInput.Page > 0 {
+		page = d.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if paramIn.PagingInput.PageSize > 0 &&
-		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = paramIn.PagingInput.PageSize
+	if d.PagingInput.PageSize > 0 &&
+		d.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = d.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
@@ -277,7 +331,7 @@ func (*department) List(paramIn dto.DepartmentList) response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []dto.DepartmentOutput
+	var data []DepartmentOutput
 	db.Model(&model.Department{}).Find(&data)
 
 	if len(data) == 0 {

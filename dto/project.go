@@ -1,5 +1,7 @@
 package dto
 
+import "pmis-backend-go/service"
+
 //以下为入参
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
@@ -59,16 +61,16 @@ type ProjectOutput struct {
 	LastModifier *int `json:"last_modifier" gorm:"last_modifier"`
 	ID           int  `json:"id" gorm:"id"`
 
-	ProjectCode      *string           `json:"project_code" gorm:"project_code"`
-	ProjectFullName  *string           `json:"project_full_name" gorm:"project_full_name"`
-	ProjectShortName *string           `json:"project_short_name" gorm:"project_short_name"`
-	Country          *string           `json:"country" gorm:"country"`
-	Province         *string           `json:"province" gorm:"province"`
-	ProjectType      *string           `json:"project_type" gorm:"project_type"`
-	Amount           *float64          `json:"amount" gorm:"amount"`
-	Currency         *string           `json:"currency" gorm:"currency"`
-	ExchangeRate     *float64          `json:"exchange_rate" gorm:"exchange_rate"`
-	RelatedPartyID   *int              `json:"related_party_id" gorm:"related_party_id"`
-	DepartmentID     *int              `json:"-" gorm:"department_id"`
-	Department       *DepartmentOutput `json:"department" gorm:"-"` //gorm -  要不要删除？
+	ProjectCode      *string                   `json:"project_code" gorm:"project_code"`
+	ProjectFullName  *string                   `json:"project_full_name" gorm:"project_full_name"`
+	ProjectShortName *string                   `json:"project_short_name" gorm:"project_short_name"`
+	Country          *string                   `json:"country" gorm:"country"`
+	Province         *string                   `json:"province" gorm:"province"`
+	ProjectType      *string                   `json:"project_type" gorm:"project_type"`
+	Amount           *float64                  `json:"amount" gorm:"amount"`
+	Currency         *string                   `json:"currency" gorm:"currency"`
+	ExchangeRate     *float64                  `json:"exchange_rate" gorm:"exchange_rate"`
+	RelatedPartyID   *int                      `json:"related_party_id" gorm:"related_party_id"`
+	DepartmentID     *int                      `json:"-" gorm:"department_id"`
+	Department       *service.DepartmentOutput `json:"department" gorm:"-"` //gorm -  要不要删除？
 }

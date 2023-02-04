@@ -8,12 +8,67 @@ import (
 	"pmis-backend-go/util"
 )
 
-type dictionaryItem struct{}
+type DictionaryItemGet struct {
+	ID int
+}
 
-func (*dictionaryItem) Get(dictionaryItemID int) response.Common {
-	var result dto.DictionaryItemOutput
+type DictionaryItemCreate struct {
+	Creator          int
+	LastModifier     int
+	DictionaryTypeID int    `json:"dictionary_type_id" binding:"required,gt=0"` //字典类型id
+	Name             string `json:"name" binding:"required"`                    //名称
+	Sort             int    `json:"sort,omitempty"`                             //顺序值
+	Remarks          string `json:"remarks,omitempty"`                          //备注
+}
+
+type DictionaryItemCreateInBatches struct {
+	Data []DictionaryItemCreate `json:"data"`
+}
+
+//指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
+//如果指针字段为空或0，那么数据库相应字段会改为null；
+//如果指针字段没传，那么数据库不会修改该字段
+
+type DictionaryItemUpdate struct {
+	LastModifier     int
+	ID               int
+	DictionaryTypeID *int    `json:"dictionary_type_id"` //字典类型id
+	Name             *string `json:"name"`               //名称
+	Sort             *int    `json:"sort"`               //顺序值
+	Remarks          *string `json:"remarks"`            //备注
+}
+
+type DictionaryItemDelete struct {
+	Deleter int
+	ID      int
+}
+
+type DictionaryItemGetArray struct {
+	ListInput
+	DictionaryTypeID int `json:"dictionary_type_id,omitempty"`
+}
+
+type DictionaryItemGetList struct {
+	ListInput
+	DictionaryTypeID int `json:"dictionary_type_id,omitempty"`
+}
+
+//以下为出参
+
+type DictionaryItemOutput struct {
+	Creator          *int    `json:"creator" gorm:"creator"`
+	LastModifier     *int    `json:"last_modifier" gorm:"last_modifier"`
+	ID               int     `json:"id" gorm:"id"`
+	DictionaryTypeID int     `json:"dictionary_type_id" gorm:"dictionary_type_id"` //字典类型id
+	Name             string  `json:"name" gorm:"name"`                             //名称
+	Sort             *int    `json:"sort" gorm:"sort"`                             //顺序值
+	Remarks          *string `json:"remarks" gorm:"remarks"`                       //备注
+}
+
+func (d *DictionaryItemGet) Get() response.Common {
+	var result DictionaryItemOutput
 	err := global.DB.Model(model.DictionaryItem{}).
-		Where("id = ?", dictionaryItemID).First(&result).Error
+		Where("id = ?", d.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorRecordNotFound)
@@ -21,26 +76,26 @@ func (*dictionaryItem) Get(dictionaryItemID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (*dictionaryItem) Create(paramIn dto.DictionaryItemCreate) response.Common {
+func (d *DictionaryItemCreate) Create() response.Common {
 	var paramOut model.DictionaryItem
-	if paramIn.Creator > 0 {
-		paramOut.Creator = &paramIn.Creator
+	if d.Creator > 0 {
+		paramOut.Creator = &d.Creator
 	}
 
-	if paramIn.LastModifier > 0 {
-		paramOut.LastModifier = &paramIn.LastModifier
+	if d.LastModifier > 0 {
+		paramOut.LastModifier = &d.LastModifier
 	}
 
-	paramOut.DictionaryTypeID = paramIn.DictionaryTypeID
+	paramOut.DictionaryTypeID = d.DictionaryTypeID
 
-	paramOut.Name = paramIn.Name
+	paramOut.Name = d.Name
 
-	if paramIn.Sort != 0 {
-		paramOut.Sort = &paramIn.Sort
+	if d.Sort != 0 {
+		paramOut.Sort = &d.Sort
 	}
 
-	if paramIn.Remarks != "" {
-		paramOut.Remarks = &paramIn.Remarks
+	if d.Remarks != "" {
+		paramOut.Remarks = &d.Remarks
 	}
 
 	err := global.DB.Create(&paramOut).Error
@@ -51,29 +106,29 @@ func (*dictionaryItem) Create(paramIn dto.DictionaryItemCreate) response.Common 
 	return response.Succeed()
 }
 
-func (*dictionaryItem) CreateInBatches(paramIn []dto.DictionaryItemCreate) response.Common {
+func (d *DictionaryItemCreateInBatches) CreateInBatches() response.Common {
 	var paramOut []model.DictionaryItem
-	for i := range paramIn {
+	for i := range d.Data {
 		var record model.DictionaryItem
 
-		if paramIn[i].Creator > 0 {
-			record.Creator = &paramIn[i].Creator
+		if d.Data[i].Creator > 0 {
+			record.Creator = &d.Data[i].Creator
 		}
 
-		if paramIn[i].LastModifier > 0 {
-			record.LastModifier = &paramIn[i].LastModifier
+		if d.Data[i].LastModifier > 0 {
+			record.LastModifier = &d.Data[i].LastModifier
 		}
 
-		record.DictionaryTypeID = paramIn[i].DictionaryTypeID
+		record.DictionaryTypeID = d.Data[i].DictionaryTypeID
 
-		record.Name = paramIn[i].Name
+		record.Name = d.Data[i].Name
 
-		if paramIn[i].Sort != 0 {
-			record.Sort = &paramIn[i].Sort
+		if d.Data[i].Sort != 0 {
+			record.Sort = &d.Data[i].Sort
 		}
 
-		if paramIn[i].Remarks != "" {
-			record.Remarks = &paramIn[i].Remarks
+		if d.Data[i].Remarks != "" {
+			record.Remarks = &d.Data[i].Remarks
 		}
 
 		paramOut = append(paramOut, record)
@@ -87,44 +142,44 @@ func (*dictionaryItem) CreateInBatches(paramIn []dto.DictionaryItemCreate) respo
 	return response.Succeed()
 }
 
-func (*dictionaryItem) Update(paramIn dto.DictionaryItemUpdate) response.Common {
+func (d *DictionaryItemUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if paramIn.LastModifier > 0 {
-		paramOut["last_modifier"] = paramIn.LastModifier
+	if d.LastModifier > 0 {
+		paramOut["last_modifier"] = d.LastModifier
 	}
 
-	if paramIn.DictionaryTypeID != nil {
-		if *paramIn.DictionaryTypeID > 0 {
-			paramOut["dictionary_type_id"] = paramIn.DictionaryTypeID
-		} else if *paramIn.DictionaryTypeID == 0 {
+	if d.DictionaryTypeID != nil {
+		if *d.DictionaryTypeID > 0 {
+			paramOut["dictionary_type_id"] = d.DictionaryTypeID
+		} else if *d.DictionaryTypeID == 0 {
 			paramOut["dictionary_type_id"] = nil
 		} else {
 			return response.Fail(util.ErrorInvalidJSONParameters)
 		}
 	}
 
-	if paramIn.Name != nil {
-		if *paramIn.Name != "" {
-			paramOut["name"] = paramIn.Name
+	if d.Name != nil {
+		if *d.Name != "" {
+			paramOut["name"] = d.Name
 		} else {
 			paramOut["name"] = nil
 		}
 	}
 
-	if paramIn.Sort != nil {
-		if *paramIn.Sort > 0 {
-			paramOut["sort"] = paramIn.Sort
-		} else if *paramIn.Sort == 0 {
+	if d.Sort != nil {
+		if *d.Sort > 0 {
+			paramOut["sort"] = d.Sort
+		} else if *d.Sort == 0 {
 			paramOut["sort"] = nil
 		} else {
 			return response.Fail(util.ErrorInvalidJSONParameters)
 		}
 	}
 
-	if paramIn.Remarks != nil {
-		if *paramIn.Remarks != "" {
-			paramOut["remarks"] = paramIn.Remarks
+	if d.Remarks != nil {
+		if *d.Remarks != "" {
+			paramOut["remarks"] = d.Remarks
 		} else {
 			paramOut["remarks"] = nil
 		}
@@ -137,7 +192,7 @@ func (*dictionaryItem) Update(paramIn dto.DictionaryItemUpdate) response.Common 
 		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.DictionaryItem{}).Where("id = ?", paramIn.ID).
+	err := global.DB.Model(&model.DictionaryItem{}).Where("id = ?", d.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -147,12 +202,12 @@ func (*dictionaryItem) Update(paramIn dto.DictionaryItemUpdate) response.Common 
 	return response.Succeed()
 }
 
-func (*dictionaryItem) Delete(paramIn dto.DictionaryItemDelete) response.Common {
+func (d *DictionaryItemDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.DictionaryItem
-	global.DB.Where("id = ?", paramIn.ID).Find(&record)
-	record.Deleter = &paramIn.Deleter
-	err := global.DB.Where("id = ?", paramIn.ID).Delete(&record).Error
+	global.DB.Where("id = ?", d.ID).Find(&record)
+	record.Deleter = &d.Deleter
+	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -161,18 +216,18 @@ func (*dictionaryItem) Delete(paramIn dto.DictionaryItemDelete) response.Common 
 	return response.Succeed()
 }
 
-func (*dictionaryItem) GetArray(paramIn dto.DictionaryItemList) response.Common {
+func (d *DictionaryItemGetArray) GetArray() response.Common {
 	db := global.DB.Model(&model.DictionaryItem{})
 	// 顺序：where -> count -> Order -> limit -> offset -> array
 
 	//where
-	if paramIn.DictionaryTypeID != 0 {
-		db = db.Where("dictionary_type_id = ?", paramIn.DictionaryTypeID)
+	if d.DictionaryTypeID != 0 {
+		db = db.Where("dictionary_type_id = ?", d.DictionaryTypeID)
 	}
 
 	//Order
-	orderBy := paramIn.SortingInput.OrderBy
-	desc := paramIn.SortingInput.Desc
+	orderBy := d.SortingInput.OrderBy
+	desc := d.SortingInput.Desc
 	//如果排序字段为空
 	if orderBy == "" {
 		//如果要求降序排列
@@ -195,13 +250,13 @@ func (*dictionaryItem) GetArray(paramIn dto.DictionaryItemList) response.Common 
 
 	//limit
 	page := 1
-	if paramIn.PagingInput.Page > 0 {
-		page = paramIn.PagingInput.Page
+	if d.PagingInput.Page > 0 {
+		page = d.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if paramIn.PagingInput.PageSize > 0 &&
-		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = paramIn.PagingInput.PageSize
+	if d.PagingInput.PageSize > 0 &&
+		d.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = d.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
@@ -224,13 +279,13 @@ func (*dictionaryItem) GetArray(paramIn dto.DictionaryItemList) response.Common 
 	}
 }
 
-func (*dictionaryItem) GetList(paramIn dto.DictionaryItemList) response.List {
+func (d *DictionaryItemGetList) GetList() response.List {
 	db := global.DB.Model(&model.DictionaryItem{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if paramIn.DictionaryTypeID != 0 {
-		db = db.Where("dictionary_type_id = ?", paramIn.DictionaryTypeID)
+	if d.DictionaryTypeID != 0 {
+		db = db.Where("dictionary_type_id = ?", d.DictionaryTypeID)
 	}
 
 	// count
@@ -238,8 +293,8 @@ func (*dictionaryItem) GetList(paramIn dto.DictionaryItemList) response.List {
 	db.Count(&count)
 
 	//Order
-	orderBy := paramIn.SortingInput.OrderBy
-	desc := paramIn.SortingInput.Desc
+	orderBy := d.SortingInput.OrderBy
+	desc := d.SortingInput.Desc
 	//如果排序字段为空
 	if orderBy == "" {
 		//如果要求降序排列
@@ -262,13 +317,13 @@ func (*dictionaryItem) GetList(paramIn dto.DictionaryItemList) response.List {
 
 	//limit
 	page := 1
-	if paramIn.PagingInput.Page > 0 {
-		page = paramIn.PagingInput.Page
+	if d.PagingInput.Page > 0 {
+		page = d.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if paramIn.PagingInput.PageSize > 0 &&
-		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = paramIn.PagingInput.PageSize
+	if d.PagingInput.PageSize > 0 &&
+		d.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = d.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
@@ -277,7 +332,7 @@ func (*dictionaryItem) GetList(paramIn dto.DictionaryItemList) response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []dto.DictionaryItemOutput
+	var data []DictionaryItemOutput
 	db.Model(&model.DictionaryItem{}).Find(&data)
 
 	if len(data) == 0 {
