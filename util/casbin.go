@@ -6,9 +6,18 @@ import (
 	"pmis-backend-go/global"
 )
 
-func NewEnforcer() *casbin.Enforcer {
-	adapter, _ := gormAdapter.NewAdapterByDB(global.DB)
-	enforcer, _ := casbin.NewEnforcer("./config/casbin-model.conf", adapter)
-	_ = enforcer.LoadPolicy()
-	return enforcer
+func NewEnforcer() (enforcer *casbin.Enforcer, err error) {
+	adapter, err := gormAdapter.NewAdapterByDB(global.DB)
+	if err != nil {
+		return nil, err
+	}
+	enforcer, err = casbin.NewEnforcer("./config/casbin-model.conf", adapter)
+	if err != nil {
+		return nil, err
+	}
+	err = enforcer.LoadPolicy()
+	if err != nil {
+		return nil, err
+	}
+	return enforcer, nil
 }

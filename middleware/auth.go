@@ -36,11 +36,14 @@ func NeedAuth() gin.HandlerFunc {
 		subjects := roleNames        //获取用户角色,casbin规则的主体参数
 		object := c.Request.URL.Path //获取请求路径，casbin规则的客体参数
 		act := c.Request.Method      //获取请求方法，casbin规则的动作参数
-		e := util.NewEnforcer()
+		enforcer, err := util.NewEnforcer()
+		if err != nil {
+			global.SugaredLogger.Panicln(err)
+		}
 		//对角色数组进行遍历
 		for _, subject := range subjects {
 			//如果角色符合casbin的规则
-			ok, _ := e.Enforce(subject, object, act)
+			ok, _ := enforcer.Enforce(subject, object, act)
 			if ok {
 				c.Next()
 				return

@@ -46,7 +46,7 @@ func InitLogger() {
 	)
 	//声明zap的核心参数
 	var core zapcore.Core
-	mode := global.Config.AppMode
+	mode := global.Config.AppConfig.AppMode
 	//如果是开发模式：
 	if mode == "debug" {
 		//生成开发模式下的、encoder默认配置文件，用于管理控制台的显示内容

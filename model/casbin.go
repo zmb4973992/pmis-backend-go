@@ -8,7 +8,7 @@ import "pmis-backend-go/global"
 
 type CasbinRule struct {
 	ID    int
-	Ptype *string
+	PType *string `gorm:"column:ptype"`
 	V0    *string
 	V1    *string
 	V2    *string
@@ -30,8 +30,8 @@ func stringToPointer(str string) *string {
 
 func generateCasbinRules() error {
 	rules := []CasbinRule{
-		{Ptype: stringToPointer("p"), V0: stringToPointer("管理员"), V1: stringToPointer("*"), V2: stringToPointer("GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD|TRACE")},
-		{Ptype: stringToPointer("p"), V0: stringToPointer("公司级"), V1: stringToPointer("/user/*"), V2: stringToPointer("GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD|TRACE")},
+		{PType: stringToPointer("p"), V0: stringToPointer("管理员"), V1: stringToPointer("*"), V2: stringToPointer("GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD|TRACE")},
+		{PType: stringToPointer("p"), V0: stringToPointer("公司级"), V1: stringToPointer("/user/*"), V2: stringToPointer("GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD|TRACE")},
 	}
 	for _, rule := range rules {
 		err := global.DB.FirstOrCreate(&CasbinRule{}, &rule).Error

@@ -11,7 +11,7 @@ import (
 // Init 初始化路由器,最终返回*gin.Engine类型，给main调用
 func Init() *gin.Engine {
 	//设置运行模式
-	gin.SetMode(global.Config.APPConfig.AppMode)
+	gin.SetMode(global.Config.AppConfig.AppMode)
 	fmt.Println("当前运行模式为：", gin.Mode())
 
 	engine := gin.New()

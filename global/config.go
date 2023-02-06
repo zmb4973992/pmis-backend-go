@@ -22,19 +22,18 @@ var (
 
 // 这层只是中间的汇总层，只是包内引用、不展示，所以小写
 type config struct {
-	APPConfig
+	AppConfig
 	DBConfig
 	JWTConfig
 	LogConfig
 	UploadConfig
 	EmailConfig
 	PagingConfig
-	SqlConfig
 	RateLimitConfig
 }
 
-type APPConfig struct {
-	AppMode  string
+type AppConfig struct {
+	AppMode  string `yaml:"app-mode"`
 	HttpPort string
 }
 
@@ -78,10 +77,6 @@ type PagingConfig struct {
 	MaxPageSize     int
 }
 
-type SqlConfig struct {
-	SqlStatement string
-}
-
 type RateLimitConfig struct {
 	Limit float64
 	Burst int
@@ -94,22 +89,24 @@ func InitConfig() {
 	if err := v.ReadInConfig(); err != nil {
 		panic(fmt.Errorf("Config file error: %w \n", err))
 	}
+
 	//配置文件热更新
 	v.OnConfigChange(func(e fsnotify.Event) {
 		fmt.Println("配置文件已修改:", e.Name)
 		loadConfig()
 	})
+
 	v.WatchConfig()
 	loadConfig()
 }
 
 func loadConfig() {
-	Config.APPConfig.AppMode = v.GetString("app.app-mode")
+	Config.AppConfig.AppMode = v.GetString("app.app-mode")
 	allowedAppMode := []string{"debug", "test", "release"}
-	if !isInSlice(Config.APPConfig.AppMode, allowedAppMode) {
-		Config.APPConfig.AppMode = "debug"
+	if !isInSlice(Config.AppConfig.AppMode, allowedAppMode) {
+		Config.AppConfig.AppMode = "debug"
 	}
-	Config.APPConfig.HttpPort = v.GetString("app.http-port")
+	Config.AppConfig.HttpPort = v.GetString("app.http-port")
 
 	Config.DBConfig.DbHost = v.GetString("database.db-host")
 	Config.DBConfig.DbPort = v.GetString("database.db-port")
