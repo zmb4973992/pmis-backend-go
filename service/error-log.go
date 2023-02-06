@@ -48,7 +48,7 @@ type ErrorLogDelete struct {
 }
 
 type ErrorLogGetList struct {
-	ListInput
+	dto.ListInput
 
 	DetailInclude string `json:"detail_include,omitempty" `
 	Date          string `json:"date,omitempty"`

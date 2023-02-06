@@ -44,12 +44,12 @@ type DictionaryItemDelete struct {
 }
 
 type DictionaryItemGetArray struct {
-	ListInput
+	dto.ListInput
 	DictionaryTypeID int `json:"dictionary_type_id,omitempty"`
 }
 
 type DictionaryItemGetList struct {
-	ListInput
+	dto.ListInput
 	DictionaryTypeID int `json:"dictionary_type_id,omitempty"`
 }
 

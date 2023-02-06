@@ -42,12 +42,12 @@ type DictionaryTypeDelete struct {
 }
 
 type DictionaryTypeGetArray struct {
-	ListInput
+	dto.ListInput
 	NameInclude string `json:"name_include,omitempty"`
 }
 
 type DictionaryTypeGetList struct {
-	ListInput
+	dto.ListInput
 	NameInclude string `json:"name_include,omitempty"`
 }
 

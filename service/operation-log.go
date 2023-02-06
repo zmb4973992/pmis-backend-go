@@ -26,7 +26,7 @@ type OperationLogDelete struct {
 }
 
 type OperationLogGetList struct {
-	ListInput
+	dto.ListInput
 	UserID int `json:"user_id,omitempty"`
 }
 

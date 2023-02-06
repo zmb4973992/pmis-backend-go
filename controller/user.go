@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service"
@@ -15,20 +14,34 @@ import (
 
 type user struct{}
 
+func Login(c *gin.Context) {
+	var param service.UserLogin
+	err := c.ShouldBindJSON(&param)
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		c.JSON(http.StatusOK, response.Fail(util.ErrorInvalidJSONParameters))
+		return
+	}
+	res := param.UserLogin()
+	c.JSON(http.StatusOK, res)
+}
+
 func (*user) Get(c *gin.Context) {
-	userID, err := strconv.Atoi(c.Param("user-id"))
+	var param service.UserGet
+	var err error
+	param.ID, err = strconv.Atoi(c.Param("user-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.User.Get(userID)
+	res := param.Get()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*user) Create(c *gin.Context) {
-	var param dto.UserCreate
+	var param service.UserCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -45,12 +58,12 @@ func (*user) Create(c *gin.Context) {
 		param.LastModifier = userID
 	}
 
-	res := service.User.Create(param)
+	res := param.Create()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*user) Update(c *gin.Context) {
-	var param dto.UserUpdate
+	var param service.UserUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -73,12 +86,12 @@ func (*user) Update(c *gin.Context) {
 		param.LastModifier = userID.(int)
 	}
 
-	res := service.User.Update(param)
+	res := param.Update()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*user) Delete(c *gin.Context) {
-	var param dto.UserDelete
+	var param service.UserDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("user-id"))
 	if err != nil {
@@ -94,12 +107,12 @@ func (*user) Delete(c *gin.Context) {
 		userID := tempUserID.(int)
 		param.Deleter = userID
 	}
-	res := service.User.Delete(param)
+	res := param.Delete()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*user) List(c *gin.Context) {
-	var param dto.UserList
+	var param service.UserGetList
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
@@ -111,11 +124,12 @@ func (*user) List(c *gin.Context) {
 		return
 	}
 
-	res := service.User.List(param)
+	res := param.GetList()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*user) GetByToken(c *gin.Context) {
+	var param service.UserGet
 	//通过中间件，设定header必须带有token才能访问
 	//header里有token后，中间件会自动在context里添加user_id属性，详见自定义的中间件
 	tempUserID, exists := c.Get("user_id")
@@ -124,7 +138,7 @@ func (*user) GetByToken(c *gin.Context) {
 			response.Fail(util.ErrorAccessTokenInvalid))
 		return
 	}
-	userID := tempUserID.(int)
-	res := service.User.Get(userID)
+	param.ID = tempUserID.(int)
+	res := param.Get()
 	c.JSON(http.StatusOK, res)
 }

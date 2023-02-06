@@ -38,8 +38,8 @@ type DepartmentDelete struct {
 }
 
 type DepartmentGetArray struct {
-	ListInput
-	AuthInput
+	dto.ListInput
+	dto.AuthInput
 	SuperiorID int    `json:"superior_id,omitempty"`
 	LevelName  string `json:"level_name,omitempty"`
 	Name       string `json:"name,omitempty"`
@@ -47,8 +47,8 @@ type DepartmentGetArray struct {
 }
 
 type DepartmentGetList struct {
-	ListInput
-	AuthInput
+	dto.ListInput
+	dto.AuthInput
 	SuperiorID int    `json:"superior_id,omitempty"`
 	LevelName  string `json:"level_name,omitempty"`
 	Name       string `json:"name,omitempty"`

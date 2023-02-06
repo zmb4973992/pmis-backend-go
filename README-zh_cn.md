@@ -5,4 +5,6 @@
 
 [like-admin](https://gitee.com/likeadmin/likeadmin_go)
 
+[zendea](https://github.com/zendea/zendea)
+
 非常感谢以上作者，你们的代码给了我很大的启发和指引，感恩！

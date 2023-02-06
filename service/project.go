@@ -57,16 +57,16 @@ type ProjectDelete struct {
 }
 
 type ProjectGetList struct {
-	ListInput
-	AuthInput
+	dto.ListInput
+	dto.AuthInput
 	ProjectNameLike    string `json:"project_name_like,omitempty"` //包含项目全称和项目简称
 	DepartmentNameLike string `json:"department_name_like,omitempty"`
 	DepartmentIDIn     []int  `json:"department_id_in"`
 }
 
 type ProjectGetArray struct {
-	ListInput
-	AuthInput
+	dto.ListInput
+	dto.AuthInput
 	ProjectNameLike    string `json:"project_name_like,omitempty"` //包含项目全称和项目简称
 	DepartmentNameLike string `json:"department_name_like,omitempty"`
 	DepartmentIDIn     []int  `json:"department_id_in"`

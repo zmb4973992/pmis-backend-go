@@ -6,14 +6,98 @@ import (
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
+	"pmis-backend-go/util/jwt"
 )
 
-type user struct{}
+//以下为入参
+//有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
-func (*user) Get(userID int) response.Common {
-	var result dto.UserOutput
+type UserLogin struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
+type UserGet struct {
+	ID int
+}
+
+type UserCreate struct {
+	Creator           int
+	LastModifier      int
+	Username          string `json:"username" binding:"required"`
+	Password          string `json:"password" binding:"required"`
+	FullName          string `json:"full_name,omitempty"`           //全名
+	EmailAddress      string `json:"email_address,omitempty"`       //邮箱地址
+	IsValid           *bool  `json:"is_valid"`                      //是否有效
+	MobilePhoneNumber string `json:"mobile_phone_number,omitempty"` //手机号
+	EmployeeNumber    string `json:"employee_number,omitempty"`     //工号
+}
+
+//指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
+//如果指针字段为空或0，那么数据库相应字段会改为null；
+//如果指针字段没传，那么数据库不会修改该字段
+
+type UserUpdate struct {
+	LastModifier      int
+	ID                int
+	FullName          *string `json:"full_name"`           //全名
+	EmailAddress      *string `json:"email_address"`       //邮箱地址
+	IsValid           *bool   `json:"is_valid"`            //是否有效
+	MobilePhoneNumber *string `json:"mobile_phone_number"` //手机号
+	EmployeeNumber    *string `json:"employee_number"`     //工号
+}
+
+type UserDelete struct {
+	Deleter int
+	ID      int
+}
+
+type UserGetList struct {
+	dto.ListInput
+	IsValid         *bool  `json:"is_valid"`
+	UsernameInclude string `json:"username_include,omitempty"`
+}
+
+//以下为出参
+
+type UserOutput struct {
+	Creator      *int `json:"creator" gorm:"creator"`
+	LastModifier *int `json:"last_modifier" gorm:"last_modifier"`
+	ID           int  `json:"id" gorm:"id"`
+
+	Username          string  `json:"username" gorm:"username"`                       //用户名
+	FullName          *string `json:"full_name" gorm:"full_name"`                     //全名
+	EmailAddress      *string `json:"email_address" gorm:"email_address"`             //邮箱地址
+	IsValid           *bool   `json:"is_valid" gorm:"is_valid"`                       //是否有效
+	MobilePhoneNumber *string `json:"mobile_phone_number" gorm:"mobile_phone_number"` //手机号
+	EmployeeNumber    *string `json:"employee_number" gorm:"employee_number"`         //工号
+}
+
+func (u *UserLogin) UserLogin() response.Common {
+	var record model.User
+	//根据入参的用户名，从数据库取出记录赋值给user
+	err := global.DB.Where("username=?", u.Username).First(&record).Error
+	//如果没有找到记录
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return response.Fail(util.ErrorInvalidUsernameOrPassword)
+	}
+	//如果密码错误
+	if util.CheckPassword(u.Password, record.Password) == false {
+		return response.Fail(util.ErrorInvalidUsernameOrPassword)
+	}
+	//账号密码都正确时，生成token
+	token := jwt.GenerateToken(record.ID)
+	return response.SucceedWithData(
+		map[string]any{
+			"access_token": token,
+		})
+}
+
+func (u *UserGet) Get() response.Common {
+	var result UserOutput
 	err := global.DB.Model(model.User{}).
-		Where("id = ?", userID).First(&result).Error
+		Where("id = ?", u.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorRecordNotFound)
@@ -21,18 +105,18 @@ func (*user) Get(userID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (*user) Create(paramIn dto.UserCreate) response.Common {
+func (u *UserCreate) Create() response.Common {
 	var paramOut model.User
-	if paramIn.Creator > 0 {
-		paramOut.Creator = &paramIn.Creator
+	if u.Creator > 0 {
+		paramOut.Creator = &u.Creator
 	}
 
-	if paramIn.LastModifier > 0 {
-		paramOut.LastModifier = &paramIn.LastModifier
+	if u.LastModifier > 0 {
+		paramOut.LastModifier = &u.LastModifier
 	}
 
-	paramOut.Username = paramIn.Username
-	encryptedPassword, err := util.Encrypt(paramIn.Password)
+	paramOut.Username = u.Username
+	encryptedPassword, err := util.Encrypt(u.Password)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToEncrypt)
@@ -40,23 +124,23 @@ func (*user) Create(paramIn dto.UserCreate) response.Common {
 
 	paramOut.Password = encryptedPassword
 
-	if paramIn.IsValid != nil {
-		paramOut.IsValid = paramIn.IsValid
+	if u.IsValid != nil {
+		paramOut.IsValid = u.IsValid
 	}
 
-	if paramIn.FullName != "" {
-		paramOut.FullName = &paramIn.FullName
+	if u.FullName != "" {
+		paramOut.FullName = &u.FullName
 	}
 
-	if paramIn.EmailAddress != "" {
-		paramOut.EmailAddress = &paramIn.EmailAddress
+	if u.EmailAddress != "" {
+		paramOut.EmailAddress = &u.EmailAddress
 	}
 
-	if paramIn.MobilePhoneNumber != "" {
-		paramOut.MobilePhoneNumber = &paramIn.MobilePhoneNumber
+	if u.MobilePhoneNumber != "" {
+		paramOut.MobilePhoneNumber = &u.MobilePhoneNumber
 	}
-	if paramIn.EmployeeNumber != "" {
-		paramOut.EmployeeNumber = &paramIn.EmployeeNumber
+	if u.EmployeeNumber != "" {
+		paramOut.EmployeeNumber = &u.EmployeeNumber
 	}
 
 	err = global.DB.Create(&paramOut).Error
@@ -68,44 +152,44 @@ func (*user) Create(paramIn dto.UserCreate) response.Common {
 	return response.Succeed()
 }
 
-func (*user) Update(paramIn dto.UserUpdate) response.Common {
+func (u *UserUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if paramIn.LastModifier > 0 {
-		paramOut["last_modifier"] = paramIn.LastModifier
+	if u.LastModifier > 0 {
+		paramOut["last_modifier"] = u.LastModifier
 	}
 
-	if paramIn.FullName != nil {
-		if *paramIn.FullName != "" {
-			paramOut["full_name"] = paramIn.FullName
+	if u.FullName != nil {
+		if *u.FullName != "" {
+			paramOut["full_name"] = u.FullName
 		} else {
 			paramOut["full_name"] = nil
 		}
 	}
 
-	if paramIn.EmailAddress != nil {
-		if *paramIn.EmailAddress != "" {
-			paramOut["email_address"] = paramIn.EmailAddress
+	if u.EmailAddress != nil {
+		if *u.EmailAddress != "" {
+			paramOut["email_address"] = u.EmailAddress
 		} else {
 			paramOut["email_address"] = nil
 		}
 	}
 
-	if paramIn.IsValid != nil {
-		paramOut["is_valid"] = paramIn.IsValid
+	if u.IsValid != nil {
+		paramOut["is_valid"] = u.IsValid
 	}
 
-	if paramIn.MobilePhoneNumber != nil {
-		if *paramIn.MobilePhoneNumber != "" {
-			paramOut["mobile_phone_number"] = paramIn.MobilePhoneNumber
+	if u.MobilePhoneNumber != nil {
+		if *u.MobilePhoneNumber != "" {
+			paramOut["mobile_phone_number"] = u.MobilePhoneNumber
 		} else {
 			paramOut["mobile_phone_number"] = nil
 		}
 	}
 
-	if paramIn.EmployeeNumber != nil {
-		if *paramIn.EmployeeNumber != "" {
-			paramOut["employee_number"] = paramIn.EmployeeNumber
+	if u.EmployeeNumber != nil {
+		if *u.EmployeeNumber != "" {
+			paramOut["employee_number"] = u.EmployeeNumber
 		} else {
 			paramOut["employee_number"] = nil
 		}
@@ -118,7 +202,7 @@ func (*user) Update(paramIn dto.UserUpdate) response.Common {
 		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.User{}).Where("id = ?", paramIn.ID).
+	err := global.DB.Model(&model.User{}).Where("id = ?", u.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -128,12 +212,12 @@ func (*user) Update(paramIn dto.UserUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (*user) Delete(paramIn dto.UserDelete) response.Common {
+func (u *UserDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.User
-	global.DB.Where("id = ?", paramIn.ID).Find(&record)
-	record.Deleter = &paramIn.Deleter
-	err := global.DB.Where("id = ?", paramIn.ID).Delete(&record).Error
+	global.DB.Where("id = ?", u.ID).Find(&record)
+	record.Deleter = &u.Deleter
+	err := global.DB.Where("id = ?", u.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -142,17 +226,17 @@ func (*user) Delete(paramIn dto.UserDelete) response.Common {
 	return response.Succeed()
 }
 
-func (*user) List(paramIn dto.UserList) response.List {
+func (u *UserGetList) GetList() response.List {
 	db := global.DB.Model(&model.User{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if paramIn.IsValid != nil {
-		db = db.Where("is_valid = ?", *paramIn.IsValid)
+	if u.IsValid != nil {
+		db = db.Where("is_valid = ?", *u.IsValid)
 	}
 
-	if paramIn.UsernameInclude != "" {
-		db = db.Where("username like ?", "%"+paramIn.UsernameInclude+"%")
+	if u.UsernameInclude != "" {
+		db = db.Where("username like ?", "%"+u.UsernameInclude+"%")
 	}
 
 	// count
@@ -160,8 +244,8 @@ func (*user) List(paramIn dto.UserList) response.List {
 	db.Count(&count)
 
 	//Order
-	orderBy := paramIn.SortingInput.OrderBy
-	desc := paramIn.SortingInput.Desc
+	orderBy := u.SortingInput.OrderBy
+	desc := u.SortingInput.Desc
 	//如果排序字段为空
 	if orderBy == "" {
 		//如果要求降序排列
@@ -184,13 +268,13 @@ func (*user) List(paramIn dto.UserList) response.List {
 
 	//limit
 	page := 1
-	if paramIn.PagingInput.Page > 0 {
-		page = paramIn.PagingInput.Page
+	if u.PagingInput.Page > 0 {
+		page = u.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if paramIn.PagingInput.PageSize > 0 &&
-		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = paramIn.PagingInput.PageSize
+	if u.PagingInput.PageSize > 0 &&
+		u.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = u.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
@@ -199,7 +283,7 @@ func (*user) List(paramIn dto.UserList) response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []dto.UserOutput
+	var data []UserOutput
 	db.Model(&model.User{}).Find(&data)
 
 	if len(data) == 0 {

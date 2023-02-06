@@ -8,12 +8,66 @@ import (
 	"pmis-backend-go/util"
 )
 
-type relatedParty struct{}
+//以下为入参
+//有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
-func (*relatedParty) Get(relatedPartyID int) response.Common {
-	var result dto.RelatedPartyOutput
+type RelatedPartyGet struct {
+	ID int
+}
+
+type RelatedPartyCreate struct {
+	Creator      int
+	LastModifier int
+
+	ChineseName             string `json:"chinese_name,omitempty"`
+	EnglishName             string `json:"english_name,omitempty"`
+	Address                 string `json:"address,omitempty"`
+	UniformSocialCreditCode string `json:"uniform_social_credit_code,omitempty"` //统一社会信用代码
+	Telephone               string `json:"telephone,omitempty"`
+}
+
+//指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
+//如果指针字段为空或0，那么数据库相应字段会改为null；
+//如果指针字段没传，那么数据库不会修改该字段
+
+type RelatedPartyUpdate struct {
+	LastModifier int
+	ID           int
+
+	ChineseName             *string `json:"chinese_name"`
+	EnglishName             *string `json:"english_name"`
+	Address                 *string `json:"address"`
+	UniformSocialCreditCode *string `json:"uniform_social_credit_code"` //统一社会信用代码
+	Telephone               *string `json:"telephone"`
+}
+
+type RelatedPartyDelete struct {
+	Deleter int
+	ID      int
+}
+
+type RelatedPartyGetList struct {
+	dto.ListInput
+
+	ChineseNameInclude string `json:"chinese_name_include,omitempty"`
+	EnglishNameInclude string `json:"english_name_include,omitempty"`
+}
+
+//以下为出参
+
+type RelatedPartyOutput struct {
+	Creator      *int    `json:"creator" gorm:"creator"`
+	LastModifier *int    `json:"last_modifier" gorm:"last_modifier"`
+	ID           int     `json:"id" gorm:"id"`
+	Name         string  `json:"name" gorm:"name"`       //名称
+	Sort         *int    `json:"sort" gorm:"sort"`       //顺序值
+	Remarks      *string `json:"remarks" gorm:"remarks"` //备注
+}
+
+func (r *RelatedPartyGet) Get() response.Common {
+	var result RelatedPartyOutput
 	err := global.DB.Model(&model.RelatedParty{}).
-		Where("id = ?", relatedPartyID).First(&result).Error
+		Where("id = ?", r.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorRecordNotFound)
@@ -21,34 +75,34 @@ func (*relatedParty) Get(relatedPartyID int) response.Common {
 	return response.SucceedWithData(result)
 }
 
-func (*relatedParty) Create(paramIn dto.RelatedPartyCreate) response.Common {
+func (r *RelatedPartyCreate) Create() response.Common {
 	var paramOut model.RelatedParty
-	if paramIn.Creator > 0 {
-		paramOut.Creator = &paramIn.Creator
+	if r.Creator > 0 {
+		paramOut.Creator = &r.Creator
 	}
 
-	if paramIn.LastModifier > 0 {
-		paramOut.LastModifier = &paramIn.LastModifier
+	if r.LastModifier > 0 {
+		paramOut.LastModifier = &r.LastModifier
 	}
 
-	if paramIn.ChineseName != "" {
-		paramOut.ChineseName = &paramIn.ChineseName
+	if r.ChineseName != "" {
+		paramOut.ChineseName = &r.ChineseName
 	}
 
-	if paramIn.EnglishName != "" {
-		paramOut.EnglishName = &paramIn.EnglishName
+	if r.EnglishName != "" {
+		paramOut.EnglishName = &r.EnglishName
 	}
 
-	if paramIn.Address != "" {
-		paramOut.Address = &paramIn.Address
+	if r.Address != "" {
+		paramOut.Address = &r.Address
 	}
 
-	if paramIn.UniformSocialCreditCode != "" {
-		paramOut.UniformSocialCreditCode = &paramIn.UniformSocialCreditCode
+	if r.UniformSocialCreditCode != "" {
+		paramOut.UniformSocialCreditCode = &r.UniformSocialCreditCode
 	}
 
-	if paramIn.Telephone != "" {
-		paramOut.Telephone = &paramIn.Telephone
+	if r.Telephone != "" {
+		paramOut.Telephone = &r.Telephone
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
@@ -71,48 +125,48 @@ func (*relatedParty) Create(paramIn dto.RelatedPartyCreate) response.Common {
 	return response.Succeed()
 }
 
-func (*relatedParty) Update(paramIn dto.RelatedPartyUpdate) response.Common {
+func (r *RelatedPartyUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if paramIn.LastModifier > 0 {
-		paramOut["last_modifier"] = paramIn.LastModifier
+	if r.LastModifier > 0 {
+		paramOut["last_modifier"] = r.LastModifier
 	}
 
-	if paramIn.ChineseName != nil {
-		if *paramIn.ChineseName != "" {
-			paramOut["chinese_name"] = paramIn.ChineseName
+	if r.ChineseName != nil {
+		if *r.ChineseName != "" {
+			paramOut["chinese_name"] = r.ChineseName
 		} else {
 			paramOut["chinese_name"] = nil
 		}
 	}
 
-	if paramIn.EnglishName != nil {
-		if *paramIn.EnglishName != "" {
-			paramOut["english_name"] = paramIn.EnglishName
+	if r.EnglishName != nil {
+		if *r.EnglishName != "" {
+			paramOut["english_name"] = r.EnglishName
 		} else {
 			paramOut["english_name"] = nil
 		}
 	}
 
-	if paramIn.Address != nil {
-		if *paramIn.Address != "" {
-			paramOut["address"] = paramIn.Address
+	if r.Address != nil {
+		if *r.Address != "" {
+			paramOut["address"] = r.Address
 		} else {
 			paramOut["address"] = nil
 		}
 	}
 
-	if paramIn.UniformSocialCreditCode != nil {
-		if *paramIn.UniformSocialCreditCode != "" {
-			paramOut["uniform_social_credit_code"] = paramIn.UniformSocialCreditCode
+	if r.UniformSocialCreditCode != nil {
+		if *r.UniformSocialCreditCode != "" {
+			paramOut["uniform_social_credit_code"] = r.UniformSocialCreditCode
 		} else {
 			paramOut["uniform_social_credit_code"] = nil
 		}
 	}
 
-	if paramIn.Telephone != nil {
-		if *paramIn.Telephone != "" {
-			paramOut["telephone"] = paramIn.Telephone
+	if r.Telephone != nil {
+		if *r.Telephone != "" {
+			paramOut["telephone"] = r.Telephone
 		} else {
 			paramOut["telephone"] = nil
 		}
@@ -125,7 +179,7 @@ func (*relatedParty) Update(paramIn dto.RelatedPartyUpdate) response.Common {
 		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.RelatedParty{}).Where("id = ?", paramIn.ID).
+	err := global.DB.Model(&model.RelatedParty{}).Where("id = ?", r.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -135,12 +189,12 @@ func (*relatedParty) Update(paramIn dto.RelatedPartyUpdate) response.Common {
 	return response.Succeed()
 }
 
-func (*relatedParty) Delete(paramIn dto.RelatedPartyDelete) response.Common {
+func (r *RelatedPartyDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.RelatedParty
-	global.DB.Where("id = ?", paramIn.ID).Find(&record)
-	record.Deleter = &paramIn.Deleter
-	err := global.DB.Where("id = ?", paramIn.ID).Delete(&record).Error
+	global.DB.Where("id = ?", r.ID).Find(&record)
+	record.Deleter = &r.Deleter
+	err := global.DB.Where("id = ?", r.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -149,17 +203,17 @@ func (*relatedParty) Delete(paramIn dto.RelatedPartyDelete) response.Common {
 	return response.Succeed()
 }
 
-func (*relatedParty) GetList(paramIn dto.RelatedPartyList) response.List {
+func (r *RelatedPartyGetList) GetList() response.List {
 	db := global.DB.Model(&model.RelatedParty{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if paramIn.ChineseNameInclude != "" {
-		db = db.Where("chinese_name like ?", "%"+paramIn.ChineseNameInclude+"%")
+	if r.ChineseNameInclude != "" {
+		db = db.Where("chinese_name like ?", "%"+r.ChineseNameInclude+"%")
 	}
 
-	if paramIn.EnglishNameInclude != "" {
-		db = db.Where("english_name like ?", "%"+paramIn.EnglishNameInclude+"%")
+	if r.EnglishNameInclude != "" {
+		db = db.Where("english_name like ?", "%"+r.EnglishNameInclude+"%")
 	}
 
 	// count
@@ -167,8 +221,8 @@ func (*relatedParty) GetList(paramIn dto.RelatedPartyList) response.List {
 	db.Count(&count)
 
 	//Order
-	orderBy := paramIn.SortingInput.OrderBy
-	desc := paramIn.SortingInput.Desc
+	orderBy := r.SortingInput.OrderBy
+	desc := r.SortingInput.Desc
 	//如果排序字段为空
 	if orderBy == "" {
 		//如果要求降序排列
@@ -191,13 +245,13 @@ func (*relatedParty) GetList(paramIn dto.RelatedPartyList) response.List {
 
 	//limit
 	page := 1
-	if paramIn.PagingInput.Page > 0 {
-		page = paramIn.PagingInput.Page
+	if r.PagingInput.Page > 0 {
+		page = r.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if paramIn.PagingInput.PageSize > 0 &&
-		paramIn.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = paramIn.PagingInput.PageSize
+	if r.PagingInput.PageSize > 0 &&
+		r.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = r.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
@@ -206,7 +260,7 @@ func (*relatedParty) GetList(paramIn dto.RelatedPartyList) response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []dto.RelatedPartyOutput
+	var data []RelatedPartyOutput
 	db.Model(&model.RelatedParty{}).Find(&data)
 
 	if len(data) == 0 {

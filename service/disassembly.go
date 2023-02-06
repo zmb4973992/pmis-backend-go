@@ -62,7 +62,7 @@ type DisassemblyDeleteWithSubitems struct {
 }
 
 type DisassemblyGetList struct {
-	ListInput
+	dto.ListInput
 	NameInclude string `json:"name_include,omitempty"`
 
 	ProjectID  int  `json:"project_id"`

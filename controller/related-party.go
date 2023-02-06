@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service"
@@ -16,19 +15,21 @@ import (
 type relatedParty struct{}
 
 func (*relatedParty) Get(c *gin.Context) {
-	relatedPartyID, err := strconv.Atoi(c.Param("related-party-id"))
+	var param service.RelatedPartyGet
+	var err error
+	param.ID, err = strconv.Atoi(c.Param("related-party-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
 			response.Fail(util.ErrorInvalidURIParameters))
 		return
 	}
-	res := service.RelatedParty.Get(relatedPartyID)
+	res := param.Get()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*relatedParty) Create(c *gin.Context) {
-	var param dto.RelatedPartyCreate
+	var param service.RelatedPartyCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -45,12 +46,12 @@ func (*relatedParty) Create(c *gin.Context) {
 		param.LastModifier = userID
 	}
 
-	res := service.RelatedParty.Create(param)
+	res := param.Create()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*relatedParty) Update(c *gin.Context) {
-	var param dto.RelatedPartyUpdate
+	var param service.RelatedPartyUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -73,12 +74,12 @@ func (*relatedParty) Update(c *gin.Context) {
 		param.LastModifier = userID.(int)
 	}
 
-	res := service.RelatedParty.Update(param)
+	res := param.Update()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*relatedParty) Delete(c *gin.Context) {
-	var param dto.RelatedPartyDelete
+	var param service.RelatedPartyDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("related-party-id"))
 	if err != nil {
@@ -94,12 +95,12 @@ func (*relatedParty) Delete(c *gin.Context) {
 		userID := tempUserID.(int)
 		param.Deleter = userID
 	}
-	res := service.RelatedParty.Delete(param)
+	res := param.Delete()
 	c.JSON(http.StatusOK, res)
 }
 
 func (*relatedParty) GetList(c *gin.Context) {
-	var param dto.RelatedPartyList
+	var param service.RelatedPartyGetList
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
@@ -111,6 +112,6 @@ func (*relatedParty) GetList(c *gin.Context) {
 		return
 	}
 
-	res := service.RelatedParty.GetList(param)
+	res := param.GetList()
 	c.JSON(http.StatusOK, res)
 }
