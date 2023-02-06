@@ -22,7 +22,8 @@ const (
 	ErrorPasswordIncorrect
 	ErrorAccessTokenInvalid
 	ErrorAccessTokenNotFound
-	ErrorPermissionDenied
+	ErrorRoleInfoNotFound
+	ErrorRolePermissionDenied
 	ErrorNeedAdminPrivilege
 	ErrorFailToEncrypt
 	ErrorInvalidRequest
@@ -32,6 +33,7 @@ const (
 	ErrorFieldsToBeCreatedNotFound
 	ErrorFieldsToBeUpdatedNotFound
 	ErrorSortingFieldDoesNotExist
+	ErrorUserIDDoesNotExist
 )
 
 // Message 自定义错误的message
@@ -56,11 +58,13 @@ var Message = map[int]string{
 	ErrorInvalidUsernameOrPassword: "用户名或密码错误",
 	ErrorUsernameExist:             "用户名已存在",
 	ErrorPasswordIncorrect:         "密码错误",
+	ErrorRoleInfoNotFound:          "未找到用户的角色信息",
 
-	ErrorAccessTokenInvalid:  "access_token无效",
-	ErrorAccessTokenNotFound: "缺少access_token",
-	ErrorPermissionDenied:    "权限不足",
-	ErrorNeedAdminPrivilege:  "权限不足，该操作需要管理员权限",
+	ErrorAccessTokenInvalid:   "access_token无效",
+	ErrorAccessTokenNotFound:  "缺少access_token",
+	ErrorRolePermissionDenied: "用户所属角色的权限不足",
+	ErrorNeedAdminPrivilege:   "权限不足，该操作需要管理员权限",
+	ErrorUserIDDoesNotExist:   "用户ID不存在",
 
 	ErrorFailToEncrypt:    "加密失败",
 	ErrorInvalidRequest:   "请求路径错误",

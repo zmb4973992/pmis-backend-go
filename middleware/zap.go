@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
-// ZapLogger 接管gin框架默认的日志，用作中间件
-func ZapLogger() gin.HandlerFunc {
+// Logger 接管gin框架默认的日志，用作中间件
+func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		start := time.Now()
 		path := c.Request.URL.Path

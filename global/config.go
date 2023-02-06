@@ -3,7 +3,6 @@ package global
 import (
 	"fmt"
 	"github.com/fsnotify/fsnotify"
-	"github.com/go-playground/validator/v10"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -19,7 +18,6 @@ var (
 	// https://pkg.go.dev/go.uber.org/zap#SugaredLogger
 	SugaredLogger *zap.SugaredLogger
 	v             = viper.New()
-	Validate      = validator.New()
 )
 
 // 这层只是中间的汇总层，只是包内引用、不展示，所以小写

@@ -23,14 +23,12 @@ func Init() *gin.Engine {
 	engine.NoRoute(controller.NoRoute.NoRoute)
 
 	//全局中间件
-	engine.Use(middleware.ZapLogger(), gin.Recovery(), middleware.Cors())
+	engine.Use(middleware.Logger(), gin.Recovery(), middleware.Cors())
 
-	engine.POST("/api/login", controller.Login)                //用户登录
-	engine.POST("/api/user", controller.User.Create)           //添加用户
-	engine.POST("/upload-single", controller.UploadSingle)     //测试上传单个
-	engine.POST("/upload-multiple", controller.UploadMultiple) //测试上传多个
+	engine.POST("/api/login", middleware.RateLimit(), controller.Login)      //用户登录
+	engine.POST("/api/user", middleware.RateLimit(), controller.User.Create) //添加用户
 
-	engine.GET("/api/validate-token/:token", controller.Token.Validate) //单独校验token是否有效
+	engine.GET("/api/validate-token/:token", middleware.RateLimit(), controller.Token.Validate) //单独校验token是否有效
 
 	//依次加载所有的路由组，以下都需要jwt验证
 	api := engine.Group("/api")
@@ -38,11 +36,17 @@ func Init() *gin.Engine {
 	{
 		user := api.Group("/user")
 		{
-			user.GET("/:user-id", middleware.NeedAuth(), controller.User.Get) //获取用户详情
-			user.GET("", controller.User.GetByToken)                          //根据header里的token获取用户详情
-			user.PUT("/:user-id", controller.User.Update)                     //修改用户（目前为全功能，考虑改成：修改用户基本信息）
-			user.DELETE("/:user-id", controller.User.Delete)                  //删除用户
-			user.POST("/list", controller.User.List)                          //获取用户列表
+			user.GET("/:user-id", controller.User.Get)                              //获取用户详情
+			user.GET("", controller.User.GetByToken)                                //根据header里的token获取用户详情
+			user.PATCH("/:user-id", controller.User.Update)                         //修改用户（目前为全功能，考虑改成：修改用户基本信息）
+			user.DELETE("/:user-id", middleware.NeedAuth(), controller.User.Delete) //删除用户
+			user.POST("/list", controller.User.List)                                //获取用户列表
+		}
+		upload := api.Group("/upload")
+		{
+			upload.POST("/single", controller.UploadSingle)     //上传单个文件
+			upload.POST("/multiple", controller.UploadMultiple) //上传多个文件
+
 		}
 		roleAndUser := api.Group("/role-and-user")
 		{
@@ -70,7 +74,7 @@ func Init() *gin.Engine {
 		{
 			department.GET("/:department-id", controller.Department.Get)       //获取部门详情
 			department.POST("", controller.Department.Create)                  //新增部门
-			department.PUT("/:department-id", controller.Department.Update)    //修改部门
+			department.PATCH("/:department-id", controller.Department.Update)  //修改部门
 			department.DELETE("/:department-id", controller.Department.Delete) //删除部门
 			department.POST("/array", controller.Department.GetArray)          //获取部门数组
 			department.POST("/list", controller.Department.GetList)            //获取部门列表
@@ -79,7 +83,7 @@ func Init() *gin.Engine {
 		{
 			project.GET("/:project-id", controller.Project.Get)       //获取项目详情
 			project.POST("", controller.Project.Create)               //新增项目
-			project.PUT("/:project-id", controller.Project.Update)    //修改项目
+			project.PATCH("/:project-id", controller.Project.Update)  //修改项目
 			project.DELETE("/:project-id", controller.Project.Delete) //删除项目
 			project.POST("/list", controller.Project.GetList)         //获取项目列表
 		}
@@ -89,7 +93,7 @@ func Init() *gin.Engine {
 			disassembly.POST("/tree", controller.Disassembly.Tree)                                    //获取项目拆解的节点树
 			disassembly.POST("", controller.Disassembly.Create)                                       //新增项目拆解
 			disassembly.POST("/batch", controller.Disassembly.CreateInBatches)                        //批量新增项目拆解
-			disassembly.PUT("/:disassembly-id", controller.Disassembly.Update)                        //修改项目拆解
+			disassembly.PATCH("/:disassembly-id", controller.Disassembly.Update)                      //修改项目拆解
 			disassembly.DELETE("/:disassembly-id", controller.Disassembly.Delete)                     //删除项目拆解
 			disassembly.DELETE("/cascade/:disassembly-id", controller.Disassembly.DeleteWithSubitems) //删除项目拆解（子项一并删除）
 			disassembly.POST("/list", controller.Disassembly.GetList)                                 //获取项目拆解列表
@@ -104,7 +108,7 @@ func Init() *gin.Engine {
 		{
 			errorLog.GET("/:error-log-id", controller.ErrorLog.Get)       //获取错误日志详情
 			errorLog.POST("", controller.ErrorLog.Create)                 //新增错误日志
-			errorLog.PUT("/:error-log-id", controller.ErrorLog.Update)    //修改错误日志
+			errorLog.PATCH("/:error-log-id", controller.ErrorLog.Update)  //修改错误日志
 			errorLog.DELETE("/:error-log-id", controller.ErrorLog.Delete) //删除错误日志
 
 		}

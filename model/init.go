@@ -34,9 +34,7 @@ func InitDatabase() {
 		&RoleAndUser{},                //角色和用户的中间表
 		&Contract{},                   //合同
 		&Disassembly{},                //项目拆解
-		&DisassemblySnapshot{},        //项目拆解快照
 		&WorkProgress{},               //工作进度
-		&WorkProgressSnapshot{},       // 工作进度快照
 		&ActualReceiptAndPayment{},    //实际收付款
 		&PlannedReceiptAndPayment{},   //计划收付款
 		&PredictedReceiptAndPayment{}, //预测收付款
@@ -58,8 +56,6 @@ func InitDatabase() {
 
 	//生成初始数据
 	generateInitialData()
-
-	//
 }
 
 func createView() {
@@ -84,6 +80,9 @@ func generateInitialData() {
 		global.SugaredLogger.Panicln(err)
 	}
 	if err = generateDictionaryItems(); err != nil {
+		global.SugaredLogger.Panicln(err)
+	}
+	if err = generateCasbinRules(); err != nil {
 		global.SugaredLogger.Panicln(err)
 	}
 }

@@ -18,7 +18,7 @@ func UploadSingle(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, response.Common{
 		Data: gin.H{
-			"unique_filename": uniqueFilename,
+			"uuid": uniqueFilename,
 		},
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),
@@ -35,7 +35,7 @@ func UploadMultiple(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, response.Common{
 		Data: gin.H{
-			"unique_filenames": uniqueFilenames,
+			"uuid": uniqueFilenames,
 		},
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),
