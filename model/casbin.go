@@ -8,18 +8,17 @@ import "pmis-backend-go/global"
 
 type CasbinRule struct {
 	ID    int
-	PType *string `gorm:"column:ptype"`
-	V0    *string
-	V1    *string
-	V2    *string
-	V3    *string
-	V4    *string
-	V5    *string
-	V6    *string
-	V7    *string
+	PType *string `gorm:"column:ptype;type:nvarchar(100)"`
+	V0    *string `gorm:"type:nvarchar(100)"`
+	V1    *string `gorm:"type:nvarchar(100)"`
+	V2    *string `gorm:"type:nvarchar(100)"`
+	V3    *string `gorm:"type:nvarchar(100)"`
+	V4    *string `gorm:"type:nvarchar(100)"`
+	V5    *string `gorm:"type:nvarchar(100)"`
+	V6    *string `gorm:"type:nvarchar(100)"`
+	V7    *string `gorm:"type:nvarchar(100)"`
 }
 
-// TableName 修改表名
 func (*CasbinRule) TableName() string {
 	return "casbin_rule"
 }
@@ -30,8 +29,8 @@ func stringToPointer(str string) *string {
 
 func generateCasbinRules() error {
 	rules := []CasbinRule{
-		{PType: stringToPointer("p"), V0: stringToPointer("管理员"), V1: stringToPointer("*"), V2: stringToPointer("GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD|TRACE")},
-		{PType: stringToPointer("p"), V0: stringToPointer("公司级"), V1: stringToPointer("/user/*"), V2: stringToPointer("GET|POST|PUT|DELETE|PATCH|OPTIONS|HEAD|TRACE")},
+		{PType: stringToPointer("p"), V0: stringToPointer("管理员"), V1: stringToPointer("*"), V2: stringToPointer("GET|POST|PUT|DELETE|PATCH")},
+		{PType: stringToPointer("p"), V0: stringToPointer("公司级"), V1: stringToPointer("/api/user/*"), V2: stringToPointer("GET|POST|PUT|DELETE|PATCH")},
 	}
 	for _, rule := range rules {
 		err := global.DB.FirstOrCreate(&CasbinRule{}, &rule).Error

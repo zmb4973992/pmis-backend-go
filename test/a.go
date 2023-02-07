@@ -1,15 +1,17 @@
 package main
 
-import (
-	"fmt"
-	"golang.org/x/crypto/bcrypt"
-)
+import "fmt"
 
 func main() {
-	password, err := bcrypt.GenerateFromPassword([]byte("kjsdf"), 20)
-	if err != nil {
-		fmt.Println(err)
+	test1 := map[string]string{
+		"a": "aaaa",
+		"b": "bbbb",
 	}
-	fmt.Println(password)
-	fmt.Println("3kj")
+
+	test2 := map[string][]string{
+		"a": {"aaaa", "bbbb", "cccc"},
+		"b": {"aaaa", "bbbb", "cccc"},
+	}
+
+	fmt.Println(test1, test2)
 }

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/mojocn/base64Captcha"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -13,8 +14,10 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type UserLogin struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
+	Username  string `json:"username" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	CaptchaID string `json:"captcha_id"`
+	Captcha   string `json:"captcha"`
 }
 
 type UserGet struct {
@@ -71,6 +74,12 @@ type UserOutput struct {
 	IsValid           *bool   `json:"is_valid" gorm:"is_valid"`                       //是否有效
 	MobilePhoneNumber *string `json:"mobile_phone_number" gorm:"mobile_phone_number"` //手机号
 	EmployeeNumber    *string `json:"employee_number" gorm:"employee_number"`         //工号
+}
+
+func (u *UserLogin) Verify() bool {
+	store := base64Captcha.DefaultMemStore
+	permitted := store.Verify(u.CaptchaID, u.Captcha, true)
+	return permitted
 }
 
 func (u *UserLogin) UserLogin() response.Common {

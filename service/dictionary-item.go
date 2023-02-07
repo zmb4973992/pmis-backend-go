@@ -17,7 +17,7 @@ type DictionaryItemCreate struct {
 	LastModifier     int
 	DictionaryTypeID int    `json:"dictionary_type_id" binding:"required,gt=0"` //字典类型id
 	Name             string `json:"name" binding:"required"`                    //名称
-	Sort             int    `json:"sort,omitempty"`                             //顺序值
+	Sequence         int    `json:"sequence,omitempty"`                         //顺序值
 	Remarks          string `json:"remarks,omitempty"`                          //备注
 }
 
@@ -34,7 +34,7 @@ type DictionaryItemUpdate struct {
 	ID               int
 	DictionaryTypeID *int    `json:"dictionary_type_id"` //字典类型id
 	Name             *string `json:"name"`               //名称
-	Sort             *int    `json:"sort"`               //顺序值
+	Sequence         *int    `json:"sequence"`           //顺序值
 	Remarks          *string `json:"remarks"`            //备注
 }
 
@@ -61,7 +61,7 @@ type DictionaryItemOutput struct {
 	ID               int     `json:"id" gorm:"id"`
 	DictionaryTypeID int     `json:"dictionary_type_id" gorm:"dictionary_type_id"` //字典类型id
 	Name             string  `json:"name" gorm:"name"`                             //名称
-	Sort             *int    `json:"sort" gorm:"sort"`                             //顺序值
+	Sequence         *int    `json:"sequence" gorm:"sequence"`                     //顺序值
 	Remarks          *string `json:"remarks" gorm:"remarks"`                       //备注
 }
 
@@ -90,8 +90,8 @@ func (d *DictionaryItemCreate) Create() response.Common {
 
 	paramOut.Name = d.Name
 
-	if d.Sort != 0 {
-		paramOut.Sort = &d.Sort
+	if d.Sequence != 0 {
+		paramOut.Sequence = &d.Sequence
 	}
 
 	if d.Remarks != "" {
@@ -123,8 +123,8 @@ func (d *DictionaryItemCreateInBatches) CreateInBatches() response.Common {
 
 		record.Name = d.Data[i].Name
 
-		if d.Data[i].Sort != 0 {
-			record.Sort = &d.Data[i].Sort
+		if d.Data[i].Sequence != 0 {
+			record.Sequence = &d.Data[i].Sequence
 		}
 
 		if d.Data[i].Remarks != "" {
@@ -167,11 +167,11 @@ func (d *DictionaryItemUpdate) Update() response.Common {
 		}
 	}
 
-	if d.Sort != nil {
-		if *d.Sort > 0 {
-			paramOut["sort"] = d.Sort
-		} else if *d.Sort == 0 {
-			paramOut["sort"] = nil
+	if d.Sequence != nil {
+		if *d.Sequence > 0 {
+			paramOut["sequence"] = d.Sequence
+		} else if *d.Sequence == 0 {
+			paramOut["sequence"] = nil
 		} else {
 			return response.Fail(util.ErrorInvalidJSONParameters)
 		}

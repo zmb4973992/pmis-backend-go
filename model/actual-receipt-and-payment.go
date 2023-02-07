@@ -4,7 +4,7 @@ import "time"
 
 type ActualReceiptAndPayment struct {
 	BaseModel
-	ProjectID                *int       //项目id
+	ProjectID                *int       `gorm:"comment:'项目ID'"` //项目id
 	ContractID               *int       //合同id
 	FundDirection            *string    //资金方向，收款还是付款
 	NameOfTheOtherParty      *string    //对方名称

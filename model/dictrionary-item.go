@@ -6,7 +6,7 @@ type DictionaryItem struct {
 	BaseModel
 	DictionaryTypeID int     //字典类型的id
 	Name             string  //名称
-	Sort             *int    //用于排序的值
+	Sequence         *int    //用于排序的值
 	Remarks          *string //备注
 }
 

@@ -34,6 +34,8 @@ const (
 	ErrorFieldsToBeUpdatedNotFound
 	ErrorSortingFieldDoesNotExist
 	ErrorUserIDDoesNotExist
+	ErrorFailToGenerateCaptcha
+	ErrorWrongCaptcha
 )
 
 // Message 自定义错误的message
@@ -75,6 +77,8 @@ var Message = map[int]string{
 	ErrorFieldsToBeCreatedNotFound: "未找到需要新增的字段",
 	ErrorFieldsToBeUpdatedNotFound: "未找到需要更新的字段",
 	ErrorSortingFieldDoesNotExist:  "排序字段不存在",
+	ErrorFailToGenerateCaptcha:     "生成验证码失败",
+	ErrorWrongCaptcha:              "验证码错误",
 }
 
 func GetMessage(code int) string {

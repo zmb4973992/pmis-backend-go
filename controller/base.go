@@ -4,6 +4,7 @@ package controller
 type Base struct{}
 
 type controller struct {
+	captcha
 	department
 	noRoute
 	disassembly
@@ -20,6 +21,7 @@ type controller struct {
 
 var (
 	entrance        = new(controller)
+	Captcha         = entrance.captcha
 	NoRoute         = entrance.noRoute
 	Department      = entrance.department
 	Disassembly     = entrance.disassembly

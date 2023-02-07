@@ -37,14 +37,20 @@ func NeedAuth() gin.HandlerFunc {
 		object := c.Request.URL.Path //获取请求路径，casbin规则的客体参数
 		act := c.Request.Method      //获取请求方法，casbin规则的动作参数
 		enforcer, err := util.NewEnforcer()
+
 		if err != nil {
 			global.SugaredLogger.Panicln(err)
 		}
+
 		//对角色数组进行遍历
 		for _, subject := range subjects {
 			//如果角色符合casbin的规则
-			ok, _ := enforcer.Enforce(subject, object, act)
-			if ok {
+			permitted, err := enforcer.Enforce(subject, object, act)
+			if err != nil {
+				global.SugaredLogger.Errorln(err)
+				c.JSON(http.StatusOK, response.Fail(util.ErrorRolePermissionDenied))
+			}
+			if permitted {
 				c.Next()
 				return
 			}
@@ -53,5 +59,4 @@ func NeedAuth() gin.HandlerFunc {
 		c.JSON(http.StatusOK, response.Fail(util.ErrorRolePermissionDenied))
 		c.Abort()
 	}
-
 }

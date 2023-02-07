@@ -16,6 +16,7 @@ func InitDatabase() {
 	if err != nil {
 		global.SugaredLogger.Panicln(err)
 	}
+
 	//使用gorm标准格式，创建连接池
 	sqlDB, _ := global.DB.DB()
 	// Set Max Idle Connections 设置空闲连接池中连接的最大数量

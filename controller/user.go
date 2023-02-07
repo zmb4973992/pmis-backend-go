@@ -22,6 +22,13 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusOK, response.Fail(util.ErrorInvalidJSONParameters))
 		return
 	}
+
+	permitted := param.Verify()
+	if !permitted {
+		c.JSON(http.StatusOK, response.Fail(util.ErrorWrongCaptcha))
+		return
+	}
+
 	res := param.UserLogin()
 	c.JSON(http.StatusOK, res)
 }

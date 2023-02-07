@@ -167,9 +167,9 @@ func (e *ErrorLogUpdate) Update() response.Common {
 
 	if e.MinorCategory != nil {
 		if *e.MinorCategory != "" {
-			paramOut["minor-category"] = e.MinorCategory
+			paramOut["minor_category"] = e.MinorCategory
 		} else {
-			paramOut["minor-category"] = nil
+			paramOut["minor_category"] = nil
 		}
 	}
 

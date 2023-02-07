@@ -11,8 +11,6 @@ database:
   db-name: "test"
   db-username: "sa"
   db-password: "028912"
-  #绝对不传给前端的数据库字段名
-  omitted-columns: [ "password" ]
 
 jwt:
   secret-key: "e7KF3k0dj3"
@@ -60,4 +58,18 @@ rate-limit:
   #令牌桶最大容量，必须为整数
   burst: "10"
 
-#
+#数字验证码
+captcha:
+  #是否开启
+  enabled: "true"
+  #数字长度
+  digit-length: "4"
+  #图片宽度(px)
+  image-width: "100"
+  #图片高度(px)
+  image-height: "40"
+  #最大弯曲程度
+  max-skew: "0.1"
+  #背景里面小圆点的数量
+  dot-count: "10"
+

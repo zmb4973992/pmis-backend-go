@@ -30,6 +30,7 @@ type config struct {
 	EmailConfig
 	PagingConfig
 	RateLimitConfig
+	CaptchaConfig
 }
 
 type AppConfig struct {
@@ -38,13 +39,12 @@ type AppConfig struct {
 }
 
 type DBConfig struct {
-	DbHost         string
-	DbPort         string
-	DbName         string
-	DbUsername     string
-	DbPassword     string
-	DSN            string   // Data Source Name 数据库连接字符串
-	OmittedColumns []string //绝对不传给前端的数据库字段名
+	DbHost     string
+	DbPort     string
+	DbName     string
+	DbUsername string
+	DbPassword string
+	DSN        string // Data Source Name 数据库连接字符串
 }
 
 type JWTConfig struct {
@@ -82,6 +82,14 @@ type RateLimitConfig struct {
 	Burst int
 }
 
+type CaptchaConfig struct {
+	DigitLength int
+	ImageWidth  int
+	ImageHeight int
+	MaxSkew     float64
+	DotCount    int
+}
+
 func InitConfig() {
 	v.AddConfigPath("./config/") //告诉viper，配置文件的路径在哪
 	v.SetConfigName("config")    //告诉viper，配置文件的前缀是什么
@@ -116,7 +124,6 @@ func loadConfig() {
 	Config.DBConfig.DSN = "sqlserver://" + Config.DBConfig.DbUsername +
 		":" + Config.DBConfig.DbPassword + "@" + Config.DBConfig.DbHost +
 		":" + Config.DBConfig.DbPort + "?database=" + Config.DBConfig.DbName
-	Config.DBConfig.OmittedColumns = v.GetStringSlice("database.omitted-columns")
 
 	//配置里的密钥是string类型，jwt要求为[]byte类型，必须转换后才能使用
 	Config.JWTConfig.SecretKey = []byte(v.GetString("jwt.secret-key"))
@@ -141,6 +148,12 @@ func loadConfig() {
 
 	Config.RateLimitConfig.Limit = v.GetFloat64("rate-limit.limit")
 	Config.RateLimitConfig.Burst = v.GetInt("rate-limit.burst")
+
+	Config.CaptchaConfig.DigitLength = v.GetInt("captcha.digit-length")
+	Config.CaptchaConfig.ImageWidth = v.GetInt("captcha.image-width")
+	Config.CaptchaConfig.ImageHeight = v.GetInt("captcha.image-height")
+	Config.CaptchaConfig.MaxSkew = v.GetFloat64("captcha.max-skew")
+	Config.CaptchaConfig.DotCount = v.GetInt("captcha.dot-count")
 }
 
 // byte 是 uint8 的别名,rune 是 int32 的别名

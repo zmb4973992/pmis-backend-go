@@ -25,10 +25,10 @@ func Init() *gin.Engine {
 	//全局中间件
 	engine.Use(middleware.Logger(), gin.Recovery(), middleware.Cors())
 
-	engine.POST("/api/login", middleware.RateLimit(), controller.Login)      //用户登录
-	engine.POST("/api/user", middleware.RateLimit(), controller.User.Create) //添加用户
-
+	engine.POST("/api/login", middleware.RateLimit(), controller.Login)                         //用户登录
+	engine.POST("/api/user", middleware.RateLimit(), controller.User.Create)                    //添加用户
 	engine.GET("/api/validate-token/:token", middleware.RateLimit(), controller.Token.Validate) //单独校验token是否有效
+	engine.GET("/api/captcha", controller.Captcha.Get)                                          //获取验证码
 
 	//依次加载所有的路由组，以下都需要jwt验证
 	api := engine.Group("/api")

@@ -8,10 +8,9 @@ import (
 
 type DictionaryType struct {
 	BaseModel
-	Name    string  //名称
-	Sort    *int    //排序
-	Remarks *string //备注
-	//DictionaryItems []DictionaryItem `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Name     string  //名称
+	Sequence *int    //排序
+	Remarks  *string //备注
 }
 
 // TableName 修改数据库的表名

@@ -12,7 +12,6 @@ type Disassembly struct {
 	SuperiorID *int     //上级id
 	Level      *int     //层级
 	Weight     *float64 //权重
-	//WorkProgresses []WorkProgress `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // TableName 修改表名
