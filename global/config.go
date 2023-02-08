@@ -31,6 +31,7 @@ type config struct {
 	PagingConfig
 	RateLimitConfig
 	CaptchaConfig
+	OssConfig
 }
 
 type AppConfig struct {
@@ -48,8 +49,8 @@ type DBConfig struct {
 }
 
 type JWTConfig struct {
-	SecretKey      string
-	ValidityPeriod int
+	SecretKey    string
+	ValidityDays int
 }
 
 type LogConfig struct {
@@ -61,8 +62,8 @@ type LogConfig struct {
 }
 
 type UploadConfig struct {
-	FullPath         string
-	MaxSizeForUpload int64
+	Path    string
+	MaxSize int64
 }
 
 type EmailConfig struct {
@@ -88,6 +89,10 @@ type CaptchaConfig struct {
 	ImageHeight int
 	MaxSkew     float64
 	DotCount    int
+}
+
+type OssConfig struct {
+	Type string
 }
 
 func InitConfig() {
@@ -126,7 +131,7 @@ func loadConfig() {
 		":" + Config.DBConfig.DbPort + "?database=" + Config.DBConfig.DbName
 
 	Config.JWTConfig.SecretKey = v.GetString("jwt.secret-key")
-	Config.JWTConfig.ValidityPeriod = v.GetInt("jwt.validity-period")
+	Config.JWTConfig.ValidityDays = v.GetInt("jwt.validity-days")
 
 	Config.LogConfig.FileName = v.GetString("log.log-path") + "/status.log"
 	Config.LogConfig.MaxSizeForLog = v.GetInt("log.log-max-size")
@@ -134,8 +139,8 @@ func loadConfig() {
 	Config.LogConfig.MaxAge = v.GetInt("log.log-max-age")
 	Config.LogConfig.Compress = v.GetBool("log.log-compress")
 
-	Config.UploadConfig.FullPath = v.GetString("upload-files.full-path") + "/"
-	Config.UploadConfig.MaxSizeForUpload = v.GetInt64("upload-files.max-size") << 20
+	Config.UploadConfig.Path = v.GetString("upload.path") + "/"
+	Config.UploadConfig.MaxSize = v.GetInt64("upload.max-size") << 20
 
 	Config.EmailConfig.OutgoingMailServer = v.GetString("email.outgoing-mail-server")
 	Config.EmailConfig.Port = v.GetInt("email.port")
@@ -153,6 +158,8 @@ func loadConfig() {
 	Config.CaptchaConfig.ImageHeight = v.GetInt("captcha.image-height")
 	Config.CaptchaConfig.MaxSkew = v.GetFloat64("captcha.max-skew")
 	Config.CaptchaConfig.DotCount = v.GetInt("captcha.dot-count")
+
+	Config.OssConfig.Type = v.GetString("oss.type")
 }
 
 // byte 是 uint8 的别名,rune 是 int32 的别名

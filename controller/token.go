@@ -22,7 +22,7 @@ func (*token) Validate(c *gin.Context) {
 	//开始解析token
 	res, err := jwt.ParseToken(token)
 	//如果存在错误或token已过期
-	if err != nil || res.ExpiresAt < time.Now().Unix() {
+	if err != nil || res.ExpiresAt.Unix() < time.Now().Unix() {
 		c.JSON(http.StatusOK, response.Fail(util.ErrorAccessTokenInvalid))
 		c.Abort()
 		return

@@ -44,8 +44,8 @@ func Init() *gin.Engine {
 		}
 		upload := api.Group("/upload")
 		{
-			upload.POST("/single", controller.UploadSingle)     //上传单个文件
-			upload.POST("/multiple", controller.UploadMultiple) //上传多个文件
+			upload.POST("/single", controller.FileManagement.UploadSingleFile)      //上传单个文件
+			upload.POST("/multiple", controller.FileManagement.UploadMultipleFiles) //上传多个文件
 
 		}
 		roleAndUser := api.Group("/role-and-user")

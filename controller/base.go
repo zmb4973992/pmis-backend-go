@@ -17,6 +17,7 @@ type controller struct {
 	project
 	dictionaryType
 	dictionaryItem
+	fileManagement
 }
 
 var (
@@ -34,4 +35,5 @@ var (
 	Project         = entrance.project
 	DictionaryType  = entrance.dictionaryType
 	DictionaryItem  = entrance.dictionaryItem
+	FileManagement  = entrance.fileManagement
 )

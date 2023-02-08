@@ -1,19 +1,37 @@
-package util
+package upload
 
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"mime/multipart"
 	"os"
 	"pmis-backend-go/global"
+	"pmis-backend-go/util"
 )
 
-func UploadInit() {
+// Oss 对象存储接口
+type Oss interface {
+	UploadSingleFile(fileHeader *multipart.FileHeader) (storagePath string, fileName string, err error)
+	UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (storagePath string, fileNames []string, err error)
+	Delete(key string) error
+}
+
+func NewOss() Oss {
+	switch global.Config.OssConfig.Type {
+	case "local":
+		return &Local{}
+	default:
+		return &Local{}
+	}
+}
+
+func Init() {
 	//检查上传文件的文件夹是否存在
-	exists := PathExistsOrNot(global.Config.FullPath)
+	exists := util.PathExistsOrNot(global.Config.Path)
 	//如果不存在就创建
 	if !exists {
-		err := os.MkdirAll(global.Config.FullPath, os.ModePerm)
+		err := os.MkdirAll(global.Config.Path, os.ModePerm)
 		if err != nil {
 			global.SugaredLogger.Panicln(err)
 		}
@@ -29,12 +47,12 @@ func UploadSingleFile(c *gin.Context, key string) (uniqueFilename string, err er
 		global.SugaredLogger.Errorln(err)
 		return "", err
 	}
-	if header.Size > global.Config.MaxSizeForUpload {
+	if header.Size > global.Config.MaxSize {
 		return "", errors.New("文件过大")
 	}
 	id := uuid.NewString()
 	header.Filename = id + "--" + header.Filename
-	err = c.SaveUploadedFile(header, global.Config.FullPath+header.Filename)
+	err = c.SaveUploadedFile(header, global.Config.Path+header.Filename)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return "", err
@@ -54,7 +72,7 @@ func UploadMultipleFiles(c *gin.Context, key string) (uuids []string, err error)
 	files := form.File[key]
 
 	for _, file := range files {
-		if file.Size > global.Config.MaxSizeForUpload {
+		if file.Size > global.Config.MaxSize {
 			return nil, errors.New("文件过大")
 		}
 	}
@@ -62,7 +80,7 @@ func UploadMultipleFiles(c *gin.Context, key string) (uuids []string, err error)
 	for _, file := range files {
 		id := uuid.NewString()
 		file.Filename = id + "--" + file.Filename
-		err = c.SaveUploadedFile(file, global.Config.FullPath+file.Filename)
+		err = c.SaveUploadedFile(file, global.Config.Path+file.Filename)
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
 			return nil, err

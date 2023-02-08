@@ -6,8 +6,8 @@ import (
 	"pmis-backend-go/middleware"
 	"pmis-backend-go/model"
 	"pmis-backend-go/router"
-	"pmis-backend-go/util"
 	"pmis-backend-go/util/logger"
+	"pmis-backend-go/util/upload"
 )
 
 func main() {
@@ -21,7 +21,7 @@ func main() {
 	model.InitDatabase()
 
 	//创建保存上传文件的文件夹
-	util.UploadInit()
+	upload.Init()
 
 	//开始采用自定义的方式生成引擎
 	engine := router.Init()
