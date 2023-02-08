@@ -13,6 +13,7 @@ database:
   db-password: "028912"
 
 jwt:
+  #自定义密钥
   secret-key: "e7KF3k0dj3"
   #有效期(天)，登录后可以几天免登录
   validity-period: "30"

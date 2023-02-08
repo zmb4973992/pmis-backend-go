@@ -48,7 +48,7 @@ type DBConfig struct {
 }
 
 type JWTConfig struct {
-	SecretKey      []byte //这里不能用string，是jwt包的要求，否则报错
+	SecretKey      string
 	ValidityPeriod int
 }
 
@@ -125,8 +125,7 @@ func loadConfig() {
 		":" + Config.DBConfig.DbPassword + "@" + Config.DBConfig.DbHost +
 		":" + Config.DBConfig.DbPort + "?database=" + Config.DBConfig.DbName
 
-	//配置里的密钥是string类型，jwt要求为[]byte类型，必须转换后才能使用
-	Config.JWTConfig.SecretKey = []byte(v.GetString("jwt.secret-key"))
+	Config.JWTConfig.SecretKey = v.GetString("jwt.secret-key")
 	Config.JWTConfig.ValidityPeriod = v.GetInt("jwt.validity-period")
 
 	Config.LogConfig.FileName = v.GetString("log.log-path") + "/status.log"

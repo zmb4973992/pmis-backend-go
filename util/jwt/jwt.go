@@ -1,27 +1,38 @@
 package jwt
 
 import (
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 	"pmis-backend-go/global"
 	"time"
 )
 
 type CustomClaims struct {
 	UserID int
-	jwt.StandardClaims
+	jwt.RegisteredClaims
 }
 
-// GenerateToken 传入Username，返回token字符串
-func GenerateToken(userID int) string {
-	days := time.Duration(global.Config.ValidityPeriod)
-	claim := CustomClaims{
-		userID,
-		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(days * 24 * time.Hour).Unix(),
-		}}
-	tokenStruct := jwt.NewWithClaims(jwt.SigningMethodHS256, claim)
-	tokenString, _ := tokenStruct.SignedString(global.Config.SecretKey)
-	return tokenString
+var validityDays = time.Duration(global.Config.ValidityPeriod)
+
+// 构建载荷
+func buildClaims(userID int) CustomClaims {
+	return CustomClaims{
+		UserID: userID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    "zhoumengbin",
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(validityDays * 24 * time.Hour)),
+		},
+	}
+}
+
+// GenerateToken 传入userID，返回token字符串
+func GenerateToken(userID int) (string, error) {
+	claims := buildClaims(userID)
+	tokenStruct := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := tokenStruct.SignedString([]byte(global.Config.SecretKey))
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
 }
 
 // ParseToken 验证用户token。这部分基本就是参照官方写法。

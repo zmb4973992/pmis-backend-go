@@ -36,6 +36,7 @@ const (
 	ErrorUserIDDoesNotExist
 	ErrorFailToGenerateCaptcha
 	ErrorWrongCaptcha
+	ErrorFailToGenerateToken
 )
 
 // Message 自定义错误的message
@@ -79,6 +80,7 @@ var Message = map[int]string{
 	ErrorSortingFieldDoesNotExist:  "排序字段不存在",
 	ErrorFailToGenerateCaptcha:     "生成验证码失败",
 	ErrorWrongCaptcha:              "验证码错误",
+	ErrorFailToGenerateToken:       "生成token失败",
 }
 
 func GetMessage(code int) string {

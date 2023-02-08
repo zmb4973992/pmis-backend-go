@@ -84,19 +84,27 @@ func (u *UserLogin) Verify() bool {
 
 func (u *UserLogin) UserLogin() response.Common {
 	var record model.User
+
 	//根据入参的用户名，从数据库取出记录赋值给user
 	err := global.DB.Where("username=?", u.Username).First(&record).Error
+
 	//如果没有找到记录
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorInvalidUsernameOrPassword)
 	}
+
 	//如果密码错误
-	if util.CheckPassword(u.Password, record.Password) == false {
+	if !util.CheckPassword(u.Password, record.Password) {
 		return response.Fail(util.ErrorInvalidUsernameOrPassword)
 	}
+
 	//账号密码都正确时，生成token
-	token := jwt.GenerateToken(record.ID)
+	token, err := jwt.GenerateToken(record.ID)
+	if err != nil {
+		return response.Fail(util.ErrorFailToGenerateToken)
+	}
+
 	return response.SucceedWithData(
 		map[string]any{
 			"access_token": token,
