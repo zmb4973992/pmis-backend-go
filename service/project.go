@@ -59,17 +59,17 @@ type ProjectDelete struct {
 type ProjectGetList struct {
 	dto.ListInput
 	dto.AuthInput
-	ProjectNameLike    string `json:"project_name_like,omitempty"` //包含项目全称和项目简称
-	DepartmentNameLike string `json:"department_name_like,omitempty"`
-	DepartmentIDIn     []int  `json:"department_id_in"`
+	ProjectNameInclude    string `json:"project_name_include,omitempty"` //包含项目全称和项目简称
+	DepartmentNameInclude string `json:"department_name_include,omitempty"`
+	DepartmentIDIn        []int  `json:"department_id_in"`
 }
 
 type ProjectGetArray struct {
 	dto.ListInput
 	dto.AuthInput
-	ProjectNameLike    string `json:"project_name_like,omitempty"` //包含项目全称和项目简称
-	DepartmentNameLike string `json:"department_name_like,omitempty"`
-	DepartmentIDIn     []int  `json:"department_id_in"`
+	ProjectNameInclude    string `json:"project_name_include,omitempty"` //包含项目全称和项目简称
+	DepartmentNameInclude string `json:"department_name_include,omitempty"`
+	DepartmentIDIn        []int  `json:"department_id_in"`
 }
 
 //以下为出参
@@ -308,14 +308,14 @@ func (p *ProjectGetArray) GetArray() response.Common {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if p.ProjectNameLike != "" {
-		db = db.Where("project_full_name like ?", "%"+p.ProjectNameLike+"%").
-			Or("project_short_name like ?", "%"+p.ProjectNameLike+"%")
+	if p.ProjectNameInclude != "" {
+		db = db.Where("project_full_name like ?", "%"+p.ProjectNameInclude+"%").
+			Or("project_short_name like ?", "%"+p.ProjectNameInclude+"%")
 	}
 
-	if p.DepartmentNameLike != "" {
+	if p.DepartmentNameInclude != "" {
 		var departmentIDs []int
-		global.DB.Model(&model.Department{}).Where("name like ?", "%"+p.DepartmentNameLike+"%").
+		global.DB.Model(&model.Department{}).Where("name like ?", "%"+p.DepartmentNameInclude+"%").
 			Select("id").Find(&departmentIDs)
 		if len(departmentIDs) > 0 {
 			db = db.Where("department_id in ?", departmentIDs)
@@ -400,14 +400,14 @@ func (p *ProjectGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if p.ProjectNameLike != "" {
-		db = db.Where("project_full_name like ?", "%"+p.ProjectNameLike+"%").
-			Or("project_short_name like ?", "%"+p.ProjectNameLike+"%")
+	if p.ProjectNameInclude != "" {
+		db = db.Where("project_full_name like ?", "%"+p.ProjectNameInclude+"%").
+			Or("project_short_name like ?", "%"+p.ProjectNameInclude+"%")
 	}
 
-	if p.DepartmentNameLike != "" {
+	if p.DepartmentNameInclude != "" {
 		var departmentIDs []int
-		global.DB.Model(&model.Department{}).Where("name like ?", "%"+p.DepartmentNameLike+"%").
+		global.DB.Model(&model.Department{}).Where("name like ?", "%"+p.DepartmentNameInclude+"%").
 			Select("id").Find(&departmentIDs)
 		if len(departmentIDs) > 0 {
 			db = db.Where("department_id in ?", departmentIDs)

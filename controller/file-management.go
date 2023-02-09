@@ -47,6 +47,7 @@ func (f *fileManagement) UploadMultipleFiles(c *gin.Context) {
 	oss := upload.NewOss()
 	storagePath, fileNames, err := oss.UploadMultipleFiles(fileHeaders)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK, response.Fail(util.ErrorFailToUploadFiles))
 		return
 	}
@@ -55,4 +56,32 @@ func (f *fileManagement) UploadMultipleFiles(c *gin.Context) {
 		"storage_path": storagePath,
 		"file_names":   fileNames,
 	}))
+}
+
+func (f *fileManagement) DeleteFile(c *gin.Context) {
+
+	uuid := c.Param("file-uuid")
+
+	//处理deleter字段
+	//tempUserID, exists := c.Get("user_id")
+	//if exists {
+	//	userID := tempUserID.(int)
+	//	param.Deleter = userID
+	//}
+	//res := param.Delete()
+	//
+	//if err != nil {
+	//	c.JSON(http.StatusOK, response.Fail(util.ErrorFailToDeleteFiles))
+	//	return
+	//}
+
+	oss := upload.NewOss()
+	err := oss.Delete(uuid)
+	if err != nil {
+		c.JSON(http.StatusOK, response.Fail(util.ErrorFailToDeleteFiles))
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Succeed())
+
 }

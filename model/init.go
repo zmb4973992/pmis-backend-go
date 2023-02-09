@@ -47,6 +47,7 @@ func InitDatabase() {
 		&WorkNote{},                   //工作备注
 		&WorkReview{},                 //工作点评
 		&CasbinRule{},                 //casbin规则
+		&File{},                       //上传的文件
 		&Test{},                       //测试
 	)
 	if err != nil {

@@ -3,10 +3,12 @@ package upload
 import (
 	"errors"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 	"io"
 	"mime/multipart"
 	"os"
 	"pmis-backend-go/global"
+	"pmis-backend-go/model"
 	"time"
 )
 
@@ -19,27 +21,10 @@ func (l *Local) UploadSingleFile(fileHeader *multipart.FileHeader) (storagePath 
 	// 给文件名添加uuid和时间，确保唯一性
 	id := uuid.NewString()
 	formattedTime := time.Now().Format("2006-01-02-15-04-05")
-	fileName = id + "--" + formattedTime + "--" + fileHeader.Filename
-	// 拼接路径和文件名
+	fileName = id + "  " + formattedTime + "  " + fileHeader.Filename
 	storagePath = global.Config.UploadConfig.Path
-	// 读取文件
-	openedFile, err := fileHeader.Open()
+	err = saveUploadedFile(fileHeader, storagePath+fileName)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return "", "", err
-	}
-	defer openedFile.Close()
-	// 创建文件
-	createdFile, err := os.Create(storagePath + fileName)
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return "", "", err
-	}
-	defer createdFile.Close()
-	// 把文件内容复制到新生成的文件中
-	_, err = io.Copy(createdFile, openedFile) // 传输（拷贝）文件
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return "", "", err
 	}
 	return storagePath, fileName, nil
@@ -57,51 +42,71 @@ func (l *Local) UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (storag
 	for i := range fileHeaders {
 		// 给文件名添加uuid和时间，确保唯一性
 		id := uuid.NewString()
-		formattedTime := time.Now().Format("2006-01-02-15-04-05")
-		fileName := id + "--" + formattedTime + "--" + fileHeaders[i].Filename
+		formattedTime := time.Now().Format("2006-01-02 15-04-05")
+		fileName := id + "  " + formattedTime + "  " + fileHeaders[i].Filename
+		err := saveUploadedFile(fileHeaders[i], storagePath+fileName)
+		if err != nil {
+			return "", nil, err
+		}
+
+		//保存记录
+		var record model.File
+		record.UUID = id
+		record.InitialFileName = fileHeaders[i].Filename
+		record.StoredFileName = fileName
+		record.StoragePath = storagePath
+		record.Size = int(fileHeaders[i].Size) >> 20 // MB
+		global.DB.Create(&record)
 		fileNames = append(fileNames, fileName)
-		// 读取文件
-		openedFile, err := fileHeaders[i].Open()
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return "", nil, err
-		} else {
-			defer openedFile.Close()
-		}
-		// 创建文件
-		createdFile, err := os.Create(storagePath + fileName)
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return "", nil, err
-		}
-		defer createdFile.Close()
-		// 把文件内容复制到新生成的文件中
-		_, err = io.Copy(createdFile, openedFile) // 传输（拷贝）文件
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return "", nil, err
-		}
 	}
 	return storagePath, fileNames, nil
 }
 
-func (l *Local) Delete(key string) error {
+func (l *Local) Delete(UUID string) error {
+	var record model.File
+	err := global.DB.Where("uuid = ?", UUID).First(&record).Error
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
+	if record.ID != 0 {
+		storagePath := record.StoragePath
+		storedFileName := record.StoredFileName
+		_ = os.Remove(storagePath + storedFileName)
+
+		err = global.DB.Delete(&record).Error
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+		}
+		return err
+	}
 	return nil
 }
 
-func SaveUploadedFile(file *multipart.FileHeader, dst string) error {
-	src, err := file.Open()
+// 仿照gin c.SaveUploadedFile的写法
+func saveUploadedFile(fileHeader *multipart.FileHeader, destination string) error {
+	//打开、读取文件
+	openedFile, err := fileHeader.Open()
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return err
 	}
-	defer src.Close()
+	defer openedFile.Close()
 
-	out, err := os.Create(dst)
+	//创建空的新文件
+	createdFile, err := os.Create(destination)
 	if err != nil {
+		global.SugaredLogger.Errorln(err)
 		return err
 	}
-	defer out.Close()
+	defer createdFile.Close()
 
-	_, err = io.Copy(out, src)
-	return err
+	//把打开的文件内容复制到新文件中
+	_, err = io.Copy(createdFile, openedFile)
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return err
+	}
+
+	return nil
 }

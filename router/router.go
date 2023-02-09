@@ -42,11 +42,11 @@ func Init() *gin.Engine {
 			user.DELETE("/:user-id", middleware.NeedAuth(), controller.User.Delete) //删除用户
 			user.POST("/list", controller.User.List)                                //获取用户列表
 		}
-		upload := api.Group("/upload")
+		file := api.Group("/file")
 		{
-			upload.POST("/single", controller.FileManagement.UploadSingleFile)      //上传单个文件
-			upload.POST("/multiple", controller.FileManagement.UploadMultipleFiles) //上传多个文件
-
+			file.POST("/upload/single", controller.FileManagement.UploadSingleFile)      //上传单个文件
+			file.POST("/upload/multiple", controller.FileManagement.UploadMultipleFiles) //上传多个文件
+			file.DELETE("/delete/:file-uuid", controller.FileManagement.DeleteFile)      //删除单个文件
 		}
 		roleAndUser := api.Group("/role-and-user")
 		{

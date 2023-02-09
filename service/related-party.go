@@ -56,12 +56,15 @@ type RelatedPartyGetList struct {
 //以下为出参
 
 type RelatedPartyOutput struct {
-	Creator      *int    `json:"creator" gorm:"creator"`
-	LastModifier *int    `json:"last_modifier" gorm:"last_modifier"`
-	ID           int     `json:"id" gorm:"id"`
-	Name         string  `json:"name" gorm:"name"`       //名称
-	Sort         *int    `json:"sort" gorm:"sort"`       //顺序值
-	Remarks      *string `json:"remarks" gorm:"remarks"` //备注
+	Creator      *int `json:"creator" gorm:"creator"`
+	LastModifier *int `json:"last_modifier" gorm:"last_modifier"`
+	ID           int  `json:"id" gorm:"id"`
+
+	ChineseName             *string `json:"chinese_name" gorm:"chinese_name"`
+	EnglishName             *string `json:"english_name" gorm:"english_name"`
+	Address                 *string `json:"address" gorm:"address"`
+	UniformSocialCreditCode *string `json:"uniform_social_credit_code" gorm:"uniform_social_credit_code"` //统一社会信用代码
+	Telephone               *string `json:"telephone" gorm:"telephone"`
 }
 
 func (r *RelatedPartyGet) Get() response.Common {

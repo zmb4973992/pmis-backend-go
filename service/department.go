@@ -40,19 +40,19 @@ type DepartmentDelete struct {
 type DepartmentGetArray struct {
 	dto.ListInput
 	dto.AuthInput
-	SuperiorID int    `json:"superior_id,omitempty"`
-	LevelName  string `json:"level_name,omitempty"`
-	Name       string `json:"name,omitempty"`
-	NameLike   string `json:"name_like,omitempty"`
+	SuperiorID  int    `json:"superior_id,omitempty"`
+	LevelName   string `json:"level_name,omitempty"`
+	Name        string `json:"name,omitempty"`
+	NameInclude string `json:"name_include,omitempty"`
 }
 
 type DepartmentGetList struct {
 	dto.ListInput
 	dto.AuthInput
-	SuperiorID int    `json:"superior_id,omitempty"`
-	LevelName  string `json:"level_name,omitempty"`
-	Name       string `json:"name,omitempty"`
-	NameLike   string `json:"name_like,omitempty"`
+	SuperiorID  int    `json:"superior_id,omitempty"`
+	LevelName   string `json:"level_name,omitempty"`
+	Name        string `json:"name,omitempty"`
+	NameInclude string `json:"name_include,omitempty"`
 }
 
 type DepartmentOutput struct {
@@ -182,8 +182,8 @@ func (d *DepartmentGetArray) GetArray() response.Common {
 		db = db.Where("name = ?", d.Name)
 	}
 
-	if d.NameLike != "" {
-		db = db.Where("name like ?", "%"+d.NameLike+"%")
+	if d.NameInclude != "" {
+		db = db.Where("name like ?", "%"+d.NameInclude+"%")
 	}
 
 	if d.IsShowedByRole {
@@ -272,8 +272,8 @@ func (d *DepartmentGetList) GetList() response.List {
 		db = db.Where("name = ?", d.Name)
 	}
 
-	if d.NameLike != "" {
-		db = db.Where("name like ?", "%"+d.NameLike+"%")
+	if d.NameInclude != "" {
+		db = db.Where("name like ?", "%"+d.NameInclude+"%")
 	}
 
 	if d.IsShowedByRole {

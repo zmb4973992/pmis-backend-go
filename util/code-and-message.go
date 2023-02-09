@@ -37,6 +37,7 @@ const (
 	ErrorFailToGenerateCaptcha
 	ErrorWrongCaptcha
 	ErrorFailToGenerateToken
+	ErrorFailToDeleteFiles
 )
 
 // Message 自定义错误的message
@@ -81,6 +82,7 @@ var Message = map[int]string{
 	ErrorFailToGenerateCaptcha:     "生成验证码失败",
 	ErrorWrongCaptcha:              "验证码错误",
 	ErrorFailToGenerateToken:       "生成token失败",
+	ErrorFailToDeleteFiles:         "删除文件失败",
 }
 
 func GetMessage(code int) string {
