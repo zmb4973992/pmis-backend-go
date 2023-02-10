@@ -78,9 +78,9 @@ func (*disassembly) CreateInBatches(c *gin.Context) {
 	tempUserID, _ := c.Get("user_id")
 	if tempUserID != nil {
 		userID := tempUserID.(int)
-		for i := range param.Data {
-			param.Data[i].Creator = userID
-			param.Data[i].LastModifier = userID
+		for i := range param.Param {
+			param.Param[i].Creator = userID
+			param.Param[i].LastModifier = userID
 		}
 	}
 

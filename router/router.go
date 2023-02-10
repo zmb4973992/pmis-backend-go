@@ -18,6 +18,7 @@ func Init() *gin.Engine {
 
 	//将目录(root变量)下的所有文件设置为静态文件，可以直接访问
 	engine.Static("/s", "./static")
+	engine.GET("/test", controller.Test)
 
 	//路由不匹配时的处理
 	engine.NoRoute(controller.NoRoute.NoRoute)
@@ -89,14 +90,14 @@ func Init() *gin.Engine {
 		}
 		disassembly := api.Group("/disassembly")
 		{
-			disassembly.GET("/:disassembly-id", controller.Disassembly.Get)                           //获取项目拆解详情
-			disassembly.POST("/tree", controller.Disassembly.Tree)                                    //获取项目拆解的节点树
-			disassembly.POST("", controller.Disassembly.Create)                                       //新增项目拆解
-			disassembly.POST("/batch", controller.Disassembly.CreateInBatches)                        //批量新增项目拆解
-			disassembly.PATCH("/:disassembly-id", controller.Disassembly.Update)                      //修改项目拆解
-			disassembly.DELETE("/:disassembly-id", controller.Disassembly.Delete)                     //删除项目拆解
-			disassembly.DELETE("/cascade/:disassembly-id", controller.Disassembly.DeleteWithSubitems) //删除项目拆解（子项一并删除）
-			disassembly.POST("/list", controller.Disassembly.GetList)                                 //获取项目拆解列表
+			disassembly.GET("/:disassembly-id", controller.Disassembly.Get)                                 //获取项目拆解详情
+			disassembly.POST("/tree", controller.Disassembly.Tree)                                          //获取项目拆解的节点树
+			disassembly.POST("", controller.Disassembly.Create)                                             //新增项目拆解
+			disassembly.POST("/batch", controller.Disassembly.CreateInBatches)                              //批量新增项目拆解
+			disassembly.PATCH("/:disassembly-id", controller.Disassembly.Update)                            //修改项目拆解
+			disassembly.DELETE("/:disassembly-id", controller.Disassembly.Delete)                           //删除项目拆解
+			disassembly.DELETE("/with-subitems/:disassembly-id", controller.Disassembly.DeleteWithSubitems) //删除项目拆解（子项一并删除）
+			disassembly.POST("/list", controller.Disassembly.GetList)                                       //获取项目拆解列表
 		}
 		operationLog := api.Group("/operation-log")
 		{

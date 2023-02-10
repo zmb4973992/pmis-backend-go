@@ -112,12 +112,18 @@ func (*project) GetArray(c *gin.Context) {
 		return
 	}
 
+	//authInput需要userID
+	userID, exists := c.Get("user_id")
+	if exists {
+		param.UserID = userID.(int)
+	}
+
 	//生成Service,然后调用它的方法
 	res := param.GetArray()
 	c.JSON(http.StatusOK, res)
 }
 
-func (*project) GetList(c *gin.Context) {
+func (p *project) GetList(c *gin.Context) {
 	var param service.ProjectGetList
 	err := c.ShouldBindJSON(&param)
 
@@ -128,6 +134,12 @@ func (*project) GetList(c *gin.Context) {
 		c.JSON(http.StatusBadRequest,
 			response.FailForList(util.ErrorInvalidJSONParameters))
 		return
+	}
+
+	//authInput需要userID
+	userID, exists := c.Get("user_id")
+	if exists {
+		param.UserID = userID.(int)
 	}
 
 	res := param.GetList()

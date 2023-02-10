@@ -45,7 +45,7 @@ type DBConfig struct {
 	DbName     string
 	DbUsername string
 	DbPassword string
-	DSN        string // Data Source Name 数据库连接字符串
+	DSN        string // Param Source Name 数据库连接字符串
 }
 
 type JWTConfig struct {

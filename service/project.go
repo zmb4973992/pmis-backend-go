@@ -90,7 +90,7 @@ type ProjectOutput struct {
 	ExchangeRate     *float64          `json:"exchange_rate" gorm:"exchange_rate"`
 	RelatedPartyID   *int              `json:"related_party_id" gorm:"related_party_id"`
 	DepartmentID     *int              `json:"-" gorm:"department_id"`
-	Department       *DepartmentOutput `json:"department"` //gorm "-"  要不要删除？
+	Department       *DepartmentOutput `json:"department"`
 }
 
 func (p *ProjectGet) Get() response.Common {
@@ -169,7 +169,19 @@ func (p *ProjectCreate) Create() response.Common {
 		paramOut.RelatedPartyID = &p.RelatedPartyID
 	}
 
-	err := global.DB.Create(&paramOut).Error
+	//计算有修改值的字段数，分别进行不同处理
+	tempParamOut, err := util.StructToMap(paramOut)
+	if err != nil {
+		response.Fail(util.ErrorFailToCreateRecord)
+	}
+	paramOutForCounting := util.MapCopy(tempParamOut,
+		"Creator", "LastModifier", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt")
+
+	if len(paramOutForCounting) == 0 {
+		return response.Fail(util.ErrorFieldsToBeCreatedNotFound)
+	}
+
+	err = global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToCreateRecord)
@@ -273,7 +285,8 @@ func (p *ProjectUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
+	paramOutForCounting := util.MapCopy(paramOut, "Creator",
+		"LastModifier", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
@@ -309,8 +322,7 @@ func (p *ProjectGetArray) GetArray() response.Common {
 
 	//where
 	if p.ProjectNameInclude != "" {
-		db = db.Where("project_full_name like ?", "%"+p.ProjectNameInclude+"%").
-			Or("project_short_name like ?", "%"+p.ProjectNameInclude+"%")
+		db = db.Where("project_full_name like ?", "%"+p.ProjectNameInclude+"%")
 	}
 
 	if p.DepartmentNameInclude != "" {
@@ -327,13 +339,24 @@ func (p *ProjectGetArray) GetArray() response.Common {
 	}
 
 	if p.IsShowedByRole {
+		//先获得最大角色的名称
 		biggestRoleName := util.GetBiggestRoleName(p.UserID)
 		if biggestRoleName == "事业部级" {
+			//获取所在事业部的id数组
 			businessDivisionIDs := util.GetBusinessDivisionIDs(p.UserID)
-			db = db.Where("superior_id in ?", businessDivisionIDs)
+			//获取归属这些事业部的部门id数组
+			var departmentIDs []int
+			global.DB.Model(&model.Department{}).Where("superior_id in ?", businessDivisionIDs).
+				Select("id").Find(&departmentIDs)
+			//两个数组进行合并
+			departmentIDs = append(departmentIDs, businessDivisionIDs...)
+			//找到部门id在上面两个数组中的记录
+			db = db.Where("department_id in ?", departmentIDs)
 		} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
+			//获取用户所属部门的id数组
 			departmentIDs := util.GetDepartmentIDs(p.UserID)
-			db = db.Where("id in ?", departmentIDs)
+			//找到部门id在上面数组中的记录
+			db = db.Where("department_id in ?", departmentIDs)
 		}
 	}
 
@@ -401,8 +424,7 @@ func (p *ProjectGetList) GetList() response.List {
 
 	//where
 	if p.ProjectNameInclude != "" {
-		db = db.Where("project_full_name like ?", "%"+p.ProjectNameInclude+"%").
-			Or("project_short_name like ?", "%"+p.ProjectNameInclude+"%")
+		db = db.Where("project_full_name like ?", "%"+p.ProjectNameInclude+"%")
 	}
 
 	if p.DepartmentNameInclude != "" {
@@ -419,13 +441,24 @@ func (p *ProjectGetList) GetList() response.List {
 	}
 
 	if p.IsShowedByRole {
+		//先获得最大角色的名称
 		biggestRoleName := util.GetBiggestRoleName(p.UserID)
 		if biggestRoleName == "事业部级" {
+			//获取所在事业部的id数组
 			businessDivisionIDs := util.GetBusinessDivisionIDs(p.UserID)
-			db = db.Where("superior_id in ?", businessDivisionIDs)
+			//获取归属这些事业部的部门id数组
+			var departmentIDs []int
+			global.DB.Model(&model.Department{}).Where("superior_id in ?", businessDivisionIDs).
+				Select("id").Find(&departmentIDs)
+			//两个数组进行合并
+			departmentIDs = append(departmentIDs, businessDivisionIDs...)
+			//找到部门id在上面两个数组中的记录
+			db = db.Where("department_id in ?", departmentIDs)
 		} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
+			//获取用户所属部门的id数组
 			departmentIDs := util.GetDepartmentIDs(p.UserID)
-			db = db.Where("id in ?", departmentIDs)
+			//找到部门id在上面数组中的记录
+			db = db.Where("department_id in ?", departmentIDs)
 		}
 	}
 
@@ -474,10 +507,18 @@ func (p *ProjectGetList) GetList() response.List {
 
 	//data
 	var data []ProjectOutput
-	db.Model(&model.Project{}).Find(&data)
+	db.Model(&model.Project{}).Debug().Find(&data)
 
 	if len(data) == 0 {
 		return response.FailForList(util.ErrorRecordNotFound)
+	}
+
+	for i := range data {
+		if data[i].DepartmentID != nil && *data[i].DepartmentID > 0 {
+			departmentID := *data[i].DepartmentID
+			global.DB.Model(&model.Department{}).Where("id = ?", departmentID).
+				Limit(1).Find(&data[i].Department)
+		}
 	}
 
 	numberOfRecords := int(count)

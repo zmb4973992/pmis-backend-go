@@ -33,7 +33,7 @@ type DisassemblyCreate struct {
 }
 
 type DisassemblyCreateInBatches struct {
-	Data []DisassemblyCreate `json:"data"`
+	Param []DisassemblyCreate `json:"param"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -180,25 +180,25 @@ func (d *DisassemblyCreate) Create() response.Common {
 
 func (d *DisassemblyCreateInBatches) CreateInBatches() response.Common {
 	var paramOut []model.Disassembly
-	for i := range d.Data {
+	for i := range d.Param {
 		var record model.Disassembly
-		if d.Data[i].Creator > 0 {
-			record.Creator = &d.Data[i].Creator
+		if d.Param[i].Creator > 0 {
+			record.Creator = &d.Param[i].Creator
 		}
 
-		if d.Data[i].LastModifier > 0 {
-			record.LastModifier = &d.Data[i].LastModifier
+		if d.Param[i].LastModifier > 0 {
+			record.LastModifier = &d.Param[i].LastModifier
 		}
 
-		record.Name = &d.Data[i].Name
+		record.Name = &d.Param[i].Name
 
-		record.Level = &d.Data[i].Level
+		record.Level = &d.Param[i].Level
 
-		record.ProjectID = &d.Data[i].ProjectID
+		record.ProjectID = &d.Param[i].ProjectID
 
-		record.Weight = &d.Data[i].Weight
+		record.Weight = &d.Param[i].Weight
 
-		record.SuperiorID = &d.Data[i].SuperiorID
+		record.SuperiorID = &d.Param[i].SuperiorID
 
 		paramOut = append(paramOut, record)
 	}
@@ -222,7 +222,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		if *d.Name != "" {
 			paramOut["name"] = d.Name
 		} else {
-			paramOut["name"] = nil
+			return response.Fail(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -230,7 +230,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		if *d.ProjectID != 0 {
 			paramOut["project_id"] = d.ProjectID
 		} else {
-			paramOut["project_id"] = nil
+			return response.Fail(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -238,7 +238,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		if *d.Level != 0 {
 			paramOut["level"] = d.Level
 		} else {
-			paramOut["level"] = nil
+			return response.Fail(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -246,7 +246,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		if *d.Weight != 0 {
 			paramOut["weight"] = d.Weight
 		} else {
-			paramOut["weight"] = nil
+			return response.Fail(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -254,7 +254,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		if *d.SuperiorID != 0 {
 			paramOut["superior_id"] = d.SuperiorID
 		} else {
-			paramOut["superior_id"] = nil
+			return response.Fail(util.ErrorInvalidJSONParameters)
 		}
 	}
 

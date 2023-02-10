@@ -71,6 +71,7 @@ func GetBiggestRoleName(userID int) (biggestRoleName string) {
 		var role model.Role
 		global.DB.Order("sequence").First(&role)
 		biggestRoleName = role.Name
+		return biggestRoleName
 	}
 
 	//找到权限最大的角色名称
