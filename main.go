@@ -6,8 +6,8 @@ import (
 	"pmis-backend-go/middleware"
 	"pmis-backend-go/model"
 	"pmis-backend-go/router"
+	"pmis-backend-go/service/upload"
 	"pmis-backend-go/util/logger"
-	"pmis-backend-go/util/upload"
 )
 
 func main() {

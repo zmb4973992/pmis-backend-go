@@ -8,11 +8,8 @@ import (
 
 type Role struct {
 	BaseModel
-	Name     string  //角色名称
-	Sequence int     //顺序值，权限越大的值越大，用来比较用的
-	User     []*User `gorm:"many2many:user_role"`
-	//这里是声名外键关系，并不是实际字段。不建议用gorm的多对多的设定，不好修改
-	//User []RoleAndUser `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	Name     string //角色名称
+	Sequence int    //顺序值，权限越大的值越大，用来比较用的
 }
 
 // TableName 修改表名

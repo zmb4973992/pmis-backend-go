@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
+	"pmis-backend-go/service/upload"
 	"pmis-backend-go/util"
-	"pmis-backend-go/util/upload"
 )
 
 type fileManagement struct{}

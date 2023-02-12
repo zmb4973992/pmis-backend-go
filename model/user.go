@@ -14,19 +14,10 @@ type User struct {
 	EmailAddress      *string //邮箱地址
 	MobilePhoneNumber *string //手机号
 	EmployeeNumber    *string //工号
-	Role              []*Role `gorm:"many2many:user_role;"`
 }
 
-// TableName 将表名改为user
 func (*User) TableName() string {
 	return "user"
-}
-
-type UserRole struct {
-	ID        int
-	CreatedAt time.Time
-	UserID    int `gorm:"primaryKey"`
-	RoleID    int `gorm:"primaryKey"`
 }
 
 func (d *User) BeforeDelete(tx *gorm.DB) error {
