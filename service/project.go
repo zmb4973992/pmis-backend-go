@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -19,17 +20,18 @@ type ProjectGet struct {
 type ProjectCreate struct {
 	Creator          int
 	LastModifier     int
-	ProjectCode      string   `json:"project_code,omitempty"`
-	ProjectFullName  string   `json:"project_full_name,omitempty"`
-	ProjectShortName string   `json:"project_short_name,omitempty"`
-	Country          string   `json:"country,omitempty"`
-	Province         string   `json:"province,omitempty"`
-	ProjectType      string   `json:"project_type,omitempty"`
-	Amount           *float64 `json:"amount"`
-	Currency         string   `json:"currency,omitempty"`
-	ExchangeRate     *float64 `json:"exchange_rate,omitempty"`
-	DepartmentID     int      `json:"department_id,omitempty"`
-	RelatedPartyID   int      `json:"related_party_id,omitempty"`
+	ProjectCode      string    `json:"project_code,omitempty"`
+	ProjectFullName  string    `json:"project_full_name,omitempty"`
+	ProjectShortName string    `json:"project_short_name,omitempty"`
+	Country          string    `json:"country,omitempty"`
+	Province         string    `json:"province,omitempty"`
+	ProjectType      string    `json:"project_type,omitempty"`
+	Amount           *float64  `json:"amount"`
+	Currency         string    `json:"currency,omitempty"`
+	ExchangeRate     *float64  `json:"exchange_rate,omitempty"`
+	DepartmentID     int       `json:"department_id,omitempty"`
+	RelatedPartyID   int       `json:"related_party_id,omitempty"`
+	SigningDate      time.Time `json:"signing_date,omitempty"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -171,6 +173,12 @@ func (p *ProjectCreate) Create() response.Common {
 		paramOut.RelatedPartyID = &p.RelatedPartyID
 	}
 
+	if p.SigningDate.IsZero() {
+		a := time.Now()
+		fmt.Println(a)
+		paramOut.SigningDate = &a
+	}
+
 	//计算有修改值的字段数，分别进行不同处理
 	tempParamOut, err := util.StructToMap(paramOut)
 	if err != nil {
@@ -183,7 +191,7 @@ func (p *ProjectCreate) Create() response.Common {
 		return response.Fail(util.ErrorFieldsToBeCreatedNotFound)
 	}
 
-	err = global.DB.Create(&paramOut).Error
+	err = global.DB.Debug().Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToCreateRecord)
