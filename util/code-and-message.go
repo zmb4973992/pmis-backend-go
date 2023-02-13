@@ -39,6 +39,7 @@ const (
 	ErrorFailToGenerateToken
 	ErrorFailToDeleteFiles
 	ErrorDictionaryTypeNameNotFound
+	ErrorInvalidDateFormat
 )
 
 // Message 自定义错误的message
@@ -85,6 +86,7 @@ var Message = map[int]string{
 	ErrorFailToGenerateToken:        "生成token失败",
 	ErrorFailToDeleteFiles:          "删除文件失败",
 	ErrorDictionaryTypeNameNotFound: "字典名称未找到",
+	ErrorInvalidDateFormat:          "日期格式无效",
 }
 
 func GetMessage(code int) string {
