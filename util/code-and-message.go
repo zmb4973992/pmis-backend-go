@@ -38,6 +38,7 @@ const (
 	ErrorWrongCaptcha
 	ErrorFailToGenerateToken
 	ErrorFailToDeleteFiles
+	ErrorDictionaryTypeNameNotFound
 )
 
 // Message 自定义错误的message
@@ -75,14 +76,15 @@ var Message = map[int]string{
 	ErrorMethodNotAllowed: "请求方法错误",
 	ErrorInvalidColumns:   "列名无效",
 
-	ErrorRequestFrequencyTooHigh:   "请求频率过高，请稍后再试",
-	ErrorFieldsToBeCreatedNotFound: "未找到需要新增的字段",
-	ErrorFieldsToBeUpdatedNotFound: "未找到需要更新的字段",
-	ErrorSortingFieldDoesNotExist:  "排序字段不存在",
-	ErrorFailToGenerateCaptcha:     "生成验证码失败",
-	ErrorWrongCaptcha:              "验证码错误",
-	ErrorFailToGenerateToken:       "生成token失败",
-	ErrorFailToDeleteFiles:         "删除文件失败",
+	ErrorRequestFrequencyTooHigh:    "请求频率过高，请稍后再试",
+	ErrorFieldsToBeCreatedNotFound:  "未找到需要新增的字段",
+	ErrorFieldsToBeUpdatedNotFound:  "未找到需要更新的字段",
+	ErrorSortingFieldDoesNotExist:   "排序字段不存在",
+	ErrorFailToGenerateCaptcha:      "生成验证码失败",
+	ErrorWrongCaptcha:               "验证码错误",
+	ErrorFailToGenerateToken:        "生成token失败",
+	ErrorFailToDeleteFiles:          "删除文件失败",
+	ErrorDictionaryTypeNameNotFound: "字典名称未找到",
 }
 
 func GetMessage(code int) string {

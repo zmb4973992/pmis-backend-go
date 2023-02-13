@@ -45,12 +45,14 @@ type DictionaryItemDelete struct {
 
 type DictionaryItemGetArray struct {
 	dto.ListInput
-	DictionaryTypeID int `json:"dictionary_type_id,omitempty"`
+	DictionaryTypeID   int    `json:"dictionary_type_id,omitempty"`
+	DictionaryTypeName string `json:"dictionary_type_name,omitempty"`
 }
 
 type DictionaryItemGetList struct {
 	dto.ListInput
-	DictionaryTypeID int `json:"dictionary_type_id,omitempty"`
+	DictionaryTypeID   int    `json:"dictionary_type_id,omitempty"`
+	DictionaryTypeName string `json:"dictionary_type_name,omitempty"`
 }
 
 //以下为出参
@@ -286,6 +288,17 @@ func (d *DictionaryItemGetList) GetList() response.List {
 	//where
 	if d.DictionaryTypeID != 0 {
 		db = db.Where("dictionary_type_id = ?", d.DictionaryTypeID)
+	}
+
+	if d.DictionaryTypeName != "" {
+		var dictionaryTypeID int
+		global.DB.Model(&model.DictionaryType{}).Where("name = ?", d.DictionaryTypeName).
+			Select("id").Limit(1).Find(&dictionaryTypeID)
+		if dictionaryTypeID > 0 {
+			db = db.Where("dictionary_type_id = ?", dictionaryTypeID)
+		} else {
+			return response.FailForList(util.ErrorDictionaryTypeNameNotFound)
+		}
 	}
 
 	// count

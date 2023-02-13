@@ -6,6 +6,7 @@ import (
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
+	"time"
 )
 
 //以下为入参
@@ -90,6 +91,7 @@ type ProjectOutput struct {
 	ExchangeRate     *float64          `json:"exchange_rate" gorm:"exchange_rate"`
 	RelatedPartyID   *int              `json:"related_party_id" gorm:"related_party_id"`
 	DepartmentID     *int              `json:"-" gorm:"department_id"`
+	SigningDate      *time.Time        `json:"signing_date" gorm:"signing_date"`
 	Department       *DepartmentOutput `json:"department"`
 }
 
