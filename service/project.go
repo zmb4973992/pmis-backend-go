@@ -51,6 +51,7 @@ type ProjectUpdate struct {
 	ExchangeRate     *float64 `json:"exchange_rate"`
 	DepartmentID     *int     `json:"department_id"`
 	RelatedPartyID   *int     `json:"related_party_id"`
+	SigningDate      *string  `json:"signing_date"`
 }
 
 type ProjectDelete struct {
@@ -292,6 +293,16 @@ func (p *ProjectUpdate) Update() response.Common {
 			paramOut["related_party_id"] = p.RelatedPartyID
 		} else {
 			paramOut["related_party_id"] = nil
+		}
+	}
+
+	if p.SigningDate != nil {
+		if *p.SigningDate != "" {
+			var err error
+			paramOut["signing_date"], err = time.Parse("2006-01-02", *p.SigningDate)
+			if err != nil {
+				return response.Fail(util.ErrorInvalidJSONParameters)
+			}
 		}
 	}
 

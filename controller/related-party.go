@@ -26,6 +26,7 @@ func (*relatedParty) Get(c *gin.Context) {
 	}
 	res := param.Get()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*relatedParty) Create(c *gin.Context) {
@@ -48,6 +49,7 @@ func (*relatedParty) Create(c *gin.Context) {
 
 	res := param.Create()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*relatedParty) Update(c *gin.Context) {
@@ -76,6 +78,7 @@ func (*relatedParty) Update(c *gin.Context) {
 
 	res := param.Update()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*relatedParty) Delete(c *gin.Context) {
@@ -97,6 +100,7 @@ func (*relatedParty) Delete(c *gin.Context) {
 	}
 	res := param.Delete()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*relatedParty) GetList(c *gin.Context) {
@@ -114,4 +118,5 @@ func (*relatedParty) GetList(c *gin.Context) {
 
 	res := param.GetList()
 	c.JSON(http.StatusOK, res)
+	return
 }

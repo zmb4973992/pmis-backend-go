@@ -27,6 +27,7 @@ func (*dictionaryType) Get(c *gin.Context) {
 	}
 	res := param.Get()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*dictionaryType) Create(c *gin.Context) {
@@ -50,6 +51,7 @@ func (*dictionaryType) Create(c *gin.Context) {
 	res := param.Create()
 
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*dictionaryType) CreateInBatches(c *gin.Context) {
@@ -74,6 +76,7 @@ func (*dictionaryType) CreateInBatches(c *gin.Context) {
 
 	res := param.CreateInBatches()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*dictionaryType) Update(c *gin.Context) {
@@ -102,6 +105,7 @@ func (*dictionaryType) Update(c *gin.Context) {
 
 	res := param.Update()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*dictionaryType) Delete(c *gin.Context) {
@@ -123,6 +127,7 @@ func (*dictionaryType) Delete(c *gin.Context) {
 	}
 	res := param.Delete()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*dictionaryType) GetArray(c *gin.Context) {
@@ -141,6 +146,7 @@ func (*dictionaryType) GetArray(c *gin.Context) {
 	//生成Service,然后调用它的方法
 	res := param.GetArray()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*dictionaryType) GetList(c *gin.Context) {
@@ -158,4 +164,5 @@ func (*dictionaryType) GetList(c *gin.Context) {
 
 	res := param.GetList()
 	c.JSON(http.StatusOK, res)
+	return
 }

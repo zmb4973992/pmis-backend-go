@@ -26,6 +26,7 @@ func (*disassembly) Get(c *gin.Context) {
 	}
 	res := param.Get()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*disassembly) Tree(c *gin.Context) {
@@ -40,6 +41,7 @@ func (*disassembly) Tree(c *gin.Context) {
 	}
 	res := param.Tree()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*disassembly) Create(c *gin.Context) {
@@ -62,6 +64,7 @@ func (*disassembly) Create(c *gin.Context) {
 
 	res := param.Create()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*disassembly) CreateInBatches(c *gin.Context) {
@@ -86,6 +89,7 @@ func (*disassembly) CreateInBatches(c *gin.Context) {
 
 	res := param.CreateInBatches()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*disassembly) Update(c *gin.Context) {
@@ -113,6 +117,7 @@ func (*disassembly) Update(c *gin.Context) {
 
 	res := param.Update()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*disassembly) Delete(c *gin.Context) {
@@ -134,6 +139,7 @@ func (*disassembly) Delete(c *gin.Context) {
 	}
 	res := param.Delete()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*disassembly) DeleteWithSubitems(c *gin.Context) {
@@ -156,6 +162,7 @@ func (*disassembly) DeleteWithSubitems(c *gin.Context) {
 
 	res := param.DeleteWithSubitems()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*disassembly) GetList(c *gin.Context) {
@@ -172,4 +179,5 @@ func (*disassembly) GetList(c *gin.Context) {
 	}
 	res := param.GetList()
 	c.JSON(http.StatusOK, res)
+	return
 }

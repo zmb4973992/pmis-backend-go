@@ -13,4 +13,6 @@ func (*captcha) Get(c *gin.Context) {
 	param := service.CaptchaGet{}
 	res := param.Get()
 	c.JSON(http.StatusOK, res)
+	return
+
 }

@@ -26,6 +26,7 @@ func (*errorLog) Get(c *gin.Context) {
 	}
 	res := param.Get()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*errorLog) Create(c *gin.Context) {
@@ -48,6 +49,7 @@ func (*errorLog) Create(c *gin.Context) {
 
 	res := param.Create()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*errorLog) Update(c *gin.Context) {
@@ -75,6 +77,7 @@ func (*errorLog) Update(c *gin.Context) {
 
 	res := param.Update()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*errorLog) Delete(c *gin.Context) {
@@ -96,6 +99,7 @@ func (*errorLog) Delete(c *gin.Context) {
 	}
 	res := param.Delete()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*errorLog) GetList(c *gin.Context) {
@@ -114,4 +118,5 @@ func (*errorLog) GetList(c *gin.Context) {
 	//生成Service,然后调用它的方法
 	res := param.GetList()
 	c.JSON(http.StatusOK, res)
+	return
 }

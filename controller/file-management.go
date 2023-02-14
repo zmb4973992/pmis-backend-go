@@ -31,6 +31,7 @@ func (f *fileManagement) UploadSingleFile(c *gin.Context) {
 		"storage_path": storagePath,
 		"file_name":    fileName,
 	}))
+	return
 }
 
 func (f *fileManagement) UploadMultipleFiles(c *gin.Context) {
@@ -56,6 +57,8 @@ func (f *fileManagement) UploadMultipleFiles(c *gin.Context) {
 		"storage_path": storagePath,
 		"file_names":   fileNames,
 	}))
+	return
+
 }
 
 func (f *fileManagement) DeleteFile(c *gin.Context) {
@@ -83,5 +86,6 @@ func (f *fileManagement) DeleteFile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, response.Succeed())
+	return
 
 }

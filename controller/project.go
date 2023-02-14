@@ -26,6 +26,7 @@ func (*project) Get(c *gin.Context) {
 	}
 	res := param.Get()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*project) Create(c *gin.Context) {
@@ -48,6 +49,7 @@ func (*project) Create(c *gin.Context) {
 
 	res := param.Create()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*project) Update(c *gin.Context) {
@@ -76,6 +78,7 @@ func (*project) Update(c *gin.Context) {
 
 	res := param.Update()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*project) Delete(c *gin.Context) {
@@ -97,6 +100,7 @@ func (*project) Delete(c *gin.Context) {
 	}
 	res := param.Delete()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*project) GetArray(c *gin.Context) {
@@ -121,6 +125,7 @@ func (*project) GetArray(c *gin.Context) {
 	//生成Service,然后调用它的方法
 	res := param.GetArray()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (p *project) GetList(c *gin.Context) {
@@ -144,4 +149,5 @@ func (p *project) GetList(c *gin.Context) {
 
 	res := param.GetList()
 	c.JSON(http.StatusOK, res)
+	return
 }

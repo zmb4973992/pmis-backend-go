@@ -31,6 +31,7 @@ func Login(c *gin.Context) {
 
 	res := param.UserLogin()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*user) Get(c *gin.Context) {
@@ -45,6 +46,7 @@ func (*user) Get(c *gin.Context) {
 	}
 	res := param.Get()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*user) Create(c *gin.Context) {
@@ -67,6 +69,7 @@ func (*user) Create(c *gin.Context) {
 
 	res := param.Create()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*user) Update(c *gin.Context) {
@@ -95,6 +98,7 @@ func (*user) Update(c *gin.Context) {
 
 	res := param.Update()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*user) Delete(c *gin.Context) {
@@ -116,6 +120,7 @@ func (*user) Delete(c *gin.Context) {
 	}
 	res := param.Delete()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*user) List(c *gin.Context) {
@@ -133,6 +138,7 @@ func (*user) List(c *gin.Context) {
 
 	res := param.GetList()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*user) GetByToken(c *gin.Context) {
@@ -148,4 +154,5 @@ func (*user) GetByToken(c *gin.Context) {
 	param.ID = tempUserID.(int)
 	res := param.Get()
 	c.JSON(http.StatusOK, res)
+	return
 }

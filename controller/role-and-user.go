@@ -24,6 +24,7 @@ func (*roleAndUser) ListByRoleID(c *gin.Context) {
 
 	res := service.RoleAndUser.ListByRoleID(roleID)
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*roleAndUser) CreateByRoleID(c *gin.Context) {
@@ -54,6 +55,7 @@ func (*roleAndUser) CreateByRoleID(c *gin.Context) {
 
 	res := service.RoleAndUser.CreateByRoleID(roleID, param)
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*roleAndUser) UpdateByRoleID(c *gin.Context) {
@@ -83,6 +85,7 @@ func (*roleAndUser) UpdateByRoleID(c *gin.Context) {
 
 	res := service.RoleAndUser.UpdateByRoleID(roleID, param)
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*roleAndUser) DeleteByRoleID(c *gin.Context) {
@@ -109,6 +112,7 @@ func (*roleAndUser) ListByUserID(c *gin.Context) {
 
 	res := service.RoleAndUser.ListByUserID(userID)
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*roleAndUser) CreateByUserID(c *gin.Context) {
@@ -139,6 +143,7 @@ func (*roleAndUser) CreateByUserID(c *gin.Context) {
 
 	res := service.RoleAndUser.CreateByUserID(userID, param)
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*roleAndUser) UpdateByUserID(c *gin.Context) {
@@ -168,6 +173,7 @@ func (*roleAndUser) UpdateByUserID(c *gin.Context) {
 
 	res := service.RoleAndUser.UpdateByUserID(userID, param)
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*roleAndUser) DeleteByUserID(c *gin.Context) {
@@ -181,6 +187,7 @@ func (*roleAndUser) DeleteByUserID(c *gin.Context) {
 
 	res := service.RoleAndUser.DeleteByUserID(userID)
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*roleAndUser) ListByTokenInHeader(c *gin.Context) {
@@ -195,4 +202,5 @@ func (*roleAndUser) ListByTokenInHeader(c *gin.Context) {
 	userID := tempUserID.(int)
 	res := service.RoleAndUser.ListByUserID(userID)
 	c.JSON(http.StatusOK, res)
+	return
 }

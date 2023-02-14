@@ -26,6 +26,7 @@ func (*operationLog) Get(c *gin.Context) {
 	}
 	res := param.Get()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*operationLog) Delete(c *gin.Context) {
@@ -47,6 +48,7 @@ func (*operationLog) Delete(c *gin.Context) {
 	}
 	res := param.Delete()
 	c.JSON(http.StatusOK, res)
+	return
 }
 
 func (*operationLog) GetList(c *gin.Context) {
@@ -64,4 +66,5 @@ func (*operationLog) GetList(c *gin.Context) {
 	//生成Service,然后调用它的方法
 	res := param.GetList()
 	c.JSON(http.StatusOK, res)
+	return
 }
