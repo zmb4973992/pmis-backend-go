@@ -55,9 +55,9 @@ paging:
 #全局限流（采用令牌桶原理）
 rate-limit:
   #每秒往令牌桶放XX个令牌，可以为小数
-  limit: "1"
+  limit: "1000"
   #令牌桶最大容量，必须为整数
-  burst: "10"
+  burst: "5000"
 
 #数字验证码
 captcha:

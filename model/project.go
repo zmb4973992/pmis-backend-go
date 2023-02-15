@@ -25,7 +25,7 @@ type Project struct {
 	CommissioningDate    *time.Time `gorm:"type:date"` //调试日期
 	DepartmentID         *int
 	RelatedPartyID       *int
-	Task                 *string //工作内容
+	Content              *string //工作内容
 }
 
 // TableName 将表名改为project

@@ -30,7 +30,9 @@ type ProjectCreate struct {
 	ExchangeRate     *float64 `json:"exchange_rate,omitempty"`
 	DepartmentID     int      `json:"department_id,omitempty"`
 	RelatedPartyID   int      `json:"related_party_id,omitempty"`
-	SigningDate      string   `json:"signing_date"`
+	SigningDate      string   `json:"signing_date,omitempty"`
+	EffectiveDate    string   `json:"effective_date,omitempty"`
+	Content          string   `json:"content,omitempty"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -52,6 +54,8 @@ type ProjectUpdate struct {
 	DepartmentID     *int     `json:"department_id"`
 	RelatedPartyID   *int     `json:"related_party_id"`
 	SigningDate      *string  `json:"signing_date"`
+	EffectiveDate    *string  `json:"effective_date"`
+	Content          *string  `json:"content"`
 }
 
 type ProjectDelete struct {
@@ -93,7 +97,9 @@ type ProjectOutput struct {
 	ExchangeRate     *float64          `json:"exchange_rate" gorm:"exchange_rate"`
 	RelatedPartyID   *int              `json:"related_party_id" gorm:"related_party_id"`
 	DepartmentID     *int              `json:"-" gorm:"department_id"`
-	SigningDate      *time.Time        `json:"signing_date" gorm:"signing_date"`
+	SigningDate      *string           `json:"signing_date" gorm:"signing_date"`
+	EffectiveDate    *string           `json:"effective_date" gorm:"effective_date"`
+	Content          *string           `json:"content" gorm:"content"`
 	Department       *DepartmentOutput `json:"department"`
 }
 
@@ -104,6 +110,18 @@ func (p *ProjectGet) Get() response.Common {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorRecordNotFound)
+	}
+
+	//默认格式为这样的string：2019-11-01T00:00:00Z，需要取年月日(前9位)
+	if result.SigningDate != nil {
+		temp := *result.SigningDate
+		*result.SigningDate = temp[:10]
+	}
+
+	//默认格式为这样的string：2019-11-01T00:00:00Z，需要取年月日(前9位)
+	if result.EffectiveDate != nil {
+		temp := *result.EffectiveDate
+		*result.EffectiveDate = temp[:10]
 	}
 
 	//如果有部门id，就查部门信息
@@ -179,6 +197,18 @@ func (p *ProjectCreate) Create() response.Common {
 			return response.Fail(util.ErrorInvalidDateFormat)
 		}
 		paramOut.SigningDate = &signingDate
+	}
+
+	if p.EffectiveDate != "" {
+		effectiveDate, err := time.Parse("2006-01-02", p.EffectiveDate)
+		if err != nil {
+			return response.Fail(util.ErrorInvalidDateFormat)
+		}
+		paramOut.SigningDate = &effectiveDate
+	}
+
+	if p.Content != "" {
+		paramOut.Content = &p.Content
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
@@ -303,6 +333,24 @@ func (p *ProjectUpdate) Update() response.Common {
 			if err != nil {
 				return response.Fail(util.ErrorInvalidJSONParameters)
 			}
+		}
+	}
+
+	if p.EffectiveDate != nil {
+		if *p.EffectiveDate != "" {
+			var err error
+			paramOut["effective_date"], err = time.Parse("2006-01-02", *p.EffectiveDate)
+			if err != nil {
+				return response.Fail(util.ErrorInvalidJSONParameters)
+			}
+		}
+	}
+
+	if p.Content != nil {
+		if *p.Content != "" {
+			paramOut["content"] = p.Content
+		} else {
+			paramOut["content"] = nil
 		}
 	}
 
