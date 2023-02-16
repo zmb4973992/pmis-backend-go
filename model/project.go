@@ -7,25 +7,24 @@ import (
 
 type Project struct {
 	BaseModel
-	ProjectCode          *string
-	ProjectFullName      *string
-	ProjectShortName     *string
-	Country              *string
-	Province             *string
-	ProjectType          *string
-	SegmentedProjectType *string //细分的项目类型
-	Amount               *float64
-	Currency             *string
-	ExchangeRate         *float64
-	ProjectStatus        *string
-	OurSignatory         *string    //我方签约主体
-	ConstructionPeriod   *int       //工期，天
-	SigningDate          *time.Time `gorm:"type:date"` //签约日期
-	EffectiveDate        *time.Time `gorm:"type:date"` //生效日期
-	CommissioningDate    *time.Time `gorm:"type:date"` //调试日期
-	DepartmentID         *int
-	RelatedPartyID       *int
-	Content              *string //工作内容
+	Code               *string
+	Name               *string
+	Country            *int //见dictionary_item
+	Province           *int //见dictionary_item
+	Type               *int //见dictionary_item
+	SegmentedType      *int //细分的项目类型，见dictionary_item
+	Amount             *float64
+	Currency           *int //见dictionary_item
+	ExchangeRate       *float64
+	Status             *int       //见dictionary_item
+	OurSignatory       *int       //我方签约主体，见dictionary_item
+	ConstructionPeriod *int       //工期，天
+	SigningDate        *time.Time `gorm:"type:date"` //签约日期
+	EffectiveDate      *time.Time `gorm:"type:date"` //生效日期
+	CommissioningDate  *time.Time `gorm:"type:date"` //调试日期
+	DepartmentID       *int       //见department
+	RelatedPartyID     *int       //见related_party
+	Content            *string    //工作内容
 }
 
 // TableName 将表名改为project

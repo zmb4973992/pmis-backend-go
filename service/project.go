@@ -17,22 +17,21 @@ type ProjectGet struct {
 }
 
 type ProjectCreate struct {
-	Creator          int
-	LastModifier     int
-	ProjectCode      string   `json:"project_code,omitempty"`
-	ProjectFullName  string   `json:"project_full_name,omitempty"`
-	ProjectShortName string   `json:"project_short_name,omitempty"`
-	Country          string   `json:"country,omitempty"`
-	Province         string   `json:"province,omitempty"`
-	ProjectType      string   `json:"project_type,omitempty"`
-	Amount           *float64 `json:"amount"`
-	Currency         string   `json:"currency,omitempty"`
-	ExchangeRate     *float64 `json:"exchange_rate,omitempty"`
-	DepartmentID     int      `json:"department_id,omitempty"`
-	RelatedPartyID   int      `json:"related_party_id,omitempty"`
-	SigningDate      string   `json:"signing_date,omitempty"`
-	EffectiveDate    string   `json:"effective_date,omitempty"`
-	Content          string   `json:"content,omitempty"`
+	Creator        int
+	LastModifier   int
+	Code           string   `json:"code,omitempty"`
+	Name           string   `json:"name,omitempty"`
+	Country        int      `json:"country,omitempty"`
+	Province       int      `json:"province,omitempty"`
+	Type           int      `json:"type,omitempty"`
+	Amount         *float64 `json:"amount"`
+	Currency       int      `json:"currency,omitempty"`
+	ExchangeRate   *float64 `json:"exchange_rate"`
+	DepartmentID   int      `json:"department_id,omitempty"`
+	RelatedPartyID int      `json:"related_party_id,omitempty"`
+	SigningDate    string   `json:"signing_date,omitempty"`
+	EffectiveDate  string   `json:"effective_date,omitempty"`
+	Content        string   `json:"content,omitempty"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -40,22 +39,21 @@ type ProjectCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type ProjectUpdate struct {
-	LastModifier     int
-	ID               int
-	ProjectCode      *string  `json:"project_code"`
-	ProjectFullName  *string  `json:"project_full_name"`
-	ProjectShortName *string  `json:"project_short_name"`
-	Country          *string  `json:"country"`
-	Province         *string  `json:"province"`
-	ProjectType      *string  `json:"project_type"`
-	Amount           *float64 `json:"amount"`
-	Currency         *string  `json:"currency"`
-	ExchangeRate     *float64 `json:"exchange_rate"`
-	DepartmentID     *int     `json:"department_id"`
-	RelatedPartyID   *int     `json:"related_party_id"`
-	SigningDate      *string  `json:"signing_date"`
-	EffectiveDate    *string  `json:"effective_date"`
-	Content          *string  `json:"content"`
+	LastModifier   int
+	ID             int
+	Code           *string  `json:"code"`
+	Name           *string  `json:"name"`
+	Country        *int     `json:"country"`
+	Province       *int     `json:"province"`
+	Type           *int     `json:"type"`
+	Amount         *float64 `json:"amount"`
+	Currency       *int     `json:"currency"`
+	ExchangeRate   *float64 `json:"exchange_rate"`
+	DepartmentID   *int     `json:"department_id"`
+	RelatedPartyID *int     `json:"related_party_id"`
+	SigningDate    *string  `json:"signing_date"`
+	EffectiveDate  *string  `json:"effective_date"`
+	Content        *string  `json:"content"`
 }
 
 type ProjectDelete struct {
@@ -66,7 +64,7 @@ type ProjectDelete struct {
 type ProjectGetList struct {
 	dto.ListInput
 	dto.AuthInput
-	ProjectNameInclude    string `json:"project_name_include,omitempty"` //包含项目全称和项目简称
+	NameInclude           string `json:"name_include,omitempty"`
 	DepartmentNameInclude string `json:"department_name_include,omitempty"`
 	DepartmentIDIn        []int  `json:"department_id_in"`
 }
@@ -74,7 +72,7 @@ type ProjectGetList struct {
 type ProjectGetArray struct {
 	dto.ListInput
 	dto.AuthInput
-	ProjectNameInclude    string `json:"project_name_include,omitempty"` //包含项目全称和项目简称
+	NameInclude           string `json:"name_include,omitempty"` //包含项目全称和项目简称
 	DepartmentNameInclude string `json:"department_name_include,omitempty"`
 	DepartmentIDIn        []int  `json:"department_id_in"`
 }
@@ -86,21 +84,45 @@ type ProjectOutput struct {
 	LastModifier *int `json:"last_modifier" gorm:"last_modifier"`
 	ID           int  `json:"id" gorm:"id"`
 
-	ProjectCode      *string           `json:"project_code" gorm:"project_code"`
-	ProjectFullName  *string           `json:"project_full_name" gorm:"project_full_name"`
-	ProjectShortName *string           `json:"project_short_name" gorm:"project_short_name"`
-	Country          *string           `json:"country" gorm:"country"`
-	Province         *string           `json:"province" gorm:"province"`
-	ProjectType      *string           `json:"project_type" gorm:"project_type"`
-	Amount           *float64          `json:"amount" gorm:"amount"`
-	Currency         *string           `json:"currency" gorm:"currency"`
-	ExchangeRate     *float64          `json:"exchange_rate" gorm:"exchange_rate"`
-	RelatedPartyID   *int              `json:"related_party_id" gorm:"related_party_id"`
-	DepartmentID     *int              `json:"-" gorm:"department_id"`
-	SigningDate      *string           `json:"signing_date" gorm:"signing_date"`
-	EffectiveDate    *string           `json:"effective_date" gorm:"effective_date"`
-	Content          *string           `json:"content" gorm:"content"`
-	Department       *DepartmentOutput `json:"department"`
+	Code           *string           `json:"code" gorm:"code"`
+	Name           *string           `json:"name" gorm:"name"`
+	Country        *int              `json:"country" gorm:"country"`
+	Province       *int              `json:"province" gorm:"province"`
+	Type           *int              `json:"type" gorm:"type"`
+	Amount         *float64          `json:"amount" gorm:"amount"`
+	Currency       *int              `json:"currency" gorm:"currency"`
+	ExchangeRate   *float64          `json:"exchange_rate" gorm:"exchange_rate"`
+	RelatedPartyID *int              `json:"related_party_id" gorm:"related_party_id"`
+	DepartmentID   *int              `json:"-" gorm:"department_id"`
+	SigningDate    *string           `json:"signing_date" gorm:"signing_date"`
+	EffectiveDate  *string           `json:"effective_date" gorm:"effective_date"`
+	Content        *string           `json:"content" gorm:"content"`
+	Department     *DepartmentOutput `json:"department"`
+}
+
+type ProjectGetListOutput struct {
+	Creator      *int `json:"creator" gorm:"creator"`
+	LastModifier *int `json:"last_modifier" gorm:"last_modifier"`
+	ID           int  `json:"id" gorm:"id"`
+
+	Code                 *string           `json:"code"`
+	Name                 *string           `json:"name"`
+	CountryInternal      *int              `json:"-" gorm:"column:country"` //用来接收gorm的值，不展示
+	Country              *string           `json:"country" gorm:"-"`        //经过查询后，展示数据
+	TypeInternal         *int              `json:"-" gorm:"column:type"`
+	Type                 *string           `json:"type" gorm:"-"`
+	Amount               *float64          `json:"amount"`
+	CurrencyInternal     *int              `json:"-" gorm:"column:currency"`
+	Currency             *string           `json:"currency" gorm:"-"`
+	ExchangeRate         *float64          `json:"exchange_rate" `
+	OurSignatoryInternal *int              `json:"-" gorm:"column:our_signatory"`
+	OurSignatory         *string           `json:"our_signatory" gorm:"-"`
+	RelatedPartyID       *int              `json:"related_party_id" `
+	DepartmentID         *int              `json:"-" `
+	SigningDate          *string           `json:"signing_date" `
+	EffectiveDate        *string           `json:"effective_date" `
+	Content              *string           `json:"content"`
+	Department           *DepartmentOutput `json:"department"`
 }
 
 func (p *ProjectGet) Get() response.Common {
@@ -147,35 +169,31 @@ func (p *ProjectCreate) Create() response.Common {
 		paramOut.LastModifier = &p.LastModifier
 	}
 
-	if p.ProjectCode != "" {
-		paramOut.ProjectCode = &p.ProjectCode
+	if p.Code != "" {
+		paramOut.Code = &p.Code
 	}
 
-	if p.ProjectFullName != "" {
-		paramOut.ProjectFullName = &p.ProjectFullName
+	if p.Name != "" {
+		paramOut.Name = &p.Name
 	}
 
-	if p.ProjectShortName != "" {
-		paramOut.ProjectShortName = &p.ProjectShortName
-	}
-
-	if p.Country != "" {
+	if p.Country > 0 {
 		paramOut.Country = &p.Country
 	}
 
-	if p.Province != "" {
+	if p.Province > 0 {
 		paramOut.Province = &p.Province
 	}
 
-	if p.ProjectType != "" {
-		paramOut.ProjectType = &p.ProjectType
+	if p.Type > 0 {
+		paramOut.Type = &p.Type
 	}
 
 	if p.Amount != nil {
 		paramOut.Amount = p.Amount
 	}
 
-	if p.Currency != "" {
+	if p.Currency > 0 {
 		paramOut.Currency = &p.Currency
 	}
 
@@ -204,7 +222,7 @@ func (p *ProjectCreate) Create() response.Common {
 		if err != nil {
 			return response.Fail(util.ErrorInvalidDateFormat)
 		}
-		paramOut.SigningDate = &effectiveDate
+		paramOut.EffectiveDate = &effectiveDate
 	}
 
 	if p.Content != "" {
@@ -223,7 +241,7 @@ func (p *ProjectCreate) Create() response.Common {
 		return response.Fail(util.ErrorFieldsToBeCreatedNotFound)
 	}
 
-	err = global.DB.Debug().Create(&paramOut).Error
+	err = global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Fail(util.ErrorFailToCreateRecord)
@@ -238,32 +256,24 @@ func (p *ProjectUpdate) Update() response.Common {
 		paramOut["last_modifier"] = p.LastModifier
 	}
 
-	if p.ProjectCode != nil {
-		if *p.ProjectCode != "" {
-			paramOut["project_code"] = p.ProjectCode
+	if p.Code != nil {
+		if *p.Code != "" {
+			paramOut["code"] = p.Code
 		} else {
-			paramOut["project_code"] = nil
+			paramOut["code"] = nil
 		}
 	}
 
-	if p.ProjectFullName != nil {
-		if *p.ProjectFullName != "" {
-			paramOut["project_full_name"] = p.ProjectFullName
+	if p.Name != nil {
+		if *p.Name != "" {
+			paramOut["name"] = p.Name
 		} else {
-			paramOut["project_full_name"] = nil
-		}
-	}
-
-	if p.ProjectShortName != nil {
-		if *p.ProjectShortName != "" {
-			paramOut["project_short_name"] = p.ProjectShortName
-		} else {
-			paramOut["project_short_name"] = nil
+			paramOut["name"] = nil
 		}
 	}
 
 	if p.Country != nil {
-		if *p.Country != "" {
+		if *p.Country > 0 {
 			paramOut["country"] = p.Country
 		} else {
 			paramOut["country"] = nil
@@ -271,18 +281,18 @@ func (p *ProjectUpdate) Update() response.Common {
 	}
 
 	if p.Province != nil {
-		if *p.Province != "" {
+		if *p.Province > 0 {
 			paramOut["province"] = p.Province
 		} else {
 			paramOut["province"] = nil
 		}
 	}
 
-	if p.ProjectType != nil {
-		if *p.ProjectType != "" {
-			paramOut["project_type"] = p.ProjectType
+	if p.Type != nil {
+		if *p.Type > 0 {
+			paramOut["type"] = p.Type
 		} else {
-			paramOut["project_type"] = nil
+			paramOut["type"] = nil
 		}
 	}
 
@@ -295,7 +305,7 @@ func (p *ProjectUpdate) Update() response.Common {
 	}
 
 	if p.Currency != nil {
-		if *p.Currency != "" {
+		if *p.Currency > 0 {
 			paramOut["currency"] = p.Currency
 		} else {
 			paramOut["currency"] = nil
@@ -391,8 +401,8 @@ func (p *ProjectGetArray) GetArray() response.Common {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if p.ProjectNameInclude != "" {
-		db = db.Where("project_full_name like ?", "%"+p.ProjectNameInclude+"%")
+	if p.NameInclude != "" {
+		db = db.Where("name like ?", "%"+p.NameInclude+"%")
 	}
 
 	if p.DepartmentNameInclude != "" {
@@ -493,8 +503,8 @@ func (p *ProjectGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if p.ProjectNameInclude != "" {
-		db = db.Where("project_full_name like ?", "%"+p.ProjectNameInclude+"%")
+	if p.NameInclude != "" {
+		db = db.Where("name like ?", "%"+p.NameInclude+"%")
 	}
 
 	if p.DepartmentNameInclude != "" {
@@ -576,8 +586,8 @@ func (p *ProjectGetList) GetList() response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []ProjectOutput
-	db.Model(&model.Project{}).Debug().Find(&data)
+	var data []ProjectGetListOutput
+	db.Model(&model.Project{}).Find(&data)
 
 	if len(data) == 0 {
 		return response.FailForList(util.ErrorRecordNotFound)
@@ -589,6 +599,44 @@ func (p *ProjectGetList) GetList() response.List {
 			global.DB.Model(&model.Department{}).Where("id = ?", departmentID).
 				Limit(1).Find(&data[i].Department)
 		}
+
+		//查找字典里相应的值
+		if data[i].CountryInternal != nil {
+			var country string
+			global.DB.Model(&model.DictionaryItem{}).Where("id = ?", *data[i].CountryInternal).
+				Limit(1).Select("name").Find(&country)
+			if country != "" {
+				data[i].Country = &country
+			}
+		}
+
+		if data[i].TypeInternal != nil {
+			var type1 string
+			global.DB.Model(&model.DictionaryItem{}).Where("id = ?", *data[i].TypeInternal).
+				Limit(1).Select("name").Find(&type1)
+			if type1 != "" {
+				data[i].Type = &type1
+			}
+		}
+
+		if data[i].CurrencyInternal != nil {
+			var currency string
+			global.DB.Model(&model.DictionaryItem{}).Where("id = ?", *data[i].CountryInternal).
+				Limit(1).Select("name").Find(&currency)
+			if currency != "" {
+				data[i].Currency = &currency
+			}
+		}
+
+		if data[i].OurSignatoryInternal != nil {
+			var ourSignatory string
+			global.DB.Model(&model.DictionaryItem{}).Where("id = ?", *data[i].OurSignatoryInternal).
+				Limit(1).Select("name").Find(&ourSignatory)
+			if ourSignatory != "" {
+				data[i].OurSignatory = &ourSignatory
+			}
+		}
+
 	}
 
 	numberOfRecords := int(count)
