@@ -8,9 +8,10 @@ import (
 
 type DictionaryType struct {
 	BaseModel
-	Name     string  //名称
-	Sequence *int    //排序
-	Remarks  *string //备注
+	Name               string  //名称
+	Sequence           *int    //排序
+	IsValidForFrontend *bool   //是否在前端展现
+	Remarks            *string //备注
 }
 
 // TableName 修改数据库的表名

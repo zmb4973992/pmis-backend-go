@@ -10,7 +10,6 @@ type Project struct {
 	Code               *string
 	Name               *string
 	Country            *int //见dictionary_item
-	Province           *int //见dictionary_item
 	Type               *int //见dictionary_item
 	SegmentedType      *int //细分的项目类型，见dictionary_item
 	Amount             *float64

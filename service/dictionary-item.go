@@ -58,13 +58,13 @@ type DictionaryItemGetList struct {
 //以下为出参
 
 type DictionaryItemOutput struct {
-	Creator          *int    `json:"creator" gorm:"creator"`
-	LastModifier     *int    `json:"last_modifier" gorm:"last_modifier"`
-	ID               int     `json:"id" gorm:"id"`
-	DictionaryTypeID int     `json:"dictionary_type_id" gorm:"dictionary_type_id"` //字典类型id
-	Name             string  `json:"name" gorm:"name"`                             //名称
-	Sequence         *int    `json:"sequence" gorm:"sequence"`                     //顺序值
-	Remarks          *string `json:"remarks" gorm:"remarks"`                       //备注
+	Creator          *int    `json:"creator"`
+	LastModifier     *int    `json:"last_modifier"`
+	ID               int     `json:"id"`
+	DictionaryTypeID int     `json:"dictionary_type_id"` //字典类型id
+	Name             string  `json:"name"`               //名称
+	Sequence         *int    `json:"sequence"`           //顺序值
+	Remarks          *string `json:"remarks"`            //备注
 }
 
 func (d *DictionaryItemGet) Get() response.Common {

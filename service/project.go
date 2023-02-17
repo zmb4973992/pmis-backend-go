@@ -44,7 +44,6 @@ type ProjectUpdate struct {
 	Code           *string  `json:"code"`
 	Name           *string  `json:"name"`
 	Country        *int     `json:"country"`
-	Province       *int     `json:"province"`
 	Type           *int     `json:"type"`
 	Amount         *float64 `json:"amount"`
 	Currency       *int     `json:"currency"`
@@ -84,45 +83,27 @@ type ProjectOutput struct {
 	LastModifier *int `json:"last_modifier" gorm:"last_modifier"`
 	ID           int  `json:"id" gorm:"id"`
 
-	Code           *string           `json:"code" gorm:"code"`
-	Name           *string           `json:"name" gorm:"name"`
-	Country        *int              `json:"country" gorm:"country"`
-	Province       *int              `json:"province" gorm:"province"`
-	Type           *int              `json:"type" gorm:"type"`
-	Amount         *float64          `json:"amount" gorm:"amount"`
-	Currency       *int              `json:"currency" gorm:"currency"`
-	ExchangeRate   *float64          `json:"exchange_rate" gorm:"exchange_rate"`
-	RelatedPartyID *int              `json:"related_party_id" gorm:"related_party_id"`
-	DepartmentID   *int              `json:"-" gorm:"department_id"`
-	SigningDate    *string           `json:"signing_date" gorm:"signing_date"`
-	EffectiveDate  *string           `json:"effective_date" gorm:"effective_date"`
-	Content        *string           `json:"content" gorm:"content"`
-	Department     *DepartmentOutput `json:"department"`
-}
-
-type ProjectGetListOutput struct {
-	Creator      *int `json:"creator" gorm:"creator"`
-	LastModifier *int `json:"last_modifier" gorm:"last_modifier"`
-	ID           int  `json:"id" gorm:"id"`
-
-	Code                 *string           `json:"code"`
-	Name                 *string           `json:"name"`
-	CountryInternal      *int              `json:"-" gorm:"column:country"` //用来接收gorm的值，不展示
-	Country              *string           `json:"country" gorm:"-"`        //经过查询后，展示数据
-	TypeInternal         *int              `json:"-" gorm:"column:type"`
-	Type                 *string           `json:"type" gorm:"-"`
-	Amount               *float64          `json:"amount"`
-	CurrencyInternal     *int              `json:"-" gorm:"column:currency"`
-	Currency             *string           `json:"currency" gorm:"-"`
-	ExchangeRate         *float64          `json:"exchange_rate" `
-	OurSignatoryInternal *int              `json:"-" gorm:"column:our_signatory"`
-	OurSignatory         *string           `json:"our_signatory" gorm:"-"`
-	RelatedPartyID       *int              `json:"related_party_id" `
-	DepartmentID         *int              `json:"-" `
-	SigningDate          *string           `json:"signing_date" `
-	EffectiveDate        *string           `json:"effective_date" `
-	Content              *string           `json:"content"`
-	Department           *DepartmentOutput `json:"department"`
+	Code                 *string               `json:"code"`
+	Name                 *string               `json:"name"`
+	Country              *int                  `json:"-"`
+	CountryExternal      *DictionaryItemOutput `json:"country"`
+	Type                 *int                  `json:"-"`
+	TypeExternal         *DictionaryItemOutput `json:"type"`
+	Amount               *float64              `json:"amount"`
+	Currency             *int                  `json:"-"`
+	CurrencyExternal     *DictionaryItemOutput `json:"currency"`
+	ExchangeRate         *float64              `json:"exchange_rate"`
+	Status               *int                  `json:"-"`
+	StatusExternal       *DictionaryItemOutput `json:"status"`
+	OurSignatory         *int                  `json:"-"`
+	OurSignatoryExternal *DictionaryItemOutput `json:"our_signatory"`
+	ConstructionPeriod   *int                  `json:"construction_period"`
+	RelatedPartyID       *int                  `json:"related_party_id"`
+	SigningDate          *string               `json:"signing_date" `
+	EffectiveDate        *string               `json:"effective_date" `
+	Content              *string               `json:"content" `
+	DepartmentID         *int                  `json:"-"`
+	DepartmentExternal   *DepartmentOutput     `json:"department"`
 }
 
 func (p *ProjectGet) Get() response.Common {
@@ -146,15 +127,69 @@ func (p *ProjectGet) Get() response.Common {
 		*result.EffectiveDate = temp[:10]
 	}
 
-	//如果有部门id，就查部门信息
+	//查部门信息
 	if result.DepartmentID != nil {
-		err = global.DB.Model(model.Department{}).
-			Where("id=?", result.DepartmentID).First(&result.Department).Error
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			result.Department = nil
+		var record DepartmentOutput
+		res := global.DB.Model(&model.Department{}).
+			Where("id=?", *result.DepartmentID).Limit(1).Find(&record)
+		if res.RowsAffected > 0 {
+			result.DepartmentExternal = &record
 		}
 	}
+
+	//查dictionary_item表
+	{
+		if result.Country != nil {
+			var record DictionaryItemOutput
+			res := global.DB.Model(&model.DictionaryItem{}).
+				Where("id = ?", *result.Country).
+				Limit(1).Find(&record)
+			if res.RowsAffected > 0 {
+				result.CountryExternal = &record
+			}
+		}
+
+		if result.Type != nil {
+			var record DictionaryItemOutput
+			res := global.DB.Model(&model.DictionaryItem{}).
+				Where("id = ?", *result.Type).
+				Limit(1).Find(&record)
+			if res.RowsAffected > 0 {
+				result.TypeExternal = &record
+			}
+		}
+
+		if result.Currency != nil {
+			var record DictionaryItemOutput
+			res := global.DB.Model(&model.DictionaryItem{}).
+				Where("id = ?", *result.Currency).
+				Limit(1).Find(&record)
+			if res.RowsAffected > 0 {
+				result.CurrencyExternal = &record
+			}
+		}
+
+		if result.Status != nil {
+			var record DictionaryItemOutput
+			res := global.DB.Model(&model.DictionaryItem{}).
+				Where("id = ?", *result.Status).
+				Limit(1).Find(&record)
+			if res.RowsAffected > 0 {
+				result.StatusExternal = &record
+			}
+		}
+
+		if result.OurSignatory != nil {
+			var record DictionaryItemOutput
+			res := global.DB.Model(&model.DictionaryItem{}).
+				Where("id = ?", *result.OurSignatory).
+				Limit(1).Find(&record)
+			if res.RowsAffected > 0 {
+				result.OurSignatoryExternal = &record
+			}
+		}
+	}
+
 	return response.SucceedWithData(result)
 }
 
@@ -179,10 +214,6 @@ func (p *ProjectCreate) Create() response.Common {
 
 	if p.Country > 0 {
 		paramOut.Country = &p.Country
-	}
-
-	if p.Province > 0 {
-		paramOut.Province = &p.Province
 	}
 
 	if p.Type > 0 {
@@ -277,14 +308,6 @@ func (p *ProjectUpdate) Update() response.Common {
 			paramOut["country"] = p.Country
 		} else {
 			paramOut["country"] = nil
-		}
-	}
-
-	if p.Province != nil {
-		if *p.Province > 0 {
-			paramOut["province"] = p.Province
-		} else {
-			paramOut["province"] = nil
 		}
 	}
 
@@ -586,7 +609,7 @@ func (p *ProjectGetList) GetList() response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []ProjectGetListOutput
+	var data []ProjectOutput
 	db.Model(&model.Project{}).Find(&data)
 
 	if len(data) == 0 {
@@ -594,49 +617,74 @@ func (p *ProjectGetList) GetList() response.List {
 	}
 
 	for i := range data {
-		if data[i].DepartmentID != nil && *data[i].DepartmentID > 0 {
-			departmentID := *data[i].DepartmentID
-			global.DB.Model(&model.Department{}).Where("id = ?", departmentID).
-				Limit(1).Find(&data[i].Department)
-		}
-
-		//查找字典里相应的值
-		if data[i].CountryInternal != nil {
-			var country string
-			global.DB.Model(&model.DictionaryItem{}).Where("id = ?", *data[i].CountryInternal).
-				Limit(1).Select("name").Find(&country)
-			if country != "" {
-				data[i].Country = &country
+		//查部门信息
+		if data[i].DepartmentID != nil {
+			var record DepartmentOutput
+			res := global.DB.Model(&model.Department{}).
+				Where("id=?", *data[i].DepartmentID).Limit(1).Find(&record)
+			if res.RowsAffected > 0 {
+				data[i].DepartmentExternal = &record
 			}
 		}
 
-		if data[i].TypeInternal != nil {
-			var type1 string
-			global.DB.Model(&model.DictionaryItem{}).Where("id = ?", *data[i].TypeInternal).
-				Limit(1).Select("name").Find(&type1)
-			if type1 != "" {
-				data[i].Type = &type1
-			}
+		//处理日期格式
+		if data[i].SigningDate != nil {
+			temp := *data[i].SigningDate
+			*data[i].SigningDate = temp[:10]
 		}
 
-		if data[i].CurrencyInternal != nil {
-			var currency string
-			global.DB.Model(&model.DictionaryItem{}).Where("id = ?", *data[i].CountryInternal).
-				Limit(1).Select("name").Find(&currency)
-			if currency != "" {
-				data[i].Currency = &currency
-			}
+		if data[i].EffectiveDate != nil {
+			temp := *data[i].EffectiveDate
+			*data[i].EffectiveDate = temp[:10]
 		}
 
-		if data[i].OurSignatoryInternal != nil {
-			var ourSignatory string
-			global.DB.Model(&model.DictionaryItem{}).Where("id = ?", *data[i].OurSignatoryInternal).
-				Limit(1).Select("name").Find(&ourSignatory)
-			if ourSignatory != "" {
-				data[i].OurSignatory = &ourSignatory
+		//查dictionary_item表
+		{
+			if data[i].Country != nil {
+				var record DictionaryItemOutput
+				res := global.DB.Model(&model.DictionaryItem{}).
+					Where("id = ?", *data[i].Country).Limit(1).Find(&record)
+				if res.RowsAffected > 0 {
+					data[i].CountryExternal = &record
+				}
+			}
+
+			if data[i].Type != nil {
+				var record DictionaryItemOutput
+				res := global.DB.Model(&model.DictionaryItem{}).
+					Where("id = ?", *data[i].Type).Limit(1).Find(&record)
+				if res.RowsAffected > 0 {
+					data[i].TypeExternal = &record
+				}
+			}
+
+			if data[i].Currency != nil {
+				var record DictionaryItemOutput
+				res := global.DB.Model(&model.DictionaryItem{}).
+					Where("id = ?", *data[i].Currency).Limit(1).Find(&record)
+				if res.RowsAffected > 0 {
+					data[i].CurrencyExternal = &record
+				}
+			}
+
+			if data[i].Status != nil {
+				var record DictionaryItemOutput
+				res := global.DB.Model(&model.DictionaryItem{}).
+					Where("id = ?", *data[i].Status).Limit(1).Find(&record)
+				if res.RowsAffected > 0 {
+					data[i].StatusExternal = &record
+				}
+			}
+
+			if data[i].OurSignatory != nil {
+				var record DictionaryItemOutput
+				res := global.DB.Model(&model.DictionaryItem{}).
+					Where("id = ?", *data[i].OurSignatory).Limit(1).Find(&record)
+				if res.RowsAffected > 0 {
+					data[i].OurSignatoryExternal = &record
+				}
 			}
 		}
-
 	}
 
 	numberOfRecords := int(count)

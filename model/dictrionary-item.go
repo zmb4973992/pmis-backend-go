@@ -4,10 +4,11 @@ import "pmis-backend-go/global"
 
 type DictionaryItem struct {
 	BaseModel
-	DictionaryTypeID int     //字典类型的id
-	Name             string  //名称
-	Sequence         *int    //用于排序的值
-	Remarks          *string //备注
+	DictionaryTypeID   int     //字典类型的id
+	Name               string  //名称
+	Sequence           *int    //用于排序的值
+	IsValidForFrontend *bool   //是否在前端展现
+	Remarks            *string //备注
 }
 
 // TableName 修改数据库的表名
