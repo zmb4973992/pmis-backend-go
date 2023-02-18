@@ -366,6 +366,8 @@ func (p *ProjectUpdate) Update() response.Common {
 			if err != nil {
 				return response.Fail(util.ErrorInvalidJSONParameters)
 			}
+		} else {
+			paramOut["effective_date"] = nil
 		}
 	}
 
@@ -376,6 +378,8 @@ func (p *ProjectUpdate) Update() response.Common {
 			if err != nil {
 				return response.Fail(util.ErrorInvalidJSONParameters)
 			}
+		} else {
+			paramOut["effective_date"] = nil
 		}
 	}
 
