@@ -6,6 +6,7 @@ type File struct {
 	InitialFileName string
 	StoredFileName  string
 	StoragePath     string
+	AccessPath      string
 	Size            int // 文件大小(KB)
 }
 

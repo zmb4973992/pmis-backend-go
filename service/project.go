@@ -17,21 +17,22 @@ type ProjectGet struct {
 }
 
 type ProjectCreate struct {
-	Creator        int
-	LastModifier   int
-	Code           string   `json:"code,omitempty"`
-	Name           string   `json:"name,omitempty"`
-	Country        int      `json:"country,omitempty"`
-	Province       int      `json:"province,omitempty"`
-	Type           int      `json:"type,omitempty"`
-	Amount         *float64 `json:"amount"`
-	Currency       int      `json:"currency,omitempty"`
-	ExchangeRate   *float64 `json:"exchange_rate"`
-	DepartmentID   int      `json:"department_id,omitempty"`
-	RelatedPartyID int      `json:"related_party_id,omitempty"`
-	SigningDate    string   `json:"signing_date,omitempty"`
-	EffectiveDate  string   `json:"effective_date,omitempty"`
-	Content        string   `json:"content,omitempty"`
+	Creator            int
+	LastModifier       int
+	Code               string   `json:"code,omitempty"`
+	Name               string   `json:"name,omitempty"`
+	Country            int      `json:"country,omitempty"`
+	Province           int      `json:"province,omitempty"`
+	Type               int      `json:"type,omitempty"`
+	Amount             *float64 `json:"amount"`
+	Currency           int      `json:"currency,omitempty"`
+	ExchangeRate       *float64 `json:"exchange_rate"`
+	ConstructionPeriod int      `json:"construction_period,omitempty"`
+	DepartmentID       int      `json:"department_id,omitempty"`
+	RelatedPartyID     int      `json:"related_party_id,omitempty"`
+	SigningDate        string   `json:"signing_date,omitempty"`
+	EffectiveDate      string   `json:"effective_date,omitempty"`
+	Content            string   `json:"content,omitempty"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -39,20 +40,21 @@ type ProjectCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type ProjectUpdate struct {
-	LastModifier   int
-	ID             int
-	Code           *string  `json:"code"`
-	Name           *string  `json:"name"`
-	Country        *int     `json:"country"`
-	Type           *int     `json:"type"`
-	Amount         *float64 `json:"amount"`
-	Currency       *int     `json:"currency"`
-	ExchangeRate   *float64 `json:"exchange_rate"`
-	DepartmentID   *int     `json:"department_id"`
-	RelatedPartyID *int     `json:"related_party_id"`
-	SigningDate    *string  `json:"signing_date"`
-	EffectiveDate  *string  `json:"effective_date"`
-	Content        *string  `json:"content"`
+	LastModifier       int
+	ID                 int
+	Code               *string  `json:"code"`
+	Name               *string  `json:"name"`
+	Country            *int     `json:"country"`
+	Type               *int     `json:"type"`
+	Amount             *float64 `json:"amount"`
+	Currency           *int     `json:"currency"`
+	ExchangeRate       *float64 `json:"exchange_rate"`
+	ConstructionPeriod *int     `json:"construction_period"`
+	DepartmentID       *int     `json:"department_id"`
+	RelatedPartyID     *int     `json:"related_party_id"`
+	SigningDate        *string  `json:"signing_date"`
+	EffectiveDate      *string  `json:"effective_date"`
+	Content            *string  `json:"content"`
 }
 
 type ProjectDelete struct {
@@ -86,24 +88,24 @@ type ProjectOutput struct {
 	Code                 *string               `json:"code"`
 	Name                 *string               `json:"name"`
 	Country              *int                  `json:"-"`
-	CountryExternal      *DictionaryItemOutput `json:"country"`
+	CountryExternal      *DictionaryItemOutput `json:"country" gorm:"-"`
 	Type                 *int                  `json:"-"`
-	TypeExternal         *DictionaryItemOutput `json:"type"`
+	TypeExternal         *DictionaryItemOutput `json:"type" gorm:"-"`
 	Amount               *float64              `json:"amount"`
 	Currency             *int                  `json:"-"`
-	CurrencyExternal     *DictionaryItemOutput `json:"currency"`
+	CurrencyExternal     *DictionaryItemOutput `json:"currency" gorm:"-"`
 	ExchangeRate         *float64              `json:"exchange_rate"`
 	Status               *int                  `json:"-"`
-	StatusExternal       *DictionaryItemOutput `json:"status"`
+	StatusExternal       *DictionaryItemOutput `json:"status" gorm:"-"`
 	OurSignatory         *int                  `json:"-"`
-	OurSignatoryExternal *DictionaryItemOutput `json:"our_signatory"`
+	OurSignatoryExternal *DictionaryItemOutput `json:"our_signatory" gorm:"-"`
 	ConstructionPeriod   *int                  `json:"construction_period"`
 	RelatedPartyID       *int                  `json:"related_party_id"`
-	SigningDate          *string               `json:"signing_date" `
-	EffectiveDate        *string               `json:"effective_date" `
-	Content              *string               `json:"content" `
+	SigningDate          *string               `json:"signing_date"`
+	EffectiveDate        *string               `json:"effective_date"`
+	Content              *string               `json:"content"`
 	DepartmentID         *int                  `json:"-"`
-	DepartmentExternal   *DepartmentOutput     `json:"department"`
+	DepartmentExternal   *DepartmentOutput     `json:"department" gorm:"-"`
 }
 
 func (p *ProjectGet) Get() response.Common {
@@ -232,6 +234,10 @@ func (p *ProjectCreate) Create() response.Common {
 		paramOut.ExchangeRate = p.ExchangeRate
 	}
 
+	if p.ConstructionPeriod > 0 {
+		paramOut.ConstructionPeriod = &p.ConstructionPeriod
+	}
+
 	if p.DepartmentID != 0 {
 		paramOut.DepartmentID = &p.DepartmentID
 	}
@@ -306,7 +312,7 @@ func (p *ProjectUpdate) Update() response.Common {
 	if p.Country != nil {
 		if *p.Country > 0 {
 			paramOut["country"] = p.Country
-		} else {
+		} else if *p.Country == -1 {
 			paramOut["country"] = nil
 		}
 	}
@@ -314,7 +320,7 @@ func (p *ProjectUpdate) Update() response.Common {
 	if p.Type != nil {
 		if *p.Type > 0 {
 			paramOut["type"] = p.Type
-		} else {
+		} else if *p.Type == -1 {
 			paramOut["type"] = nil
 		}
 	}
@@ -330,7 +336,7 @@ func (p *ProjectUpdate) Update() response.Common {
 	if p.Currency != nil {
 		if *p.Currency > 0 {
 			paramOut["currency"] = p.Currency
-		} else {
+		} else if *p.Currency == -1 {
 			paramOut["currency"] = nil
 		}
 	}
@@ -343,18 +349,26 @@ func (p *ProjectUpdate) Update() response.Common {
 		}
 	}
 
-	if p.DepartmentID != nil {
-		if *p.DepartmentID != 0 {
-			paramOut["department_id"] = p.DepartmentID
+	if p.ConstructionPeriod != nil {
+		if *p.ConstructionPeriod != -1 {
+			paramOut["construction_period"] = p.ConstructionPeriod
 		} else {
+			paramOut["construction_period"] = nil
+		}
+	}
+
+	if p.DepartmentID != nil {
+		if *p.DepartmentID > 0 {
+			paramOut["department_id"] = p.DepartmentID
+		} else if *p.DepartmentID == -1 {
 			paramOut["department_id"] = nil
 		}
 	}
 
 	if p.RelatedPartyID != nil {
-		if *p.RelatedPartyID != 0 {
+		if *p.RelatedPartyID > 0 {
 			paramOut["related_party_id"] = p.RelatedPartyID
-		} else {
+		} else if *p.RelatedPartyID == -1 {
 			paramOut["related_party_id"] = nil
 		}
 	}
@@ -367,7 +381,7 @@ func (p *ProjectUpdate) Update() response.Common {
 				return response.Fail(util.ErrorInvalidJSONParameters)
 			}
 		} else {
-			paramOut["effective_date"] = nil
+			paramOut["signing_date"] = nil
 		}
 	}
 
@@ -407,6 +421,8 @@ func (p *ProjectUpdate) Update() response.Common {
 	}
 
 	return response.Succeed()
+	//return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
+
 }
 
 func (p *ProjectDelete) Delete() response.Common {

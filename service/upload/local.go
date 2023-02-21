@@ -9,41 +9,42 @@ import (
 	"os"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
-	"time"
 )
 
 type Local struct{}
 
-func (l *Local) UploadSingleFile(fileHeader *multipart.FileHeader) (storagePath string, fileName string, err error) {
+func (l *Local) UploadSingleFile(fileHeader *multipart.FileHeader) (accessPath string, fileName string, err error) {
 	if fileHeader.Size > global.Config.MaxSize {
 		return "", "", errors.New("文件过大")
 	}
 	// 给文件名添加uuid和时间，确保唯一性
 	id := uuid.NewString()
-	formattedTime := time.Now().Format("2006-01-02-15-04-05")
-	fileName = id + "  " + formattedTime + "  " + fileHeader.Filename
-	storagePath = global.Config.UploadConfig.Path
+	//formattedTime := time.Now().Format("2006-01-02-15-04-05")
+	fileName = id + "--" + fileHeader.Filename
+	storagePath := global.Config.UploadConfig.StoragePath
+	accessPath = global.Config.DownloadConfig.AccessPath
 	err = saveUploadedFile(fileHeader, storagePath+fileName)
 	if err != nil {
 		return "", "", err
 	}
-	return storagePath, fileName, nil
+	return accessPath, fileName, nil
 }
 
-func (l *Local) UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (storagePath string, fileNames []string, err error) {
+func (l *Local) UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (accessPath string, fileNames []string, err error) {
 	for i := range fileHeaders {
 		if fileHeaders[i].Size > global.Config.UploadConfig.MaxSize {
 			return "", nil, errors.New("文件过大")
 		}
 	}
 
-	storagePath = global.Config.UploadConfig.Path
+	storagePath := global.Config.UploadConfig.StoragePath
+	accessPath = global.Config.DownloadConfig.AccessPath
 
 	for i := range fileHeaders {
 		// 给文件名添加uuid和时间，确保唯一性
 		id := uuid.NewString()
-		formattedTime := time.Now().Format("2006-01-02 15-04-05")
-		fileName := id + "  " + formattedTime + "  " + fileHeaders[i].Filename
+		//formattedTime := time.Now().Format("2006-01-02 15-04-05")
+		fileName := id + "--" + fileHeaders[i].Filename
 		err := saveUploadedFile(fileHeaders[i], storagePath+fileName)
 		if err != nil {
 			return "", nil, err
@@ -55,11 +56,12 @@ func (l *Local) UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (storag
 		record.InitialFileName = fileHeaders[i].Filename
 		record.StoredFileName = fileName
 		record.StoragePath = storagePath
+		record.AccessPath = accessPath
 		record.Size = int(fileHeaders[i].Size) >> 20 // MB
 		global.DB.Create(&record)
 		fileNames = append(fileNames, fileName)
 	}
-	return storagePath, fileNames, nil
+	return accessPath, fileNames, nil
 }
 
 func (l *Local) Delete(UUID string) error {

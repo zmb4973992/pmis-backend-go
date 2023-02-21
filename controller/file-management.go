@@ -21,15 +21,15 @@ func (f *fileManagement) UploadSingleFile(c *gin.Context) {
 	}
 
 	oss := upload.NewOss()
-	storagePath, fileName, err := oss.UploadSingleFile(fileHeader)
+	accessPath, fileName, err := oss.UploadSingleFile(fileHeader)
 	if err != nil {
 		c.JSON(http.StatusOK, response.Fail(util.ErrorFailToUploadFiles))
 		return
 	}
 
 	c.JSON(http.StatusOK, response.SucceedWithData(gin.H{
-		"storage_path": storagePath,
-		"file_name":    fileName,
+		"access_path": accessPath,
+		"file_name":   fileName,
 	}))
 	return
 }

@@ -27,6 +27,7 @@ type config struct {
 	JWTConfig
 	LogConfig
 	UploadConfig
+	DownloadConfig
 	EmailConfig
 	PagingConfig
 	RateLimitConfig
@@ -62,8 +63,12 @@ type LogConfig struct {
 }
 
 type UploadConfig struct {
-	Path    string
-	MaxSize int64
+	StoragePath string
+	MaxSize     int64
+}
+
+type DownloadConfig struct {
+	AccessPath string
 }
 
 type EmailConfig struct {
@@ -139,8 +144,10 @@ func loadConfig() {
 	Config.LogConfig.MaxAge = v.GetInt("log.log-max-age")
 	Config.LogConfig.Compress = v.GetBool("log.log-compress")
 
-	Config.UploadConfig.Path = v.GetString("upload.path") + "/"
+	Config.UploadConfig.StoragePath = v.GetString("upload.storage-path") + "/"
 	Config.UploadConfig.MaxSize = v.GetInt64("upload.max-size") << 20
+
+	Config.DownloadConfig.AccessPath = v.GetString("download.access-path") + "/"
 
 	Config.EmailConfig.OutgoingMailServer = v.GetString("email.outgoing-mail-server")
 	Config.EmailConfig.Port = v.GetInt("email.port")

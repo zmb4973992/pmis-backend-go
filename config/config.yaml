@@ -31,10 +31,14 @@ log:
   log-compress: "False"
 
 upload:
-  #保存上传文件的路径
-  path: "D:/test/upload-files"
+  #服务器上保存上传文件的路径
+  storage-path: "D:/test/upload-files"
   #上传文件的最大尺寸(MB)，这里是50MB
   max-size: "50"
+
+download:
+  #对外暴露的文件访问路径
+  access-path: "/download"
 
 email:
   #发送邮件服务器，一般是smtp

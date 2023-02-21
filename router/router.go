@@ -17,8 +17,9 @@ func Init() *gin.Engine {
 	engine := gin.New()
 
 	//将目录(root变量)下的所有文件设置为静态文件，可以直接访问
-	engine.Static("/s", "./static")
+	engine.Static("/download", global.Config.UploadConfig.StoragePath)
 	engine.GET("/test", controller.Test)
+	engine.GET("/dl", controller.Dl)
 
 	//路由不匹配时的处理
 	engine.NoRoute(controller.NoRoute.NoRoute)

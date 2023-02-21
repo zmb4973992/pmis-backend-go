@@ -9,8 +9,8 @@ import (
 
 // Oss 对象存储接口
 type Oss interface {
-	UploadSingleFile(fileHeader *multipart.FileHeader) (storagePath string, fileName string, err error)
-	UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (storagePath string, fileNames []string, err error)
+	UploadSingleFile(fileHeader *multipart.FileHeader) (accessPath string, fileName string, err error)
+	UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (accessPath string, fileNames []string, err error)
 	Delete(UUID string) error
 }
 
@@ -25,10 +25,10 @@ func NewOss() Oss {
 
 func Init() {
 	//检查上传文件的文件夹是否存在
-	exists := util.PathExistsOrNot(global.Config.Path)
+	exists := util.PathExistsOrNot(global.Config.StoragePath)
 	//如果不存在就创建
 	if !exists {
-		err := os.MkdirAll(global.Config.Path, os.ModePerm)
+		err := os.MkdirAll(global.Config.StoragePath, os.ModePerm)
 		if err != nil {
 			global.SugaredLogger.Panicln(err)
 		}
