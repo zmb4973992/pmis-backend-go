@@ -91,21 +91,21 @@ func (u *UserLogin) UserLogin() response.Common {
 	//如果没有找到记录
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorInvalidUsernameOrPassword)
+		return response.Failure(util.ErrorInvalidUsernameOrPassword)
 	}
 
 	//如果密码错误
 	if !util.CheckPassword(u.Password, record.Password) {
-		return response.Fail(util.ErrorInvalidUsernameOrPassword)
+		return response.Failure(util.ErrorInvalidUsernameOrPassword)
 	}
 
 	//账号密码都正确时，生成token
 	token, err := jwt.GenerateToken(record.ID)
 	if err != nil {
-		return response.Fail(util.ErrorFailToGenerateToken)
+		return response.Failure(util.ErrorFailToGenerateToken)
 	}
 
-	return response.SucceedWithData(
+	return response.SuccessWithData(
 		map[string]any{
 			"access_token": token,
 		})
@@ -117,9 +117,9 @@ func (u *UserGet) Get() response.Common {
 		Where("id = ?", u.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
-	return response.SucceedWithData(result)
+	return response.SuccessWithData(result)
 }
 
 func (u *UserCreate) Create() response.Common {
@@ -136,7 +136,7 @@ func (u *UserCreate) Create() response.Common {
 	encryptedPassword, err := util.Encrypt(u.Password)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToEncrypt)
+		return response.Failure(util.ErrorFailToEncrypt)
 	}
 
 	paramOut.Password = encryptedPassword
@@ -164,9 +164,9 @@ func (u *UserCreate) Create() response.Common {
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToCreateRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (u *UserUpdate) Update() response.Common {
@@ -216,17 +216,17 @@ func (u *UserUpdate) Update() response.Common {
 	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
 
 	if len(paramOutForCounting) == 0 {
-		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
+		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
 	err := global.DB.Model(&model.User{}).Where("id = ?", u.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToUpdateRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 
-	return response.Succeed()
+	return response.Success()
 }
 
 func (u *UserDelete) Delete() response.Common {
@@ -238,9 +238,9 @@ func (u *UserDelete) Delete() response.Common {
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToDeleteRecord)
+		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (u *UserGetList) GetList() response.List {
@@ -273,7 +273,7 @@ func (u *UserGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.User{}, orderBy)
 		if !exists {
-			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
+			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -304,7 +304,7 @@ func (u *UserGetList) GetList() response.List {
 	db.Model(&model.User{}).Find(&data)
 
 	if len(data) == 0 {
-		return response.FailForList(util.ErrorRecordNotFound)
+		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
 	numberOfRecords := int(count)

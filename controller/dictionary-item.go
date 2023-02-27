@@ -38,7 +38,7 @@ func (*dictionaryItem) Create(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Fail(util.ErrorInvalidJSONParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//处理creator、last_modifier字段
@@ -60,7 +60,7 @@ func (*dictionaryItem) CreateInBatches(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Fail(util.ErrorInvalidJSONParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//处理creator、last_modifier字段
@@ -84,7 +84,7 @@ func (*dictionaryItem) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidJSONParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
@@ -92,7 +92,7 @@ func (*dictionaryItem) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -114,7 +114,7 @@ func (*dictionaryItem) Delete(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -138,7 +138,7 @@ func (*dictionaryItem) GetArray(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailForList(util.ErrorInvalidJSONParameters))
+			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -156,7 +156,7 @@ func (*dictionaryItem) GetList(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailForList(util.ErrorInvalidJSONParameters))
+			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 

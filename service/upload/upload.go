@@ -9,8 +9,8 @@ import (
 
 // Oss 对象存储接口
 type Oss interface {
-	UploadSingleFile(fileHeader *multipart.FileHeader) (accessPath string, fileName string, err error)
-	UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (accessPath string, fileNames []string, err error)
+	UploadSingleFile(fileHeader *multipart.FileHeader) (fileName string, err error)
+	UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (fileNames []string, err error)
 	Delete(UUID string) error
 }
 

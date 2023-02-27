@@ -21,7 +21,7 @@ func (*relatedParty) Get(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 	res := param.Get()
@@ -35,7 +35,7 @@ func (*relatedParty) Create(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -58,7 +58,7 @@ func (*relatedParty) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidJSONParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -66,7 +66,7 @@ func (*relatedParty) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -88,7 +88,7 @@ func (*relatedParty) Delete(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -112,7 +112,7 @@ func (*relatedParty) GetList(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailForList(util.ErrorInvalidJSONParameters))
+			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 

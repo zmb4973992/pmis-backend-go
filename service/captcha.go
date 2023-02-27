@@ -24,10 +24,10 @@ func (c *CaptchaGet) Get() response.Common {
 	id, base64String, err := captcha.Generate()
 	if err != nil {
 		global.SugaredLogger.Errorln("生成验证码失败")
-		response.Fail(util.ErrorFailToGenerateCaptcha)
+		response.Failure(util.ErrorFailToGenerateCaptcha)
 	}
 
-	return response.SucceedWithData(
+	return response.SuccessWithData(
 		gin.H{
 			"id":            id,
 			"base64_string": base64String,

@@ -73,9 +73,9 @@ func (r *RelatedPartyGet) Get() response.Common {
 		Where("id = ?", r.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
-	return response.SucceedWithData(result)
+	return response.SuccessWithData(result)
 }
 
 func (r *RelatedPartyCreate) Create() response.Common {
@@ -111,21 +111,21 @@ func (r *RelatedPartyCreate) Create() response.Common {
 	//计算有修改值的字段数，分别进行不同处理
 	tempParamOut, err := util.StructToMap(paramOut)
 	if err != nil {
-		response.Fail(util.ErrorFailToCreateRecord)
+		response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
 		"Creator", "LastModifier", "deleter", "CreateAt", "UpdatedAt", "DeletedAt")
 
 	if len(paramOutForCounting) == 0 {
-		return response.Fail(util.ErrorFieldsToBeCreatedNotFound)
+		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
 	}
 
 	err = global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToCreateRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (r *RelatedPartyUpdate) Update() response.Common {
@@ -179,17 +179,17 @@ func (r *RelatedPartyUpdate) Update() response.Common {
 	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
 
 	if len(paramOutForCounting) == 0 {
-		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
+		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
 	err := global.DB.Model(&model.RelatedParty{}).Where("id = ?", r.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToUpdateRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 
-	return response.Succeed()
+	return response.Success()
 }
 
 func (r *RelatedPartyDelete) Delete() response.Common {
@@ -201,9 +201,9 @@ func (r *RelatedPartyDelete) Delete() response.Common {
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToDeleteRecord)
+		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (r *RelatedPartyGetList) GetList() response.List {
@@ -236,7 +236,7 @@ func (r *RelatedPartyGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.RelatedParty{}, orderBy)
 		if !exists {
-			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
+			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -267,7 +267,7 @@ func (r *RelatedPartyGetList) GetList() response.List {
 	db.Model(&model.RelatedParty{}).Find(&data)
 
 	if len(data) == 0 {
-		return response.FailForList(util.ErrorRecordNotFound)
+		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
 	numberOfRecords := int(count)

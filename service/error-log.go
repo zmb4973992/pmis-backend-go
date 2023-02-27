@@ -77,13 +77,13 @@ func (e *ErrorLogGet) Get() response.Common {
 		Where("id = ?", e.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
 	if result.Date != nil {
 		date := *result.Date
 		*result.Date = date[:10]
 	}
-	return response.SucceedWithData(result)
+	return response.SuccessWithData(result)
 }
 
 func (e *ErrorLogCreate) Create() response.Common {
@@ -104,7 +104,7 @@ func (e *ErrorLogCreate) Create() response.Common {
 		date, err := time.Parse("2006-01-02", e.Date)
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
-			return response.Fail(util.ErrorInvalidJSONParameters)
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		} else {
 			paramOut.Date = &date
 		}
@@ -125,9 +125,9 @@ func (e *ErrorLogCreate) Create() response.Common {
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToCreateRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (e *ErrorLogUpdate) Update() response.Common {
@@ -149,7 +149,7 @@ func (e *ErrorLogUpdate) Update() response.Common {
 		if *e.Date != "" {
 			date, err := time.Parse("2006-01-02", *e.Date)
 			if err != nil {
-				return response.Fail(util.ErrorInvalidJSONParameters)
+				return response.Failure(util.ErrorInvalidJSONParameters)
 			}
 			paramOut["date"] = date
 		} else {
@@ -184,17 +184,17 @@ func (e *ErrorLogUpdate) Update() response.Common {
 	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
 
 	if len(paramOutForCounting) == 0 {
-		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
+		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
 	err := global.DB.Model(&model.ErrorLog{}).Where("id = ?", e.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToUpdateRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 
-	return response.Succeed()
+	return response.Success()
 }
 
 func (e *ErrorLogDelete) Delete() response.Common {
@@ -206,9 +206,9 @@ func (e *ErrorLogDelete) Delete() response.Common {
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToDeleteRecord)
+		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 // GetList date待修改
@@ -255,7 +255,7 @@ func (e *ErrorLogGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.ErrorLog{}, orderBy)
 		if !exists {
-			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
+			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -286,7 +286,7 @@ func (e *ErrorLogGetList) GetList() response.List {
 	db.Model(&model.ErrorLog{}).Find(&data)
 
 	if len(data) == 0 {
-		return response.FailForList(util.ErrorRecordNotFound)
+		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
 	numberOfRecords := int(count)

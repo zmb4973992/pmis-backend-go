@@ -19,13 +19,13 @@ func Login(c *gin.Context) {
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusOK, response.Fail(util.ErrorInvalidJSONParameters))
+		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
 	permitted := param.Verify()
 	if !permitted {
-		c.JSON(http.StatusOK, response.Fail(util.ErrorWrongCaptcha))
+		c.JSON(http.StatusOK, response.Failure(util.ErrorWrongCaptcha))
 		return
 	}
 
@@ -41,7 +41,7 @@ func (*user) Get(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 	res := param.Get()
@@ -55,7 +55,7 @@ func (*user) Create(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidJSONParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -78,7 +78,7 @@ func (*user) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidJSONParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -86,7 +86,7 @@ func (*user) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -108,7 +108,7 @@ func (*user) Delete(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -132,7 +132,7 @@ func (*user) List(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailForList(util.ErrorInvalidJSONParameters))
+			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -148,7 +148,7 @@ func (*user) GetByToken(c *gin.Context) {
 	tempUserID, exists := c.Get("user_id")
 	if !exists {
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorAccessTokenInvalid))
+			response.Failure(util.ErrorAccessTokenInvalid))
 		return
 	}
 	param.ID = tempUserID.(int)

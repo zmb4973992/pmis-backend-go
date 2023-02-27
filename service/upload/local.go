@@ -13,32 +13,29 @@ import (
 
 type Local struct{}
 
-func (l *Local) UploadSingleFile(fileHeader *multipart.FileHeader) (accessPath string, fileName string, err error) {
+func (l *Local) UploadSingleFile(fileHeader *multipart.FileHeader) (fileName string, err error) {
 	if fileHeader.Size > global.Config.MaxSize {
-		return "", "", errors.New("文件过大")
+		return "", errors.New("文件过大")
 	}
 	// 给文件名添加uuid和时间，确保唯一性
 	id := uuid.NewString()
-	//formattedTime := time.Now().Format("2006-01-02-15-04-05")
 	fileName = id + "--" + fileHeader.Filename
 	storagePath := global.Config.UploadConfig.StoragePath
-	accessPath = global.Config.DownloadConfig.AccessPath
 	err = saveUploadedFile(fileHeader, storagePath+fileName)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
-	return accessPath, fileName, nil
+	return fileName, nil
 }
 
-func (l *Local) UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (accessPath string, fileNames []string, err error) {
+func (l *Local) UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (fileNames []string, err error) {
 	for i := range fileHeaders {
 		if fileHeaders[i].Size > global.Config.UploadConfig.MaxSize {
-			return "", nil, errors.New("文件过大")
+			return nil, errors.New("文件过大")
 		}
 	}
 
 	storagePath := global.Config.UploadConfig.StoragePath
-	accessPath = global.Config.DownloadConfig.AccessPath
 
 	for i := range fileHeaders {
 		// 给文件名添加uuid和时间，确保唯一性
@@ -47,21 +44,19 @@ func (l *Local) UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (access
 		fileName := id + "--" + fileHeaders[i].Filename
 		err := saveUploadedFile(fileHeaders[i], storagePath+fileName)
 		if err != nil {
-			return "", nil, err
+			return nil, err
 		}
 
 		//保存记录
 		var record model.File
 		record.UUID = id
-		record.InitialFileName = fileHeaders[i].Filename
-		record.StoredFileName = fileName
-		record.StoragePath = storagePath
-		record.AccessPath = accessPath
+		record.Name = fileHeaders[i].Filename
+		record.Path = storagePath
 		record.Size = int(fileHeaders[i].Size) >> 20 // MB
 		global.DB.Create(&record)
 		fileNames = append(fileNames, fileName)
 	}
-	return accessPath, fileNames, nil
+	return fileNames, nil
 }
 
 func (l *Local) Delete(UUID string) error {
@@ -72,9 +67,9 @@ func (l *Local) Delete(UUID string) error {
 	}
 
 	if record.ID != 0 {
-		storagePath := record.StoragePath
-		storedFileName := record.StoredFileName
-		_ = os.Remove(storagePath + storedFileName)
+		filePath := record.Path
+		fileName := record.Name
+		_ = os.Remove(filePath + fileName)
 
 		err = global.DB.Delete(&record).Error
 		if err != nil {

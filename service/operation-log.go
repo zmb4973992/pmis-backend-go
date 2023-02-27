@@ -54,9 +54,9 @@ func (o *OperationLogGet) Get() response.Common {
 		Where("id = ?", o.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
-	return response.SucceedWithData(result)
+	return response.SuccessWithData(result)
 }
 
 func (o *OperationLogDelete) Delete() response.Common {
@@ -68,9 +68,9 @@ func (o *OperationLogDelete) Delete() response.Common {
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToDeleteRecord)
+		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (o *OperationLogGetList) GetList() response.List {
@@ -99,7 +99,7 @@ func (o *OperationLogGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.OperationLog{}, orderBy)
 		if !exists {
-			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
+			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -130,7 +130,7 @@ func (o *OperationLogGetList) GetList() response.List {
 	db.Model(&model.OperationLog{}).Find(&data)
 
 	if len(data) == 0 {
-		return response.FailForList(util.ErrorRecordNotFound)
+		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
 	numberOfRecords := int(count)

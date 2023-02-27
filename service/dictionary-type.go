@@ -66,9 +66,9 @@ func (d *DictionaryTypeGet) Get() response.Common {
 		Where("id = ?", d.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
-	return response.SucceedWithData(result)
+	return response.SuccessWithData(result)
 }
 
 func (d *DictionaryTypeCreate) Create() response.Common {
@@ -94,9 +94,9 @@ func (d *DictionaryTypeCreate) Create() response.Common {
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToCreateRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (d *DictionaryTypeCreateInBatches) CreateInBatches() response.Common {
@@ -128,9 +128,9 @@ func (d *DictionaryTypeCreateInBatches) CreateInBatches() response.Common {
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToCreateRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (d *DictionaryTypeUpdate) Update() response.Common {
@@ -154,7 +154,7 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 		} else if *d.Sequence == 0 {
 			paramOut["sequence"] = nil
 		} else {
-			return response.Fail(util.ErrorInvalidJSONParameters)
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -170,17 +170,17 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
 
 	if len(paramOutForCounting) == 0 {
-		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
+		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
 	err := global.DB.Model(&model.DictionaryType{}).Where("id = ?", d.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToUpdateRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 
-	return response.Succeed()
+	return response.Success()
 }
 
 func (d *DictionaryTypeDelete) Delete() response.Common {
@@ -192,9 +192,9 @@ func (d *DictionaryTypeDelete) Delete() response.Common {
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToDeleteRecord)
+		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (d *DictionaryTypeGetArray) GetArray() response.Common {
@@ -219,7 +219,7 @@ func (d *DictionaryTypeGetArray) GetArray() response.Common {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.DictionaryType{}, orderBy)
 		if !exists {
-			return response.Fail(util.ErrorSortingFieldDoesNotExist)
+			return response.Failure(util.ErrorSortingFieldDoesNotExist)
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -250,7 +250,7 @@ func (d *DictionaryTypeGetArray) GetArray() response.Common {
 	db.Model(&model.DictionaryType{}).Select("name").Find(&array)
 
 	if len(array) == 0 {
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
 
 	return response.Common{
@@ -286,7 +286,7 @@ func (d *DictionaryTypeGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.DictionaryType{}, orderBy)
 		if !exists {
-			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
+			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -317,7 +317,7 @@ func (d *DictionaryTypeGetList) GetList() response.List {
 	db.Model(&model.DictionaryType{}).Find(&data)
 
 	if len(data) == 0 {
-		return response.FailForList(util.ErrorRecordNotFound)
+		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
 	numberOfRecords := int(count)

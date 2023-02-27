@@ -99,9 +99,9 @@ func (d *DisassemblyGet) Get() response.Common {
 		Where("id = ?", d.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
-	return response.SucceedWithData(result)
+	return response.SuccessWithData(result)
 }
 
 func (d *DisassemblyTree) Tree() response.Common {
@@ -112,7 +112,7 @@ func (d *DisassemblyTree) Tree() response.Common {
 		First(&disassemblyID).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
 
 	//第一轮查找
@@ -121,7 +121,7 @@ func (d *DisassemblyTree) Tree() response.Common {
 		Where("id = ?", disassemblyID).First(&result1).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
 	//第二轮查找
 	var result2 []DisassemblyTreeOutput
@@ -148,7 +148,7 @@ func (d *DisassemblyTree) Tree() response.Common {
 		result2[index2].Children = append(result2[index2].Children, result3...)
 	}
 	result1[0].Children = append(result1[0].Children, result2...)
-	return response.SucceedWithData(result1)
+	return response.SuccessWithData(result1)
 }
 
 func (d *DisassemblyCreate) Create() response.Common {
@@ -173,9 +173,9 @@ func (d *DisassemblyCreate) Create() response.Common {
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
-		return response.Fail(util.ErrorFailToCreateRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (d *DisassemblyCreateInBatches) CreateInBatches() response.Common {
@@ -206,9 +206,9 @@ func (d *DisassemblyCreateInBatches) CreateInBatches() response.Common {
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToCreateRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (d *DisassemblyUpdate) Update() response.Common {
@@ -222,7 +222,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		if *d.Name != "" {
 			paramOut["name"] = d.Name
 		} else {
-			return response.Fail(util.ErrorInvalidJSONParameters)
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -230,7 +230,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		if *d.ProjectID != 0 {
 			paramOut["project_id"] = d.ProjectID
 		} else {
-			return response.Fail(util.ErrorInvalidJSONParameters)
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -238,7 +238,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		if *d.Level != 0 {
 			paramOut["level"] = d.Level
 		} else {
-			return response.Fail(util.ErrorInvalidJSONParameters)
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -246,7 +246,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		if *d.Weight != 0 {
 			paramOut["weight"] = d.Weight
 		} else {
-			return response.Fail(util.ErrorInvalidJSONParameters)
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -254,7 +254,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		if *d.SuperiorID != 0 {
 			paramOut["superior_id"] = d.SuperiorID
 		} else {
-			return response.Fail(util.ErrorInvalidJSONParameters)
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -262,16 +262,16 @@ func (d *DisassemblyUpdate) Update() response.Common {
 	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
 
 	if len(paramOutForCounting) == 0 {
-		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
+		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
 	err := global.DB.Model(&model.Disassembly{}).Where("id = ?", d.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToUpdateRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (d *DisassemblyDelete) Delete() response.Common {
@@ -283,9 +283,9 @@ func (d *DisassemblyDelete) Delete() response.Common {
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToDeleteRecord)
+		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (d *DisassemblyDeleteWithSubitems) DeleteWithSubitems() response.Common {
@@ -328,9 +328,9 @@ func (d *DisassemblyDeleteWithSubitems) DeleteWithSubitems() response.Common {
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToDeleteRecord)
+		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (d *DisassemblyGetList) GetList() response.List {
@@ -379,7 +379,7 @@ func (d *DisassemblyGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.Disassembly{}, orderBy)
 		if !exists {
-			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
+			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -410,7 +410,7 @@ func (d *DisassemblyGetList) GetList() response.List {
 	db.Model(&model.Disassembly{}).Find(&data)
 
 	if len(data) == 0 {
-		return response.FailForList(util.ErrorRecordNotFound)
+		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
 	numberOfRecords := int(count)

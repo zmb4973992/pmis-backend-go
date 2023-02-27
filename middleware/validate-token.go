@@ -14,7 +14,7 @@ func ValidateToken() gin.HandlerFunc {
 		token := c.GetHeader("access_token")
 		//如果请求头没有携带access_token
 		if token == "" {
-			c.JSON(http.StatusOK, response.Fail(util.ErrorAccessTokenNotFound))
+			c.JSON(http.StatusOK, response.Failure(util.ErrorAccessTokenNotFound))
 			c.Abort()
 			return
 		}
@@ -22,7 +22,7 @@ func ValidateToken() gin.HandlerFunc {
 		res, err := jwt.ParseToken(token)
 		//如果存在错误或token已过期
 		if err != nil || res.ExpiresAt.Unix() < time.Now().Unix() {
-			c.JSON(http.StatusOK, response.Fail(util.ErrorAccessTokenInvalid))
+			c.JSON(http.StatusOK, response.Failure(util.ErrorAccessTokenInvalid))
 			c.Abort()
 			return
 		}

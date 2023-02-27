@@ -73,9 +73,9 @@ func (d *DictionaryItemGet) Get() response.Common {
 		Where("id = ?", d.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
-	return response.SucceedWithData(result)
+	return response.SuccessWithData(result)
 }
 
 func (d *DictionaryItemCreate) Create() response.Common {
@@ -103,9 +103,9 @@ func (d *DictionaryItemCreate) Create() response.Common {
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToCreateRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (d *DictionaryItemCreateInBatches) CreateInBatches() response.Common {
@@ -139,9 +139,9 @@ func (d *DictionaryItemCreateInBatches) CreateInBatches() response.Common {
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToCreateRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (d *DictionaryItemUpdate) Update() response.Common {
@@ -157,7 +157,7 @@ func (d *DictionaryItemUpdate) Update() response.Common {
 		} else if *d.DictionaryTypeID == 0 {
 			paramOut["dictionary_type_id"] = nil
 		} else {
-			return response.Fail(util.ErrorInvalidJSONParameters)
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -175,7 +175,7 @@ func (d *DictionaryItemUpdate) Update() response.Common {
 		} else if *d.Sequence == 0 {
 			paramOut["sequence"] = nil
 		} else {
-			return response.Fail(util.ErrorInvalidJSONParameters)
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -191,17 +191,17 @@ func (d *DictionaryItemUpdate) Update() response.Common {
 	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
 
 	if len(paramOutForCounting) == 0 {
-		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
+		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
 	err := global.DB.Model(&model.DictionaryItem{}).Where("id = ?", d.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToUpdateRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 
-	return response.Succeed()
+	return response.Success()
 }
 
 func (d *DictionaryItemDelete) Delete() response.Common {
@@ -213,9 +213,9 @@ func (d *DictionaryItemDelete) Delete() response.Common {
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToDeleteRecord)
+		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (d *DictionaryItemGetArray) GetArray() response.Common {
@@ -240,7 +240,7 @@ func (d *DictionaryItemGetArray) GetArray() response.Common {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.DictionaryItem{}, orderBy)
 		if !exists {
-			return response.Fail(util.ErrorSortingFieldDoesNotExist)
+			return response.Failure(util.ErrorSortingFieldDoesNotExist)
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -271,7 +271,7 @@ func (d *DictionaryItemGetArray) GetArray() response.Common {
 	db.Model(&model.DictionaryItem{}).Select("name").Find(&array)
 
 	if len(array) == 0 {
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
 
 	return response.Common{
@@ -297,7 +297,7 @@ func (d *DictionaryItemGetList) GetList() response.List {
 		if dictionaryTypeID > 0 {
 			db = db.Where("dictionary_type_id = ?", dictionaryTypeID)
 		} else {
-			return response.FailForList(util.ErrorDictionaryTypeNameNotFound)
+			return response.FailureForList(util.ErrorDictionaryTypeNameNotFound)
 		}
 	}
 
@@ -318,7 +318,7 @@ func (d *DictionaryItemGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.DictionaryItem{}, orderBy)
 		if !exists {
-			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
+			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -349,7 +349,7 @@ func (d *DictionaryItemGetList) GetList() response.List {
 	db.Model(&model.DictionaryItem{}).Find(&data)
 
 	if len(data) == 0 {
-		return response.FailForList(util.ErrorRecordNotFound)
+		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
 	numberOfRecords := int(count)

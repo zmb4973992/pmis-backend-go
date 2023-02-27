@@ -21,7 +21,7 @@ func (*project) Get(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 	res := param.Get()
@@ -35,7 +35,7 @@ func (*project) Create(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Fail(util.ErrorInvalidJSONParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -58,7 +58,7 @@ func (*project) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidJSONParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
@@ -66,7 +66,7 @@ func (*project) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -88,7 +88,7 @@ func (*project) Delete(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -112,7 +112,7 @@ func (*project) GetArray(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailForList(util.ErrorInvalidJSONParameters))
+			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -137,7 +137,7 @@ func (p *project) GetList(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailForList(util.ErrorInvalidJSONParameters))
+			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 

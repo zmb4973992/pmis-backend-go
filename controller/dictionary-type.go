@@ -22,7 +22,7 @@ func (*dictionaryType) Get(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 	res := param.Get()
@@ -36,7 +36,7 @@ func (*dictionaryType) Create(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Fail(util.ErrorInvalidJSONParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -60,7 +60,7 @@ func (*dictionaryType) CreateInBatches(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Fail(util.ErrorInvalidJSONParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -85,7 +85,7 @@ func (*dictionaryType) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidJSONParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -93,7 +93,7 @@ func (*dictionaryType) Update(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -115,7 +115,7 @@ func (*dictionaryType) Delete(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -139,7 +139,7 @@ func (*dictionaryType) GetArray(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailForList(util.ErrorInvalidJSONParameters))
+			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -158,7 +158,7 @@ func (*dictionaryType) GetList(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailForList(util.ErrorInvalidJSONParameters))
+			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 

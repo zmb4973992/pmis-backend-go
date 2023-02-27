@@ -1,17 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"github.com/go-ldap/ldap/v3"
+)
 
 func main() {
-	test1 := map[string]string{
-		"a": "aaaa",
-		"b": "bbbb",
+	l, err := ldap.DialURL("ldap://10.100.10.120:389")
+	if err != nil {
+		panic(err)
 	}
 
-	test2 := map[string][]string{
-		"a": {"aaaa", "bbbb", "cccc"},
-		"b": {"aaaa", "bbbb", "cccc"},
-	}
+	defer l.Close()
 
-	fmt.Println(test1, test2)
 }

@@ -17,7 +17,7 @@ func (*roleAndUser) ListByRoleID(roleID int) response.Common {
 	var userIDs []int
 	err := global.DB.Model(&model.RoleAndUser{}).Where("role_id = ?", roleID).Select("user_id").Find(&userIDs).Error
 	if err != nil || len(userIDs) == 0 {
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
 
 	//构建返回结果
@@ -25,7 +25,7 @@ func (*roleAndUser) ListByRoleID(roleID int) response.Common {
 	data["role_id"] = roleID
 	data["user_ids"] = userIDs
 
-	return response.SucceedWithData(data)
+	return response.SuccessWithData(data)
 }
 
 func (*roleAndUser) CreateByRoleID(roleID int, paramIn dto.RoleAndUserCreateOrUpdate) response.Common {
@@ -48,9 +48,9 @@ func (*roleAndUser) CreateByRoleID(roleID int, paramIn dto.RoleAndUserCreateOrUp
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToCreateRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (*roleAndUser) UpdateByRoleID(roleID int, paramIn dto.RoleAndUserCreateOrUpdate) response.Common {
@@ -58,12 +58,12 @@ func (*roleAndUser) UpdateByRoleID(roleID int, paramIn dto.RoleAndUserCreateOrUp
 	err := global.DB.Where("role_id = ?", roleID).Delete(&model.RoleAndUser{}).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToUpdateRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 
 	//如果入参是空的切片
 	if len(paramIn.UserIDs) == 0 {
-		return response.Succeed()
+		return response.Success()
 	}
 
 	//再增加新的记录
@@ -82,26 +82,26 @@ func (*roleAndUser) UpdateByRoleID(roleID int, paramIn dto.RoleAndUserCreateOrUp
 	err = global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToUpdateRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (*roleAndUser) DeleteByRoleID(roleID int) response.Common {
 	err := global.DB.Where("role_id = ?", roleID).Delete(&model.RoleAndUser{}).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToDeleteRecord)
+		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 
-	return response.Succeed()
+	return response.Success()
 }
 
 func (*roleAndUser) ListByUserID(userID int) response.Common {
 	var roleIDs []int
 	err := global.DB.Model(&model.RoleAndUser{}).Where("user_id = ?", userID).Select("role_id").Find(&roleIDs).Error
 	if err != nil || len(roleIDs) == 0 {
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
 
 	var roleNames []string
@@ -117,7 +117,7 @@ func (*roleAndUser) ListByUserID(userID int) response.Common {
 	//data["role_ids"] = roleIDs
 	data["role_names"] = roleNames
 
-	return response.SucceedWithData(data)
+	return response.SuccessWithData(data)
 }
 
 func (*roleAndUser) CreateByUserID(userID int, paramIn dto.RoleAndUserCreateOrUpdate) response.Common {
@@ -140,9 +140,9 @@ func (*roleAndUser) CreateByUserID(userID int, paramIn dto.RoleAndUserCreateOrUp
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToCreateRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (*roleAndUser) UpdateByUserID(userID int, paramIn dto.RoleAndUserCreateOrUpdate) response.Common {
@@ -150,12 +150,12 @@ func (*roleAndUser) UpdateByUserID(userID int, paramIn dto.RoleAndUserCreateOrUp
 	err := global.DB.Where("user_id = ?", userID).Delete(&model.RoleAndUser{}).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToUpdateRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 
 	//如果入参是空的切片
 	if len(paramIn.RoleIDs) == 0 {
-		return response.Succeed()
+		return response.Success()
 	}
 
 	//再增加新的记录
@@ -173,17 +173,17 @@ func (*roleAndUser) UpdateByUserID(userID int, paramIn dto.RoleAndUserCreateOrUp
 	err = global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToUpdateRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (*roleAndUser) DeleteByUserID(userID int) response.Common {
 	err := global.DB.Where("user_id = ?", userID).Delete(&model.RoleAndUser{}).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToDeleteRecord)
+		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 
-	return response.Succeed()
+	return response.Success()
 }

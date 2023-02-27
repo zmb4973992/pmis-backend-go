@@ -40,6 +40,7 @@ const (
 	ErrorFailToDeleteFiles
 	ErrorDictionaryTypeNameNotFound
 	ErrorInvalidDateFormat
+	ErrorFileNotFound
 )
 
 // Message 自定义错误的message
@@ -87,6 +88,7 @@ var Message = map[int]string{
 	ErrorFailToDeleteFiles:          "删除文件失败",
 	ErrorDictionaryTypeNameNotFound: "字典名称未找到",
 	ErrorInvalidDateFormat:          "日期格式无效",
+	ErrorFileNotFound:               "文件未找到",
 }
 
 func GetMessage(code int) string {

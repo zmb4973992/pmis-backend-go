@@ -16,20 +16,19 @@ func (f *fileManagement) UploadSingleFile(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorFailToUploadFiles))
+			response.Failure(util.ErrorFailToUploadFiles))
 		return
 	}
 
 	oss := upload.NewOss()
-	accessPath, fileName, err := oss.UploadSingleFile(fileHeader)
+	fileName, err := oss.UploadSingleFile(fileHeader)
 	if err != nil {
-		c.JSON(http.StatusOK, response.Fail(util.ErrorFailToUploadFiles))
+		c.JSON(http.StatusOK, response.Failure(util.ErrorFailToUploadFiles))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SucceedWithData(gin.H{
-		"access_path": accessPath,
-		"file_name":   fileName,
+	c.JSON(http.StatusOK, response.SuccessWithData(gin.H{
+		"file_name": fileName,
 	}))
 	return
 }
@@ -39,23 +38,22 @@ func (f *fileManagement) UploadMultipleFiles(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorFailToUploadFiles))
+			response.Failure(util.ErrorFailToUploadFiles))
 		return
 	}
 
 	fileHeaders := multiPartForm.File["files"]
 
 	oss := upload.NewOss()
-	storagePath, fileNames, err := oss.UploadMultipleFiles(fileHeaders)
+	fileNames, err := oss.UploadMultipleFiles(fileHeaders)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusOK, response.Fail(util.ErrorFailToUploadFiles))
+		c.JSON(http.StatusOK, response.Failure(util.ErrorFailToUploadFiles))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SucceedWithData(gin.H{
-		"storage_path": storagePath,
-		"file_names":   fileNames,
+	c.JSON(http.StatusOK, response.SuccessWithData(gin.H{
+		"file_names": fileNames,
 	}))
 	return
 
@@ -74,18 +72,18 @@ func (f *fileManagement) DeleteFile(c *gin.Context) {
 	//res := param.Delete()
 	//
 	//if err != nil {
-	//	c.JSON(http.StatusOK, response.Fail(util.ErrorFailToDeleteFiles))
+	//	c.JSON(http.StatusOK, response.Failure(util.ErrorFailToDeleteFiles))
 	//	return
 	//}
 
 	oss := upload.NewOss()
 	err := oss.Delete(uuid)
 	if err != nil {
-		c.JSON(http.StatusOK, response.Fail(util.ErrorFailToDeleteFiles))
+		c.JSON(http.StatusOK, response.Failure(util.ErrorFailToDeleteFiles))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Succeed())
+	c.JSON(http.StatusOK, response.Success())
 	return
 
 }

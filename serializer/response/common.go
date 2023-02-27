@@ -20,7 +20,7 @@ type List struct {
 	Message string            `json:"message"`
 }
 
-func Succeed() Common {
+func Success() Common {
 	return Common{
 		Data:    nil,
 		Code:    util.Success,
@@ -28,7 +28,7 @@ func Succeed() Common {
 	}
 }
 
-func SucceedWithData(data any) Common {
+func SuccessWithData(data any) Common {
 	return Common{
 		Data:    data,
 		Code:    util.Success,
@@ -36,7 +36,7 @@ func SucceedWithData(data any) Common {
 	}
 }
 
-func Fail(errCode int) Common {
+func Failure(errCode int) Common {
 	return Common{
 		Data:    nil,
 		Code:    errCode,
@@ -44,7 +44,7 @@ func Fail(errCode int) Common {
 	}
 }
 
-func FailForList(errCode int) List {
+func FailureForList(errCode int) List {
 	return List{
 		Data:    nil,
 		Paging:  nil,

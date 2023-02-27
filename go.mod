@@ -26,11 +26,14 @@ require (
 )
 
 require (
+	github.com/Azure/go-ntlmssp v0.0.0-20220621081337-cb9428e4ac1e // indirect
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/clbanning/mxj v1.8.4 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/glebarez/go-sqlite v1.19.1 // indirect
 	github.com/glebarez/sqlite v1.5.0 // indirect
+	github.com/go-asn1-ber/asn1-ber v1.5.4 // indirect
+	github.com/go-ldap/ldap/v3 v3.4.4 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-playground/validator/v10 v10.11.1 // indirect

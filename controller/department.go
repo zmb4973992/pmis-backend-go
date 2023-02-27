@@ -21,7 +21,7 @@ func (*department) Get(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 	res := param.Get()
@@ -35,7 +35,7 @@ func (*department) Create(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.Fail(util.ErrorInvalidJSONParameters))
+			response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 	//处理creator、last_modifier字段
@@ -56,14 +56,14 @@ func (*department) Update(c *gin.Context) {
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusOK, response.Fail(util.ErrorInvalidJSONParameters))
+		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidJSONParameters))
 		return
 	}
 
 	param.ID, err = strconv.Atoi(c.Param("department-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusOK, response.Fail(util.ErrorInvalidURIParameters))
+		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -85,7 +85,7 @@ func (*department) Delete(c *gin.Context) {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
-			response.Fail(util.ErrorInvalidURIParameters))
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
@@ -109,7 +109,7 @@ func (*department) GetArray(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailForList(util.ErrorInvalidJSONParameters))
+			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 
@@ -133,7 +133,7 @@ func (*department) GetList(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailForList(util.ErrorInvalidJSONParameters))
+			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
 	}
 

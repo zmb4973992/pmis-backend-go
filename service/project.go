@@ -114,7 +114,7 @@ func (p *ProjectGet) Get() response.Common {
 		Where("id = ?", p.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
 
 	//默认格式为这样的string：2019-11-01T00:00:00Z，需要取年月日(前9位)
@@ -192,7 +192,7 @@ func (p *ProjectGet) Get() response.Common {
 		}
 	}
 
-	return response.SucceedWithData(result)
+	return response.SuccessWithData(result)
 }
 
 func (p *ProjectCreate) Create() response.Common {
@@ -249,7 +249,7 @@ func (p *ProjectCreate) Create() response.Common {
 	if p.SigningDate != "" {
 		signingDate, err := time.Parse("2006-01-02", p.SigningDate)
 		if err != nil {
-			return response.Fail(util.ErrorInvalidDateFormat)
+			return response.Failure(util.ErrorInvalidDateFormat)
 		}
 		paramOut.SigningDate = &signingDate
 	}
@@ -257,7 +257,7 @@ func (p *ProjectCreate) Create() response.Common {
 	if p.EffectiveDate != "" {
 		effectiveDate, err := time.Parse("2006-01-02", p.EffectiveDate)
 		if err != nil {
-			return response.Fail(util.ErrorInvalidDateFormat)
+			return response.Failure(util.ErrorInvalidDateFormat)
 		}
 		paramOut.EffectiveDate = &effectiveDate
 	}
@@ -269,21 +269,21 @@ func (p *ProjectCreate) Create() response.Common {
 	//计算有修改值的字段数，分别进行不同处理
 	tempParamOut, err := util.StructToMap(paramOut)
 	if err != nil {
-		return response.Fail(util.ErrorFailToCreateRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
 		"Creator", "LastModifier", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt")
 
 	if len(paramOutForCounting) == 0 {
-		return response.Fail(util.ErrorFieldsToBeCreatedNotFound)
+		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
 	}
 
 	err = global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToCreateRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (p *ProjectUpdate) Update() response.Common {
@@ -378,7 +378,7 @@ func (p *ProjectUpdate) Update() response.Common {
 			var err error
 			paramOut["signing_date"], err = time.Parse("2006-01-02", *p.SigningDate)
 			if err != nil {
-				return response.Fail(util.ErrorInvalidJSONParameters)
+				return response.Failure(util.ErrorInvalidJSONParameters)
 			}
 		} else {
 			paramOut["signing_date"] = nil
@@ -390,7 +390,7 @@ func (p *ProjectUpdate) Update() response.Common {
 			var err error
 			paramOut["effective_date"], err = time.Parse("2006-01-02", *p.EffectiveDate)
 			if err != nil {
-				return response.Fail(util.ErrorInvalidJSONParameters)
+				return response.Failure(util.ErrorInvalidJSONParameters)
 			}
 		} else {
 			paramOut["effective_date"] = nil
@@ -410,18 +410,18 @@ func (p *ProjectUpdate) Update() response.Common {
 		"LastModifier", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt")
 
 	if len(paramOutForCounting) == 0 {
-		return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
+		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
 	err := global.DB.Model(&model.Project{}).Where("id = ?", p.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToUpdateRecord)
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 
-	return response.Succeed()
-	//return response.Fail(util.ErrorFieldsToBeUpdatedNotFound)
+	return response.Success()
+	//return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 
 }
 
@@ -434,9 +434,9 @@ func (p *ProjectDelete) Delete() response.Common {
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Fail(util.ErrorFailToDeleteRecord)
+		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
-	return response.Succeed()
+	return response.Success()
 }
 
 func (p *ProjectGetArray) GetArray() response.Common {
@@ -500,7 +500,7 @@ func (p *ProjectGetArray) GetArray() response.Common {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.Project{}, orderBy)
 		if !exists {
-			return response.Fail(util.ErrorSortingFieldDoesNotExist)
+			return response.Failure(util.ErrorSortingFieldDoesNotExist)
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -531,7 +531,7 @@ func (p *ProjectGetArray) GetArray() response.Common {
 	db.Model(&model.Project{}).Select("project_full_name").Find(&array)
 
 	if len(array) == 0 {
-		return response.Fail(util.ErrorRecordNotFound)
+		return response.Failure(util.ErrorRecordNotFound)
 	}
 
 	return response.Common{
@@ -602,7 +602,7 @@ func (p *ProjectGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.Project{}, orderBy)
 		if !exists {
-			return response.FailForList(util.ErrorSortingFieldDoesNotExist)
+			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -633,7 +633,7 @@ func (p *ProjectGetList) GetList() response.List {
 	db.Model(&model.Project{}).Find(&data)
 
 	if len(data) == 0 {
-		return response.FailForList(util.ErrorRecordNotFound)
+		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
 	for i := range data {

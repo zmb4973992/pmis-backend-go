@@ -15,7 +15,7 @@ func NeedAuth() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tempUserID, exists := c.Get("user_id")
 		if !exists {
-			c.JSON(http.StatusOK, response.Fail(util.ErrorUserIDDoesNotExist))
+			c.JSON(http.StatusOK, response.Failure(util.ErrorUserIDDoesNotExist))
 			c.Abort()
 			return
 		}
@@ -28,7 +28,7 @@ func NeedAuth() gin.HandlerFunc {
 		global.DB.Model(&model.Role{}).Where("id in ?", roleIDs).
 			Select("name").Find(&roleNames)
 		if len(roleNames) == 0 {
-			c.JSON(http.StatusOK, response.Fail(util.ErrorRoleInfoNotFound))
+			c.JSON(http.StatusOK, response.Failure(util.ErrorRoleInfoNotFound))
 			c.Abort()
 			return
 		}
@@ -48,7 +48,7 @@ func NeedAuth() gin.HandlerFunc {
 			permitted, err := enforcer.Enforce(subject, object, act)
 			if err != nil {
 				global.SugaredLogger.Errorln(err)
-				c.JSON(http.StatusOK, response.Fail(util.ErrorRolePermissionDenied))
+				c.JSON(http.StatusOK, response.Failure(util.ErrorRolePermissionDenied))
 			}
 			if permitted {
 				c.Next()
@@ -56,7 +56,7 @@ func NeedAuth() gin.HandlerFunc {
 			}
 		}
 		//循环结束，没有满足条件的角色，则中断请求
-		c.JSON(http.StatusOK, response.Fail(util.ErrorRolePermissionDenied))
+		c.JSON(http.StatusOK, response.Failure(util.ErrorRolePermissionDenied))
 		c.Abort()
 	}
 }
