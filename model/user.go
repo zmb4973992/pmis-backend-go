@@ -8,7 +8,7 @@ import (
 type User struct {
 	BaseModel
 	Username          string
-	Password          string
+	Password          *string
 	IsValid           *bool   //用户为有效还是禁用
 	FullName          *string //全名
 	EmailAddress      *string //邮箱地址

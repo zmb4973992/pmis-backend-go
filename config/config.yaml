@@ -83,3 +83,13 @@ oss:
   #选择存储方式
   type: "local"
 
+ldap:
+#  server: "ldap://192.168.172.129:389"
+#  base-dn: "ou=中航国际北京公司,dc=avicbj,dc=ad1"
+#  filter: "(&(objectClass=user))"
+
+  server: "ldap://10.100.10.120:389"
+  base-dn: "ou=中航国际北京公司,dc=avicbj,dc=ad"
+  suffix: "@avicbj.ad"
+  filter: "(&(objectClass=user))"
+

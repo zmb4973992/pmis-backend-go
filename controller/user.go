@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
@@ -146,6 +147,7 @@ func (*user) GetByToken(c *gin.Context) {
 	//通过中间件，设定header必须带有token才能访问
 	//header里有token后，中间件会自动在context里添加user_id属性，详见自定义的中间件
 	tempUserID, exists := c.Get("user_id")
+	fmt.Println(tempUserID)
 	if !exists {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorAccessTokenInvalid))

@@ -33,10 +33,11 @@ type config struct {
 	RateLimitConfig
 	CaptchaConfig
 	OssConfig
+	LDAPConfig
 }
 
 type AppConfig struct {
-	AppMode  string `yaml:"app-mode"`
+	AppMode  string
 	HttpPort string
 }
 
@@ -98,6 +99,13 @@ type CaptchaConfig struct {
 
 type OssConfig struct {
 	Type string
+}
+
+type LDAPConfig struct {
+	Server string
+	BaseDN string
+	Filter string
+	Suffix string
 }
 
 func InitConfig() {
@@ -167,6 +175,11 @@ func loadConfig() {
 	Config.CaptchaConfig.DotCount = v.GetInt("captcha.dot-count")
 
 	Config.OssConfig.Type = v.GetString("oss.type")
+
+	Config.LDAPConfig.Server = v.GetString("ldap.server")
+	Config.LDAPConfig.BaseDN = v.GetString("ldap.base-dn")
+	Config.LDAPConfig.Filter = v.GetString("ldap.filter")
+	Config.LDAPConfig.Suffix = v.GetString("ldap.suffix")
 }
 
 // byte 是 uint8 的别名,rune 是 int32 的别名

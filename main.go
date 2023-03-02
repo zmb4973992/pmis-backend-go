@@ -12,29 +12,6 @@ import (
 
 func main() {
 
-	//username := "cn=z0030975,dc=avicbj,dc=ad"
-	//password := "Bfsu028912"
-	//
-	//err = l.Bind(username, password)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//searchRequest := ldap.NewSearchRequest(
-	//	"dc=avicbj,dc=ad",
-	//	ldap.ScopeWholeSubtree, ldap.NeverDerefAliases, 0, 0, false,
-	//	fmt.Sprintf("(&(objectClass=organizationalPerson)"), // 查询所有
-	//	[]string{"dn", "cn"}, // A list attributes to retrieve
-	//	nil,
-	//)
-	//
-	//sr, err := l.Search(searchRequest)
-	//if err != nil {
-	//	global.SugaredLogger.Panicln(err)
-	//}
-	//
-	//fmt.Println(len(sr.Entries))
-
 	//加载全局变量,如应用基础设置、数据库连接信息、jwt信息、日志设置登
 	global.InitConfig()
 

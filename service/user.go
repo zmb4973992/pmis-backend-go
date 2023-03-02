@@ -83,32 +83,73 @@ func (u *UserLogin) Verify() bool {
 }
 
 func (u *UserLogin) UserLogin() response.Common {
-	var record model.User
-
-	//根据入参的用户名，从数据库取出记录赋值给user
-	err := global.DB.Where("username=?", u.Username).First(&record).Error
-
-	//如果没有找到记录
+	permitted, userInfo, err := util.LoginByLDAP(u.Username, u.Password)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorInvalidUsernameOrPassword)
 	}
 
-	//如果密码错误
-	if !util.CheckPassword(u.Password, record.Password) {
-		return response.Failure(util.ErrorInvalidUsernameOrPassword)
+	if permitted {
+		var record model.User
+		record.Username = u.Username
+
+		//encryptedPassword, err := util.Encrypt(u.Password)
+		//if err != nil {
+		//	global.SugaredLogger.Errorln(err)
+		//	return response.Failure(util.ErrorFailToEncrypt)
+		//}
+		//
+		//record.Password = encryptedPassword
+
+		isValid := true
+		record.IsValid = &isValid
+		record.FullName = userInfo.FullName
+		record.EmailAddress = userInfo.Email
+
+		//到用户表找是否有这个用户名，没有就创建
+		global.DB.Model(model.User{}).Where("username = ?", u.Username).
+			FirstOrCreate(&record)
+
+		//到部门表找
+
+		token, err := jwt.GenerateToken(record.ID)
+		if err != nil {
+			return response.Failure(util.ErrorFailToGenerateToken)
+		}
+
+		return response.SuccessWithData(
+			map[string]any{
+				"access_token": token,
+			})
 	}
 
-	//账号密码都正确时，生成token
-	token, err := jwt.GenerateToken(record.ID)
-	if err != nil {
-		return response.Failure(util.ErrorFailToGenerateToken)
-	}
+	return response.Failure(util.ErrorInvalidUsernameOrPassword)
 
-	return response.SuccessWithData(
-		map[string]any{
-			"access_token": token,
-		})
+	//2023.3.1 通过ldap连接ad域，不再使用本地用户数据
+	//
+	////根据入参的用户名，从数据库取出记录赋值给user
+	//err = global.DB.Where("username=?", u.Username).First(&record).Error
+	//
+	////如果没有找到记录
+	//if err != nil {
+	//	global.SugaredLogger.Errorln(err)
+	//	return response.Failure(util.ErrorInvalidUsernameOrPassword)
+	//}
+	//
+	////如果密码错误
+	//if !util.CheckPassword(u.Password, record.Password) {
+	//	return response.Failure(util.ErrorInvalidUsernameOrPassword)
+	//}
+	//
+	////账号密码都正确时，生成token
+	//token, err := jwt.GenerateToken(record.ID)
+	//if err != nil {
+	//	return response.Failure(util.ErrorFailToGenerateToken)
+	//}
+	//
+	//return response.SuccessWithData(
+	//	map[string]any{
+	//		"access_token": token,
+	//	})
 }
 
 func (u *UserGet) Get() response.Common {
@@ -139,7 +180,7 @@ func (u *UserCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToEncrypt)
 	}
 
-	paramOut.Password = encryptedPassword
+	paramOut.Password = &encryptedPassword
 
 	if u.IsValid != nil {
 		paramOut.IsValid = u.IsValid

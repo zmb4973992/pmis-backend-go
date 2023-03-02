@@ -14,6 +14,11 @@ func Init() {
 		global.SugaredLogger.Panicln("添加定时任务失败，请检查")
 	}
 
+	_, err = c.AddFunc("* * * * ?", updateUser)
+	if err != nil {
+		global.SugaredLogger.Panicln("添加定时任务失败，请检查")
+	}
+
 	c.Start()
 }
 

@@ -55,6 +55,7 @@ func generateDictionaryTypes() error {
 		{Name: "合同资金方向"},
 		{Name: "我方签约主体"},
 		{Name: "敏感词"},
+		{Name: "LDAP允许的OU"},
 	}
 	for _, dictionaryType := range dictionaryTypes {
 		err := global.DB.FirstOrCreate(&DictionaryType{}, dictionaryType).Error
