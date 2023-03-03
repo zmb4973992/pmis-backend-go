@@ -11,7 +11,7 @@ type ListInput struct {
 
 type PagingInput struct {
 	Page     int `json:"page" binding:"omitempty,gte=1"`
-	PageSize int `json:"page_size" binding:"omitempty,gte=1"`
+	PageSize int `json:"page_size" binding:"gte=0"`
 }
 
 type SortingInput struct {

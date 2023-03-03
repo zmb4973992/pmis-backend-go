@@ -36,9 +36,15 @@ func FieldIsInModel(model model.IModel, field string) bool {
 //}
 
 func GetNumberOfPages(numberOfRecords int, pageSize int) (numberOfPages int) {
-	if numberOfRecords <= 0 || pageSize <= 0 {
+	//如果没有记录数，或者单页条数小于零：
+	if numberOfRecords <= 0 || pageSize < 0 {
 		return 0
 	}
+	//如果有记录数、但单页条数为零（不分页）：
+	if numberOfRecords > 0 && pageSize == 0 {
+		return 1
+	}
+
 	numberOfPages = numberOfRecords / pageSize
 	if numberOfRecords%pageSize != 0 {
 		numberOfPages++

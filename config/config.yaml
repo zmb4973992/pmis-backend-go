@@ -54,7 +54,7 @@ paging:
   #单页默认条数
   default-page-size: "20"
   #单页最大条数
-  max-page-size: "500"
+  max-page-size: "1000000"
 
 #全局限流（采用令牌桶原理）
 rate-limit:

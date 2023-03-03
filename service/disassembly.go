@@ -87,10 +87,10 @@ type DisassemblyOutput struct {
 }
 
 type DisassemblyTreeOutput struct {
-	Name     *string                 `json:"title" gorm:"name"`
-	ID       int                     `json:"key" gorm:"id"`
-	Level    int                     `json:"level" gorm:"level"`
-	Children []DisassemblyTreeOutput `json:"children"`
+	Name     *string                 `json:"title"`
+	ID       int                     `json:"key"`
+	Level    int                     `json:"level"`
+	Children []DisassemblyTreeOutput `json:"children" gorm:"-"`
 }
 
 func (d *DisassemblyGet) Get() response.Common {
