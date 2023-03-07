@@ -87,8 +87,8 @@ type DisassemblyOutput struct {
 }
 
 type DisassemblyTreeOutput struct {
-	Name     *string                 `json:"title"`
-	ID       int                     `json:"key"`
+	Name     *string                 `json:"name"`
+	ID       int                     `json:"id"`
 	Level    int                     `json:"level"`
 	Children []DisassemblyTreeOutput `json:"children" gorm:"-"`
 }
