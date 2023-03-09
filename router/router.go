@@ -18,7 +18,7 @@ func Init() *gin.Engine {
 
 	//将目录(root变量)下的所有文件设置为静态文件，可以直接访问
 	engine.Static("/static-test", global.Config.UploadConfig.StoragePath)
-	engine.GET("/test", controller.Test)
+	engine.GET("/test/:disassembly-id", controller.Test)
 	engine.GET("/download/:file-name", controller.Download)
 
 	//路由不匹配时的处理

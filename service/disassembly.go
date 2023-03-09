@@ -104,51 +104,43 @@ func (d *DisassemblyGet) Get() response.Common {
 	return response.SuccessWithData(result)
 }
 
+func treeRecursion(superiorID int) []DisassemblyTreeOutput {
+	var result []DisassemblyTreeOutput
+	res := global.DB.Model(model.Disassembly{}).
+		Where("superior_id = ?", superiorID).Find(&result)
+	if res.RowsAffected == 0 {
+		return nil
+	}
+	for i := range result {
+		result[i].Children = treeRecursion(result[i].ID)
+	}
+	return result
+}
+
 func (d *DisassemblyTree) Tree() response.Common {
 	//根据project_id获取disassembly_id
 	var disassemblyID int
-	err := global.DB.Model(model.Disassembly{}).Select("id").
+	res := global.DB.Model(model.Disassembly{}).Select("id").
 		Where("project_id = ?", d.ProjectID).Where("level = 1").
-		First(&disassemblyID).Error
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
+		Find(&disassemblyID)
+	if res.RowsAffected == 0 {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 
-	//第一轮查找
-	var result1 []DisassemblyTreeOutput
-	err = global.DB.Model(model.Disassembly{}).
-		Where("id = ?", disassemblyID).First(&result1).Error
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
+	//第一轮查找，查询条件为id
+	var result []DisassemblyTreeOutput
+	res = global.DB.Model(model.Disassembly{}).
+		Where("id = ?", disassemblyID).Find(&result)
+	if res.RowsAffected == 0 {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
-	//第二轮查找
-	var result2 []DisassemblyTreeOutput
-	global.DB.Model(model.Disassembly{}).
-		Where("superior_id = ?", disassemblyID).Find(&result2)
-	for index2 := range result2 {
-		//第三轮查找
-		var result3 []DisassemblyTreeOutput
-		global.DB.Model(model.Disassembly{}).
-			Where("superior_id = ?", result2[index2].ID).Find(&result3)
-		//第四轮查找
-		for index3 := range result3 {
-			var result4 []DisassemblyTreeOutput
-			global.DB.Model(model.Disassembly{}).
-				Where("superior_id = ?", result3[index3].ID).Find(&result4)
-			for index4 := range result4 {
-				var result5 []DisassemblyTreeOutput
-				global.DB.Model(model.Disassembly{}).
-					Where("superior_id = ?", result4[index4].ID).Find(&result5)
-				result4[index4].Children = append(result4[index4].Children, result5...)
-			}
-			result3[index3].Children = append(result3[index3].Children, result4...)
-		}
-		result2[index2].Children = append(result2[index2].Children, result3...)
+
+	//第二轮及以后的查找，查询条件为superior_id
+	for i := range result {
+		result[i].Children = treeRecursion(result[i].ID)
 	}
-	result1[0].Children = append(result1[0].Children, result2...)
-	return response.SuccessWithData(result1)
+
+	return response.SuccessWithData(result)
 }
 
 func (d *DisassemblyCreate) Create() response.Common {

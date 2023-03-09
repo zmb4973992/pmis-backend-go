@@ -11,8 +11,6 @@ import (
 )
 
 func Test(c *gin.Context) {
-	c.FileAttachment("D:/1.zip", "aaa.zip")
-	return
 }
 
 func Download(c *gin.Context) {
