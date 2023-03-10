@@ -30,7 +30,7 @@ func (d *Disassembly) BeforeDelete(tx *gorm.DB) error {
 			}
 		}
 		//删除相关的子表记录
-		err = tx.Model(&WorkProgress{}).Where("disassembly_id = ?", d.ID).
+		err = tx.Model(&Progress{}).Where("disassembly_id = ?", d.ID).
 			Updates(map[string]any{
 				"deleted_at": time.Now(),
 				"deleter":    d.Deleter,

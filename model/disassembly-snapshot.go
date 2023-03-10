@@ -15,7 +15,7 @@ type DisassemblySnapshot struct {
 	SuperiorIDWithDate *string    //带日期的上级id
 	Level              *int       //层级
 	Weight             *float64   //权重
-	//WorkProgresses     []WorkProgress `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	//WorkProgresses     []Progress `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 
 // TableName 修改表名
@@ -34,7 +34,7 @@ func (d *DisassemblySnapshot) BeforeDelete(tx *gorm.DB) error {
 			}
 		}
 		//删除相关的子表记录
-		err = tx.Model(&WorkProgress{}).Where("disassembly_id = ?", d.ID).
+		err = tx.Model(&Progress{}).Where("disassembly_id = ?", d.ID).
 			Updates(map[string]any{
 				"deleted_at": time.Now(),
 				"deleter":    d.Deleter,

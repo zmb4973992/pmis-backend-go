@@ -35,7 +35,7 @@ func InitDatabase() {
 		&RoleAndUser{},                //角色和用户的中间表
 		&Contract{},                   //合同
 		&Disassembly{},                //项目拆解
-		&WorkProgress{},               //工作进度
+		&Progress{},                   //工作进度
 		&ActualReceiptAndPayment{},    //实际收付款
 		&PlannedReceiptAndPayment{},   //计划收付款
 		&PredictedReceiptAndPayment{}, //预测收付款

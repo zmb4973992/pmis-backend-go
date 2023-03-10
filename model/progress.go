@@ -2,12 +2,15 @@ package model
 
 import "time"
 
-type WorkProgress struct {
+type Progress struct {
 	BaseModel
-	DisassemblyID         *int       //拆解情况id，外键
-	DisassemblyIDWithDate *string    //带日期的拆解情况id
-	FillingDate           *time.Time `gorm:"type:date"` //添加记录的日期
-	Date                  *time.Time `gorm:"type:date"` //日期
+	DisassemblyID *int       //拆解情况id
+	Date          *time.Time `gorm:"type:date"` //日期
+
+	ProgressType *int
+	Progress     *float64
+	Remark       *string
+	DataSource   *string
 
 	PlannedProgress             *float64 //初始计划进度
 	RemarkOfPlannedProgress     *string  //初始计划进度的备注
@@ -24,6 +27,6 @@ type WorkProgress struct {
 }
 
 // TableName 修改表名
-func (*WorkProgress) TableName() string {
+func (*Progress) TableName() string {
 	return "work_progress"
 }
