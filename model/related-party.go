@@ -1,7 +1,7 @@
 package model
 
 type RelatedParty struct {
-	BaseModel
+	BasicModel
 	ChineseName             *string `json:"chinese_name"`               //中文名称
 	EnglishName             *string `json:"english_name"`               //英文名称
 	Address                 *string `json:"address"`                    //地址

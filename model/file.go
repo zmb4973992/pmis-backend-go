@@ -1,7 +1,7 @@
 package model
 
 type File struct {
-	BaseModel
+	BasicModel
 	UUID string
 	Name string
 	Mode string

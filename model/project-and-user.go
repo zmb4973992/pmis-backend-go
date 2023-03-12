@@ -4,7 +4,7 @@ import "time"
 
 // ProjectAndUser 组织机构和用户的中间表
 type ProjectAndUser struct {
-	BaseModel
+	BasicModel
 	ProjectID *int
 	UserID    *int
 	Title     *string

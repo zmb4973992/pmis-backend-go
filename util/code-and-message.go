@@ -41,6 +41,7 @@ const (
 	ErrorDictionaryTypeNameNotFound
 	ErrorInvalidDateFormat
 	ErrorFileNotFound
+	ErrorDuplicateRecord
 )
 
 // Message 自定义错误的message
@@ -89,6 +90,7 @@ var Message = map[int]string{
 	ErrorDictionaryTypeNameNotFound: "字典名称未找到",
 	ErrorInvalidDateFormat:          "日期格式无效",
 	ErrorFileNotFound:               "文件未找到",
+	ErrorDuplicateRecord:            "禁止添加重复的记录",
 }
 
 func GetMessage(code int) string {

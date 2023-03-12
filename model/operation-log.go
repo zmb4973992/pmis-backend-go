@@ -6,7 +6,7 @@ import (
 )
 
 type OperationLog struct {
-	BaseModel
+	BasicModel
 	UserID       *int       //操作人id
 	IP           *string    //IP
 	Location     *string    //所在地

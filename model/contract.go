@@ -3,7 +3,7 @@ package model
 import "time"
 
 type Contract struct {
-	BaseModel
+	BasicModel
 	ProjectID                *int       //项目id
 	Name                     *string    //合同名称
 	Code                     *string    //合同编码

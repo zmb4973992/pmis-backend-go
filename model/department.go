@@ -3,11 +3,10 @@ package model
 import (
 	"gorm.io/gorm"
 	"pmis-backend-go/global"
-	"time"
 )
 
 type Department struct {
-	BaseModel
+	BasicModel
 	Name       string  `json:"name"`        //名称
 	LevelName  string  `json:"level_name"`  //层级名称，如公司、事业部、部门等
 	Sequence   int     `json:"sequence"`    //部门在当前层级下的顺序
@@ -30,22 +29,23 @@ func (*Department) TableName() string {
 func (d *Department) BeforeDelete(tx *gorm.DB) error {
 	if d.ID > 0 {
 		//如果有删除人的id，则记录下来
-		if d.Deleter != nil && *d.Deleter > 0 {
-			err := tx.Model(&Department{}).Where("id = ?", d.ID).
-				Update("deleter", d.Deleter).Error
-			if err != nil {
-				return err
-			}
-		}
+		//if d.Deleter != nil && *d.Deleter > 0 {
+		//	err := tx.Model(&Department{}).Where("id = ?", d.ID).
+		//		Update("deleter", d.Deleter).Error
+		//	if err != nil {
+		//		return err
+		//	}
+		//}
+
 		//删除相关的子表记录
-		err = tx.Model(&DepartmentAndUser{}).Where("department_id = ?", d.ID).
-			Updates(map[string]any{
-				"deleted_at": time.Now(),
-				"deleter":    d.Deleter,
-			}).Error
-		if err != nil {
-			return err
-		}
+		//err = tx.Model(&DepartmentAndUser{}).Where("department_id = ?", d.ID).
+		//	Updates(map[string]any{
+		//		"deleted_at": time.Now(),
+		//		"deleter":    d.Deleter,
+		//	}).Error
+		//if err != nil {
+		//	return err
+		//}
 	}
 	return nil
 }

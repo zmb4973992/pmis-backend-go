@@ -131,19 +131,13 @@ func (*disassembly) Delete(c *gin.Context) {
 		return
 	}
 
-	//处理deleter字段
-	tempUserID, exists := c.Get("user_id")
-	if exists {
-		userID := tempUserID.(int)
-		param.Deleter = userID
-	}
 	res := param.Delete()
 	c.JSON(http.StatusOK, res)
 	return
 }
 
 func (*disassembly) DeleteWithSubitems(c *gin.Context) {
-	var param service.DisassemblyDeleteWithSubitems
+	var param service.DisassemblyDeleteWithSubItems
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
 	if err != nil {
@@ -153,14 +147,7 @@ func (*disassembly) DeleteWithSubitems(c *gin.Context) {
 		return
 	}
 
-	//处理deleter字段
-	tempUserID, exists := c.Get("user_id")
-	if exists {
-		userID := tempUserID.(int)
-		param.Deleter = userID
-	}
-
-	res := param.DeleteWithSubitems()
+	res := param.DeleteWithSubItems()
 	c.JSON(http.StatusOK, res)
 	return
 }

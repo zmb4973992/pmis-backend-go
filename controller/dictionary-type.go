@@ -119,12 +119,6 @@ func (*dictionaryType) Delete(c *gin.Context) {
 		return
 	}
 
-	//处理deleter字段
-	tempUserID, exists := c.Get("user_id")
-	if exists {
-		userID := tempUserID.(int)
-		param.Deleter = userID
-	}
 	res := param.Delete()
 	c.JSON(http.StatusOK, res)
 	return

@@ -43,8 +43,7 @@ type ErrorLogUpdate struct {
 }
 
 type ErrorLogDelete struct {
-	Deleter int
-	ID      int
+	ID int
 }
 
 type ErrorLogGetList struct {
@@ -201,7 +200,6 @@ func (e *ErrorLogDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.ErrorLog
 	global.DB.Where("id = ?", e.ID).Find(&record)
-	record.Deleter = &e.Deleter
 	err := global.DB.Where("id = ?", e.ID).Delete(&record).Error
 
 	if err != nil {

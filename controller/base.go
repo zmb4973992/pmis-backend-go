@@ -18,6 +18,7 @@ type controller struct {
 	dictionaryType
 	dictionaryItem
 	fileManagement
+	progress
 }
 
 var (
@@ -36,4 +37,5 @@ var (
 	DictionaryType  = entrance.dictionaryType
 	DictionaryItem  = entrance.dictionaryItem
 	FileManagement  = entrance.fileManagement
+	Progress        = entrance.progress
 )

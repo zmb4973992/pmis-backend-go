@@ -3,7 +3,7 @@ package model
 import "time"
 
 type ActualReceiptAndPayment struct {
-	BaseModel
+	BasicModel
 	ProjectID                *int       `gorm:"comment:'项目ID'"` //项目id
 	ContractID               *int       //合同id
 	FundDirection            *string    //资金方向，收款还是付款

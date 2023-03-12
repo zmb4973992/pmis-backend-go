@@ -51,8 +51,7 @@ type UserUpdate struct {
 }
 
 type UserDelete struct {
-	Deleter int
-	ID      int
+	ID int
 }
 
 type UserGetList struct {
@@ -84,34 +83,13 @@ func (u *UserLogin) Verify() bool {
 
 func (u *UserLogin) UserLogin() response.Common {
 	permitted, userInfo, err := util.LoginByLDAP(u.Username, u.Password)
+
 	if err != nil {
 		return response.Failure(util.ErrorInvalidUsernameOrPassword)
 	}
 
 	if permitted {
-		var record model.User
-		record.Username = u.Username
-
-		//encryptedPassword, err := util.Encrypt(u.Password)
-		//if err != nil {
-		//	global.SugaredLogger.Errorln(err)
-		//	return response.Failure(util.ErrorFailToEncrypt)
-		//}
-		//
-		//record.Password = encryptedPassword
-
-		isValid := true
-		record.IsValid = &isValid
-		record.FullName = userInfo.FullName
-		record.EmailAddress = userInfo.Email
-
-		//到用户表找是否有这个用户名，没有就创建
-		global.DB.Model(model.User{}).Where("username = ?", u.Username).
-			FirstOrCreate(&record)
-
-		//到部门表找
-
-		token, err := jwt.GenerateToken(record.ID)
+		token, err := jwt.GenerateToken(userInfo.ID)
 		if err != nil {
 			return response.Failure(util.ErrorFailToGenerateToken)
 		}
@@ -274,7 +252,6 @@ func (u *UserDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.User
 	global.DB.Where("id = ?", u.ID).Find(&record)
-	record.Deleter = &u.Deleter
 	err := global.DB.Where("id = ?", u.ID).Delete(&record).Error
 
 	if err != nil {

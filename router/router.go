@@ -136,6 +136,13 @@ func Init() *gin.Engine {
 			dictionaryItem.POST("/array", controller.DictionaryItem.GetArray)               //获取字典项的数组
 			dictionaryItem.POST("/list", controller.DictionaryItem.GetList)                 //获取字典项的列表
 		}
+
+		//进度
+		progress := api.Group("/progress")
+		{
+			progress.GET("/:progress-id", controller.Progress.Get) //获取进度详情
+			progress.POST("", controller.Progress.Create)          //新增进度详情
+		}
 	}
 
 	//引擎配置完成后，返回

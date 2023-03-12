@@ -4,7 +4,7 @@ import "time"
 
 // deprecated
 type WorkProgressSnapshot struct {
-	BaseModel
+	BasicModel
 
 	DisassemblyID *int    //项目拆解id，外键
 	Date          *string `gorm:"type:date"` //日期  默认格式为2020-02-02

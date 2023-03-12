@@ -1,7 +1,7 @@
 package model
 
 type Dictionary struct {
-	BaseModel
+	BasicModel
 	Country                         *string //国家
 	Province                        *string //省份或地区
 	ReceiptOrPaymentTerm            *string //收付款方式

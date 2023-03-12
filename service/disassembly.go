@@ -52,13 +52,11 @@ type DisassemblyUpdate struct {
 }
 
 type DisassemblyDelete struct {
-	Deleter int
-	ID      int
+	ID int
 }
 
-type DisassemblyDeleteWithSubitems struct {
-	Deleter int
-	ID      int
+type DisassemblyDeleteWithSubItems struct {
+	ID int
 }
 
 type DisassemblyGetList struct {
@@ -270,7 +268,6 @@ func (d *DisassemblyDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.Disassembly
 	global.DB.Where("id = ?", d.ID).Find(&record)
-	record.Deleter = &d.Deleter
 	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
 
 	if err != nil {
@@ -280,7 +277,7 @@ func (d *DisassemblyDelete) Delete() response.Common {
 	return response.Success()
 }
 
-func (d *DisassemblyDeleteWithSubitems) DeleteWithSubitems() response.Common {
+func (d *DisassemblyDeleteWithSubItems) DeleteWithSubItems() response.Common {
 	var ToBeDeletedIDs []int
 	ToBeDeletedIDs = append(ToBeDeletedIDs, d.ID)
 	//第一轮查找
@@ -313,9 +310,6 @@ func (d *DisassemblyDeleteWithSubitems) DeleteWithSubitems() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var records []model.Disassembly
 	global.DB.Where("id in ?", ToBeDeletedIDs).Find(&records)
-	for i := range records {
-		records[i].Deleter = &d.Deleter
-	}
 	err := global.DB.Where("id in ?", ToBeDeletedIDs).Delete(&records).Error
 
 	if err != nil {

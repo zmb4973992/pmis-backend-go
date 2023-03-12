@@ -3,7 +3,7 @@ package model
 import "time"
 
 type ErrorLog struct {
-	BaseModel
+	BasicModel
 	Detail        *string    //详情
 	Date          *time.Time `gorm:"type:datetime"` //日期
 	MajorCategory *string    //大类

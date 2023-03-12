@@ -79,10 +79,7 @@ func generateInitialData() {
 	if err = generateDepartments(); err != nil {
 		global.SugaredLogger.Panicln(err)
 	}
-	if err = generateDictionaryTypes(); err != nil {
-		global.SugaredLogger.Panicln(err)
-	}
-	if err = generateDictionaryItems(); err != nil {
+	if err = generateDictionary(); err != nil {
 		global.SugaredLogger.Panicln(err)
 	}
 	if err = generateCasbinRules(); err != nil {

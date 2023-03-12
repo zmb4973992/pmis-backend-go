@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/go-ldap/ldap/v3"
 	"pmis-backend-go/global"
+	"pmis-backend-go/model"
 	"strings"
 )
 
@@ -16,12 +17,26 @@ var attributes = []string{
 }
 
 type UserInfo struct {
+	ID         int
 	FullName   *string
 	Email      *string
 	Department *string
 }
 
 func LoginByLDAP(username, password string) (permitted bool, userInfo *UserInfo, err error) {
+	//这段为测试专用，记得删除
+	if username == "a" && password == "a" {
+		var user model.User
+		err = global.DB.Model(&model.User{}).Where(model.User{Username: "a"}).
+			First(&user).Error
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+			return false, nil, err
+		}
+		return true, &UserInfo{ID: user.ID}, nil
+	}
+	//以上为测试专用，记得删除
+
 	ldapServer := global.Config.LDAPConfig.Server
 	baseDN := global.Config.LDAPConfig.BaseDN
 	filter := global.Config.LDAPConfig.Filter
@@ -64,7 +79,6 @@ func LoginByLDAP(username, password string) (permitted bool, userInfo *UserInfo,
 				"国内企业管理部"}
 			for j := range allowedOUs {
 				if strings.Contains(DN, allowedOUs[j]) {
-					var userInfo UserInfo
 					fullName := entry.GetAttributeValue("cn")
 					if fullName != "" {
 						userInfo.FullName = &fullName
@@ -77,7 +91,7 @@ func LoginByLDAP(username, password string) (permitted bool, userInfo *UserInfo,
 
 					userInfo.Department = &allowedOUs[j]
 
-					return true, &userInfo, nil
+					return true, userInfo, nil
 				}
 			}
 		}

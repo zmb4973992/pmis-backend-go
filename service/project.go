@@ -58,8 +58,7 @@ type ProjectUpdate struct {
 }
 
 type ProjectDelete struct {
-	Deleter int
-	ID      int
+	ID int
 }
 
 type ProjectGetList struct {
@@ -429,7 +428,6 @@ func (p *ProjectDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.Project
 	global.DB.Where("id = ?", p.ID).Find(&record)
-	record.Deleter = &p.Deleter
 	err := global.DB.Where("id = ?", p.ID).Delete(&record).Error
 
 	if err != nil {

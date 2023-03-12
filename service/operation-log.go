@@ -21,8 +21,7 @@ type OperationLogGet struct {
 }
 
 type OperationLogDelete struct {
-	Deleter int
-	ID      int
+	ID int
 }
 
 type OperationLogGetList struct {
@@ -63,7 +62,6 @@ func (o *OperationLogDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.OperationLog
 	global.DB.Where("id = ?", o.ID).Find(&record)
-	record.Deleter = &o.Deleter
 	err := global.DB.Where("id = ?", o.ID).Delete(&record).Error
 
 	if err != nil {

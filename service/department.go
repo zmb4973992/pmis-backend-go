@@ -33,8 +33,7 @@ type DepartmentUpdate struct {
 }
 
 type DepartmentDelete struct {
-	Deleter int
-	ID      int
+	ID int
 }
 
 type DepartmentGetArray struct {
@@ -156,7 +155,6 @@ func (d *DepartmentDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.Department
 	global.DB.Where("id = ?", d.ID).Find(&record)
-	record.Deleter = &d.Deleter
 	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)

@@ -2,7 +2,7 @@ package model
 
 // DepartmentAndUser 组织机构和用户的中间表
 type DepartmentAndUser struct {
-	BaseModel
+	BasicModel
 	DepartmentID *int
 	UserID       *int
 }

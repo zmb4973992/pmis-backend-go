@@ -6,7 +6,7 @@ import (
 )
 
 type Project struct {
-	BaseModel
+	BasicModel
 	Code               *string
 	Name               *string
 	Country            *int //见dictionary_item
@@ -34,49 +34,49 @@ func (*Project) TableName() string {
 func (d *Project) BeforeDelete(tx *gorm.DB) error {
 	if d.ID > 0 {
 		//如果有删除人的id，则记录下来
-		if d.Deleter != nil && *d.Deleter > 0 {
-			err := tx.Model(&Project{}).Where("id = ?", d.ID).
-				Update("deleter", d.Deleter).Error
-			if err != nil {
-				return err
-			}
-		}
+		//if d.Deleter != nil && *d.Deleter > 0 {
+		//	err := tx.Model(&Project{}).Where("id = ?", d.ID).
+		//		Update("deleter", d.Deleter).Error
+		//	if err != nil {
+		//		return err
+		//	}
+		//}
 		//删除相关的子表记录
-		err = tx.Model(&Disassembly{}).Where("project_id = ?", d.ID).
-			Updates(map[string]any{
-				"deleted_at": time.Now(),
-				"deleter":    d.Deleter,
-			}).Error
-		if err != nil {
-			return err
-		}
+		//err = tx.Model(&Disassembly{}).Where("project_id = ?", d.ID).
+		//	Updates(map[string]any{
+		//		"deleted_at": time.Now(),
+		//		"deleter":    d.Deleter,
+		//	}).Error
+		//if err != nil {
+		//	return err
+		//}
 
-		err = tx.Model(&PlannedReceiptAndPayment{}).Where("project_id = ?", d.ID).
-			Updates(map[string]any{
-				"deleted_at": time.Now(),
-				"deleter":    d.Deleter,
-			}).Error
-		if err != nil {
-			return err
-		}
+		//err = tx.Model(&PlannedReceiptAndPayment{}).Where("project_id = ?", d.ID).
+		//	Updates(map[string]any{
+		//		"deleted_at": time.Now(),
+		//		"deleter":    d.Deleter,
+		//	}).Error
+		//if err != nil {
+		//	return err
+		//}
 
-		err = tx.Model(&PredictedReceiptAndPayment{}).Where("project_id = ?", d.ID).
-			Updates(map[string]any{
-				"deleted_at": time.Now(),
-				"deleter":    d.Deleter,
-			}).Error
-		if err != nil {
-			return err
-		}
+		//err = tx.Model(&PredictedReceiptAndPayment{}).Where("project_id = ?", d.ID).
+		//	Updates(map[string]any{
+		//		"deleted_at": time.Now(),
+		//		"deleter":    d.Deleter,
+		//	}).Error
+		//if err != nil {
+		//	return err
+		//}
 
-		err = tx.Model(&ProjectAndUser{}).Where("project_id = ?", d.ID).
-			Updates(map[string]any{
-				"deleted_at": time.Now(),
-				"deleter":    d.Deleter,
-			}).Error
-		if err != nil {
-			return err
-		}
+		//err = tx.Model(&ProjectAndUser{}).Where("project_id = ?", d.ID).
+		//	Updates(map[string]any{
+		//		"deleted_at": time.Now(),
+		//		"deleter":    d.Deleter,
+		//	}).Error
+		//if err != nil {
+		//	return err
+		//}
 	}
 	return nil
 }
