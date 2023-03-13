@@ -2,11 +2,13 @@ package service
 
 import (
 	"fmt"
+	"github.com/gookit/goutil/arrutil"
 	"github.com/shopspring/decimal"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
+	"sort"
 	"time"
 )
 
@@ -115,9 +117,13 @@ func (p *ProgressCreate) Create() response.Common {
 		return response.Failure(util.ErrorDuplicateRecord)
 	}
 
-	date1, err := time.Parse("2006-01-02", "2025-03-22")
+	//date1, err := time.Parse("2006-01-02", "2025-03-22")
 
-	err = test(5, date1, 38)
+	//err = test(195, date1, 40)
+	//err = test1(195, 40)
+
+	err = test3(273, 40)
+
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -127,7 +133,11 @@ func (p *ProgressCreate) Create() response.Common {
 
 // 给定拆解id、日期、进度类型，计算自身的进度
 func test(disassemblyID int, date time.Time, progressType int) (err error) {
-	var progressValue float64
+	//删除相关进度,防止产生重复数据
+	global.DB.Where("disassembly_id = ?", disassemblyID).
+		Where("date = ?", date).
+		Where("type = ?", progressType).
+		Delete(&model.Progress{})
 
 	//获取下级拆解情况
 	var subDisassembly []model.Disassembly
@@ -136,6 +146,8 @@ func test(disassemblyID int, date time.Time, progressType int) (err error) {
 	if err != nil {
 		return err
 	}
+
+	var sumOfProgress float64
 
 	for i := range subDisassembly {
 		//下级拆解id是否包含有效记录
@@ -146,29 +158,26 @@ func test(disassemblyID int, date time.Time, progressType int) (err error) {
 			Where("date <= ?", date).
 			Count(&count)
 
-		var tempSubProgressValue float64
+		var tempSubProgress float64 = 0
+
 		if count > 0 {
-			err = global.DB.Model(&model.Progress{}).
+			global.DB.Model(&model.Progress{}).
 				Where("disassembly_id = ?", subDisassembly[i].ID).
 				Where("type = ?", progressType).
 				Where("date <= ?", date).
 				Order("date desc").Select("value").
-				First(&tempSubProgressValue).Error
-			if err != nil {
-				return err
-			}
-		} else {
-			tempSubProgressValue = 0
+				Limit(1).Find(&tempSubProgress)
 		}
 
-		subProgressValue := decimal.NewFromFloat(tempSubProgressValue)
-		weight := decimal.NewFromFloat(0)
+		subProgress := decimal.NewFromFloat(tempSubProgress)
+		subWeight := decimal.NewFromFloat(0)
 		if subDisassembly[i].Weight != nil {
-			weight = decimal.NewFromFloat(*subDisassembly[i].Weight)
+			subWeight = decimal.NewFromFloat(*subDisassembly[i].Weight)
 		}
-		res, _ := subProgressValue.Mul(weight).Float64()
 
-		progressValue += res
+		res, _ := subProgress.Mul(subWeight).Float64()
+
+		sumOfProgress += res
 	}
 
 	//找到"系统计算"的字典值
@@ -183,7 +192,7 @@ func test(disassemblyID int, date time.Time, progressType int) (err error) {
 		DisassemblyID: &disassemblyID,
 		Date:          &date,
 		Type:          &progressType,
-		Value:         &progressValue,
+		Value:         &sumOfProgress,
 		DataSource:    &dataSource,
 	}
 
@@ -193,4 +202,109 @@ func test(disassemblyID int, date time.Time, progressType int) (err error) {
 	}
 
 	return nil
+}
+
+// 给定拆解id、进度类型，计算自身的进度
+func test1(disassemblyID int, progressType int) (err error) {
+	//找到"系统计算"的字典值
+	var dataSource int
+	err = global.DB.Model(&model.DictionaryItem{}).
+		Where("name = '系统计算'").Select("id").First(&dataSource).Error
+	if err != nil {
+		return err
+	}
+
+	//删除相关进度,防止产生重复数据
+	global.DB.Where("disassembly_id = ?", disassemblyID).
+		Where("data_source = ?", dataSource).
+		Where("type = ?", progressType).
+		Delete(&model.Progress{})
+
+	//获取下级拆解情况
+	var subDisassembly []model.Disassembly
+	err = global.DB.Where("superior_id = ?", disassemblyID).
+		Find(&subDisassembly).Error
+	if err != nil {
+		return err
+	}
+
+	//获取日期数组
+	var tempDates []string
+
+	for i := range subDisassembly {
+		var subDates []string
+		global.DB.Model(&model.Progress{}).
+			Where("disassembly_id = ?", subDisassembly[i].ID).
+			Select("date").Find(&subDates)
+		tempDates = append(tempDates, subDates...)
+	}
+
+	//这里的日期格式为2020-01-01T00:00:00Z，需要转成2020-01-01
+	var tempDates1 []string
+	for i := range tempDates {
+		tempDates1 = append(tempDates1, tempDates[i][0:10])
+	}
+
+	//确保日期唯一
+	dates := arrutil.Unique(tempDates1)
+
+	//给日期排序，从小到大
+	sort.Strings(dates)
+
+	for j := range dates {
+		date, err1 := time.Parse("2006-01-02", dates[j])
+		if err1 != nil {
+			return err1
+		}
+
+		err = test(disassemblyID, date, progressType)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// 给定拆解id，找到所有上级id
+func test2(disassemblyID int) (superiorIDs []int) {
+	//superior_id可能为空，所以用指针来接收
+	var disassembly model.Disassembly
+	err := global.DB.Where("id = ?", disassemblyID).
+		First(&disassembly).Error
+
+	//如果发生任何错误、或者上级id为空：
+	if err != nil || disassembly.SuperiorID == nil {
+		return nil
+	}
+
+	superiorIDs = append(superiorIDs, *disassembly.SuperiorID)
+	res := test2(*disassembly.SuperiorID)
+	superiorIDs = append(superiorIDs, res...)
+
+	//倒序排列，确保先找出来的值放后面。这样调用时，就按最底层到最高层的顺序进行
+	fmt.Println("原始：", superiorIDs)
+	fmt.Println("加工后：", reverseSlice(superiorIDs))
+
+	return superiorIDs
+}
+
+// 给定拆解id、进度类型，计算所有上级的进度
+func test3(disassemblyID int, progressType int) (err error) {
+	superiorIDs := test2(disassemblyID)
+
+	for i := range superiorIDs {
+		err = test1(superiorIDs[i], progressType)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func reverseSlice(param []int) []int {
+	if len(param) == 0 {
+		return param
+	}
+	return append(reverseSlice(param[1:]), param[0])
 }

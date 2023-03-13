@@ -102,10 +102,12 @@ type OssConfig struct {
 }
 
 type LDAPConfig struct {
-	Server string
-	BaseDN string
-	Filter string
-	Suffix string
+	Server       string
+	BaseDN       string
+	Filter       string
+	Suffix       string
+	PermittedOUs []string
+	Attributes   []string
 }
 
 func InitConfig() {
@@ -180,6 +182,8 @@ func loadConfig() {
 	Config.LDAPConfig.BaseDN = v.GetString("ldap.base-dn")
 	Config.LDAPConfig.Filter = v.GetString("ldap.filter")
 	Config.LDAPConfig.Suffix = v.GetString("ldap.suffix")
+	Config.LDAPConfig.PermittedOUs = v.GetStringSlice("ldap.permitted-OUs")
+	Config.LDAPConfig.Attributes = v.GetStringSlice("ldap.attributes")
 }
 
 // byte 是 uint8 的别名,rune 是 int32 的别名
