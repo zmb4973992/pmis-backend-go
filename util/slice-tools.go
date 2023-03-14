@@ -104,3 +104,15 @@ func FindMax(array []int) (maxValue int, maxIndex int, err error) {
 	}
 	return maxValue, maxIndex, nil
 }
+
+// 双指针翻转切片
+// 入参：[]string{"a","b","c"}   结果：[]string{"c","b","a"}
+func reverseSlice[T typeForSliceTools](param []T) []T {
+	left, right := 0, len(param)-1
+	for left < right {
+		param[left], param[right] = param[right], param[left]
+		left++
+		right--
+	}
+	return param
+}

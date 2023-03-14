@@ -67,6 +67,8 @@ func (*disassembly) Create(c *gin.Context) {
 	return
 }
 
+// deprecated
+// 逻辑较复杂，暂时废弃
 func (*disassembly) CreateInBatches(c *gin.Context) {
 	var param service.DisassemblyCreateInBatches
 	err := c.ShouldBindJSON(&param)
@@ -147,7 +149,7 @@ func (*disassembly) DeleteWithSubitems(c *gin.Context) {
 		return
 	}
 
-	res := param.DeleteWithSubItems()
+	res := param.DeleteWithInferiors()
 	c.JSON(http.StatusOK, res)
 	return
 }

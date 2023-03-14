@@ -91,10 +91,12 @@ func Init() *gin.Engine {
 		}
 		disassembly := api.Group("/disassembly")
 		{
-			disassembly.GET("/:disassembly-id", controller.Disassembly.Get)                                 //获取项目拆解详情
-			disassembly.POST("/tree", controller.Disassembly.Tree)                                          //获取项目拆解的节点树
-			disassembly.POST("", controller.Disassembly.Create)                                             //新增项目拆解
-			disassembly.POST("/batch", controller.Disassembly.CreateInBatches)                              //批量新增项目拆解
+			disassembly.GET("/:disassembly-id", controller.Disassembly.Get) //获取项目拆解详情
+			disassembly.POST("/tree", controller.Disassembly.Tree)          //获取项目拆解的节点树
+			disassembly.POST("", controller.Disassembly.Create)             //新增项目拆解
+			// deprecated
+			// 逻辑较复杂，暂时废弃
+			//disassembly.POST("/batch", controller.Disassembly.CreateInBatches)                              //批量新增项目拆解
 			disassembly.PATCH("/:disassembly-id", controller.Disassembly.Update)                            //修改项目拆解
 			disassembly.DELETE("/:disassembly-id", controller.Disassembly.Delete)                           //删除项目拆解
 			disassembly.DELETE("/with-subitems/:disassembly-id", controller.Disassembly.DeleteWithSubitems) //删除项目拆解（子项一并删除）
@@ -140,8 +142,10 @@ func Init() *gin.Engine {
 		//进度
 		progress := api.Group("/progress")
 		{
-			progress.GET("/:progress-id", controller.Progress.Get) //获取进度详情
-			progress.POST("", controller.Progress.Create)          //新增进度详情
+			progress.GET("/:progress-id", controller.Progress.Get)       //获取进度详情
+			progress.POST("", controller.Progress.Create)                //新增进度详情
+			progress.PATCH("/:progress-id", controller.Progress.Update)  //修改进度详情
+			progress.DELETE("/:progress-id", controller.Progress.Delete) //删除进度详情
 		}
 	}
 

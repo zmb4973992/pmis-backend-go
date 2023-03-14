@@ -1,6 +1,10 @@
 package model
 
-import "time"
+import (
+	"fmt"
+	"gorm.io/gorm"
+	"time"
+)
 
 type Progress struct {
 	BasicModel
@@ -28,4 +32,14 @@ type Progress struct {
 // TableName 修改表名
 func (*Progress) TableName() string {
 	return "progress"
+}
+
+func (d *Progress) BeforeDelete(tx *gorm.DB) error {
+
+	//删除相关的子表记录
+	//先find、再delete，可以激活相关的钩子函数
+
+	fmt.Println("进度id：", d.ID)
+
+	return nil
 }

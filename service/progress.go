@@ -1,14 +1,11 @@
 package service
 
 import (
-	"fmt"
-	"github.com/gookit/goutil/arrutil"
-	"github.com/shopspring/decimal"
+	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
-	"sort"
 	"time"
 )
 
@@ -27,6 +24,35 @@ type ProgressCreate struct {
 	Type          int      `json:"type" binding:"required"`
 	Value         *float64 `json:"value" binding:"required"`
 	Remark        string   `json:"remark,omitempty"`
+}
+
+type ProgressUpdate struct {
+	LastModifier int
+	ID           int
+
+	DisassemblyID *int     `json:"disassembly_id"`
+	Date          *string  `json:"date"`
+	Type          *int     `json:"type"`
+	Value         *float64 `json:"value"`
+	Remark        *string  `json:"remark"`
+}
+
+type ProgressDelete struct {
+	ID int
+}
+
+type ProgressGetList struct {
+	dto.ListInput
+
+	DisassemblyID int     `json:"disassembly_id,omitempty"`
+	DateGte       string  `json:"date_gte,omitempty"`
+	DateLte       string  `json:"date_lte,omitempty"`
+	Date          string  `json:"date,omitempty"`
+	Type          string  `json:"type,omitempty"`
+	ValueGte      float64 `json:"value_gte,omitempty"`
+	ValueLte      float64 `json:"value_lte,omitempty"`
+	DataSource    int     `json:"data_source,omitempty"`
+	DataSourceIn  []int   `json:"data_source_in"`
 }
 
 //以下为出参
@@ -101,11 +127,19 @@ func (p *ProgressCreate) Create() response.Common {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
 	}
 
+	//找到“人工填写”在字典详情表的id
+	var dictionaryItem model.DictionaryItem
+	err = global.DB.Where("name = '人工填写'").First(&dictionaryItem).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToCreateRecord)
+	}
+
 	res := global.DB.FirstOrCreate(&paramOut, model.Progress{
 		DisassemblyID: &p.DisassemblyID,
 		Date:          &date,
 		Type:          &p.Type,
 		Value:         p.Value,
+		DataSource:    &dictionaryItem.ID,
 	})
 
 	if res.Error != nil {
@@ -117,194 +151,313 @@ func (p *ProgressCreate) Create() response.Common {
 		return response.Failure(util.ErrorDuplicateRecord)
 	}
 
-	//date1, err := time.Parse("2006-01-02", "2025-03-22")
-
-	//err = test(195, date1, 40)
-	//err = test1(195, 40)
-
-	err = test3(273, 40)
+	//更新所有上级的进度
+	err = util.UpdateProgressOfSuperiors(p.DisassemblyID, p.Type)
 
 	if err != nil {
-		fmt.Println(err)
+		global.SugaredLogger.Errorln(err)
+		return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
 	}
 
 	return response.Success()
 }
 
-// 给定拆解id、日期、进度类型，计算自身的进度
-func test(disassemblyID int, date time.Time, progressType int) (err error) {
-	//删除相关进度,防止产生重复数据
-	global.DB.Where("disassembly_id = ?", disassemblyID).
-		Where("date = ?", date).
-		Where("type = ?", progressType).
-		Delete(&model.Progress{})
+func (p *ProgressUpdate) Update() response.Common {
+	paramOut := make(map[string]any)
 
-	//获取下级拆解情况
-	var subDisassembly []model.Disassembly
-	err = global.DB.Where("superior_id = ?", disassemblyID).
-		Find(&subDisassembly).Error
-	if err != nil {
-		return err
+	if p.LastModifier > 0 {
+		paramOut["last_modifier"] = p.LastModifier
 	}
 
-	var sumOfProgress float64
-
-	for i := range subDisassembly {
-		//下级拆解id是否包含有效记录
-		var count int64
-		global.DB.Model(&model.Progress{}).
-			Where("disassembly_id = ?", subDisassembly[i].ID).
-			Where("type = ?", progressType).
-			Where("date <= ?", date).
-			Count(&count)
-
-		var tempSubProgress float64 = 0
-
-		if count > 0 {
-			global.DB.Model(&model.Progress{}).
-				Where("disassembly_id = ?", subDisassembly[i].ID).
-				Where("type = ?", progressType).
-				Where("date <= ?", date).
-				Order("date desc").Select("value").
-				Limit(1).Find(&tempSubProgress)
+	if p.DisassemblyID != nil {
+		if *p.DisassemblyID > 0 {
+			paramOut["disassembly_id"] = p.DisassemblyID
+		} else {
+			paramOut["disassembly_id"] = nil
 		}
+	}
 
-		subProgress := decimal.NewFromFloat(tempSubProgress)
-		subWeight := decimal.NewFromFloat(0)
-		if subDisassembly[i].Weight != nil {
-			subWeight = decimal.NewFromFloat(*subDisassembly[i].Weight)
+	if p.Date != nil {
+		if *p.Date != "" {
+			var err error
+			paramOut["date"], err = time.Parse("2006-01-02", *p.Date)
+			if err != nil {
+				return response.Failure(util.ErrorInvalidJSONParameters)
+			}
+		} else {
+			paramOut["date"] = nil
 		}
-
-		res, _ := subProgress.Mul(subWeight).Float64()
-
-		sumOfProgress += res
 	}
 
-	//找到"系统计算"的字典值
-	var dataSource int
-	err = global.DB.Model(&model.DictionaryItem{}).
-		Where("name = '系统计算'").Select("id").First(&dataSource).Error
-	if err != nil {
-		return err
-	}
-
-	var progress = model.Progress{
-		DisassemblyID: &disassemblyID,
-		Date:          &date,
-		Type:          &progressType,
-		Value:         &sumOfProgress,
-		DataSource:    &dataSource,
-	}
-
-	err = global.DB.Create(&progress).Error
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-// 给定拆解id、进度类型，计算自身的进度
-func test1(disassemblyID int, progressType int) (err error) {
-	//找到"系统计算"的字典值
-	var dataSource int
-	err = global.DB.Model(&model.DictionaryItem{}).
-		Where("name = '系统计算'").Select("id").First(&dataSource).Error
-	if err != nil {
-		return err
-	}
-
-	//删除相关进度,防止产生重复数据
-	global.DB.Where("disassembly_id = ?", disassemblyID).
-		Where("data_source = ?", dataSource).
-		Where("type = ?", progressType).
-		Delete(&model.Progress{})
-
-	//获取下级拆解情况
-	var subDisassembly []model.Disassembly
-	err = global.DB.Where("superior_id = ?", disassemblyID).
-		Find(&subDisassembly).Error
-	if err != nil {
-		return err
-	}
-
-	//获取日期数组
-	var tempDates []string
-
-	for i := range subDisassembly {
-		var subDates []string
-		global.DB.Model(&model.Progress{}).
-			Where("disassembly_id = ?", subDisassembly[i].ID).
-			Select("date").Find(&subDates)
-		tempDates = append(tempDates, subDates...)
-	}
-
-	//这里的日期格式为2020-01-01T00:00:00Z，需要转成2020-01-01
-	var tempDates1 []string
-	for i := range tempDates {
-		tempDates1 = append(tempDates1, tempDates[i][0:10])
-	}
-
-	//确保日期唯一
-	dates := arrutil.Unique(tempDates1)
-
-	//给日期排序，从小到大
-	sort.Strings(dates)
-
-	for j := range dates {
-		date, err1 := time.Parse("2006-01-02", dates[j])
-		if err1 != nil {
-			return err1
+	if p.Type != nil {
+		if *p.Type > 0 {
+			paramOut["type"] = p.Type
+		} else {
+			paramOut["type"] = nil
 		}
+	}
 
-		err = test(disassemblyID, date, progressType)
+	if p.Value != nil {
+		if *p.Value >= 0 {
+			paramOut["value"] = p.Value
+		} else {
+			return response.Failure(util.ErrorInvalidJSONParameters)
+		}
+	}
+
+	if p.Remark != nil {
+		if *p.Remark != "" {
+			paramOut["remark"] = *p.Remark
+		} else {
+			paramOut["remark"] = nil
+		}
+	}
+
+	//找到“人工填写”在字典详情表的id
+	var dictionaryItem model.DictionaryItem
+	err := global.DB.Where("name = '人工填写'").First(&dictionaryItem).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToUpdateRecord)
+	}
+	paramOut["data_source"] = dictionaryItem.ID
+
+	//计算有修改值的字段数，分别进行不同处理
+	//data_source是自动添加的，也需要排除在外
+	paramOutForCounting := util.MapCopy(paramOut, "Creator",
+		"LastModifier", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt", "DataSource")
+
+	if len(paramOutForCounting) == 0 {
+		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
+	}
+
+	err = global.DB.Model(&model.Progress{}).Where("id = ?", p.ID).
+		Updates(paramOut).Error
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return response.Failure(util.ErrorFailToUpdateRecord)
+	}
+
+	//更新所有上级的进度
+	var progress model.Progress
+	err = global.DB.Where("id = ?", p.ID).First(&progress).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
+	}
+
+	if progress.DisassemblyID != nil && progress.Type != nil {
+		err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, *progress.Type)
 		if err != nil {
-			return err
+			global.SugaredLogger.Errorln(err)
+			return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
 		}
 	}
-	return nil
+
+	return response.Success()
 }
 
-// 给定拆解id，找到所有上级id
-func test2(disassemblyID int) (superiorIDs []int) {
-	//superior_id可能为空，所以用指针来接收
-	var disassembly model.Disassembly
-	err := global.DB.Where("id = ?", disassemblyID).
-		First(&disassembly).Error
+func (p *ProgressDelete) Delete() response.Common {
+	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
+	var progress model.Progress
+	global.DB.Where("id = ?", p.ID).Find(&progress)
+	err := global.DB.Where("id = ?", p.ID).Delete(&progress).Error
 
-	//如果发生任何错误、或者上级id为空：
-	if err != nil || disassembly.SuperiorID == nil {
-		return nil
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 
-	superiorIDs = append(superiorIDs, *disassembly.SuperiorID)
-	res := test2(*disassembly.SuperiorID)
-	superiorIDs = append(superiorIDs, res...)
-
-	//倒序排列，确保先找出来的值放后面。这样调用时，就按最底层到最高层的顺序进行
-	fmt.Println("原始：", superiorIDs)
-	fmt.Println("加工后：", reverseSlice(superiorIDs))
-
-	return superiorIDs
-}
-
-// 给定拆解id、进度类型，计算所有上级的进度
-func test3(disassemblyID int, progressType int) (err error) {
-	superiorIDs := test2(disassemblyID)
-
-	for i := range superiorIDs {
-		err = test1(superiorIDs[i], progressType)
+	//更新所有上级的进度
+	if progress.DisassemblyID != nil && progress.Type != nil {
+		err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, *progress.Type)
 		if err != nil {
-			return err
+			global.SugaredLogger.Errorln(err)
+			return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
 		}
 	}
 
-	return nil
+	return response.Success()
 }
 
-func reverseSlice(param []int) []int {
-	if len(param) == 0 {
-		return param
-	}
-	return append(reverseSlice(param[1:]), param[0])
+func (p *ProgressGetList) GetList() response.List {
+	//db := global.DB.Model(&model.Project{})
+	//// 顺序：where -> count -> Order -> limit -> offset -> data
+	//
+	////where
+	//if p.NameInclude != "" {
+	//	db = db.Where("name like ?", "%"+p.NameInclude+"%")
+	//}
+	//
+	//if p.DepartmentNameInclude != "" {
+	//	var departmentIDs []int
+	//	global.DB.Model(&model.Department{}).Where("name like ?", "%"+p.DepartmentNameInclude+"%").
+	//		Select("id").Find(&departmentIDs)
+	//	if len(departmentIDs) > 0 {
+	//		db = db.Where("department_id in ?", departmentIDs)
+	//	}
+	//}
+	//
+	//if len(p.DepartmentIDIn) > 0 {
+	//	db = db.Where("department_id in ?", p.DepartmentIDIn)
+	//}
+	//
+	//if p.IsShowedByRole {
+	//	//先获得最大角色的名称
+	//	biggestRoleName := util.GetBiggestRoleName(p.UserID)
+	//	if biggestRoleName == "事业部级" {
+	//		//获取所在事业部的id数组
+	//		businessDivisionIDs := util.GetBusinessDivisionIDs(p.UserID)
+	//		//获取归属这些事业部的部门id数组
+	//		var departmentIDs []int
+	//		global.DB.Model(&model.Department{}).Where("superior_id in ?", businessDivisionIDs).
+	//			Select("id").Find(&departmentIDs)
+	//		//两个数组进行合并
+	//		departmentIDs = append(departmentIDs, businessDivisionIDs...)
+	//		//找到部门id在上面两个数组中的记录
+	//		db = db.Where("department_id in ?", departmentIDs)
+	//	} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
+	//		//获取用户所属部门的id数组
+	//		departmentIDs := util.GetDepartmentIDs(p.UserID)
+	//		//找到部门id在上面数组中的记录
+	//		db = db.Where("department_id in ?", departmentIDs)
+	//	}
+	//}
+	//
+	//// count
+	//var count int64
+	//db.Count(&count)
+	//
+	////Order
+	//orderBy := p.SortingInput.OrderBy
+	//desc := p.SortingInput.Desc
+	////如果排序字段为空
+	//if orderBy == "" {
+	//	//如果要求降序排列
+	//	if desc == true {
+	//		db = db.Order("id desc")
+	//	}
+	//} else { //如果有排序字段
+	//	//先看排序字段是否存在于表中
+	//	exists := util.FieldIsInModel(&model.Project{}, orderBy)
+	//	if !exists {
+	//		return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+	//	}
+	//	//如果要求降序排列
+	//	if desc == true {
+	//		db = db.Order(orderBy + " desc")
+	//	} else { //如果没有要求排序方式
+	//		db = db.Order(orderBy)
+	//	}
+	//}
+	//
+	////limit
+	//page := 1
+	//if p.PagingInput.Page > 0 {
+	//	page = p.PagingInput.Page
+	//}
+	//pageSize := global.Config.DefaultPageSize
+	//if p.PagingInput.PageSize >= 0 &&
+	//	p.PagingInput.PageSize <= global.Config.MaxPageSize {
+	//	pageSize = p.PagingInput.PageSize
+	//}
+	//db = db.Limit(pageSize)
+	//
+	////offset
+	//offset := (page - 1) * pageSize
+	//db = db.Offset(offset)
+	//
+	////data
+	//var data []ProjectOutput
+	//db.Model(&model.Project{}).Find(&data)
+	//
+	//if len(data) == 0 {
+	//	return response.FailureForList(util.ErrorRecordNotFound)
+	//}
+	//
+	//for i := range data {
+	//	//查部门信息
+	//	if data[i].DepartmentID != nil {
+	//		var record DepartmentOutput
+	//		res := global.DB.Model(&model.Department{}).
+	//			Where("id=?", *data[i].DepartmentID).Limit(1).Find(&record)
+	//		if res.RowsAffected > 0 {
+	//			data[i].DepartmentExternal = &record
+	//		}
+	//	}
+	//
+	//	//处理日期格式
+	//	if data[i].SigningDate != nil {
+	//		temp := *data[i].SigningDate
+	//		*data[i].SigningDate = temp[:10]
+	//	}
+	//
+	//	if data[i].EffectiveDate != nil {
+	//		temp := *data[i].EffectiveDate
+	//		*data[i].EffectiveDate = temp[:10]
+	//	}
+	//
+	//	//查dictionary_item表
+	//	{
+	//		if data[i].Country != nil {
+	//			var record DictionaryItemOutput
+	//			res := global.DB.Model(&model.DictionaryItem{}).
+	//				Where("id = ?", *data[i].Country).Limit(1).Find(&record)
+	//			if res.RowsAffected > 0 {
+	//				data[i].CountryExternal = &record
+	//			}
+	//		}
+	//
+	//		if data[i].Type != nil {
+	//			var record DictionaryItemOutput
+	//			res := global.DB.Model(&model.DictionaryItem{}).
+	//				Where("id = ?", *data[i].Type).Limit(1).Find(&record)
+	//			if res.RowsAffected > 0 {
+	//				data[i].TypeExternal = &record
+	//			}
+	//		}
+	//
+	//		if data[i].Currency != nil {
+	//			var record DictionaryItemOutput
+	//			res := global.DB.Model(&model.DictionaryItem{}).
+	//				Where("id = ?", *data[i].Currency).Limit(1).Find(&record)
+	//			if res.RowsAffected > 0 {
+	//				data[i].CurrencyExternal = &record
+	//			}
+	//		}
+	//
+	//		if data[i].Status != nil {
+	//			var record DictionaryItemOutput
+	//			res := global.DB.Model(&model.DictionaryItem{}).
+	//				Where("id = ?", *data[i].Status).Limit(1).Find(&record)
+	//			if res.RowsAffected > 0 {
+	//				data[i].StatusExternal = &record
+	//			}
+	//		}
+	//
+	//		if data[i].OurSignatory != nil {
+	//			var record DictionaryItemOutput
+	//			res := global.DB.Model(&model.DictionaryItem{}).
+	//				Where("id = ?", *data[i].OurSignatory).Limit(1).Find(&record)
+	//			if res.RowsAffected > 0 {
+	//				data[i].OurSignatoryExternal = &record
+	//			}
+	//		}
+	//	}
+	//}
+	//
+	//numberOfRecords := int(count)
+	//numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
+	//
+	//return response.List{
+	//	Data: data,
+	//	Paging: &dto.PagingOutput{
+	//		Page:            page,
+	//		PageSize:        pageSize,
+	//		NumberOfPages:   numberOfPages,
+	//		NumberOfRecords: numberOfRecords,
+	//	},
+	//	Code:    util.Success,
+	//	Message: util.GetMessage(util.Success),
+	//}
+
+	return response.List{}
 }

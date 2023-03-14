@@ -50,3 +50,48 @@ func (*progress) Create(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 	return
 }
+
+func (*progress) Update(c *gin.Context) {
+	var param service.ProgressUpdate
+	err := c.ShouldBindJSON(&param)
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidJSONParameters))
+		return
+	}
+	//把uri上的id参数传递给结构体形式的入参
+	param.ID, err = strconv.Atoi(c.Param("progress-id"))
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidURIParameters))
+		return
+	}
+
+	//处理lastModifier字段
+	userID, exists := c.Get("user_id")
+	if exists {
+		param.LastModifier = userID.(int)
+	}
+
+	res := param.Update()
+	c.JSON(http.StatusOK, res)
+	return
+}
+
+func (*progress) Delete(c *gin.Context) {
+	var param service.ProgressDelete
+	var err error
+	param.ID, err = strconv.Atoi(c.Param("progress-id"))
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidURIParameters))
+		return
+	}
+
+	res := param.Delete()
+	c.JSON(http.StatusOK, res)
+	return
+}

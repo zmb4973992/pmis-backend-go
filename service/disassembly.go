@@ -168,6 +168,8 @@ func (d *DisassemblyCreate) Create() response.Common {
 	return response.Success()
 }
 
+// deprecated
+// 逻辑较复杂，暂时废弃
 func (d *DisassemblyCreateInBatches) CreateInBatches() response.Common {
 	var paramOut []model.Disassembly
 	for i := range d.Param {
@@ -261,61 +263,125 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
+
+	//获取进度类型在字典类型表中的值
+	var progressTypeID int
+	err = global.DB.Model(&model.DictionaryType{}).
+		Where("name = '进度类型'").Select("id").First(&progressTypeID).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToCalculateSelfAndSuperiorProgress)
+	}
+
+	//获取进度类型在字典详情表中的值
+	var progressItemIDs []int
+	err = global.DB.Model(&model.DictionaryItem{}).
+		Where("dictionary_type_id = ?", progressTypeID).
+		Select("id").Find(&progressItemIDs).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToCalculateSelfAndSuperiorProgress)
+	}
+
+	//更新自身和所有上级的进度
+	for _, v := range progressItemIDs {
+		//更新自身进度
+		err = util.UpdateSelfProgress(d.ID, v)
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+			return response.Failure(util.ErrorFailToCalculateSelfProgress)
+		}
+		//更新所有上级的进度
+		err = util.UpdateProgressOfSuperiors(d.ID, v)
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+			return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
+		}
+	}
+
 	return response.Success()
 }
 
 func (d *DisassemblyDelete) Delete() response.Common {
-	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
+	//先找到记录，这样猜数才能获得值、触发钩子函数，再删除记录
 	var record model.Disassembly
-	global.DB.Where("id = ?", d.ID).Find(&record)
-	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
+	err := global.DB.Where("id = ?", d.ID).Find(&record).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
-	return response.Success()
-}
 
-func (d *DisassemblyDeleteWithSubItems) DeleteWithSubItems() response.Common {
-	var ToBeDeletedIDs []int
-	ToBeDeletedIDs = append(ToBeDeletedIDs, d.ID)
-	//第一轮查找
-	var result1 []int
-	global.DB.Model(&model.Disassembly{}).Where("superior_id = ?", d.ID).
-		Select("id").Find(&result1)
-	//第二轮查找
-	if len(result1) > 0 {
-		ToBeDeletedIDs = append(ToBeDeletedIDs, result1...)
-		var result2 []int
-		global.DB.Model(&model.Disassembly{}).Where("superior_id IN ?", result1).
-			Select("id").Find(&result2)
-		//第三轮查找
-		if len(result2) > 0 {
-			ToBeDeletedIDs = append(ToBeDeletedIDs, result2...)
-			var result3 []int
-			global.DB.Model(&model.Disassembly{}).Where("superior_id IN ?", result2).
-				Select("id").Find(&result3)
-			//第四轮查找
-			if len(result3) > 0 {
-				ToBeDeletedIDs = append(ToBeDeletedIDs, result3...)
-				var result4 []int
-				global.DB.Model(&model.Disassembly{}).Where("superior_id IN ?", result3).
-					Select("id").Find(&result4)
-				ToBeDeletedIDs = append(ToBeDeletedIDs, result4...)
-			}
+	//获取进度类型在字典类型表中的值
+	var progressTypeID int
+	err = global.DB.Model(&model.DictionaryType{}).
+		Where("name = '进度类型'").Select("id").First(&progressTypeID).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToCalculateSelfAndSuperiorProgress)
+	}
+
+	//获取进度类型在字典详情表中的值
+	var progressItemIDs []int
+	err = global.DB.Model(&model.DictionaryItem{}).
+		Where("dictionary_type_id = ?", progressTypeID).
+		Select("id").Find(&progressItemIDs).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToCalculateSelfAndSuperiorProgress)
+	}
+
+	//更新所有上级的进度(删除自身进度的工作放在删除的钩子函数里)
+	for _, v := range progressItemIDs {
+		err = util.UpdateProgressOfSuperiors(d.ID, v)
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+			return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
 		}
 	}
 
-	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
-	var records []model.Disassembly
-	global.DB.Where("id in ?", ToBeDeletedIDs).Find(&records)
-	err := global.DB.Where("id in ?", ToBeDeletedIDs).Delete(&records).Error
+	return response.Success()
+}
+
+// 待修改
+func (d *DisassemblyDeleteWithSubItems) DeleteWithInferiors() response.Common {
+	inferiorIDs := util.GetInferiorIDs(d.ID)
+	ToBeDeletedIDs := append([]int{d.ID}, inferiorIDs...)
+
+	//ToBeDeletedIDs = append(ToBeDeletedIDs, d.ID)
+	//
+	//var result []int
+	//global.DB.Model(&model.Disassembly{}).Where("superior_id = ?", d.ID).
+	//	Select("id").Find(&result)
+	//第二轮查找
+	//if len(result1) > 0 {
+	//	ToBeDeletedIDs = append(ToBeDeletedIDs, result1...)
+	//	var result2 []int
+	//	global.DB.Model(&model.Disassembly{}).Where("superior_id IN ?", result1).
+	//		Select("id").Find(&result2)
+	//	//第三轮查找
+	//	if len(result2) > 0 {
+	//		ToBeDeletedIDs = append(ToBeDeletedIDs, result2...)
+	//		var result3 []int
+	//		global.DB.Model(&model.Disassembly{}).Where("superior_id IN ?", result2).
+	//			Select("id").Find(&result3)
+	//		//第四轮查找
+	//		if len(result3) > 0 {
+	//			ToBeDeletedIDs = append(ToBeDeletedIDs, result3...)
+	//			var result4 []int
+	//			global.DB.Model(&model.Disassembly{}).Where("superior_id IN ?", result3).
+	//				Select("id").Find(&result4)
+	//			ToBeDeletedIDs = append(ToBeDeletedIDs, result4...)
+	//		}
+	//	}
+	//}
+
+	//先找到记录，这样参数才能获得值、触发钩子函数，再删除记录
+	var disassemblies []model.Disassembly
+	err := global.DB.Where("id in ?", ToBeDeletedIDs).
+		Find(&disassemblies).Delete(&disassemblies).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
+
 	return response.Success()
 }
 

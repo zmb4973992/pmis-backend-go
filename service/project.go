@@ -425,7 +425,7 @@ func (p *ProjectUpdate) Update() response.Common {
 }
 
 func (p *ProjectDelete) Delete() response.Common {
-	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
+	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Project
 	global.DB.Where("id = ?", p.ID).Find(&record)
 	err := global.DB.Where("id = ?", p.ID).Delete(&record).Error

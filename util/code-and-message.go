@@ -42,6 +42,9 @@ const (
 	ErrorInvalidDateFormat
 	ErrorFileNotFound
 	ErrorDuplicateRecord
+	ErrorFailToCalculateSelfProgress
+	ErrorFailToCalculateSuperiorProgress
+	ErrorFailToCalculateSelfAndSuperiorProgress
 )
 
 // Message 自定义错误的message
@@ -79,18 +82,21 @@ var Message = map[int]string{
 	ErrorMethodNotAllowed: "请求方法错误",
 	ErrorInvalidColumns:   "列名无效",
 
-	ErrorRequestFrequencyTooHigh:    "请求频率过高，请稍后再试",
-	ErrorFieldsToBeCreatedNotFound:  "未找到需要新增的字段",
-	ErrorFieldsToBeUpdatedNotFound:  "未找到需要更新的字段",
-	ErrorSortingFieldDoesNotExist:   "排序字段不存在",
-	ErrorFailToGenerateCaptcha:      "生成验证码失败",
-	ErrorWrongCaptcha:               "验证码错误",
-	ErrorFailToGenerateToken:        "生成token失败",
-	ErrorFailToDeleteFiles:          "删除文件失败",
-	ErrorDictionaryTypeNameNotFound: "字典名称未找到",
-	ErrorInvalidDateFormat:          "日期格式无效",
-	ErrorFileNotFound:               "文件未找到",
-	ErrorDuplicateRecord:            "禁止添加重复的记录",
+	ErrorRequestFrequencyTooHigh:                "请求频率过高，请稍后再试",
+	ErrorFieldsToBeCreatedNotFound:              "未找到需要新增的字段",
+	ErrorFieldsToBeUpdatedNotFound:              "未找到需要更新的字段",
+	ErrorSortingFieldDoesNotExist:               "排序字段不存在",
+	ErrorFailToGenerateCaptcha:                  "生成验证码失败",
+	ErrorWrongCaptcha:                           "验证码错误",
+	ErrorFailToGenerateToken:                    "生成token失败",
+	ErrorFailToDeleteFiles:                      "删除文件失败",
+	ErrorDictionaryTypeNameNotFound:             "字典名称未找到",
+	ErrorInvalidDateFormat:                      "日期格式无效",
+	ErrorFileNotFound:                           "文件未找到",
+	ErrorDuplicateRecord:                        "禁止添加重复的记录",
+	ErrorFailToCalculateSelfProgress:            "计算自身进度失败，错误详情请查看系统日志文件",
+	ErrorFailToCalculateSuperiorProgress:        "计算上级进度失败，错误详情请查看系统日志文件",
+	ErrorFailToCalculateSelfAndSuperiorProgress: "计算自身和上级进度失败，错误详情请查看系统日志文件",
 }
 
 func GetMessage(code int) string {

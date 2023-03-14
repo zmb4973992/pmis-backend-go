@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -19,24 +20,16 @@ func (*Disassembly) TableName() string {
 }
 
 func (d *Disassembly) BeforeDelete(tx *gorm.DB) error {
-	if d.ID > 0 {
-		//如果有删除人的id，则记录下来
-		//if d.Deleter != nil && *d.Deleter > 0 {
-		//	err := tx.Model(&Disassembly{}).Where("id = ?", d.ID).
-		//		Update("deleter", d.Deleter).Error
-		//	if err != nil {
-		//		return err
-		//	}
-		//}
-		//删除相关的子表记录
-		//err = tx.Model(&Progress{}).Where("disassembly_id = ?", d.ID).
-		//	Updates(map[string]any{
-		//		"deleted_at": time.Now(),
-		//		"deleter":    d.Deleter,
-		//	}).Error
-		//if err != nil {
-		//	return err
-		//}
+	//删除相关的子表记录
+	//先find，再delete，可以激活相关的钩子函数
+	fmt.Println("拆解id：", d.ID)
+	var progresses []Progress
+	err = tx.Where("disassembly_id = ?", d.ID).
+		Find(&progresses).Delete(&progresses).Error
+
+	if err != nil {
+		return err
 	}
+
 	return nil
 }
