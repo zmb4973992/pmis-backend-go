@@ -138,8 +138,8 @@ func (*disassembly) Delete(c *gin.Context) {
 	return
 }
 
-func (*disassembly) DeleteWithSubitems(c *gin.Context) {
-	var param service.DisassemblyDeleteWithSubItems
+func (*disassembly) DeleteWithInferiors(c *gin.Context) {
+	var param service.DisassemblyDeleteWithInferiors
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
 	if err != nil {

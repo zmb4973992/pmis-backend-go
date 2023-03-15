@@ -30,11 +30,11 @@ type ProgressUpdate struct {
 	LastModifier int
 	ID           int
 
-	DisassemblyID *int     `json:"disassembly_id"`
-	Date          *string  `json:"date"`
-	Type          *int     `json:"type"`
-	Value         *float64 `json:"value"`
-	Remark        *string  `json:"remark"`
+	//DisassemblyID *int     `json:"disassembly_id"`
+	Date *string `json:"date"`
+	//Type          *int     `json:"type"`
+	Value  *float64 `json:"value"`
+	Remark *string  `json:"remark"`
 }
 
 type ProgressDelete struct {
@@ -44,15 +44,13 @@ type ProgressDelete struct {
 type ProgressGetList struct {
 	dto.ListInput
 
-	DisassemblyID int     `json:"disassembly_id,omitempty"`
-	DateGte       string  `json:"date_gte,omitempty"`
-	DateLte       string  `json:"date_lte,omitempty"`
-	Date          string  `json:"date,omitempty"`
-	Type          string  `json:"type,omitempty"`
-	ValueGte      float64 `json:"value_gte,omitempty"`
-	ValueLte      float64 `json:"value_lte,omitempty"`
-	DataSource    int     `json:"data_source,omitempty"`
-	DataSourceIn  []int   `json:"data_source_in"`
+	DisassemblyID int      `json:"disassembly_id" binding:"required"`
+	DateGte       string   `json:"date_gte,omitempty"`
+	DateLte       string   `json:"date_lte,omitempty"`
+	TypeIn        []int    `json:"type_in"`
+	ValueGte      *float64 `json:"value_gte"`
+	ValueLte      *float64 `json:"value_lte"`
+	DataSource    int      `json:"data_source"`
 }
 
 //以下为出参
@@ -62,12 +60,14 @@ type ProgressOutput struct {
 	LastModifier *int `json:"last_modifier"`
 	ID           int  `json:"id"`
 
-	DisassemblyID *int     `json:"disassembly_id"`
-	Date          *string  `json:"date"`
-	Type          *int     `json:"type"`
-	Value         *float64 `json:"value"`
-	Remark        *string  `json:"remark"`
-	DataSource    *string  `json:"data_source"`
+	DisassemblyID       *int               `json:"disassembly_id"`
+	DisassemblyExternal *DisassemblyOutput `json:"disassembly" gorm:"-"`
+
+	Date       *string  `json:"date"`
+	Type       *int     `json:"type"`
+	Value      *float64 `json:"value"`
+	Remark     *string  `json:"remark"`
+	DataSource *string  `json:"data_source"`
 }
 
 func (p *ProgressGet) Get() response.Common {
@@ -169,13 +169,13 @@ func (p *ProgressUpdate) Update() response.Common {
 		paramOut["last_modifier"] = p.LastModifier
 	}
 
-	if p.DisassemblyID != nil {
-		if *p.DisassemblyID > 0 {
-			paramOut["disassembly_id"] = p.DisassemblyID
-		} else {
-			paramOut["disassembly_id"] = nil
-		}
-	}
+	//if p.DisassemblyID != nil {
+	//	if *p.DisassemblyID > 0 {
+	//		paramOut["disassembly_id"] = p.DisassemblyID
+	//	} else {
+	//		paramOut["disassembly_id"] = nil
+	//	}
+	//}
 
 	if p.Date != nil {
 		if *p.Date != "" {
@@ -189,13 +189,13 @@ func (p *ProgressUpdate) Update() response.Common {
 		}
 	}
 
-	if p.Type != nil {
-		if *p.Type > 0 {
-			paramOut["type"] = p.Type
-		} else {
-			paramOut["type"] = nil
-		}
-	}
+	//if p.Type != nil {
+	//	if *p.Type > 0 {
+	//		paramOut["type"] = p.Type
+	//	} else {
+	//		paramOut["type"] = nil
+	//	}
+	//}
 
 	if p.Value != nil {
 		if *p.Value >= 0 {
@@ -256,10 +256,9 @@ func (p *ProgressUpdate) Update() response.Common {
 }
 
 func (p *ProgressDelete) Delete() response.Common {
-	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
+	//先找到记录，这样参数才能获得值、触发钩子函数，再删除记录
 	var progress model.Progress
-	global.DB.Where("id = ?", p.ID).Find(&progress)
-	err := global.DB.Where("id = ?", p.ID).Delete(&progress).Error
+	err := global.DB.Where("id = ?", p.ID).Find(&progress).Delete(&progress).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -279,185 +278,177 @@ func (p *ProgressDelete) Delete() response.Common {
 }
 
 func (p *ProgressGetList) GetList() response.List {
-	//db := global.DB.Model(&model.Project{})
-	//// 顺序：where -> count -> Order -> limit -> offset -> data
-	//
-	////where
-	//if p.NameInclude != "" {
-	//	db = db.Where("name like ?", "%"+p.NameInclude+"%")
-	//}
-	//
-	//if p.DepartmentNameInclude != "" {
-	//	var departmentIDs []int
-	//	global.DB.Model(&model.Department{}).Where("name like ?", "%"+p.DepartmentNameInclude+"%").
-	//		Select("id").Find(&departmentIDs)
-	//	if len(departmentIDs) > 0 {
-	//		db = db.Where("department_id in ?", departmentIDs)
-	//	}
-	//}
-	//
-	//if len(p.DepartmentIDIn) > 0 {
-	//	db = db.Where("department_id in ?", p.DepartmentIDIn)
-	//}
-	//
-	//if p.IsShowedByRole {
-	//	//先获得最大角色的名称
-	//	biggestRoleName := util.GetBiggestRoleName(p.UserID)
-	//	if biggestRoleName == "事业部级" {
-	//		//获取所在事业部的id数组
-	//		businessDivisionIDs := util.GetBusinessDivisionIDs(p.UserID)
-	//		//获取归属这些事业部的部门id数组
-	//		var departmentIDs []int
-	//		global.DB.Model(&model.Department{}).Where("superior_id in ?", businessDivisionIDs).
-	//			Select("id").Find(&departmentIDs)
-	//		//两个数组进行合并
-	//		departmentIDs = append(departmentIDs, businessDivisionIDs...)
-	//		//找到部门id在上面两个数组中的记录
-	//		db = db.Where("department_id in ?", departmentIDs)
-	//	} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
-	//		//获取用户所属部门的id数组
-	//		departmentIDs := util.GetDepartmentIDs(p.UserID)
-	//		//找到部门id在上面数组中的记录
-	//		db = db.Where("department_id in ?", departmentIDs)
-	//	}
-	//}
-	//
-	//// count
-	//var count int64
-	//db.Count(&count)
-	//
-	////Order
-	//orderBy := p.SortingInput.OrderBy
-	//desc := p.SortingInput.Desc
-	////如果排序字段为空
-	//if orderBy == "" {
-	//	//如果要求降序排列
-	//	if desc == true {
-	//		db = db.Order("id desc")
-	//	}
-	//} else { //如果有排序字段
-	//	//先看排序字段是否存在于表中
-	//	exists := util.FieldIsInModel(&model.Project{}, orderBy)
-	//	if !exists {
-	//		return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
-	//	}
-	//	//如果要求降序排列
-	//	if desc == true {
-	//		db = db.Order(orderBy + " desc")
-	//	} else { //如果没有要求排序方式
-	//		db = db.Order(orderBy)
-	//	}
-	//}
-	//
-	////limit
-	//page := 1
-	//if p.PagingInput.Page > 0 {
-	//	page = p.PagingInput.Page
-	//}
-	//pageSize := global.Config.DefaultPageSize
-	//if p.PagingInput.PageSize >= 0 &&
-	//	p.PagingInput.PageSize <= global.Config.MaxPageSize {
-	//	pageSize = p.PagingInput.PageSize
-	//}
-	//db = db.Limit(pageSize)
-	//
-	////offset
-	//offset := (page - 1) * pageSize
-	//db = db.Offset(offset)
-	//
-	////data
-	//var data []ProjectOutput
-	//db.Model(&model.Project{}).Find(&data)
-	//
-	//if len(data) == 0 {
-	//	return response.FailureForList(util.ErrorRecordNotFound)
-	//}
-	//
-	//for i := range data {
-	//	//查部门信息
-	//	if data[i].DepartmentID != nil {
-	//		var record DepartmentOutput
-	//		res := global.DB.Model(&model.Department{}).
-	//			Where("id=?", *data[i].DepartmentID).Limit(1).Find(&record)
-	//		if res.RowsAffected > 0 {
-	//			data[i].DepartmentExternal = &record
-	//		}
-	//	}
-	//
-	//	//处理日期格式
-	//	if data[i].SigningDate != nil {
-	//		temp := *data[i].SigningDate
-	//		*data[i].SigningDate = temp[:10]
-	//	}
-	//
-	//	if data[i].EffectiveDate != nil {
-	//		temp := *data[i].EffectiveDate
-	//		*data[i].EffectiveDate = temp[:10]
-	//	}
-	//
-	//	//查dictionary_item表
-	//	{
-	//		if data[i].Country != nil {
-	//			var record DictionaryItemOutput
-	//			res := global.DB.Model(&model.DictionaryItem{}).
-	//				Where("id = ?", *data[i].Country).Limit(1).Find(&record)
-	//			if res.RowsAffected > 0 {
-	//				data[i].CountryExternal = &record
-	//			}
-	//		}
-	//
-	//		if data[i].Type != nil {
-	//			var record DictionaryItemOutput
-	//			res := global.DB.Model(&model.DictionaryItem{}).
-	//				Where("id = ?", *data[i].Type).Limit(1).Find(&record)
-	//			if res.RowsAffected > 0 {
-	//				data[i].TypeExternal = &record
-	//			}
-	//		}
-	//
-	//		if data[i].Currency != nil {
-	//			var record DictionaryItemOutput
-	//			res := global.DB.Model(&model.DictionaryItem{}).
-	//				Where("id = ?", *data[i].Currency).Limit(1).Find(&record)
-	//			if res.RowsAffected > 0 {
-	//				data[i].CurrencyExternal = &record
-	//			}
-	//		}
-	//
-	//		if data[i].Status != nil {
-	//			var record DictionaryItemOutput
-	//			res := global.DB.Model(&model.DictionaryItem{}).
-	//				Where("id = ?", *data[i].Status).Limit(1).Find(&record)
-	//			if res.RowsAffected > 0 {
-	//				data[i].StatusExternal = &record
-	//			}
-	//		}
-	//
-	//		if data[i].OurSignatory != nil {
-	//			var record DictionaryItemOutput
-	//			res := global.DB.Model(&model.DictionaryItem{}).
-	//				Where("id = ?", *data[i].OurSignatory).Limit(1).Find(&record)
-	//			if res.RowsAffected > 0 {
-	//				data[i].OurSignatoryExternal = &record
-	//			}
-	//		}
-	//	}
-	//}
-	//
-	//numberOfRecords := int(count)
-	//numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
-	//
-	//return response.List{
-	//	Data: data,
-	//	Paging: &dto.PagingOutput{
-	//		Page:            page,
-	//		PageSize:        pageSize,
-	//		NumberOfPages:   numberOfPages,
-	//		NumberOfRecords: numberOfRecords,
-	//	},
-	//	Code:    util.Success,
-	//	Message: util.GetMessage(util.Success),
-	//}
+	db := global.DB.Model(&model.Progress{})
+	// 顺序：where -> count -> Order -> limit -> offset -> data
 
-	return response.List{}
+	//where
+	db = db.Where("disassembly_id = ?", p.DisassemblyID)
+
+	if p.DateGte != "" {
+		date, err := time.Parse("2006-01-02", p.DateGte)
+		if err != nil {
+			return response.FailureForList(util.ErrorInvalidJSONParameters)
+		}
+		db = db.Where("date >= ?", date)
+	}
+
+	if p.DateLte != "" {
+		date, err := time.Parse("2006-01-02", p.DateLte)
+		if err != nil {
+			return response.FailureForList(util.ErrorInvalidJSONParameters)
+		}
+		db = db.Where("date <= ?", date)
+	}
+
+	if len(p.TypeIn) > 0 {
+		db = db.Where("type in ?", p.TypeIn)
+	}
+
+	if p.ValueGte != nil {
+		db = db.Where("value >= ?", *p.ValueGte)
+	}
+
+	if p.ValueLte != nil {
+		db = db.Where("value <= ?", *p.ValueLte)
+	}
+
+	if p.DataSource > 0 {
+		db = db.Where("data_source = ?", p.DataSource)
+	}
+
+	// count
+	var count int64
+	db.Count(&count)
+
+	//Order
+	orderBy := p.SortingInput.OrderBy
+	desc := p.SortingInput.Desc
+	//如果排序字段为空
+	if orderBy == "" {
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order("id desc")
+		}
+	} else { //如果有排序字段
+		//先看排序字段是否存在于表中
+		exists := util.FieldIsInModel(&model.Progress{}, orderBy)
+		if !exists {
+			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+		}
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order(orderBy + " desc")
+		} else {
+			//如果没有要求排序方式
+			db = db.Order(orderBy)
+		}
+	}
+
+	//limit
+	page := 1
+	if p.PagingInput.Page > 0 {
+		page = p.PagingInput.Page
+	}
+	pageSize := global.Config.DefaultPageSize
+	if p.PagingInput.PageSize >= 0 &&
+		p.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = p.PagingInput.PageSize
+	}
+	db = db.Limit(pageSize)
+
+	//offset
+	offset := (page - 1) * pageSize
+	db = db.Offset(offset)
+
+	//data
+	var data []ProgressOutput
+	db.Model(&model.Progress{}).Find(&data)
+
+	if len(data) == 0 {
+		return response.FailureForList(util.ErrorRecordNotFound)
+	}
+
+	//查拆解信息
+	if p.DisassemblyID > 0 {
+		var record DisassemblyOutput
+		res := global.DB.Model(&model.Disassembly{}).
+			Where("id = ?", p.DisassemblyID).Limit(1).Find(&record)
+		if res.RowsAffected > 0 {
+			for i := range data {
+				data[i].DisassemblyExternal = &record
+			}
+		}
+	}
+
+	for i := range data {
+
+		//处理日期格式
+		if data[i].Date != nil {
+			temp := *data[i].Date
+			*data[i].Date = temp[:10]
+		}
+
+		//查dictionary_item表
+		//{
+		//	if data[i].Country != nil {
+		//		var record DictionaryItemOutput
+		//		res := global.DB.Model(&model.DictionaryItem{}).
+		//			Where("id = ?", *data[i].Country).Limit(1).Find(&record)
+		//		if res.RowsAffected > 0 {
+		//			data[i].CountryExternal = &record
+		//		}
+		//	}
+		//
+		//	if data[i].Type != nil {
+		//		var record DictionaryItemOutput
+		//		res := global.DB.Model(&model.DictionaryItem{}).
+		//			Where("id = ?", *data[i].Type).Limit(1).Find(&record)
+		//		if res.RowsAffected > 0 {
+		//			data[i].TypeExternal = &record
+		//		}
+		//	}
+		//
+		//	if data[i].Currency != nil {
+		//		var record DictionaryItemOutput
+		//		res := global.DB.Model(&model.DictionaryItem{}).
+		//			Where("id = ?", *data[i].Currency).Limit(1).Find(&record)
+		//		if res.RowsAffected > 0 {
+		//			data[i].CurrencyExternal = &record
+		//		}
+		//	}
+		//
+		//	if data[i].Status != nil {
+		//		var record DictionaryItemOutput
+		//		res := global.DB.Model(&model.DictionaryItem{}).
+		//			Where("id = ?", *data[i].Status).Limit(1).Find(&record)
+		//		if res.RowsAffected > 0 {
+		//			data[i].StatusExternal = &record
+		//		}
+		//	}
+		//
+		//	if data[i].OurSignatory != nil {
+		//		var record DictionaryItemOutput
+		//		res := global.DB.Model(&model.DictionaryItem{}).
+		//			Where("id = ?", *data[i].OurSignatory).Limit(1).Find(&record)
+		//		if res.RowsAffected > 0 {
+		//			data[i].OurSignatoryExternal = &record
+		//		}
+		//	}
+		//}
+	}
+
+	numberOfRecords := int(count)
+	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
+
+	return response.List{
+		Data: data,
+		Paging: &dto.PagingOutput{
+			Page:            page,
+			PageSize:        pageSize,
+			NumberOfPages:   numberOfPages,
+			NumberOfRecords: numberOfRecords,
+		},
+		Code:    util.Success,
+		Message: util.GetMessage(util.Success),
+	}
 }

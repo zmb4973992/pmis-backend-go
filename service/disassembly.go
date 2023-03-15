@@ -26,8 +26,6 @@ type DisassemblyCreate struct {
 	LastModifier int
 
 	Name       string  `json:"name" binding:"required"`        //拆解项名称
-	ProjectID  int     `json:"project_id" binding:"required"`  //所属项目id
-	Level      int     `json:"level" binding:"required"`       //层级
 	Weight     float64 `json:"weight" binding:"required"`      //权重
 	SuperiorID int     `json:"superior_id" binding:"required"` //上级拆解项ID
 }
@@ -44,18 +42,18 @@ type DisassemblyUpdate struct {
 	LastModifier int
 	ID           int
 
-	Name       *string  `json:"name"`        //拆解项名称
-	ProjectID  *int     `json:"project_id"`  //所属项目id
-	Level      *int     `json:"level"`       //层级
-	Weight     *float64 `json:"weight"`      //权重
-	SuperiorID *int     `json:"superior_id"` //上级拆解项ID
+	Name *string `json:"name"` //拆解项名称
+	//ProjectID  *int     `json:"project_id"`  //所属项目id
+	//Level      *int     `json:"level"`       //层级
+	Weight *float64 `json:"weight"` //权重
+	//SuperiorID *int     `json:"superior_id"` //上级拆解项ID
 }
 
 type DisassemblyDelete struct {
 	ID int
 }
 
-type DisassemblyDeleteWithSubItems struct {
+type DisassemblyDeleteWithInferiors struct {
 	ID int
 }
 
@@ -152,16 +150,25 @@ func (d *DisassemblyCreate) Create() response.Common {
 	}
 
 	paramOut.Name = &d.Name
-
-	paramOut.ProjectID = &d.ProjectID
-
-	paramOut.Level = &d.Level
-
 	paramOut.Weight = &d.Weight
-
 	paramOut.SuperiorID = &d.SuperiorID
 
-	err := global.DB.Create(&paramOut).Error
+	//根据上级拆解id，找到项目id和层级
+	var superiorDisassembly model.Disassembly
+	err := global.DB.Where("id = ?", d.SuperiorID).First(&superiorDisassembly).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToCreateRecord)
+	}
+
+	if superiorDisassembly.ProjectID == nil || superiorDisassembly.Level == nil {
+		return response.Failure(util.ErrorWrongSuperiorInformation)
+	}
+
+	paramOut.ProjectID = superiorDisassembly.ProjectID
+	level := *superiorDisassembly.Level + 1
+	paramOut.Level = &level
+
+	err = global.DB.Create(&paramOut).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
@@ -183,10 +190,6 @@ func (d *DisassemblyCreateInBatches) CreateInBatches() response.Common {
 		}
 
 		record.Name = &d.Param[i].Name
-
-		record.Level = &d.Param[i].Level
-
-		record.ProjectID = &d.Param[i].ProjectID
 
 		record.Weight = &d.Param[i].Weight
 
@@ -218,33 +221,9 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		}
 	}
 
-	if d.ProjectID != nil {
-		if *d.ProjectID != 0 {
-			paramOut["project_id"] = d.ProjectID
-		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
-		}
-	}
-
-	if d.Level != nil {
-		if *d.Level != 0 {
-			paramOut["level"] = d.Level
-		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
-		}
-	}
-
 	if d.Weight != nil {
-		if *d.Weight != 0 {
+		if *d.Weight >= 0 {
 			paramOut["weight"] = d.Weight
-		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
-		}
-	}
-
-	if d.SuperiorID != nil {
-		if *d.SuperiorID != 0 {
-			paramOut["superior_id"] = d.SuperiorID
 		} else {
 			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
@@ -264,36 +243,39 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 
-	//获取进度类型在字典类型表中的值
-	var progressTypeID int
-	err = global.DB.Model(&model.DictionaryType{}).
-		Where("name = '进度类型'").Select("id").First(&progressTypeID).Error
-	if err != nil {
-		return response.Failure(util.ErrorFailToCalculateSelfAndSuperiorProgress)
-	}
-
-	//获取进度类型在字典详情表中的值
-	var progressItemIDs []int
-	err = global.DB.Model(&model.DictionaryItem{}).
-		Where("dictionary_type_id = ?", progressTypeID).
-		Select("id").Find(&progressItemIDs).Error
-	if err != nil {
-		return response.Failure(util.ErrorFailToCalculateSelfAndSuperiorProgress)
-	}
-
-	//更新自身和所有上级的进度
-	for _, v := range progressItemIDs {
-		//更新自身进度
-		err = util.UpdateSelfProgress(d.ID, v)
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return response.Failure(util.ErrorFailToCalculateSelfProgress)
-		}
-		//更新所有上级的进度
-		err = util.UpdateProgressOfSuperiors(d.ID, v)
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
+	//如果修改的字段里包含weight，就要更新相关的进度
+	for i := range paramOut {
+		if i == "weight" {
+			//获取进度类型在字典类型表中的值
+			var progressTypeID int
+			err = global.DB.Model(&model.DictionaryType{}).
+				Where("name = '进度类型'").Select("id").First(&progressTypeID).Error
+			if err != nil {
+				return response.Failure(util.ErrorFailToCalculateSelfAndSuperiorProgress)
+			}
+			//获取进度类型在字典详情表中的值
+			var progressItemIDs []int
+			err = global.DB.Model(&model.DictionaryItem{}).
+				Where("dictionary_type_id = ?", progressTypeID).
+				Select("id").Find(&progressItemIDs).Error
+			if err != nil {
+				return response.Failure(util.ErrorFailToCalculateSelfAndSuperiorProgress)
+			}
+			//更新自身和所有上级的进度
+			for _, v := range progressItemIDs {
+				//更新自身进度
+				err = util.UpdateSelfProgress(d.ID, v)
+				if err != nil {
+					global.SugaredLogger.Errorln(err)
+					return response.Failure(util.ErrorFailToCalculateSelfProgress)
+				}
+				//更新所有上级的进度
+				err = util.UpdateProgressOfSuperiors(d.ID, v)
+				if err != nil {
+					global.SugaredLogger.Errorln(err)
+					return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
+				}
+			}
 		}
 	}
 
@@ -301,7 +283,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 }
 
 func (d *DisassemblyDelete) Delete() response.Common {
-	//先找到记录，这样猜数才能获得值、触发钩子函数，再删除记录
+	//先找到记录，这样参数才能获得值、触发钩子函数，再删除记录
 	var record model.Disassembly
 	err := global.DB.Where("id = ?", d.ID).Find(&record).Delete(&record).Error
 
@@ -327,7 +309,7 @@ func (d *DisassemblyDelete) Delete() response.Common {
 		return response.Failure(util.ErrorFailToCalculateSelfAndSuperiorProgress)
 	}
 
-	//更新所有上级的进度(删除自身进度的工作放在删除的钩子函数里)
+	//更新所有上级的进度(删除自身进度的任务放在删除的钩子函数里)
 	for _, v := range progressItemIDs {
 		err = util.UpdateProgressOfSuperiors(d.ID, v)
 		if err != nil {
@@ -339,38 +321,9 @@ func (d *DisassemblyDelete) Delete() response.Common {
 	return response.Success()
 }
 
-// 待修改
-func (d *DisassemblyDeleteWithSubItems) DeleteWithInferiors() response.Common {
+func (d *DisassemblyDeleteWithInferiors) DeleteWithInferiors() response.Common {
 	inferiorIDs := util.GetInferiorIDs(d.ID)
 	ToBeDeletedIDs := append([]int{d.ID}, inferiorIDs...)
-
-	//ToBeDeletedIDs = append(ToBeDeletedIDs, d.ID)
-	//
-	//var result []int
-	//global.DB.Model(&model.Disassembly{}).Where("superior_id = ?", d.ID).
-	//	Select("id").Find(&result)
-	//第二轮查找
-	//if len(result1) > 0 {
-	//	ToBeDeletedIDs = append(ToBeDeletedIDs, result1...)
-	//	var result2 []int
-	//	global.DB.Model(&model.Disassembly{}).Where("superior_id IN ?", result1).
-	//		Select("id").Find(&result2)
-	//	//第三轮查找
-	//	if len(result2) > 0 {
-	//		ToBeDeletedIDs = append(ToBeDeletedIDs, result2...)
-	//		var result3 []int
-	//		global.DB.Model(&model.Disassembly{}).Where("superior_id IN ?", result2).
-	//			Select("id").Find(&result3)
-	//		//第四轮查找
-	//		if len(result3) > 0 {
-	//			ToBeDeletedIDs = append(ToBeDeletedIDs, result3...)
-	//			var result4 []int
-	//			global.DB.Model(&model.Disassembly{}).Where("superior_id IN ?", result3).
-	//				Select("id").Find(&result4)
-	//			ToBeDeletedIDs = append(ToBeDeletedIDs, result4...)
-	//		}
-	//	}
-	//}
 
 	//先找到记录，这样参数才能获得值、触发钩子函数，再删除记录
 	var disassemblies []model.Disassembly

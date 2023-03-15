@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"gorm.io/gorm"
 	"time"
 )
@@ -39,7 +38,7 @@ func (d *Progress) BeforeDelete(tx *gorm.DB) error {
 	//删除相关的子表记录
 	//先find、再delete，可以激活相关的钩子函数
 
-	fmt.Println("进度id：", d.ID)
+	//fmt.Println("进度id：", d.ID)
 
 	return nil
 }

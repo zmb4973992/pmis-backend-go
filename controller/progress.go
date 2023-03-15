@@ -95,3 +95,26 @@ func (*progress) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 	return
 }
+
+func (p *progress) GetList(c *gin.Context) {
+	var param service.ProgressGetList
+	err := c.ShouldBindJSON(&param)
+
+	//别的类似方法会增加EOF错误判断，这里没有，因为必须传json参数
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		c.JSON(http.StatusBadRequest,
+			response.FailureForList(util.ErrorInvalidJSONParameters))
+		return
+	}
+
+	//authInput需要userID
+	//userID, exists := c.Get("user_id")
+	//if exists {
+	//	param.UserID = userID.(int)
+	//}
+
+	res := param.GetList()
+	c.JSON(http.StatusOK, res)
+	return
+}

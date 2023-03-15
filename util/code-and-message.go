@@ -45,6 +45,7 @@ const (
 	ErrorFailToCalculateSelfProgress
 	ErrorFailToCalculateSuperiorProgress
 	ErrorFailToCalculateSelfAndSuperiorProgress
+	ErrorWrongSuperiorInformation
 )
 
 // Message 自定义错误的message
@@ -97,6 +98,7 @@ var Message = map[int]string{
 	ErrorFailToCalculateSelfProgress:            "计算自身进度失败，错误详情请查看系统日志文件",
 	ErrorFailToCalculateSuperiorProgress:        "计算上级进度失败，错误详情请查看系统日志文件",
 	ErrorFailToCalculateSelfAndSuperiorProgress: "计算自身和上级进度失败，错误详情请查看系统日志文件",
+	ErrorWrongSuperiorInformation:               "上级信息错误，可能缺失项目id或层级",
 }
 
 func GetMessage(code int) string {

@@ -97,10 +97,10 @@ func Init() *gin.Engine {
 			// deprecated
 			// 逻辑较复杂，暂时废弃
 			//disassembly.POST("/batch", controller.Disassembly.CreateInBatches)                              //批量新增项目拆解
-			disassembly.PATCH("/:disassembly-id", controller.Disassembly.Update)                            //修改项目拆解
-			disassembly.DELETE("/:disassembly-id", controller.Disassembly.Delete)                           //删除项目拆解
-			disassembly.DELETE("/with-subitems/:disassembly-id", controller.Disassembly.DeleteWithSubitems) //删除项目拆解（子项一并删除）
-			disassembly.POST("/list", controller.Disassembly.GetList)                                       //获取项目拆解列表
+			disassembly.PATCH("/:disassembly-id", controller.Disassembly.Update)                              //修改项目拆解
+			disassembly.DELETE("/:disassembly-id", controller.Disassembly.Delete)                             //删除项目拆解
+			disassembly.DELETE("/with-inferiors/:disassembly-id", controller.Disassembly.DeleteWithInferiors) //删除项目拆解（子项一并删除）
+			disassembly.POST("/list", controller.Disassembly.GetList)                                         //获取项目拆解列表
 		}
 		operationLog := api.Group("/operation-log")
 		{
@@ -146,6 +146,7 @@ func Init() *gin.Engine {
 			progress.POST("", controller.Progress.Create)                //新增进度详情
 			progress.PATCH("/:progress-id", controller.Progress.Update)  //修改进度详情
 			progress.DELETE("/:progress-id", controller.Progress.Delete) //删除进度详情
+			progress.POST("/list", controller.Progress.GetList)          //获取进度列表
 		}
 	}
 

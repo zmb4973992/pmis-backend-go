@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -22,14 +21,11 @@ func (*Disassembly) TableName() string {
 func (d *Disassembly) BeforeDelete(tx *gorm.DB) error {
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
-	fmt.Println("拆解id：", d.ID)
 	var progresses []Progress
 	err = tx.Where("disassembly_id = ?", d.ID).
 		Find(&progresses).Delete(&progresses).Error
-
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
