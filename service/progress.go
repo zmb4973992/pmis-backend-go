@@ -47,6 +47,7 @@ type ProgressGetList struct {
 	DisassemblyID int      `json:"disassembly_id" binding:"required"`
 	DateGte       string   `json:"date_gte,omitempty"`
 	DateLte       string   `json:"date_lte,omitempty"`
+	Type          int      `json:"type,omitempty"`
 	TypeIn        []int    `json:"type_in"`
 	ValueGte      *float64 `json:"value_gte"`
 	ValueLte      *float64 `json:"value_lte"`
@@ -298,6 +299,10 @@ func (p *ProgressGetList) GetList() response.List {
 			return response.FailureForList(util.ErrorInvalidJSONParameters)
 		}
 		db = db.Where("date <= ?", date)
+	}
+
+	if p.Type > 0 {
+		db = db.Where("type = ?", p.Type)
 	}
 
 	if len(p.TypeIn) > 0 {

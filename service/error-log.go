@@ -269,7 +269,7 @@ func (e *ErrorLogGetList) GetList() response.List {
 		page = e.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if e.PagingInput.PageSize > 0 &&
+	if e.PagingInput.PageSize >= 0 &&
 		e.PagingInput.PageSize <= global.Config.MaxPageSize {
 		pageSize = e.PagingInput.PageSize
 	}

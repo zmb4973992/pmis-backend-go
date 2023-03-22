@@ -307,7 +307,7 @@ func (u *UserGetList) GetList() response.List {
 		page = u.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if u.PagingInput.PageSize > 0 &&
+	if u.PagingInput.PageSize >= 0 &&
 		u.PagingInput.PageSize <= global.Config.MaxPageSize {
 		pageSize = u.PagingInput.PageSize
 	}
