@@ -300,7 +300,7 @@ func (d *DictionaryTypeGetList) GetList() response.List {
 		page = d.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if d.PagingInput.PageSize > 0 &&
+	if d.PagingInput.PageSize >= 0 &&
 		d.PagingInput.PageSize <= global.Config.MaxPageSize {
 		pageSize = d.PagingInput.PageSize
 	}

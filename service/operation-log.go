@@ -113,7 +113,7 @@ func (o *OperationLogGetList) GetList() response.List {
 		page = o.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if o.PagingInput.PageSize > 0 &&
+	if o.PagingInput.PageSize >= 0 &&
 		o.PagingInput.PageSize <= global.Config.MaxPageSize {
 		pageSize = o.PagingInput.PageSize
 	}

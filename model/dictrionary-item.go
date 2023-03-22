@@ -49,7 +49,7 @@ var initialDictionary = []dictionaryItemFormat{
 		ItemNames: []string{"EPC", "EP"},
 	},
 	{
-		TypeName:  "进度的数据源",
+		TypeName:  "进度的数据来源",
 		ItemNames: []string{"系统计算", "人工填写"},
 	},
 }
