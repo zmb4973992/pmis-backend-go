@@ -52,7 +52,7 @@ email:
 #列表分页
 paging:
   #单页默认条数
-  default-page-size: "20"
+  default-page-size: "12"
   #单页最大条数
   max-page-size: "1000000"
 

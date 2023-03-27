@@ -250,9 +250,9 @@ func (r *RelatedPartyGetList) GetList() response.List {
 		page = r.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if r.PagingInput.PageSize >= 0 &&
-		r.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = r.PagingInput.PageSize
+	if r.PagingInput.PageSize != nil && *r.PagingInput.PageSize >= 0 &&
+		*r.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = *r.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 

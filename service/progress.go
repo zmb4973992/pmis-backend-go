@@ -23,7 +23,7 @@ type ProgressCreate struct {
 	Date          string   `json:"date" binding:"required"`
 	Type          int      `json:"type" binding:"required"`
 	Value         *float64 `json:"value" binding:"required"`
-	Remark        string   `json:"remark,omitempty"`
+	Remarks       string   `json:"remarks,omitempty"`
 }
 
 type ProgressUpdate struct {
@@ -33,8 +33,8 @@ type ProgressUpdate struct {
 	//DisassemblyID *int     `json:"disassembly_id"`
 	Date *string `json:"date"`
 	//Type          *int     `json:"type"`
-	Value  *float64 `json:"value"`
-	Remark *string  `json:"remark"`
+	Value   *float64 `json:"value"`
+	Remarks *string  `json:"remarks"`
 }
 
 type ProgressDelete struct {
@@ -61,14 +61,16 @@ type ProgressOutput struct {
 	LastModifier *int `json:"last_modifier"`
 	ID           int  `json:"id"`
 
-	DisassemblyID       *int               `json:"disassembly_id"`
+	DisassemblyID       *int               `json:"-"`
 	DisassemblyExternal *DisassemblyOutput `json:"disassembly" gorm:"-"`
 
-	Date       *string  `json:"date"`
-	Type       *int     `json:"type"`
-	Value      *float64 `json:"value"`
-	Remark     *string  `json:"remark"`
-	DataSource *string  `json:"data_source"`
+	Date               *string               `json:"date"`
+	Type               *int                  `json:"-"`
+	TypeExternal       *DictionaryItemOutput `json:"type" gorm:"-"`
+	Value              *float64              `json:"value"`
+	Remarks            *string               `json:"remarks"`
+	DataSource         *string               `json:"-"`
+	DataSourceExternal *DictionaryItemOutput `json:"data_source" gorm:"-"`
 }
 
 func (p *ProgressGet) Get() response.Common {
@@ -112,8 +114,8 @@ func (p *ProgressCreate) Create() response.Common {
 
 	paramOut.Value = p.Value
 
-	if p.Remark != "" {
-		paramOut.Remark = &p.Remark
+	if p.Remarks != "" {
+		paramOut.Remarks = &p.Remarks
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
@@ -206,9 +208,9 @@ func (p *ProgressUpdate) Update() response.Common {
 		}
 	}
 
-	if p.Remark != nil {
-		if *p.Remark != "" {
-			paramOut["remark"] = *p.Remark
+	if p.Remarks != nil {
+		if *p.Remarks != "" {
+			paramOut["remark"] = *p.Remarks
 		} else {
 			paramOut["remark"] = nil
 		}
@@ -355,9 +357,9 @@ func (p *ProgressGetList) GetList() response.List {
 		page = p.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if p.PagingInput.PageSize >= 0 &&
-		p.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = p.PagingInput.PageSize
+	if p.PagingInput.PageSize != nil && *p.PagingInput.PageSize >= 0 &&
+		*p.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = *p.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
@@ -394,52 +396,25 @@ func (p *ProgressGetList) GetList() response.List {
 		}
 
 		//查dictionary_item表
-		//{
-		//	if data[i].Country != nil {
-		//		var record DictionaryItemOutput
-		//		res := global.DB.Model(&model.DictionaryItem{}).
-		//			Where("id = ?", *data[i].Country).Limit(1).Find(&record)
-		//		if res.RowsAffected > 0 {
-		//			data[i].CountryExternal = &record
-		//		}
-		//	}
-		//
-		//	if data[i].Type != nil {
-		//		var record DictionaryItemOutput
-		//		res := global.DB.Model(&model.DictionaryItem{}).
-		//			Where("id = ?", *data[i].Type).Limit(1).Find(&record)
-		//		if res.RowsAffected > 0 {
-		//			data[i].TypeExternal = &record
-		//		}
-		//	}
-		//
-		//	if data[i].Currency != nil {
-		//		var record DictionaryItemOutput
-		//		res := global.DB.Model(&model.DictionaryItem{}).
-		//			Where("id = ?", *data[i].Currency).Limit(1).Find(&record)
-		//		if res.RowsAffected > 0 {
-		//			data[i].CurrencyExternal = &record
-		//		}
-		//	}
-		//
-		//	if data[i].Status != nil {
-		//		var record DictionaryItemOutput
-		//		res := global.DB.Model(&model.DictionaryItem{}).
-		//			Where("id = ?", *data[i].Status).Limit(1).Find(&record)
-		//		if res.RowsAffected > 0 {
-		//			data[i].StatusExternal = &record
-		//		}
-		//	}
-		//
-		//	if data[i].OurSignatory != nil {
-		//		var record DictionaryItemOutput
-		//		res := global.DB.Model(&model.DictionaryItem{}).
-		//			Where("id = ?", *data[i].OurSignatory).Limit(1).Find(&record)
-		//		if res.RowsAffected > 0 {
-		//			data[i].OurSignatoryExternal = &record
-		//		}
-		//	}
-		//}
+		{
+			if data[i].Type != nil {
+				var record DictionaryItemOutput
+				res := global.DB.Model(&model.DictionaryItem{}).
+					Where("id = ?", *data[i].Type).Limit(1).Find(&record)
+				if res.RowsAffected > 0 {
+					data[i].TypeExternal = &record
+				}
+			}
+
+			if data[i].DataSource != nil {
+				var record DictionaryItemOutput
+				res := global.DB.Model(&model.DictionaryItem{}).
+					Where("id = ?", *data[i].DataSource).Limit(1).Find(&record)
+				if res.RowsAffected > 0 {
+					data[i].DataSourceExternal = &record
+				}
+			}
+		}
 	}
 
 	numberOfRecords := int(count)

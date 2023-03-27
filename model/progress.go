@@ -12,7 +12,7 @@ type Progress struct {
 	Type          *int
 	Value         *float64
 	DataSource    *int
-	Remark        *string
+	Remarks       *string
 
 	//PlannedProgress             *float64 //初始计划进度
 	//RemarkOfPlannedProgress     *string  //初始计划进度的备注

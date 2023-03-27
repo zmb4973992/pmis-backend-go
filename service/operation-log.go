@@ -113,9 +113,9 @@ func (o *OperationLogGetList) GetList() response.List {
 		page = o.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if o.PagingInput.PageSize >= 0 &&
-		o.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = o.PagingInput.PageSize
+	if o.PagingInput.PageSize != nil && *o.PagingInput.PageSize >= 0 &&
+		*o.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = *o.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 

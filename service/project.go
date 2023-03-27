@@ -514,9 +514,9 @@ func (p *ProjectGetArray) GetArray() response.Common {
 		page = p.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if p.PagingInput.PageSize > 0 &&
-		p.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = p.PagingInput.PageSize
+	if p.PagingInput.PageSize != nil && *p.PagingInput.PageSize >= 0 &&
+		*p.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = *p.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
@@ -616,9 +616,9 @@ func (p *ProjectGetList) GetList() response.List {
 		page = p.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if p.PagingInput.PageSize >= 0 &&
-		p.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = p.PagingInput.PageSize
+	if p.PagingInput.PageSize != nil && *p.PagingInput.PageSize >= 0 &&
+		*p.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = *p.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 

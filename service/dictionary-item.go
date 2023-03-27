@@ -254,9 +254,9 @@ func (d *DictionaryItemGetArray) GetArray() response.Common {
 		page = d.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if d.PagingInput.PageSize > 0 &&
-		d.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = d.PagingInput.PageSize
+	if d.PagingInput.PageSize != nil && *d.PagingInput.PageSize >= 0 &&
+		*d.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = *d.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
@@ -332,9 +332,9 @@ func (d *DictionaryItemGetList) GetList() response.List {
 		page = d.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if d.PagingInput.PageSize >= 0 &&
-		d.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = d.PagingInput.PageSize
+	if d.PagingInput.PageSize != nil && *d.PagingInput.PageSize >= 0 &&
+		*d.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = *d.PagingInput.PageSize
 	}
 	db = db.Limit(pageSize)
 
