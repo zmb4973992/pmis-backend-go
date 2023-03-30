@@ -94,7 +94,7 @@ var Message = map[int]string{
 	ErrorDictionaryTypeNameNotFound:             "字典名称未找到",
 	ErrorInvalidDateFormat:                      "日期格式无效",
 	ErrorFileNotFound:                           "文件未找到",
-	ErrorDuplicateRecord:                        "禁止添加重复的记录",
+	ErrorDuplicateRecord:                        "系统已存在该日期、该类型的记录。请修改后再提交",
 	ErrorFailToCalculateSelfProgress:            "计算自身进度失败，错误详情请查看系统日志文件",
 	ErrorFailToCalculateSuperiorProgress:        "计算上级进度失败，错误详情请查看系统日志文件",
 	ErrorFailToCalculateSelfAndSuperiorProgress: "计算自身和上级进度失败，错误详情请查看系统日志文件",

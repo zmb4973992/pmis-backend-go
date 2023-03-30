@@ -31,8 +31,8 @@ type ProgressUpdate struct {
 	ID           int
 
 	//DisassemblyID *int     `json:"disassembly_id"`
-	Date *string `json:"date"`
-	//Type          *int     `json:"type"`
+	Date    *string  `json:"date"`
+	Type    *int     `json:"type"`
 	Value   *float64 `json:"value"`
 	Remarks *string  `json:"remarks"`
 }
@@ -88,6 +88,29 @@ func (p *ProgressGet) Get() response.Common {
 		*result.Date = temp[:10]
 	}
 
+	//查dictionary_item表
+	{
+		if result.Type != nil {
+			var record DictionaryItemOutput
+			res := global.DB.Model(&model.DictionaryItem{}).
+				Where("id = ?", *result.Type).
+				Limit(1).Find(&record)
+			if res.RowsAffected > 0 {
+				result.TypeExternal = &record
+			}
+		}
+
+		if result.DataSource != nil {
+			var record DictionaryItemOutput
+			res := global.DB.Model(&model.DictionaryItem{}).
+				Where("id = ?", *result.DataSource).
+				Limit(1).Find(&record)
+			if res.RowsAffected > 0 {
+				result.DataSourceExternal = &record
+			}
+		}
+	}
+
 	return response.SuccessWithData(result)
 }
 
@@ -109,10 +132,17 @@ func (p *ProgressCreate) Create() response.Common {
 		return response.Failure(util.ErrorInvalidDateFormat)
 	}
 	paramOut.Date = &date
-
 	paramOut.Type = &p.Type
-
 	paramOut.Value = p.Value
+
+	//找到"人工填写"的dictionary_item值
+	var dataSource model.DictionaryItem
+	err = global.DB.Where("name = '人工填写'").First(&dataSource).Error
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return response.Failure(util.ErrorFailToCreateRecord)
+	}
+	paramOut.DataSource = &dataSource.ID
 
 	if p.Remarks != "" {
 		paramOut.Remarks = &p.Remarks
@@ -137,12 +167,13 @@ func (p *ProgressCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 
+	//检查数据库是否已有相同日期、相同类型的记录
 	res := global.DB.FirstOrCreate(&paramOut, model.Progress{
 		DisassemblyID: &p.DisassemblyID,
 		Date:          &date,
 		Type:          &p.Type,
-		Value:         p.Value,
-		DataSource:    &dictionaryItem.ID,
+		//Value:         p.Value,
+		//DataSource:    &dictionaryItem.ID,
 	})
 
 	if res.Error != nil {
@@ -172,14 +203,6 @@ func (p *ProgressUpdate) Update() response.Common {
 		paramOut["last_modifier"] = p.LastModifier
 	}
 
-	//if p.DisassemblyID != nil {
-	//	if *p.DisassemblyID > 0 {
-	//		paramOut["disassembly_id"] = p.DisassemblyID
-	//	} else {
-	//		paramOut["disassembly_id"] = nil
-	//	}
-	//}
-
 	if p.Date != nil {
 		if *p.Date != "" {
 			var err error
@@ -192,13 +215,13 @@ func (p *ProgressUpdate) Update() response.Common {
 		}
 	}
 
-	//if p.Type != nil {
-	//	if *p.Type > 0 {
-	//		paramOut["type"] = p.Type
-	//	} else {
-	//		paramOut["type"] = nil
-	//	}
-	//}
+	if p.Type != nil {
+		if *p.Type > 0 {
+			paramOut["type"] = p.Type
+		} else {
+			paramOut["type"] = nil
+		}
+	}
 
 	if p.Value != nil {
 		if *p.Value >= 0 {
@@ -210,19 +233,19 @@ func (p *ProgressUpdate) Update() response.Common {
 
 	if p.Remarks != nil {
 		if *p.Remarks != "" {
-			paramOut["remark"] = *p.Remarks
+			paramOut["remarks"] = *p.Remarks
 		} else {
-			paramOut["remark"] = nil
+			paramOut["remarks"] = nil
 		}
 	}
 
 	//找到“人工填写”在字典详情表的id
-	var dictionaryItem model.DictionaryItem
-	err := global.DB.Where("name = '人工填写'").First(&dictionaryItem).Error
+	var dataSource model.DictionaryItem
+	err := global.DB.Where("name = '人工填写'").First(&dataSource).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
-	paramOut["data_source"] = dictionaryItem.ID
+	paramOut["data_source"] = dataSource.ID
 
 	//计算有修改值的字段数，分别进行不同处理
 	//data_source是自动添加的，也需要排除在外
@@ -233,6 +256,34 @@ func (p *ProgressUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
+	//找到待更新的这条记录
+	var progress model.Progress
+	err = global.DB.Where("id = ?", p.ID).First(&progress).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
+	}
+
+	//如果修改了date或type，意味着可能有重复记录，需要进行判断
+	if p.Date != nil || p.Type != nil {
+		//从数据库找出相同拆解id、相同日期、相同类型的记录
+		var tempProgressIDs []int
+		tempDate, err1 := time.Parse("2006-01-02", *p.Date)
+		if err1 != nil {
+			return response.Failure(util.ErrorInvalidDateFormat)
+		}
+		global.DB.Model(&model.Progress{}).Where(&model.Progress{
+			DisassemblyID: progress.DisassemblyID,
+			Date:          &tempDate,
+			Type:          p.Type,
+		}).Select("id").Find(&tempProgressIDs)
+		//如果数据库有记录、且待修改的progressID不在数据库记录的progressIDs里面，说明是新的记录
+		//则不允许修改
+		if len(tempProgressIDs) > 0 && !util.IsInSlice(p.ID, tempProgressIDs) {
+			return response.Failure(util.ErrorDuplicateRecord)
+		}
+	}
+
+	//更新记录
 	err = global.DB.Model(&model.Progress{}).Where("id = ?", p.ID).
 		Updates(paramOut).Error
 	if err != nil {
@@ -241,17 +292,36 @@ func (p *ProgressUpdate) Update() response.Common {
 	}
 
 	//更新所有上级的进度
-	var progress model.Progress
-	err = global.DB.Where("id = ?", p.ID).First(&progress).Error
-	if err != nil {
-		return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
-	}
+	if progress.DisassemblyID != nil {
+		//如果传入了type值(意味着type值可能从a改成b，同时影响a、b)，就准备更新所有的进度类型
+		if p.Type != nil {
+			//找出”进度类型“的dictionary_type值
+			var progressTypeIDInDictionaryType model.DictionaryType
+			err = global.DB.Where("name = '进度类型'").First(&progressTypeIDInDictionaryType).
+				Error
+			if err != nil {
+				return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
+			}
 
-	if progress.DisassemblyID != nil && progress.Type != nil {
-		err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, *progress.Type)
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
+			//找出"进度类型"的dictionary_item值，准备遍历
+			var progressTypeIDs []int
+			global.DB.Model(&model.DictionaryItem{}).
+				Where("dictionary_type_id = ?", progressTypeIDInDictionaryType.ID).
+				Select("id").Find(&progressTypeIDs)
+
+			for _, v := range progressTypeIDs {
+				err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, v)
+				if err != nil {
+					global.SugaredLogger.Errorln(err)
+					return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
+				}
+			}
+		} else { //如果没有传入type值(意味着记录的type值不变)，则只更新原来的进度类型
+			err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, *progress.Type)
+			if err != nil {
+				global.SugaredLogger.Errorln(err)
+				return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
+			}
 		}
 	}
 
