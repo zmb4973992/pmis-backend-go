@@ -26,7 +26,7 @@ type Contract struct {
 	DepartmentID             *int       //所属部门
 
 	//ActualReceiptAndPayments    []ActualReceiptAndPayment    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"`
-	//PlannedReceiptAndPayments   []PlannedReceiptAndPayment   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	//PlannedReceiptAndPayments   []PlannedIncomeAndExpenditure   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	//PredictedReceiptAndPayments []PredictedReceiptAndPayment `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 }
 

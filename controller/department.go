@@ -14,7 +14,7 @@ import (
 
 type department struct{}
 
-func (*department) Get(c *gin.Context) {
+func (d *department) Get(c *gin.Context) {
 	param := service.DepartmentGet{}
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("department-id"))
@@ -29,7 +29,7 @@ func (*department) Get(c *gin.Context) {
 	return
 }
 
-func (*department) Create(c *gin.Context) {
+func (d *department) Create(c *gin.Context) {
 	var param service.DepartmentCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -51,7 +51,7 @@ func (*department) Create(c *gin.Context) {
 	return
 }
 
-func (*department) Update(c *gin.Context) {
+func (d *department) Update(c *gin.Context) {
 	var param service.DepartmentUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -78,7 +78,7 @@ func (*department) Update(c *gin.Context) {
 	return
 }
 
-func (*department) Delete(c *gin.Context) {
+func (d *department) Delete(c *gin.Context) {
 	var param service.DepartmentDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("department-id"))
@@ -94,7 +94,7 @@ func (*department) Delete(c *gin.Context) {
 	return
 }
 
-func (*department) GetArray(c *gin.Context) {
+func (d *department) GetArray(c *gin.Context) {
 	var param service.DepartmentGetArray
 	err := c.ShouldBindJSON(&param)
 
@@ -118,7 +118,7 @@ func (*department) GetArray(c *gin.Context) {
 	return
 }
 
-func (*department) GetList(c *gin.Context) {
+func (d *department) GetList(c *gin.Context) {
 	var param service.DepartmentGetList
 	err := c.ShouldBindJSON(&param)
 

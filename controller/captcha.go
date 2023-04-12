@@ -9,10 +9,9 @@ import (
 type captcha struct {
 }
 
-func (*captcha) Get(c *gin.Context) {
+func (ca *captcha) Get(c *gin.Context) {
 	param := service.CaptchaGet{}
 	res := param.Get()
 	c.JSON(http.StatusOK, res)
 	return
-
 }

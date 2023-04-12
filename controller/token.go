@@ -11,7 +11,7 @@ import (
 
 type token struct{}
 
-func (*token) Validate(c *gin.Context) {
+func (t *token) Validate(c *gin.Context) {
 	token := c.Param("token")
 	if token == "" {
 		c.JSON(http.StatusBadRequest,

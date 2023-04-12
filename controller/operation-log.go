@@ -14,7 +14,7 @@ import (
 
 type operationLog struct{}
 
-func (*operationLog) Get(c *gin.Context) {
+func (o *operationLog) Get(c *gin.Context) {
 	var param service.OperationLogGet
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("operation-log-id"))
@@ -29,7 +29,7 @@ func (*operationLog) Get(c *gin.Context) {
 	return
 }
 
-func (*operationLog) Delete(c *gin.Context) {
+func (o *operationLog) Delete(c *gin.Context) {
 	var param service.OperationLogDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("operation-log-id"))
@@ -45,7 +45,7 @@ func (*operationLog) Delete(c *gin.Context) {
 	return
 }
 
-func (*operationLog) GetList(c *gin.Context) {
+func (o *operationLog) GetList(c *gin.Context) {
 	var param service.OperationLogGetList
 	err := c.ShouldBindJSON(&param)
 

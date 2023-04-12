@@ -14,7 +14,7 @@ import (
 
 type disassembly struct{}
 
-func (*disassembly) Get(c *gin.Context) {
+func (d *disassembly) Get(c *gin.Context) {
 	var param service.DisassemblyGet
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
@@ -29,7 +29,7 @@ func (*disassembly) Get(c *gin.Context) {
 	return
 }
 
-func (*disassembly) Tree(c *gin.Context) {
+func (d *disassembly) Tree(c *gin.Context) {
 	var param service.DisassemblyTree
 	err := c.ShouldBindJSON(&param)
 	//这里json参数必填，否则无法知道要找哪条记录。因此不能忽略掉EOF错误
@@ -44,7 +44,7 @@ func (*disassembly) Tree(c *gin.Context) {
 	return
 }
 
-func (*disassembly) Create(c *gin.Context) {
+func (d *disassembly) Create(c *gin.Context) {
 	var param service.DisassemblyCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -69,7 +69,7 @@ func (*disassembly) Create(c *gin.Context) {
 
 // deprecated
 // 逻辑较复杂，暂时废弃
-func (*disassembly) CreateInBatches(c *gin.Context) {
+func (d *disassembly) CreateInBatches(c *gin.Context) {
 	var param service.DisassemblyCreateInBatches
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -94,7 +94,7 @@ func (*disassembly) CreateInBatches(c *gin.Context) {
 	return
 }
 
-func (*disassembly) Update(c *gin.Context) {
+func (d *disassembly) Update(c *gin.Context) {
 	var param service.DisassemblyUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -122,7 +122,7 @@ func (*disassembly) Update(c *gin.Context) {
 	return
 }
 
-func (*disassembly) Delete(c *gin.Context) {
+func (d *disassembly) Delete(c *gin.Context) {
 	var param service.DisassemblyDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
@@ -138,7 +138,7 @@ func (*disassembly) Delete(c *gin.Context) {
 	return
 }
 
-func (*disassembly) DeleteWithInferiors(c *gin.Context) {
+func (d *disassembly) DeleteWithInferiors(c *gin.Context) {
 	var param service.DisassemblyDeleteWithInferiors
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
@@ -154,7 +154,7 @@ func (*disassembly) DeleteWithInferiors(c *gin.Context) {
 	return
 }
 
-func (*disassembly) GetList(c *gin.Context) {
+func (d *disassembly) GetList(c *gin.Context) {
 	var param service.DisassemblyGetList
 	err := c.ShouldBindJSON(&param)
 

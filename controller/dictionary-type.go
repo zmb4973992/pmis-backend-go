@@ -15,7 +15,7 @@ import (
 type dictionaryType struct {
 }
 
-func (*dictionaryType) Get(c *gin.Context) {
+func (d *dictionaryType) Get(c *gin.Context) {
 	var param = service.DictionaryTypeGet{}
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("dictionary-type-id"))
@@ -30,7 +30,7 @@ func (*dictionaryType) Get(c *gin.Context) {
 	return
 }
 
-func (*dictionaryType) Create(c *gin.Context) {
+func (d *dictionaryType) Create(c *gin.Context) {
 	var param service.DictionaryTypeCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -54,7 +54,7 @@ func (*dictionaryType) Create(c *gin.Context) {
 	return
 }
 
-func (*dictionaryType) CreateInBatches(c *gin.Context) {
+func (d *dictionaryType) CreateInBatches(c *gin.Context) {
 	var param service.DictionaryTypeCreateInBatches
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -79,7 +79,7 @@ func (*dictionaryType) CreateInBatches(c *gin.Context) {
 	return
 }
 
-func (*dictionaryType) Update(c *gin.Context) {
+func (d *dictionaryType) Update(c *gin.Context) {
 	var param service.DictionaryTypeUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -108,7 +108,7 @@ func (*dictionaryType) Update(c *gin.Context) {
 	return
 }
 
-func (*dictionaryType) Delete(c *gin.Context) {
+func (d *dictionaryType) Delete(c *gin.Context) {
 	var param service.DictionaryTypeDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("dictionary-type-id"))
@@ -124,7 +124,7 @@ func (*dictionaryType) Delete(c *gin.Context) {
 	return
 }
 
-func (*dictionaryType) GetArray(c *gin.Context) {
+func (d *dictionaryType) GetArray(c *gin.Context) {
 	var param service.DictionaryTypeGetArray
 	err := c.ShouldBindJSON(&param)
 
@@ -143,7 +143,7 @@ func (*dictionaryType) GetArray(c *gin.Context) {
 	return
 }
 
-func (*dictionaryType) GetList(c *gin.Context) {
+func (d *dictionaryType) GetList(c *gin.Context) {
 	var param service.DictionaryTypeGetList
 	err := c.ShouldBindJSON(&param)
 

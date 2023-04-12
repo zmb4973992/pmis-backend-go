@@ -38,8 +38,8 @@ func Init() *gin.Engine {
 	{
 		user := api.Group("/user")
 		{
-			user.GET("/:user-id", controller.User.Get)                              //获取用户详情
 			user.GET("", controller.User.GetByToken)                                //根据header里的token获取用户详情
+			user.GET("/:user-id", controller.User.Get)                              //获取用户详情
 			user.PATCH("/:user-id", controller.User.Update)                         //修改用户（目前为全功能，考虑改成：修改用户基本信息）
 			user.DELETE("/:user-id", middleware.NeedAuth(), controller.User.Delete) //删除用户
 			user.POST("/list", controller.User.List)                                //获取用户列表

@@ -14,7 +14,7 @@ import (
 
 type project struct{}
 
-func (*project) Get(c *gin.Context) {
+func (p *project) Get(c *gin.Context) {
 	var param service.ProjectGet
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("project-id"))
@@ -29,7 +29,7 @@ func (*project) Get(c *gin.Context) {
 	return
 }
 
-func (*project) Create(c *gin.Context) {
+func (p *project) Create(c *gin.Context) {
 	var param service.ProjectCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -52,7 +52,7 @@ func (*project) Create(c *gin.Context) {
 	return
 }
 
-func (*project) Update(c *gin.Context) {
+func (p *project) Update(c *gin.Context) {
 	var param service.ProjectUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -81,7 +81,7 @@ func (*project) Update(c *gin.Context) {
 	return
 }
 
-func (*project) Delete(c *gin.Context) {
+func (p *project) Delete(c *gin.Context) {
 	var param service.ProjectDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("project-id"))
@@ -97,7 +97,7 @@ func (*project) Delete(c *gin.Context) {
 	return
 }
 
-func (*project) GetArray(c *gin.Context) {
+func (p *project) GetArray(c *gin.Context) {
 	var param service.ProjectGetArray
 	err := c.ShouldBindJSON(&param)
 

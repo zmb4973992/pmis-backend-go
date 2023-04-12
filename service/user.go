@@ -81,53 +81,34 @@ func (u *UserLogin) Verify() bool {
 	return permitted
 }
 
-func (u *UserLogin) UserLogin() response.Common {
-	permitted, userInfo, err := util.LoginByLDAP(u.Username, u.Password)
+func (u *UserLogin) Login() response.Common {
+	permitted, err := util.LoginByLDAP(u.Username, u.Password)
 
 	if err != nil {
 		return response.Failure(util.ErrorInvalidUsernameOrPassword)
 	}
 
-	if permitted {
-		token, err := jwt.GenerateToken(userInfo.ID)
-		if err != nil {
-			return response.Failure(util.ErrorFailToGenerateToken)
-		}
-
-		return response.SuccessWithData(
-			map[string]any{
-				"access_token": token,
-			})
+	if !permitted {
+		return response.Failure(util.ErrorInvalidUsernameOrPassword)
 	}
 
-	return response.Failure(util.ErrorInvalidUsernameOrPassword)
+	var user UserOutput
+	err = global.DB.Model(model.User{}).
+		Where("username = ?", u.Username).First(&user).Error
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return response.Failure(util.ErrorInvalidUsernameOrPassword)
+	}
 
-	//2023.3.1 通过ldap连接ad域，不再使用本地用户数据
-	//
-	////根据入参的用户名，从数据库取出记录赋值给user
-	//err = global.DB.Where("username=?", u.Username).First(&record).Error
-	//
-	////如果没有找到记录
-	//if err != nil {
-	//	global.SugaredLogger.Errorln(err)
-	//	return response.Failure(util.ErrorInvalidUsernameOrPassword)
-	//}
-	//
-	////如果密码错误
-	//if !util.CheckPassword(u.Password, record.Password) {
-	//	return response.Failure(util.ErrorInvalidUsernameOrPassword)
-	//}
-	//
-	////账号密码都正确时，生成token
-	//token, err := jwt.GenerateToken(record.ID)
-	//if err != nil {
-	//	return response.Failure(util.ErrorFailToGenerateToken)
-	//}
-	//
-	//return response.SuccessWithData(
-	//	map[string]any{
-	//		"access_token": token,
-	//	})
+	token, err1 := jwt.GenerateToken(user.ID)
+	if err1 != nil {
+		return response.Failure(util.ErrorFailToGenerateToken)
+	}
+
+	return response.SuccessWithData(
+		map[string]any{
+			"access_token": token,
+		})
 }
 
 func (u *UserGet) Get() response.Common {

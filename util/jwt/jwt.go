@@ -1,7 +1,7 @@
 package jwt
 
 import (
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"pmis-backend-go/global"
 	"time"
 )
@@ -17,7 +17,7 @@ func buildClaims(userID int) CustomClaims {
 	return CustomClaims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "zhoumengbin",
+			Issuer:    "PMIS",
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(validityDays)),
 		},
 	}
@@ -31,6 +31,7 @@ func GenerateToken(userID int) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return tokenString, nil
 }
 
@@ -38,7 +39,7 @@ func GenerateToken(userID int) (string, error) {
 // 第一个参数是token字符串，第二个参数是结构体，第三个参数是jwt规定的解析函数，包含密钥
 func ParseToken(token string) (*CustomClaims, error) {
 	tokenClaims, err := jwt.ParseWithClaims(token, &CustomClaims{},
-		func(token *jwt.Token) (interface{}, error) {
+		func(token *jwt.Token) (any, error) {
 			return []byte(global.Config.SecretKey), nil
 		})
 	if tokenClaims != nil {

@@ -51,7 +51,7 @@ func (d *Project) BeforeDelete(tx *gorm.DB) error {
 		//	return err
 		//}
 
-		//err = tx.Model(&PlannedReceiptAndPayment{}).Where("project_id = ?", d.ID).
+		//err = tx.Model(&PlannedIncomeAndExpenditure{}).Where("project_id = ?", d.ID).
 		//	Updates(map[string]any{
 		//		"deleted_at": time.Now(),
 		//		"deleter":    d.Deleter,

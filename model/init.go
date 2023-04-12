@@ -26,29 +26,30 @@ func InitDatabase() {
 	// Set Connection Max Lifetime 设置了连接可复用的最大时间
 	sqlDB.SetConnMaxLifetime(time.Hour)
 	err = global.DB.AutoMigrate(
-		&RelatedParty{},               //相关方
-		&Project{},                    //项目
-		&Department{},                 //部门
-		&User{},                       //用户
-		&DepartmentAndUser{},          //部门和用户的中间表
-		&Role{},                       //角色
-		&RoleAndUser{},                //角色和用户的中间表
-		&Contract{},                   //合同
-		&Disassembly{},                //项目拆解
-		&Progress{},                   //工作进度
-		&ActualReceiptAndPayment{},    //实际收付款
-		&PlannedReceiptAndPayment{},   //计划收付款
-		&PredictedReceiptAndPayment{}, //预测收付款
-		&DictionaryType{},             //字典类型
-		&DictionaryItem{},             //字典项详情
-		&ProjectAndUser{},             //项目和用户的中间表
-		&OperationLog{},               //操作记录
-		&ErrorLog{},                   //错误日志
-		&WorkNote{},                   //工作备注
-		&WorkReview{},                 //工作点评
-		&CasbinRule{},                 //casbin规则
-		&File{},                       //上传的文件
-		&Test{},                       //测试
+		&RelatedParty{},         //相关方
+		&Project{},              //项目
+		&Department{},           //部门
+		&User{},                 //用户
+		&DepartmentAndUser{},    //部门和用户的中间表
+		&Role{},                 //角色
+		&RoleAndUser{},          //角色和用户的中间表
+		&Contract{},             //合同
+		&Disassembly{},          //项目拆解
+		&Progress{},             //工作进度
+		&IncomeAndExpenditure{}, //收付款
+		//&ActualIncomeAndExpenditure{},    //实际收付款
+		//&PlannedIncomeAndExpenditure{},   //计划收付款
+		//&PredictedIncomeAndExpenditure{}, //预测收付款
+		&DictionaryType{}, //字典类型
+		&DictionaryItem{}, //字典项详情
+		&ProjectAndUser{}, //项目和用户的中间表
+		&OperationLog{},   //操作记录
+		&ErrorLog{},       //错误日志
+		&WorkNote{},       //工作备注
+		&WorkReview{},     //工作点评
+		&CasbinRule{},     //casbin规则
+		&File{},           //上传的文件
+		&Test{},           //测试
 	)
 	if err != nil {
 		global.SugaredLogger.Panicln(err)

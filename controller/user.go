@@ -2,7 +2,6 @@ package controller
 
 import (
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
@@ -30,12 +29,12 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	res := param.UserLogin()
+	res := param.Login()
 	c.JSON(http.StatusOK, res)
 	return
 }
 
-func (*user) Get(c *gin.Context) {
+func (u *user) Get(c *gin.Context) {
 	var param service.UserGet
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("user-id"))
@@ -50,7 +49,7 @@ func (*user) Get(c *gin.Context) {
 	return
 }
 
-func (*user) Create(c *gin.Context) {
+func (u *user) Create(c *gin.Context) {
 	var param service.UserCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -73,7 +72,7 @@ func (*user) Create(c *gin.Context) {
 	return
 }
 
-func (*user) Update(c *gin.Context) {
+func (u *user) Update(c *gin.Context) {
 	var param service.UserUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -102,7 +101,7 @@ func (*user) Update(c *gin.Context) {
 	return
 }
 
-func (*user) Delete(c *gin.Context) {
+func (u *user) Delete(c *gin.Context) {
 	var param service.UserDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("user-id"))
@@ -118,7 +117,7 @@ func (*user) Delete(c *gin.Context) {
 	return
 }
 
-func (*user) List(c *gin.Context) {
+func (u *user) List(c *gin.Context) {
 	var param service.UserGetList
 	err := c.ShouldBindJSON(&param)
 
@@ -136,12 +135,11 @@ func (*user) List(c *gin.Context) {
 	return
 }
 
-func (*user) GetByToken(c *gin.Context) {
+func (u *user) GetByToken(c *gin.Context) {
 	var param service.UserGet
 	//通过中间件，设定header必须带有token才能访问
 	//header里有token后，中间件会自动在context里添加user_id属性，详见自定义的中间件
 	tempUserID, exists := c.Get("user_id")
-	fmt.Println(tempUserID)
 	if !exists {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorAccessTokenInvalid))

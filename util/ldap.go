@@ -23,17 +23,19 @@ type UserInfo struct {
 	Department *string
 }
 
-func LoginByLDAP(username, password string) (permitted bool, userInfo *UserInfo, err error) {
-	//这段为测试专用，记得删除
-	if username == "a" && password == "a" {
-		var user model.User
-		err = global.DB.Model(&model.User{}).Where(model.User{Username: "a"}).
-			First(&user).Error
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return false, nil, err
+func LoginByLDAP(username, password string) (permitted bool, err error) {
+	//以下这段为测试专用，记得删除
+	{
+		if username == "a" && password == "a" {
+			var user model.User
+			err = global.DB.Model(&model.User{}).Where(model.User{Username: "a"}).
+				First(&user).Error
+			if err != nil {
+				global.SugaredLogger.Errorln(err)
+				return false, err
+			}
+			return true, nil
 		}
-		return true, &UserInfo{ID: user.ID}, nil
 	}
 	//以上为测试专用，记得删除
 
@@ -44,13 +46,13 @@ func LoginByLDAP(username, password string) (permitted bool, userInfo *UserInfo,
 
 	l, err := ldap.DialURL(ldapServer)
 	if err != nil {
-		return false, nil, err
+		return false, err
 	}
 	defer l.Close()
 
 	err = l.Bind(username+suffix, password)
 	if err != nil {
-		return false, nil, errors.New("账号密码错误")
+		return false, errors.New("账号密码错误")
 	}
 
 	searchRequest := ldap.NewSearchRequest(
@@ -60,7 +62,7 @@ func LoginByLDAP(username, password string) (permitted bool, userInfo *UserInfo,
 
 	sr, err := l.Search(searchRequest)
 	if err != nil {
-		return false, nil, errors.New("搜索失败")
+		return false, errors.New("搜索失败")
 	}
 
 	for i := range sr.Entries {
@@ -72,23 +74,23 @@ func LoginByLDAP(username, password string) (permitted bool, userInfo *UserInfo,
 			permittedOUs := global.Config.LDAPConfig.PermittedOUs
 			for j := range permittedOUs {
 				if strings.Contains(DN, permittedOUs[j]) {
-					var user UserInfo
-					fullName := entry.GetAttributeValue("cn")
-					if fullName != "" {
-						user.FullName = &fullName
-					}
+					//var user UserInfo
+					//fullName := entry.GetAttributeValue("cn")
+					//if fullName != "" {
+					//	user.FullName = &fullName
+					//}
+					//
+					//email := entry.GetAttributeValue("mail")
+					//if email != "" {
+					//	user.Email = &email
+					//}
+					//
+					//user.Department = &permittedOUs[j]
 
-					email := entry.GetAttributeValue("mail")
-					if email != "" {
-						user.Email = &email
-					}
-
-					user.Department = &permittedOUs[j]
-
-					return true, &user, nil
+					return true, nil
 				}
 			}
 		}
 	}
-	return false, nil, nil
+	return false, nil
 }

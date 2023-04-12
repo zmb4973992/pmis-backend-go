@@ -12,7 +12,7 @@ import (
 
 type progress struct{}
 
-func (*progress) Get(c *gin.Context) {
+func (p *progress) Get(c *gin.Context) {
 	var param service.ProgressGet
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("progress-id"))
@@ -28,7 +28,7 @@ func (*progress) Get(c *gin.Context) {
 	return
 }
 
-func (*progress) Create(c *gin.Context) {
+func (p *progress) Create(c *gin.Context) {
 	var param service.ProgressCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -51,7 +51,7 @@ func (*progress) Create(c *gin.Context) {
 	return
 }
 
-func (*progress) Update(c *gin.Context) {
+func (p *progress) Update(c *gin.Context) {
 	var param service.ProgressUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -80,7 +80,7 @@ func (*progress) Update(c *gin.Context) {
 	return
 }
 
-func (*progress) Delete(c *gin.Context) {
+func (p *progress) Delete(c *gin.Context) {
 	var param service.ProgressDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("progress-id"))

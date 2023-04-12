@@ -14,7 +14,7 @@ import (
 
 type errorLog struct{}
 
-func (*errorLog) Get(c *gin.Context) {
+func (e *errorLog) Get(c *gin.Context) {
 	var param service.ErrorLogGet
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("error-log-id"))
@@ -29,7 +29,7 @@ func (*errorLog) Get(c *gin.Context) {
 	return
 }
 
-func (*errorLog) Create(c *gin.Context) {
+func (e *errorLog) Create(c *gin.Context) {
 	var param service.ErrorLogCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -52,7 +52,7 @@ func (*errorLog) Create(c *gin.Context) {
 	return
 }
 
-func (*errorLog) Update(c *gin.Context) {
+func (e *errorLog) Update(c *gin.Context) {
 	var param service.ErrorLogUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
@@ -80,7 +80,7 @@ func (*errorLog) Update(c *gin.Context) {
 	return
 }
 
-func (*errorLog) Delete(c *gin.Context) {
+func (e *errorLog) Delete(c *gin.Context) {
 	var param service.ErrorLogDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("error-log-id"))
@@ -96,7 +96,7 @@ func (*errorLog) Delete(c *gin.Context) {
 	return
 }
 
-func (*errorLog) GetList(c *gin.Context) {
+func (e *errorLog) GetList(c *gin.Context) {
 	var param service.ErrorLogGetList
 	err := c.ShouldBindJSON(&param)
 
