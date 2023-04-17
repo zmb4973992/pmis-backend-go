@@ -8,6 +8,9 @@ import (
 	"pmis-backend-go/util"
 )
 
+//以下为入参
+//有些字段不用json tag，因为不从前端读取，而是在controller中处理
+
 type DepartmentGet struct {
 	ID int
 }
@@ -15,9 +18,9 @@ type DepartmentGet struct {
 type DepartmentCreate struct {
 	Creator      int
 	LastModifier int
+	SuperiorID   int    `json:"superior_id" binding:"required,gt=0"` //上级机构ID
 	Name         string `json:"name" binding:"required"`             //名称
 	LevelName    string `json:"level_name" binding:"required"`       //级别，如公司、事业部、部门等
-	SuperiorID   int    `json:"superior_id" binding:"required,gt=0"` //上级机构ID
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update

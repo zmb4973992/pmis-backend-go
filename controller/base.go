@@ -15,6 +15,7 @@ type controller struct {
 	errorLog
 	token
 	project
+	contract
 	dictionaryType
 	dictionaryItem
 	fileManagement
@@ -34,6 +35,7 @@ var (
 	ErrorLog        = entrance.errorLog
 	Token           = entrance.token
 	Project         = entrance.project
+	Contract        = entrance.contract
 	DictionaryType  = entrance.dictionaryType
 	DictionaryItem  = entrance.dictionaryItem
 	FileManagement  = entrance.fileManagement

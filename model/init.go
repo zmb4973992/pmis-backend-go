@@ -42,7 +42,6 @@ func InitDatabase() {
 		//&PredictedIncomeAndExpenditure{}, //预测收付款
 		&DictionaryType{}, //字典类型
 		&DictionaryItem{}, //字典项详情
-		&ProjectAndUser{}, //项目和用户的中间表
 		&OperationLog{},   //操作记录
 		&ErrorLog{},       //错误日志
 		&WorkNote{},       //工作备注

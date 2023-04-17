@@ -89,6 +89,15 @@ func Init() *gin.Engine {
 			project.DELETE("/:project-id", controller.Project.Delete) //删除项目
 			project.POST("/list", controller.Project.GetList)         //获取项目列表
 		}
+		contract := api.Group("/contract")
+		{
+			contract.GET("/:contract-id", controller.Contract.Get)       //获取合同详情
+			contract.POST("", controller.Contract.Create)                //新增合同
+			contract.PATCH("/:contract-id", controller.Contract.Update)  //修改合同
+			contract.DELETE("/:contract-id", controller.Contract.Delete) //删除合同
+			contract.POST("/list", controller.Contract.GetList)          //获取合同列表
+
+		}
 		disassembly := api.Group("/disassembly")
 		{
 			disassembly.GET("/:disassembly-id", controller.Disassembly.Get) //获取项目拆解详情

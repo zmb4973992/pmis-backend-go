@@ -7,23 +7,32 @@ import (
 
 type Project struct {
 	BasicModel
-	Code               *string
-	Name               *string
-	Country            *int //见dictionary_item
-	Type               *int //见dictionary_item
-	SegmentedType      *int //细分的项目类型，见dictionary_item
+	//连接其他表的id
+	DepartmentID   *int //见department
+	RelatedPartyID *int //见related_party
+	//连接dictionary_item表的id
+	Country      *int
+	Type         *int
+	DetailedType *int //细分的项目类型
+	Currency     *int
+	Status       *int
+	OurSignatory *int //我方签约主体
+	//日期
+	SigningDate       *time.Time `gorm:"type:date"` //签约日期
+	EffectiveDate     *time.Time `gorm:"type:date"` //生效日期
+	CommissioningDate *time.Time `gorm:"type:date"` //调试日期
+	//数字(允许为0、nil)
 	Amount             *float64
-	Currency           *int //见dictionary_item
 	ExchangeRate       *float64
-	Status             *int       //见dictionary_item
-	OurSignatory       *int       //我方签约主体，见dictionary_item
-	ConstructionPeriod *int       //工期，天
-	SigningDate        *time.Time `gorm:"type:date"` //签约日期
-	EffectiveDate      *time.Time `gorm:"type:date"` //生效日期
-	CommissioningDate  *time.Time `gorm:"type:date"` //调试日期
-	DepartmentID       *int       //见department
-	RelatedPartyID     *int       //见related_party
-	Content            *string    //工作内容
+	ConstructionPeriod *int //工期，天
+	//数字(不允许为0、nil，必须有值)，暂无
+
+	//字符串(允许为null)
+	Code    *string
+	Name    *string
+	Content *string //工作内容
+	//字符串(不允许为nil，必须有值)，暂无
+
 }
 
 // TableName 将表名改为project
@@ -32,51 +41,27 @@ func (*Project) TableName() string {
 }
 
 func (d *Project) BeforeDelete(tx *gorm.DB) error {
-	if d.ID > 0 {
-		//如果有删除人的id，则记录下来
-		//if d.Deleter != nil && *d.Deleter > 0 {
-		//	err := tx.Model(&Project{}).Where("id = ?", d.ID).
-		//		Update("deleter", d.Deleter).Error
-		//	if err != nil {
-		//		return err
-		//	}
-		//}
-		//删除相关的子表记录
-		//err = tx.Model(&Disassembly{}).Where("project_id = ?", d.ID).
-		//	Updates(map[string]any{
-		//		"deleted_at": time.Now(),
-		//		"deleter":    d.Deleter,
-		//	}).Error
-		//if err != nil {
-		//	return err
-		//}
+	//删除相关的子表记录
+	//先find，再delete，可以激活相关的钩子函数
+	var records []Disassembly
+	err = tx.Where("project_id = ?", d.ID).
+		Find(&records).Delete(&records).Error
+	if err != nil {
+		return err
+	}
 
-		//err = tx.Model(&PlannedIncomeAndExpenditure{}).Where("project_id = ?", d.ID).
-		//	Updates(map[string]any{
-		//		"deleted_at": time.Now(),
-		//		"deleter":    d.Deleter,
-		//	}).Error
-		//if err != nil {
-		//	return err
-		//}
+	var records1 []Contract
+	err = tx.Where("project_id = ?", d.ID).
+		Find(&records1).Delete(&records1).Error
+	if err != nil {
+		return err
+	}
 
-		//err = tx.Model(&PredictedReceiptAndPayment{}).Where("project_id = ?", d.ID).
-		//	Updates(map[string]any{
-		//		"deleted_at": time.Now(),
-		//		"deleter":    d.Deleter,
-		//	}).Error
-		//if err != nil {
-		//	return err
-		//}
-
-		//err = tx.Model(&ProjectAndUser{}).Where("project_id = ?", d.ID).
-		//	Updates(map[string]any{
-		//		"deleted_at": time.Now(),
-		//		"deleter":    d.Deleter,
-		//	}).Error
-		//if err != nil {
-		//	return err
-		//}
+	var records2 []IncomeAndExpenditure
+	err = tx.Where("project_id = ?", d.ID).
+		Find(&records2).Delete(&records2).Error
+	if err != nil {
+		return err
 	}
 	return nil
 }

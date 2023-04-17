@@ -7,18 +7,21 @@ import (
 
 type Department struct {
 	BasicModel
-	Name       string  `json:"name"`        //名称
-	LevelName  string  `json:"level_name"`  //层级名称，如公司、事业部、部门等
-	Sequence   int     `json:"sequence"`    //部门在当前层级下的顺序
-	SuperiorID *int    `json:"superior_id"` //上级机构ID，引用自身
-	Remarks    *string `json:"remarks"`     //备注
+	//连接其他表的id，暂无
 
-	//这里是声名外键关系，并不是实际字段。结构体的字段名随意，首字母大写、否则不会导出，外键名会引用这个字段。
-	//不建议用gorm的多对多的设定，不好修改
-	//设置外键规则，SuperiorID作为外键，引用自身ID
-	//数据库规则限制，自引用不能设置级联更新和级联删除
-	//暂时不添加自引用的外键了，因为删除、更新都是麻烦事
-	//多对多的中间表需要外键，因为需要级联更新、级联删除
+	//连接dictionary_item表的id，暂无
+
+	//日期，暂无
+
+	//数字(允许为0、nil)
+	SuperiorID *int `json:"superior_id"` //上级机构ID，引用自身
+	//数字(不允许为0、nil，必须有值)
+	Sequence int `json:"sequence"` //部门在当前层级下的顺序
+	//字符串(允许为nil)
+	Remarks *string `json:"remarks"` //备注
+	//字符串(不允许为nil，必须有值)
+	Name      string `json:"name"`       //名称
+	LevelName string `json:"level_name"` //层级名称，如公司、事业部、部门等
 }
 
 // TableName 修改表名
@@ -27,27 +30,14 @@ func (*Department) TableName() string {
 }
 
 func (d *Department) BeforeDelete(tx *gorm.DB) error {
-	//if d.ID > 0 {
-	//如果有删除人的id，则记录下来
-	//if d.Deleter != nil && *d.Deleter > 0 {
-	//	err := tx.Model(&Department{}).Where("id = ?", d.ID).
-	//		Update("deleter", d.Deleter).Error
-	//	if err != nil {
-	//		return err
-	//	}
-	//}
-
 	//删除相关的子表记录
-	//err = tx.Model(&DepartmentAndUser{}).Where("department_id = ?", d.ID).
-	//	Updates(map[string]any{
-	//		"deleted_at": time.Now(),
-	//		"deleter":    d.Deleter,
-	//	}).Error
-	//if err != nil {
-	//	return err
-	//}
-	//}
-
+	//先find，再delete，可以激活相关的钩子函数
+	var records []DepartmentAndUser
+	err = tx.Where("department_id = ?", d.ID).
+		Find(&records).Delete(&records).Error
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
