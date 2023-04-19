@@ -12,6 +12,7 @@ type Contract struct {
 	FundDirection *int //资金方向
 	OurSignatory  *int //我方签约主体
 	Currency      *int //币种
+	Type          *int //类型(总包、采购、结算单等)
 	//日期
 	SigningDate       *time.Time `gorm:"type:date"` //签约日期
 	EffectiveDate     *time.Time `gorm:"type:date"` //生效日期

@@ -157,6 +157,15 @@ func Init() *gin.Engine {
 			progress.DELETE("/:progress-id", controller.Progress.Delete) //删除进度详情
 			progress.POST("/list", controller.Progress.GetList)          //获取进度列表
 		}
+		//收入和支出
+		incomeAndExpenditure := api.Group("/income-and-expenditure")
+		{
+			incomeAndExpenditure.GET("/:income-and-expenditure-id", controller.IncomeAndExpenditure.Get)       //获取收入和支出详情
+			incomeAndExpenditure.POST("", controller.IncomeAndExpenditure.Create)                              //新增收入和支出详情
+			incomeAndExpenditure.PATCH("/:income-and-expenditure-id", controller.IncomeAndExpenditure.Update)  //修改收入和支出详情
+			incomeAndExpenditure.DELETE("/:income-and-expenditure-id", controller.IncomeAndExpenditure.Delete) //删除收入和支出详情
+			incomeAndExpenditure.POST("/list", controller.IncomeAndExpenditure.GetList)                        //获取收入和支出列表
+		}
 	}
 
 	//引擎配置完成后，返回

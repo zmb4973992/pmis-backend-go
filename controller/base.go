@@ -20,24 +20,26 @@ type controller struct {
 	dictionaryItem
 	fileManagement
 	progress
+	incomeAndExpenditure
 }
 
 var (
-	entrance        = new(controller)
-	Captcha         = entrance.captcha
-	NoRoute         = entrance.noRoute
-	Department      = entrance.department
-	Disassembly     = entrance.disassembly
-	RelatedParty    = entrance.relatedParty
-	User            = entrance.user
-	OperationRecord = entrance.operationLog
-	RoleAndUser     = entrance.roleAndUser
-	ErrorLog        = entrance.errorLog
-	Token           = entrance.token
-	Project         = entrance.project
-	Contract        = entrance.contract
-	DictionaryType  = entrance.dictionaryType
-	DictionaryItem  = entrance.dictionaryItem
-	FileManagement  = entrance.fileManagement
-	Progress        = entrance.progress
+	entrance             = new(controller)
+	Captcha              = entrance.captcha
+	NoRoute              = entrance.noRoute
+	Department           = entrance.department
+	Disassembly          = entrance.disassembly
+	RelatedParty         = entrance.relatedParty
+	User                 = entrance.user
+	OperationRecord      = entrance.operationLog
+	RoleAndUser          = entrance.roleAndUser
+	ErrorLog             = entrance.errorLog
+	Token                = entrance.token
+	Project              = entrance.project
+	Contract             = entrance.contract
+	DictionaryType       = entrance.dictionaryType
+	DictionaryItem       = entrance.dictionaryItem
+	FileManagement       = entrance.fileManagement
+	Progress             = entrance.progress
+	IncomeAndExpenditure = entrance.incomeAndExpenditure
 )

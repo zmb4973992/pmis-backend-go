@@ -26,7 +26,8 @@ type ContractCreate struct {
 	//连接dictionary_item表的id
 	FundDirection int `json:"fund_direction,omitempty"`
 	OurSignatory  int `json:"our_signatory,omitempty"`
-	Currency      int `json:"curr	ency,omitempty"`
+	Currency      int `json:"currency,omitempty"`
+	Type          int `json:"type,omitempty"`
 	//日期
 	SigningDate       string `json:"signing_date,omitempty"`
 	EffectiveDate     string `json:"effective_date,omitempty"`
@@ -61,6 +62,7 @@ type ContractUpdate struct {
 	FundDirection *int `json:"fund_direction"`
 	OurSignatory  *int `json:"our_signatory"`
 	Currency      *int `json:"currency"`
+	Type          *int `json:"type"`
 	//日期
 	SigningDate       *string `json:"signing_date"`
 	EffectiveDate     *string `json:"effective_date"`
@@ -106,14 +108,16 @@ type ContractOutput struct {
 	FundDirection *int `json:"-"`
 	OurSignatory  *int `json:"-"`
 	Currency      *int `json:"-"`
+	Type          *int `json:"-"`
 	//关联表的详情，不需要gorm查询，需要在json中显示
 	ProjectExternal      *ProjectOutput      `json:"project" gorm:"-"`
 	DepartmentExternal   *DepartmentOutput   `json:"department" gorm:"-"`
 	RelatedPartyExternal *RelatedPartyOutput `json:"related_party" gorm:"-"`
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
 	FundDirectionExternal *DictionaryItemOutput `json:"fund_direction" gorm:"-"`
-	OurSignatoryExternal  *DictionaryItemOutput `json:"ourSignatory" gorm:"-"`
+	OurSignatoryExternal  *DictionaryItemOutput `json:"our_signatory" gorm:"-"`
 	CurrencyExternal      *DictionaryItemOutput `json:"currency" gorm:"-"`
+	TypeExternal          *DictionaryItemOutput `json:"type" gorm:"-"`
 	//其他属性
 	SigningDate       *string `json:"signing_date"`
 	EffectiveDate     *string `json:"effective_date"`
@@ -201,6 +205,15 @@ func (c *ContractGet) Get() response.Common {
 				result.OurSignatoryExternal = &record
 			}
 		}
+		if result.Type != nil {
+			var record DictionaryItemOutput
+			res := global.DB.Model(&model.DictionaryItem{}).
+				Where("id = ?", *result.Type).
+				Limit(1).Find(&record)
+			if res.RowsAffected > 0 {
+				result.TypeExternal = &record
+			}
+		}
 	}
 
 	//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
@@ -260,6 +273,9 @@ func (c *ContractCreate) Create() response.Common {
 		}
 		if c.Currency > 0 {
 			paramOut.Currency = &c.Currency
+		}
+		if c.Type > 0 {
+			paramOut.Type = &c.Type
 		}
 	}
 
@@ -413,6 +429,13 @@ func (c *ContractUpdate) Update() response.Common {
 				paramOut["currency"] = c.Currency
 			} else if *c.Currency == -1 {
 				paramOut["currency"] = nil
+			}
+		}
+		if c.Type != nil {
+			if *c.Type > 0 {
+				paramOut["type"] = c.Type
+			} else if *c.Type == -1 {
+				paramOut["type"] = nil
 			}
 		}
 	}
@@ -628,7 +651,7 @@ func (c *ContractGetList) GetList() response.List {
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(&model.Project{}, orderBy)
+		exists := util.FieldIsInModel(&model.Contract{}, orderBy)
 		if !exists {
 			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
