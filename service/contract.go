@@ -671,9 +671,12 @@ func (c *ContractGetList) GetList() response.List {
 	pageSize := global.Config.DefaultPageSize
 	if c.PagingInput.PageSize != nil && *c.PagingInput.PageSize >= 0 &&
 		*c.PagingInput.PageSize <= global.Config.MaxPageSize {
+
 		pageSize = *c.PagingInput.PageSize
 	}
-	db = db.Limit(pageSize)
+	if pageSize > 0 {
+		db = db.Limit(pageSize)
+	}
 
 	//offset
 	offset := (page - 1) * pageSize

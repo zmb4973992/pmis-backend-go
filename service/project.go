@@ -584,7 +584,9 @@ func (p *ProjectGetList) GetList() response.List {
 		*p.PagingInput.PageSize <= global.Config.MaxPageSize {
 		pageSize = *p.PagingInput.PageSize
 	}
-	db = db.Limit(pageSize)
+	if pageSize > 0 {
+		db = db.Limit(pageSize)
+	}
 
 	//offset
 	offset := (page - 1) * pageSize

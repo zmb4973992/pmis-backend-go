@@ -117,7 +117,9 @@ func (o *OperationLogGetList) GetList() response.List {
 		*o.PagingInput.PageSize <= global.Config.MaxPageSize {
 		pageSize = *o.PagingInput.PageSize
 	}
-	db = db.Limit(pageSize)
+	if pageSize > 0 {
+		db = db.Limit(pageSize)
+	}
 
 	//offset
 	offset := (page - 1) * pageSize

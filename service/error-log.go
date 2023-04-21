@@ -273,7 +273,9 @@ func (e *ErrorLogGetList) GetList() response.List {
 		*e.PagingInput.PageSize <= global.Config.MaxPageSize {
 		pageSize = *e.PagingInput.PageSize
 	}
-	db = db.Limit(pageSize)
+	if pageSize > 0 {
+		db = db.Limit(pageSize)
+	}
 
 	//offset
 	offset := (page - 1) * pageSize
