@@ -106,12 +106,12 @@ type ProjectOutput struct {
 	DepartmentExternal   *DepartmentOutput   `json:"department" gorm:"-"`
 	RelatedPartyExternal *RelatedPartyOutput `json:"related_party_external" gorm:"-"`
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
-	CountryExternal      *DictionaryItemOutput `json:"country" gorm:"-"`
-	TypeExternal         *DictionaryItemOutput `json:"type" gorm:"-"`
-	DetailedTypeExternal *DictionaryItemOutput `json:"detailed_type" gorm:"-"`
-	CurrencyExternal     *DictionaryItemOutput `json:"currency" gorm:"-"`
-	StatusExternal       *DictionaryItemOutput `json:"status" gorm:"-"`
-	OurSignatoryExternal *DictionaryItemOutput `json:"our_signatory" gorm:"-"`
+	CountryExternal      *DictionaryDetailOutput `json:"country" gorm:"-"`
+	TypeExternal         *DictionaryDetailOutput `json:"type" gorm:"-"`
+	DetailedTypeExternal *DictionaryDetailOutput `json:"detailed_type" gorm:"-"`
+	CurrencyExternal     *DictionaryDetailOutput `json:"currency" gorm:"-"`
+	StatusExternal       *DictionaryDetailOutput `json:"status" gorm:"-"`
+	OurSignatoryExternal *DictionaryDetailOutput `json:"our_signatory" gorm:"-"`
 	//其他属性
 	SigningDate       *string `json:"signing_date"`
 	EffectiveDate     *string `json:"effective_date"`
@@ -160,8 +160,8 @@ func (p *ProjectGet) Get() response.Common {
 	//查dictionary_item表
 	{
 		if result.Country != nil {
-			var record DictionaryItemOutput
-			res := global.DB.Model(&model.DictionaryItem{}).
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.Country).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
@@ -170,8 +170,8 @@ func (p *ProjectGet) Get() response.Common {
 		}
 
 		if result.Type != nil {
-			var record DictionaryItemOutput
-			res := global.DB.Model(&model.DictionaryItem{}).
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.Type).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
@@ -180,8 +180,8 @@ func (p *ProjectGet) Get() response.Common {
 		}
 
 		if result.Currency != nil {
-			var record DictionaryItemOutput
-			res := global.DB.Model(&model.DictionaryItem{}).
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.Currency).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
@@ -190,8 +190,8 @@ func (p *ProjectGet) Get() response.Common {
 		}
 
 		if result.Status != nil {
-			var record DictionaryItemOutput
-			res := global.DB.Model(&model.DictionaryItem{}).
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.Status).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
@@ -200,8 +200,8 @@ func (p *ProjectGet) Get() response.Common {
 		}
 
 		if result.OurSignatory != nil {
-			var record DictionaryItemOutput
-			res := global.DB.Model(&model.DictionaryItem{}).
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.OurSignatory).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
@@ -306,7 +306,7 @@ func (p *ProjectCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt")
+		"Creator", "LastModifier", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -626,48 +626,48 @@ func (p *ProjectGetList) GetList() response.List {
 		//查dictionary_item表的详情
 		{
 			if data[i].Country != nil {
-				var record DictionaryItemOutput
-				res := global.DB.Model(&model.DictionaryItem{}).
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
 					Where("id = ?", *data[i].Country).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].CountryExternal = &record
 				}
 			}
 			if data[i].Type != nil {
-				var record DictionaryItemOutput
-				res := global.DB.Model(&model.DictionaryItem{}).
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
 					Where("id = ?", *data[i].Type).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].TypeExternal = &record
 				}
 			}
 			if data[i].DetailedType != nil {
-				var record DictionaryItemOutput
-				res := global.DB.Model(&model.DictionaryItem{}).
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
 					Where("id = ?", *data[i].DetailedType).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].DetailedTypeExternal = &record
 				}
 			}
 			if data[i].Currency != nil {
-				var record DictionaryItemOutput
-				res := global.DB.Model(&model.DictionaryItem{}).
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
 					Where("id = ?", *data[i].Currency).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].CurrencyExternal = &record
 				}
 			}
 			if data[i].Status != nil {
-				var record DictionaryItemOutput
-				res := global.DB.Model(&model.DictionaryItem{}).
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
 					Where("id = ?", *data[i].Status).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].StatusExternal = &record
 				}
 			}
 			if data[i].OurSignatory != nil {
-				var record DictionaryItemOutput
-				res := global.DB.Model(&model.DictionaryItem{}).
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
 					Where("id = ?", *data[i].OurSignatory).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].OurSignatoryExternal = &record

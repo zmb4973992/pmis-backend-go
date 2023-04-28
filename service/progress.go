@@ -30,7 +30,6 @@ type ProgressUpdate struct {
 	LastModifier int
 	ID           int
 
-	//DisassemblyID *int     `json:"disassembly_id"`
 	Date    *string  `json:"date"`
 	Type    *int     `json:"type"`
 	Value   *float64 `json:"value"`
@@ -64,13 +63,13 @@ type ProgressOutput struct {
 	DisassemblyID       *int               `json:"-"`
 	DisassemblyExternal *DisassemblyOutput `json:"disassembly" gorm:"-"`
 
-	Date               *string               `json:"date"`
-	Type               *int                  `json:"-"`
-	TypeExternal       *DictionaryItemOutput `json:"type" gorm:"-"`
-	Value              *float64              `json:"value"`
-	Remarks            *string               `json:"remarks"`
-	DataSource         *string               `json:"-"`
-	DataSourceExternal *DictionaryItemOutput `json:"data_source" gorm:"-"`
+	Date               *string                 `json:"date"`
+	Type               *int                    `json:"-"`
+	TypeExternal       *DictionaryDetailOutput `json:"type" gorm:"-"`
+	Value              *float64                `json:"value"`
+	Remarks            *string                 `json:"remarks"`
+	DataSource         *string                 `json:"-"`
+	DataSourceExternal *DictionaryDetailOutput `json:"data_source" gorm:"-"`
 }
 
 func (p *ProgressGet) Get() response.Common {
@@ -91,8 +90,8 @@ func (p *ProgressGet) Get() response.Common {
 	//查dictionary_item表
 	{
 		if result.Type != nil {
-			var record DictionaryItemOutput
-			res := global.DB.Model(&model.DictionaryItem{}).
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.Type).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
@@ -101,8 +100,8 @@ func (p *ProgressGet) Get() response.Common {
 		}
 
 		if result.DataSource != nil {
-			var record DictionaryItemOutput
-			res := global.DB.Model(&model.DictionaryItem{}).
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.DataSource).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
@@ -136,7 +135,7 @@ func (p *ProgressCreate) Create() response.Common {
 	paramOut.Value = p.Value
 
 	//找到"人工填写"的dictionary_item值
-	var dataSource model.DictionaryItem
+	var dataSource model.DictionaryDetail
 	err = global.DB.Where("name = '人工填写'").First(&dataSource).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -161,7 +160,7 @@ func (p *ProgressCreate) Create() response.Common {
 	}
 
 	//找到“人工填写”在字典详情表的id
-	var dictionaryItem model.DictionaryItem
+	var dictionaryItem model.DictionaryDetail
 	err = global.DB.Where("name = '人工填写'").First(&dictionaryItem).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
@@ -211,7 +210,7 @@ func (p *ProgressUpdate) Update() response.Common {
 				return response.Failure(util.ErrorInvalidJSONParameters)
 			}
 		} else {
-			paramOut["date"] = nil
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -219,7 +218,7 @@ func (p *ProgressUpdate) Update() response.Common {
 		if *p.Type > 0 {
 			paramOut["type"] = p.Type
 		} else {
-			paramOut["type"] = nil
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -240,7 +239,7 @@ func (p *ProgressUpdate) Update() response.Common {
 	}
 
 	//找到“人工填写”在字典详情表的id
-	var dataSource model.DictionaryItem
+	var dataSource model.DictionaryDetail
 	err := global.DB.Where("name = '人工填写'").First(&dataSource).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -250,7 +249,7 @@ func (p *ProgressUpdate) Update() response.Common {
 	//计算有修改值的字段数，分别进行不同处理
 	//data_source是自动添加的，也需要排除在外
 	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt", "DataSource")
+		"LastModifier", "CreateAt", "UpdatedAt", "DataSource")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
@@ -305,7 +304,7 @@ func (p *ProgressUpdate) Update() response.Common {
 
 			//找出"进度类型"的dictionary_item值，准备遍历
 			var progressTypeIDs []int
-			global.DB.Model(&model.DictionaryItem{}).
+			global.DB.Model(&model.DictionaryDetail{}).
 				Where("dictionary_type_id = ?", progressTypeIDInDictionaryType.ID).
 				Select("id").Find(&progressTypeIDs)
 
@@ -470,8 +469,8 @@ func (p *ProgressGetList) GetList() response.List {
 		//查dictionary_item表
 		{
 			if data[i].Type != nil {
-				var record DictionaryItemOutput
-				res := global.DB.Model(&model.DictionaryItem{}).
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
 					Where("id = ?", *data[i].Type).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].TypeExternal = &record
@@ -479,8 +478,8 @@ func (p *ProgressGetList) GetList() response.List {
 			}
 
 			if data[i].DataSource != nil {
-				var record DictionaryItemOutput
-				res := global.DB.Model(&model.DictionaryItem{}).
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
 					Where("id = ?", *data[i].DataSource).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].DataSourceExternal = &record

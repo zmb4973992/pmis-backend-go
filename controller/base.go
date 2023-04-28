@@ -17,10 +17,11 @@ type controller struct {
 	project
 	contract
 	dictionaryType
-	dictionaryItem
+	dictionaryDetail
 	fileManagement
 	progress
 	incomeAndExpenditure
+	role
 }
 
 var (
@@ -36,9 +37,9 @@ var (
 	ErrorLog             = entrance.errorLog
 	Token                = entrance.token
 	Project              = entrance.project
-	Contract             = entrance.contract
+	Contract             = entrance.role
 	DictionaryType       = entrance.dictionaryType
-	DictionaryItem       = entrance.dictionaryItem
+	DictionaryDetail     = entrance.dictionaryDetail
 	FileManagement       = entrance.fileManagement
 	Progress             = entrance.progress
 	IncomeAndExpenditure = entrance.incomeAndExpenditure

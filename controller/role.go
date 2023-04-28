@@ -12,10 +12,10 @@ import (
 	"strconv"
 )
 
-type contract struct{}
+type role struct{}
 
-func (co *contract) Get(c *gin.Context) {
-	var param service.ContractGet
+func (r *role) Get(c *gin.Context) {
+	var param service.RoleGet
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("role-id"))
 	if err != nil {
@@ -29,8 +29,8 @@ func (co *contract) Get(c *gin.Context) {
 	return
 }
 
-func (co *contract) Create(c *gin.Context) {
-	var param service.ContractCreate
+func (r *role) Create(c *gin.Context) {
+	var param service.RoleCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -52,8 +52,8 @@ func (co *contract) Create(c *gin.Context) {
 	return
 }
 
-func (co *contract) Update(c *gin.Context) {
-	var param service.ContractUpdate
+func (r *role) Update(c *gin.Context) {
+	var param service.RoleUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -81,8 +81,8 @@ func (co *contract) Update(c *gin.Context) {
 	return
 }
 
-func (co *contract) Delete(c *gin.Context) {
-	var param service.ContractDelete
+func (r *role) Delete(c *gin.Context) {
+	var param service.RoleDelete
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("role-id"))
 	if err != nil {
@@ -97,8 +97,8 @@ func (co *contract) Delete(c *gin.Context) {
 	return
 }
 
-func (co *contract) GetList(c *gin.Context) {
-	var param service.ContractGetList
+func (r *role) GetList(c *gin.Context) {
+	var param service.RoleGetList
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
@@ -108,12 +108,6 @@ func (co *contract) GetList(c *gin.Context) {
 		c.JSON(http.StatusBadRequest,
 			response.FailureForList(util.ErrorInvalidJSONParameters))
 		return
-	}
-
-	//authInput需要userID
-	userID, exists := c.Get("user_id")
-	if exists {
-		param.UserID = userID.(int)
 	}
 
 	res := param.GetList()

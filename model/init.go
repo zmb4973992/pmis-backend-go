@@ -26,6 +26,7 @@ func InitDatabase() {
 	// Set Connection Max Lifetime 设置了连接可复用的最大时间
 	sqlDB.SetConnMaxLifetime(time.Hour)
 	err = global.DB.AutoMigrate(
+		&Role{},                 //角色
 		&RelatedParty{},         //相关方
 		&Project{},              //项目
 		&Department{},           //部门
@@ -40,15 +41,15 @@ func InitDatabase() {
 		//&ActualIncomeAndExpenditure{},    //实际收付款
 		//&PlannedIncomeAndExpenditure{},   //计划收付款
 		//&PredictedIncomeAndExpenditure{}, //预测收付款
-		&DictionaryType{}, //字典类型
-		&DictionaryItem{}, //字典项详情
-		&OperationLog{},   //操作记录
-		&ErrorLog{},       //错误日志
-		&WorkNote{},       //工作备注
-		&WorkReview{},     //工作点评
-		&CasbinRule{},     //casbin规则
-		&File{},           //上传的文件
-		&Test{},           //测试
+		&DictionaryType{},   //字典类型
+		&DictionaryDetail{}, //字典项详情
+		&OperationLog{},     //操作记录
+		&ErrorLog{},         //错误日志
+		&WorkNote{},         //工作备注
+		&WorkReview{},       //工作点评
+		&CasbinRule{},       //casbin规则
+		&File{},             //上传的文件
+		&Test{},             //测试
 	)
 	if err != nil {
 		global.SugaredLogger.Panicln(err)

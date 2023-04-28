@@ -8,11 +8,11 @@ import (
 	"pmis-backend-go/util"
 )
 
-type DictionaryItemGet struct {
+type DictionaryDetailGet struct {
 	ID int
 }
 
-type DictionaryItemCreate struct {
+type DictionaryDetailCreate struct {
 	Creator          int
 	LastModifier     int
 	DictionaryTypeID int    `json:"dictionary_type_id" binding:"required,gt=0"` //字典类型id
@@ -21,34 +21,34 @@ type DictionaryItemCreate struct {
 	Remarks          string `json:"remarks,omitempty"`                          //备注
 }
 
-type DictionaryItemCreateInBatches struct {
-	Data []DictionaryItemCreate `json:"data"`
+type DictionaryDetailCreateInBatches struct {
+	Data []DictionaryDetailCreate `json:"data"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
 //如果指针字段为空或0，那么数据库相应字段会改为null；
 //如果指针字段没传，那么数据库不会修改该字段
 
-type DictionaryItemUpdate struct {
-	LastModifier     int
-	ID               int
-	DictionaryTypeID *int    `json:"dictionary_type_id"` //字典类型id
-	Name             *string `json:"name"`               //名称
-	Sequence         *int    `json:"sequence"`           //顺序值
-	Remarks          *string `json:"remarks"`            //备注
+type DictionaryDetailUpdate struct {
+	LastModifier int
+	ID           int
+	//DictionaryTypeID *int    `json:"dictionary_type_id"` //字典类型id
+	Name     *string `json:"name"`     //名称
+	Sequence *int    `json:"sequence"` //顺序值
+	Remarks  *string `json:"remarks"`  //备注
 }
 
-type DictionaryItemDelete struct {
+type DictionaryDetailDelete struct {
 	ID int
 }
 
-type DictionaryItemGetArray struct {
+type DictionaryDetailGetArray struct {
 	dto.ListInput
 	DictionaryTypeID   int    `json:"dictionary_type_id,omitempty"`
 	DictionaryTypeName string `json:"dictionary_type_name,omitempty"`
 }
 
-type DictionaryItemGetList struct {
+type DictionaryDetailGetList struct {
 	dto.ListInput
 	DictionaryTypeID   int    `json:"dictionary_type_id,omitempty"`
 	DictionaryTypeName string `json:"dictionary_type_name,omitempty"`
@@ -56,7 +56,7 @@ type DictionaryItemGetList struct {
 
 //以下为出参
 
-type DictionaryItemOutput struct {
+type DictionaryDetailOutput struct {
 	Creator          *int    `json:"creator"`
 	LastModifier     *int    `json:"last_modifier"`
 	ID               int     `json:"id"`
@@ -66,9 +66,9 @@ type DictionaryItemOutput struct {
 	Remarks          *string `json:"remarks"`            //备注
 }
 
-func (d *DictionaryItemGet) Get() response.Common {
-	var result DictionaryItemOutput
-	err := global.DB.Model(model.DictionaryItem{}).
+func (d *DictionaryDetailGet) Get() response.Common {
+	var result DictionaryDetailOutput
+	err := global.DB.Model(model.DictionaryDetail{}).
 		Where("id = ?", d.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -77,8 +77,8 @@ func (d *DictionaryItemGet) Get() response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (d *DictionaryItemCreate) Create() response.Common {
-	var paramOut model.DictionaryItem
+func (d *DictionaryDetailCreate) Create() response.Common {
+	var paramOut model.DictionaryDetail
 	if d.Creator > 0 {
 		paramOut.Creator = &d.Creator
 	}
@@ -107,10 +107,10 @@ func (d *DictionaryItemCreate) Create() response.Common {
 	return response.Success()
 }
 
-func (d *DictionaryItemCreateInBatches) CreateInBatches() response.Common {
-	var paramOut []model.DictionaryItem
+func (d *DictionaryDetailCreateInBatches) CreateInBatches() response.Common {
+	var paramOut []model.DictionaryDetail
 	for i := range d.Data {
-		var record model.DictionaryItem
+		var record model.DictionaryDetail
 
 		if d.Data[i].Creator > 0 {
 			record.Creator = &d.Data[i].Creator
@@ -143,28 +143,28 @@ func (d *DictionaryItemCreateInBatches) CreateInBatches() response.Common {
 	return response.Success()
 }
 
-func (d *DictionaryItemUpdate) Update() response.Common {
+func (d *DictionaryDetailUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
 	if d.LastModifier > 0 {
 		paramOut["last_modifier"] = d.LastModifier
 	}
 
-	if d.DictionaryTypeID != nil {
-		if *d.DictionaryTypeID > 0 {
-			paramOut["dictionary_type_id"] = d.DictionaryTypeID
-		} else if *d.DictionaryTypeID == 0 {
-			paramOut["dictionary_type_id"] = nil
-		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
-		}
-	}
+	//if d.DictionaryTypeID != nil {
+	//	if *d.DictionaryTypeID > 0 {
+	//		paramOut["dictionary_type_id"] = d.DictionaryTypeID
+	//	} else if *d.DictionaryTypeID == 0 {
+	//		paramOut["dictionary_type_id"] = nil
+	//	} else {
+	//		return response.Failure(util.ErrorInvalidJSONParameters)
+	//	}
+	//}
 
 	if d.Name != nil {
 		if *d.Name != "" {
 			paramOut["name"] = d.Name
 		} else {
-			paramOut["name"] = nil
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -187,13 +187,14 @@ func (d *DictionaryItemUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
+	paramOutForCounting := util.MapCopy(paramOut, "Creator",
+		"LastModifier", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.DictionaryItem{}).Where("id = ?", d.ID).
+	err := global.DB.Model(&model.DictionaryDetail{}).Where("id = ?", d.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -203,9 +204,9 @@ func (d *DictionaryItemUpdate) Update() response.Common {
 	return response.Success()
 }
 
-func (d *DictionaryItemDelete) Delete() response.Common {
+func (d *DictionaryDetailDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
-	var record model.DictionaryItem
+	var record model.DictionaryDetail
 	global.DB.Where("id = ?", d.ID).Find(&record)
 	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
 
@@ -216,8 +217,8 @@ func (d *DictionaryItemDelete) Delete() response.Common {
 	return response.Success()
 }
 
-func (d *DictionaryItemGetArray) GetArray() response.Common {
-	db := global.DB.Model(&model.DictionaryItem{})
+func (d *DictionaryDetailGetArray) GetArray() response.Common {
+	db := global.DB.Model(&model.DictionaryDetail{})
 	// 顺序：where -> count -> Order -> limit -> offset -> array
 
 	//where
@@ -236,7 +237,7 @@ func (d *DictionaryItemGetArray) GetArray() response.Common {
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(&model.DictionaryItem{}, orderBy)
+		exists := util.FieldIsInModel(&model.DictionaryDetail{}, orderBy)
 		if !exists {
 			return response.Failure(util.ErrorSortingFieldDoesNotExist)
 		}
@@ -266,7 +267,7 @@ func (d *DictionaryItemGetArray) GetArray() response.Common {
 
 	//array
 	var array []string
-	db.Model(&model.DictionaryItem{}).Select("name").Find(&array)
+	db.Model(&model.DictionaryDetail{}).Select("name").Find(&array)
 
 	if len(array) == 0 {
 		return response.Failure(util.ErrorRecordNotFound)
@@ -279,8 +280,8 @@ func (d *DictionaryItemGetArray) GetArray() response.Common {
 	}
 }
 
-func (d *DictionaryItemGetList) GetList() response.List {
-	db := global.DB.Model(&model.DictionaryItem{})
+func (d *DictionaryDetailGetList) GetList() response.List {
+	db := global.DB.Model(&model.DictionaryDetail{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
@@ -314,7 +315,7 @@ func (d *DictionaryItemGetList) GetList() response.List {
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(&model.DictionaryItem{}, orderBy)
+		exists := util.FieldIsInModel(&model.DictionaryDetail{}, orderBy)
 		if !exists {
 			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
@@ -345,8 +346,8 @@ func (d *DictionaryItemGetList) GetList() response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []DictionaryItemOutput
-	db.Model(&model.DictionaryItem{}).Find(&data)
+	var data []DictionaryDetailOutput
+	db.Model(&model.DictionaryDetail{}).Find(&data)
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)

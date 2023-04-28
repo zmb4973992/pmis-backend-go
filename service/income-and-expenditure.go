@@ -98,9 +98,9 @@ type IncomeAndExpenditureOutput struct {
 	ProjectExternal  *ProjectOutput  `json:"project" gorm:"-"`
 	ContractExternal *ContractOutput `json:"contract" gorm:"-"`
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
-	FundDirectionExternal *DictionaryItemOutput `json:"fund_direction" gorm:"-"`
-	CurrencyExternal      *DictionaryItemOutput `json:"currency" gorm:"-"`
-	KindExternal          *DictionaryItemOutput `json:"kind" gorm:"-"`
+	FundDirectionExternal *DictionaryDetailOutput `json:"fund_direction" gorm:"-"`
+	CurrencyExternal      *DictionaryDetailOutput `json:"currency" gorm:"-"`
+	KindExternal          *DictionaryDetailOutput `json:"kind" gorm:"-"`
 	//其他属性
 	Date *string `json:"date"`
 
@@ -147,8 +147,8 @@ func (i *IncomeAndExpenditureGet) Get() response.Common {
 	//查询dictionary_item表的详情
 	{
 		if result.FundDirection != nil {
-			var record DictionaryItemOutput
-			res := global.DB.Model(&model.DictionaryItem{}).
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.FundDirection).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
@@ -156,8 +156,8 @@ func (i *IncomeAndExpenditureGet) Get() response.Common {
 			}
 		}
 		if result.Currency != nil {
-			var record DictionaryItemOutput
-			res := global.DB.Model(&model.DictionaryItem{}).
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.Currency).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
@@ -165,8 +165,8 @@ func (i *IncomeAndExpenditureGet) Get() response.Common {
 			}
 		}
 		if result.Kind != nil {
-			var record DictionaryItemOutput
-			res := global.DB.Model(&model.DictionaryItem{}).
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.Kind).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
@@ -266,7 +266,7 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt")
+		"Creator", "LastModifier", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -561,24 +561,24 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 		//查dictionary_item表的详情
 		{
 			if data[i].FundDirection != nil {
-				var record DictionaryItemOutput
-				res := global.DB.Model(&model.DictionaryItem{}).
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
 					Where("id = ?", *data[i].FundDirection).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].FundDirectionExternal = &record
 				}
 			}
 			if data[i].Currency != nil {
-				var record DictionaryItemOutput
-				res := global.DB.Model(&model.DictionaryItem{}).
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
 					Where("id = ?", *data[i].Currency).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].CurrencyExternal = &record
 				}
 			}
 			if data[i].Kind != nil {
-				var record DictionaryItemOutput
-				res := global.DB.Model(&model.DictionaryItem{}).
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
 					Where("id = ?", *data[i].Kind).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].KindExternal = &record

@@ -7,8 +7,8 @@ import (
 
 type Role struct {
 	BasicModel
-	Name     string //角色名称
-	Sequence int    //顺序值，权限越大的值越大，用来比较用的
+	Name       string //角色名称
+	SuperiorID *int   //上级角色id
 }
 
 // TableName 修改表名
@@ -30,11 +30,11 @@ func (d *Role) BeforeDelete(tx *gorm.DB) error {
 
 func generateRoles() error {
 	roles := []Role{
-		{Name: "管理员", Sequence: 10000},
-		{Name: "公司级", Sequence: 9000},
-		{Name: "事业部级", Sequence: 8000},
-		{Name: "部门级", Sequence: 7000},
-		{Name: "项目级", Sequence: 6000},
+		{Name: "管理员"},
+		{Name: "公司级"},
+		{Name: "事业部级"},
+		{Name: "部门级"},
+		{Name: "项目级"},
 	}
 	for _, role := range roles {
 		err := global.DB.FirstOrCreate(&Role{}, role).Error

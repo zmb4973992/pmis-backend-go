@@ -113,7 +113,7 @@ func (r *RelatedPartyCreate) Create() response.Common {
 		response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "deleter", "CreateAt", "UpdatedAt", "DeletedAt")
+		"Creator", "LastModifier", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)

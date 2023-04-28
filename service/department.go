@@ -115,7 +115,7 @@ func (d *DepartmentUpdate) Update() response.Common {
 		if *d.Name != "" {
 			paramOut["name"] = d.Name
 		} else {
-			paramOut["name"] = nil
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -123,14 +123,14 @@ func (d *DepartmentUpdate) Update() response.Common {
 		if *d.LevelName != "" {
 			paramOut["level_name"] = d.LevelName
 		} else {
-			paramOut["level_name"] = nil
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
 	if d.SuperiorID != nil {
 		if *d.SuperiorID > 0 {
 			paramOut["superior_id"] = d.SuperiorID
-		} else if *d.SuperiorID == 0 {
+		} else if *d.SuperiorID == -1 {
 			paramOut["superior_id"] = nil
 		} else {
 			return response.Failure(util.ErrorInvalidJSONParameters)
@@ -138,7 +138,8 @@ func (d *DepartmentUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
+	paramOutForCounting := util.MapCopy(paramOut, "Creator",
+		"LastModifier", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)

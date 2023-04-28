@@ -230,7 +230,8 @@ func (d *DisassemblyUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
+	paramOutForCounting := util.MapCopy(paramOut, "Creator",
+		"LastModifier", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
@@ -255,7 +256,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 			}
 			//获取进度类型在字典详情表中的值
 			var progressItemIDs []int
-			err = global.DB.Model(&model.DictionaryItem{}).
+			err = global.DB.Model(&model.DictionaryDetail{}).
 				Where("dictionary_type_id = ?", progressTypeID).
 				Select("id").Find(&progressItemIDs).Error
 			if err != nil {
@@ -302,7 +303,7 @@ func (d *DisassemblyDelete) Delete() response.Common {
 
 	//获取进度类型在字典详情表中的值
 	var progressItemIDs []int
-	err = global.DB.Model(&model.DictionaryItem{}).
+	err = global.DB.Model(&model.DictionaryDetail{}).
 		Where("dictionary_type_id = ?", progressTypeID).
 		Select("id").Find(&progressItemIDs).Error
 	if err != nil {

@@ -26,7 +26,7 @@ func UpdateProgressOfSuperiors(disassemblyID int, progressType int) (err error) 
 func UpdateSelfProgress(disassemblyID int, progressType int) (err error) {
 	//找到"系统计算"的字典值
 	var dataSource int
-	err = global.DB.Model(&model.DictionaryItem{}).
+	err = global.DB.Model(&model.DictionaryDetail{}).
 		Where("name = '系统计算'").Select("id").First(&dataSource).Error
 	if err != nil {
 		return err
@@ -134,7 +134,7 @@ func updateSelfProgress1(disassemblyID int, date time.Time, progressType int) (e
 
 	//找到"系统计算"的字典值
 	var dataSource int
-	err = global.DB.Model(&model.DictionaryItem{}).
+	err = global.DB.Model(&model.DictionaryDetail{}).
 		Where("name = '系统计算'").Select("id").First(&dataSource).Error
 	if err != nil {
 		return err

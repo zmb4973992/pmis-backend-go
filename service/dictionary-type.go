@@ -143,7 +143,7 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 		if *d.Name != "" {
 			paramOut["name"] = d.Name
 		} else {
-			paramOut["name"] = nil
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -166,7 +166,8 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
+	paramOutForCounting := util.MapCopy(paramOut, "Creator",
+		"LastModifier", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)

@@ -29,8 +29,18 @@ func stringToPointer(str string) *string {
 
 func generateCasbinRules() error {
 	rules := []CasbinRule{
-		{PType: stringToPointer("p"), V0: stringToPointer("管理员"), V1: stringToPointer("*"), V2: stringToPointer("GET|POST|PUT|DELETE|PATCH")},
-		{PType: stringToPointer("p"), V0: stringToPointer("公司级"), V1: stringToPointer("/api/user/*"), V2: stringToPointer("GET|POST|PUT|DELETE|PATCH")},
+		{
+			PType: stringToPointer("p"),
+			V0:    stringToPointer("管理员"),
+			V1:    stringToPointer("*"),
+			V2:    stringToPointer("GET|POST|PUT|DELETE|PATCH"),
+		},
+		{
+			PType: stringToPointer("p"),
+			V0:    stringToPointer("公司级"),
+			V1:    stringToPointer("/api/user/*"),
+			V2:    stringToPointer("GET|POST|PUT|DELETE|PATCH"),
+		},
 	}
 	for _, rule := range rules {
 		err := global.DB.FirstOrCreate(&CasbinRule{}, &rule).Error

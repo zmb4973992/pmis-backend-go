@@ -180,7 +180,7 @@ func (u *UserUpdate) Update() response.Common {
 		if *u.FullName != "" {
 			paramOut["full_name"] = u.FullName
 		} else {
-			paramOut["full_name"] = nil
+			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
 	}
 
@@ -213,7 +213,8 @@ func (u *UserUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
+	paramOutForCounting := util.MapCopy(paramOut, "Creator",
+		"LastModifier", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)

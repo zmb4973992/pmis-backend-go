@@ -114,10 +114,10 @@ type ContractOutput struct {
 	DepartmentExternal   *DepartmentOutput   `json:"department" gorm:"-"`
 	RelatedPartyExternal *RelatedPartyOutput `json:"related_party" gorm:"-"`
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
-	FundDirectionExternal *DictionaryItemOutput `json:"fund_direction" gorm:"-"`
-	OurSignatoryExternal  *DictionaryItemOutput `json:"our_signatory" gorm:"-"`
-	CurrencyExternal      *DictionaryItemOutput `json:"currency" gorm:"-"`
-	TypeExternal          *DictionaryItemOutput `json:"type" gorm:"-"`
+	FundDirectionExternal *DictionaryDetailOutput `json:"fund_direction" gorm:"-"`
+	OurSignatoryExternal  *DictionaryDetailOutput `json:"our_signatory" gorm:"-"`
+	CurrencyExternal      *DictionaryDetailOutput `json:"currency" gorm:"-"`
+	TypeExternal          *DictionaryDetailOutput `json:"type" gorm:"-"`
 	//其他属性
 	SigningDate       *string `json:"signing_date"`
 	EffectiveDate     *string `json:"effective_date"`
@@ -179,8 +179,8 @@ func (c *ContractGet) Get() response.Common {
 	//查询dictionary_item表的详情
 	{
 		if result.FundDirection != nil {
-			var record DictionaryItemOutput
-			res := global.DB.Model(&model.DictionaryItem{}).
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.FundDirection).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
@@ -188,8 +188,8 @@ func (c *ContractGet) Get() response.Common {
 			}
 		}
 		if result.Currency != nil {
-			var record DictionaryItemOutput
-			res := global.DB.Model(&model.DictionaryItem{}).
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.Currency).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
@@ -197,8 +197,8 @@ func (c *ContractGet) Get() response.Common {
 			}
 		}
 		if result.OurSignatory != nil {
-			var record DictionaryItemOutput
-			res := global.DB.Model(&model.DictionaryItem{}).
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.OurSignatory).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
@@ -206,8 +206,8 @@ func (c *ContractGet) Get() response.Common {
 			}
 		}
 		if result.Type != nil {
-			var record DictionaryItemOutput
-			res := global.DB.Model(&model.DictionaryItem{}).
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.Type).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
@@ -364,7 +364,7 @@ func (c *ContractCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt")
+		"Creator", "LastModifier", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -568,7 +568,7 @@ func (c *ContractUpdate) Update() response.Common {
 
 	//计算有修改值的字段数，分别进行不同处理
 	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt")
+		"LastModifier", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
@@ -725,24 +725,24 @@ func (c *ContractGetList) GetList() response.List {
 		//查dictionary_item表的详情
 		{
 			if data[i].FundDirection != nil {
-				var record DictionaryItemOutput
-				res := global.DB.Model(&model.DictionaryItem{}).
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
 					Where("id = ?", *data[i].FundDirection).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].FundDirectionExternal = &record
 				}
 			}
 			if data[i].OurSignatory != nil {
-				var record DictionaryItemOutput
-				res := global.DB.Model(&model.DictionaryItem{}).
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
 					Where("id = ?", *data[i].OurSignatory).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].OurSignatoryExternal = &record
 				}
 			}
 			if data[i].Currency != nil {
-				var record DictionaryItemOutput
-				res := global.DB.Model(&model.DictionaryItem{}).
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
 					Where("id = ?", *data[i].Currency).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].CurrencyExternal = &record

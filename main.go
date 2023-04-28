@@ -25,7 +25,7 @@ func main() {
 	upload.Init()
 
 	//开始采用自定义的方式生成引擎
-	engine := router.Init()
+	engine := router.InitEngine()
 
 	//开启4个协程，用来保存访问记录到数据库
 	for i := 0; i < 4; i++ {
