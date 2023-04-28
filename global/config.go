@@ -53,6 +53,7 @@ type DBConfig struct {
 type JWTConfig struct {
 	SecretKey    string
 	ValidityDays int
+	Issuer       string
 }
 
 type LogConfig struct {
@@ -147,6 +148,7 @@ func loadConfig() {
 
 	Config.JWTConfig.SecretKey = v.GetString("jwt.secret-key")
 	Config.JWTConfig.ValidityDays = v.GetInt("jwt.validity-days")
+	Config.JWTConfig.Issuer = v.GetString("jwt.issuer")
 
 	Config.LogConfig.FileName = v.GetString("log.log-path") + "/status.log"
 	Config.LogConfig.MaxSizeForLog = v.GetInt("log.log-max-size")

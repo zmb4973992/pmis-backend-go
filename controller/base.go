@@ -37,7 +37,7 @@ var (
 	ErrorLog             = entrance.errorLog
 	Token                = entrance.token
 	Project              = entrance.project
-	Contract             = entrance.role
+	Contract             = entrance.contract
 	DictionaryType       = entrance.dictionaryType
 	DictionaryDetail     = entrance.dictionaryDetail
 	FileManagement       = entrance.fileManagement

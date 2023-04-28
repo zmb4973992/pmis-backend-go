@@ -7,7 +7,6 @@ import (
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
-	"pmis-backend-go/util/jwt"
 )
 
 //以下为入参
@@ -100,7 +99,7 @@ func (u *UserLogin) Login() response.Common {
 		return response.Failure(util.ErrorInvalidUsernameOrPassword)
 	}
 
-	token, err1 := jwt.GenerateToken(user.ID)
+	token, err1 := util.GenerateToken(user.ID)
 	if err1 != nil {
 		return response.Failure(util.ErrorFailToGenerateToken)
 	}

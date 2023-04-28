@@ -57,7 +57,7 @@ func InitEngine() *gin.Engine {
 	customRouterGroup.InitValidateTokenRouter(publicGroup)
 
 	privateGroup := engine.Group("")
-	privateGroup.Use(middleware.ValidateToken(), middleware.RateLimit())
+	privateGroup.Use(middleware.RateLimit())
 	customRouterGroup.InitUserRouter(privateGroup)
 	customRouterGroup.InitFileRouter(privateGroup)
 	customRouterGroup.InitRelatedPartyRouter(privateGroup)
@@ -73,7 +73,7 @@ func InitEngine() *gin.Engine {
 
 	//依次加载所有的路由组，以下都需要jwt验证
 	api := engine.Group("/api")
-	api.Use(middleware.ValidateToken(), middleware.RateLimit())
+	api.Use(middleware.RateLimit())
 	{
 		roleAndUser := api.Group("/role-and-user")
 		{

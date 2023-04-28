@@ -9,9 +9,9 @@ import (
 	"pmis-backend-go/util"
 )
 
-// NeedAuth 如果需要根据角色进行鉴权（casbin进行操作），则使用该中间件
+// RBAC 如果需要根据角色进行鉴权（casbin进行操作），则使用该中间件
 // 使用了这个中间件后，相关请求就会先走casbin的规则
-func NeedAuth() gin.HandlerFunc {
+func RBAC() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		tempUserID, exists := c.Get("user_id")
 		if !exists {

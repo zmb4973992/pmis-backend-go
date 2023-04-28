@@ -40,9 +40,8 @@ func (r *role) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	tempUserID, exists := c.Get("user_id")
+	userID, exists := util.GetUserID(c)
 	if exists {
-		userID := tempUserID.(int)
 		param.Creator = userID
 		param.LastModifier = userID
 	}
@@ -70,10 +69,10 @@ func (r *role) Update(c *gin.Context) {
 		return
 	}
 
-	//处理lastModifier字段
-	userID, exists := c.Get("user_id")
+	//处理last_modifier字段
+	userID, exists := util.GetUserID(c)
 	if exists {
-		param.LastModifier = userID.(int)
+		param.LastModifier = userID
 	}
 
 	res := param.Update()

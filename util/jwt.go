@@ -1,6 +1,7 @@
-package jwt
+package util
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"pmis-backend-go/global"
 	"time"
@@ -17,7 +18,7 @@ func buildClaims(userID int) CustomClaims {
 	return CustomClaims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    "PMIS",
+			Issuer:    global.Config.JWTConfig.Issuer,
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(validityDays)),
 		},
 	}
@@ -48,4 +49,21 @@ func ParseToken(token string) (*CustomClaims, error) {
 		}
 	}
 	return nil, err
+}
+
+// GetUserID 从token获取userID
+func GetUserID(c *gin.Context) (userID int, exists bool) {
+	token := c.GetHeader("access_token")
+	if token == "" {
+		return 0, false
+	}
+	//开始校验access_token
+	customClaims, err := ParseToken(token)
+	//如果存在错误或token已过期
+	if err != nil || customClaims.ExpiresAt.Unix() < time.Now().Unix() {
+		return 0, false
+	}
+	//如果access_token校验通过
+	userID = customClaims.UserID
+	return userID, true
 }

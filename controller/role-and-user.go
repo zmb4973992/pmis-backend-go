@@ -45,10 +45,9 @@ func (r *roleAndUser) CreateByRoleID(c *gin.Context) {
 		return
 	}
 
-	//处理creator、lastModifier字段
-	tempUserID, exists := c.Get("user_id")
+	//处理creator、last_modifier字段
+	userID, exists := util.GetUserID(c)
 	if exists {
-		userID := tempUserID.(int)
 		param.Creator = &userID
 		param.LastModifier = &userID
 	}
@@ -76,10 +75,9 @@ func (r *roleAndUser) UpdateByRoleID(c *gin.Context) {
 		return
 	}
 
-	//处理lastModifier字段
-	tempUserID, exists := c.Get("user_id")
+	//处理last_modifier字段
+	userID, exists := util.GetUserID(c)
 	if exists {
-		userID := tempUserID.(int)
 		param.LastModifier = &userID
 	}
 
@@ -133,10 +131,9 @@ func (r *roleAndUser) CreateByUserID(c *gin.Context) {
 		return
 	}
 
-	//处理creator、lastModifier字段
-	tempUserID, exists := c.Get("user_id")
+	//处理creator、last_modifier字段
+	userID, exists := util.GetUserID(c)
 	if exists {
-		userID := tempUserID.(int)
 		param.Creator = &userID
 		param.LastModifier = &userID
 	}
@@ -164,10 +161,9 @@ func (r *roleAndUser) UpdateByUserID(c *gin.Context) {
 		return
 	}
 
-	//处理lastModifier字段
-	tempUserID, exists := c.Get("user_id")
+	//处理last_modifier字段
+	userID, exists := util.GetUserID(c)
 	if exists {
-		userID := tempUserID.(int)
 		param.LastModifier = &userID
 	}
 
