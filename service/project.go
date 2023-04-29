@@ -80,7 +80,7 @@ type ProjectDelete struct {
 
 type ProjectGetList struct {
 	dto.ListInput
-	dto.AuthInput
+	dto.DataRangeInput
 	NameInclude           string `json:"name_include,omitempty"`
 	DepartmentNameInclude string `json:"department_name_include,omitempty"`
 	DepartmentIDIn        []int  `json:"department_id_in"`
@@ -525,27 +525,32 @@ func (p *ProjectGetList) GetList() response.List {
 		db = db.Where("department_id in ?", p.DepartmentIDIn)
 	}
 
-	if p.IsShowedByRole {
-		//先获得最大角色的名称
-		biggestRoleName := util.GetBiggestRoleName(p.UserID)
-		if biggestRoleName == "事业部级" {
-			//获取所在事业部的id数组
-			businessDivisionIDs := util.GetBusinessDivisionIDs(p.UserID)
-			//获取归属这些事业部的部门id数组
-			var departmentIDs []int
-			global.DB.Model(&model.Department{}).Where("superior_id in ?", businessDivisionIDs).
-				Select("id").Find(&departmentIDs)
-			//两个数组进行合并
-			departmentIDs = append(departmentIDs, businessDivisionIDs...)
-			//找到部门id在上面两个数组中的记录
-			db = db.Where("department_id in ?", departmentIDs)
-		} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
-			//获取用户所属部门的id数组
-			departmentIDs := util.GetDepartmentIDs(p.UserID)
-			//找到部门id在上面数组中的记录
-			db = db.Where("department_id in ?", departmentIDs)
-		}
+	if p.UseDataRangeByOrganization {
+		dataRangeIDs := util.GetDataRangeIDs(p.UserID)
+		db = db.Where("department_id in ?", dataRangeIDs)
 	}
+
+	//if p.IsShowedByRole {
+	//	//先获得最大角色的名称
+	//	biggestRoleName := util.GetBiggestRoleName(p.UserID)
+	//	if biggestRoleName == "事业部级" {
+	//		//获取所在事业部的id数组
+	//		businessDivisionIDs := util.GetBusinessDivisionIDs(p.UserID)
+	//		//获取归属这些事业部的部门id数组
+	//		var departmentIDs []int
+	//		global.DB.Model(&model.Department{}).Where("superior_id in ?", businessDivisionIDs).
+	//			Select("id").Find(&departmentIDs)
+	//		//两个数组进行合并
+	//		departmentIDs = append(departmentIDs, businessDivisionIDs...)
+	//		//找到部门id在上面两个数组中的记录
+	//		db = db.Where("department_id in ?", departmentIDs)
+	//	} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
+	//		//获取用户所属部门的id数组
+	//		departmentIDs := util.GetDepartmentIDsOld(p.UserID)
+	//		//找到部门id在上面数组中的记录
+	//		db = db.Where("department_id in ?", departmentIDs)
+	//	}
+	//}
 
 	//count
 	var count int64

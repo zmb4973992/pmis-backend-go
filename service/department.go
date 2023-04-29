@@ -41,7 +41,7 @@ type DepartmentDelete struct {
 
 type DepartmentGetArray struct {
 	dto.ListInput
-	dto.AuthInput
+	dto.DataRangeInput
 	SuperiorID  int    `json:"superior_id,omitempty"`
 	LevelName   string `json:"level_name,omitempty"`
 	Name        string `json:"name,omitempty"`
@@ -50,7 +50,7 @@ type DepartmentGetArray struct {
 
 type DepartmentGetList struct {
 	dto.ListInput
-	dto.AuthInput
+	dto.DataRangeInput
 	SuperiorID  int    `json:"superior_id,omitempty"`
 	LevelName   string `json:"level_name,omitempty"`
 	Name        string `json:"name,omitempty"`
@@ -188,16 +188,16 @@ func (d *DepartmentGetArray) GetArray() response.Common {
 		db = db.Where("name like ?", "%"+d.NameInclude+"%")
 	}
 
-	if d.IsShowedByRole {
-		biggestRoleName := util.GetBiggestRoleName(d.UserID)
-		if biggestRoleName == "事业部级" {
-			businessDivisionIDs := util.GetBusinessDivisionIDs(d.UserID)
-			db = db.Where("superior_id in ?", businessDivisionIDs)
-		} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
-			departmentIDs := util.GetDepartmentIDs(d.UserID)
-			db = db.Where("id in ?", departmentIDs)
-		}
-	}
+	//if d.IsShowedByRole {
+	//	biggestRoleName := util.GetBiggestRoleName(d.UserID)
+	//	if biggestRoleName == "事业部级" {
+	//		businessDivisionIDs := util.GetBusinessDivisionIDs(d.UserID)
+	//		db = db.Where("superior_id in ?", businessDivisionIDs)
+	//	} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
+	//		departmentIDs := util.GetDepartmentIDsOld(d.UserID)
+	//		db = db.Where("id in ?", departmentIDs)
+	//	}
+	//}
 
 	// count
 	var count int64
@@ -278,27 +278,27 @@ func (d *DepartmentGetList) GetList() response.List {
 		db = db.Where("name like ?", "%"+d.NameInclude+"%")
 	}
 
-	if d.IsShowedByRole {
-		//先获得最大角色的名称
-		biggestRoleName := util.GetBiggestRoleName(d.UserID)
-		if biggestRoleName == "事业部级" {
-			//获取所在事业部的id数组
-			businessDivisionIDs := util.GetBusinessDivisionIDs(d.UserID)
-			//获取归属这些事业部的部门id数组
-			var departmentIDs []int
-			global.DB.Model(&model.Department{}).Where("superior_id in ?", businessDivisionIDs).
-				Select("id").Find(&departmentIDs)
-			//两个数组进行合并
-			departmentIDs = append(departmentIDs, businessDivisionIDs...)
-			//找到部门id在上面两个数组中的记录
-			db = db.Where("id in ?", departmentIDs)
-		} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
-			//获取用户所属部门的id数组
-			departmentIDs := util.GetDepartmentIDs(d.UserID)
-			//找到部门id在上面数组中的记录
-			db = db.Where("id in ?", departmentIDs)
-		}
-	}
+	//if d.IsShowedByRole {
+	//	//先获得最大角色的名称
+	//	biggestRoleName := util.GetBiggestRoleName(d.UserID)
+	//	if biggestRoleName == "事业部级" {
+	//		//获取所在事业部的id数组
+	//		businessDivisionIDs := util.GetBusinessDivisionIDs(d.UserID)
+	//		//获取归属这些事业部的部门id数组
+	//		var departmentIDs []int
+	//		global.DB.Model(&model.Department{}).Where("superior_id in ?", businessDivisionIDs).
+	//			Select("id").Find(&departmentIDs)
+	//		//两个数组进行合并
+	//		departmentIDs = append(departmentIDs, businessDivisionIDs...)
+	//		//找到部门id在上面两个数组中的记录
+	//		db = db.Where("id in ?", departmentIDs)
+	//	} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
+	//		//获取用户所属部门的id数组
+	//		departmentIDs := util.GetDepartmentIDsOld(d.UserID)
+	//		//找到部门id在上面数组中的记录
+	//		db = db.Where("id in ?", departmentIDs)
+	//	}
+	//}
 
 	// count
 	var count int64

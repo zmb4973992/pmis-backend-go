@@ -107,12 +107,6 @@ func (p *progress) GetList(c *gin.Context) {
 		return
 	}
 
-	//authInput需要userID
-	//userID, exists := c.Get("user_id")
-	//if exists {
-	//	param.UserID = userID.(int)
-	//}
-
 	res := param.GetList()
 	c.JSON(http.StatusOK, res)
 	return

@@ -23,10 +23,11 @@ type SqlConditionInput struct {
 	SelectedColumns []string `json:"selected_columns"` //需要显示数据的列
 }
 
-// AuthInput 用于校验角色、分级显示的入参，按需导入
-type AuthInput struct {
-	IsShowedByRole bool `json:"is_showed_by_role,omitempty"` //根据角色来分级显示
-	UserID         int
+// DataRangeInput 用于校验角色、分级显示的入参，按需导入
+type DataRangeInput struct {
+	//IsShowedByRole                   bool `json:"is_showed_by_role,omitempty"` //根据角色来分级显示
+	UserID                     int
+	UseDataRangeByOrganization bool `json:"use_data_range_by_organization,omitempty"` //根据组织确定数据范围
 }
 
 type UserInfoInput struct {

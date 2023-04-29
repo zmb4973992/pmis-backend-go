@@ -11,6 +11,10 @@ import (
 )
 
 func Test(c *gin.Context) {
+	res1 := util.GetDataRangeIDs(1)
+	c.JSON(http.StatusOK, gin.H{
+		"data": res1,
+	})
 }
 
 func Download(c *gin.Context) {

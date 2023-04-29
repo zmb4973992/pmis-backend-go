@@ -26,18 +26,18 @@ func InitDatabase() {
 	// Set Connection Max Lifetime 设置了连接可复用的最大时间
 	sqlDB.SetConnMaxLifetime(time.Hour)
 	err = global.DB.AutoMigrate(
-		&Role{},                 //角色
-		&RelatedParty{},         //相关方
-		&Project{},              //项目
-		&Department{},           //部门
-		&User{},                 //用户
-		&DepartmentAndUser{},    //部门和用户的中间表
-		&Role{},                 //角色
-		&RoleAndUser{},          //角色和用户的中间表
-		&Contract{},             //合同
-		&Disassembly{},          //项目拆解
-		&Progress{},             //工作进度
-		&IncomeAndExpenditure{}, //收付款
+		&RelatedParty{},           //相关方
+		&Project{},                //项目
+		&Department{},             //部门
+		&DepartmentAndDataRange{}, //部门和数据范围的中间表
+		&User{},                   //用户
+		&DepartmentAndUser{},      //部门和用户的中间表
+		&Role{},                   //角色
+		&RoleAndUser{},            //角色和用户的中间表
+		&Contract{},               //合同
+		&Disassembly{},            //项目拆解
+		&Progress{},               //工作进度
+		&IncomeAndExpenditure{},   //收付款
 		//&ActualIncomeAndExpenditure{},    //实际收付款
 		//&PlannedIncomeAndExpenditure{},   //计划收付款
 		//&PredictedIncomeAndExpenditure{}, //预测收付款

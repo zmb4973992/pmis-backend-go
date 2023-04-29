@@ -49,6 +49,7 @@ func InitEngine() *gin.Engine {
 	//将待处理的路由分为两类：不需要jwt鉴权的为public，需要jwt鉴权的为private
 	publicGroup := engine.Group("")
 	customRouterGroup := new(CustomRouterGroup)
+	customRouterGroup.InitTestRouter(publicGroup)
 	customRouterGroup.InitLoginRouter(publicGroup)
 	customRouterGroup.InitStaticRouter(publicGroup)
 	customRouterGroup.InitDownloadRouter(publicGroup)

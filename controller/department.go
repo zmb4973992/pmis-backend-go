@@ -131,9 +131,9 @@ func (d *department) GetList(c *gin.Context) {
 		return
 	}
 
-	tempUserID, exists := c.Get("user_id")
+	//AuthorityInput需要userID
+	userID, exists := util.GetUserID(c)
 	if exists {
-		userID := tempUserID.(int)
 		param.UserID = userID
 	}
 

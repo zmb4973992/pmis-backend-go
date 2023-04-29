@@ -109,10 +109,10 @@ func (p *project) GetList(c *gin.Context) {
 		return
 	}
 
-	//authInput需要userID
-	userID, exists := c.Get("user_id")
+	//AuthorityInput需要userID
+	userID, exists := util.GetUserID(c)
 	if exists {
-		param.UserID = userID.(int)
+		param.UserID = userID
 	}
 
 	res := param.GetList()
