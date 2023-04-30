@@ -23,7 +23,7 @@ type CustomRouterGroup struct {
 	private.FileRouter
 	private.ContractRouter
 	private.RelatedPartyRouter
-	private.DepartmentRouter
+	private.OrganizationRouter
 	private.ProjectRouter
 	private.DisassemblyRouter
 	private.DictionaryTypeRouter
@@ -62,7 +62,7 @@ func InitEngine() *gin.Engine {
 	customRouterGroup.InitUserRouter(privateGroup)
 	customRouterGroup.InitFileRouter(privateGroup)
 	customRouterGroup.InitRelatedPartyRouter(privateGroup)
-	customRouterGroup.InitDepartmentRouter(privateGroup)
+	customRouterGroup.InitOrganizationRouter(privateGroup)
 	customRouterGroup.InitProjectRouter(privateGroup)
 	customRouterGroup.InitContractRouter(privateGroup)
 	customRouterGroup.InitDisassemblyRouter(privateGroup)

@@ -80,12 +80,12 @@ func updateUser() {
 
 					//创建部门
 					var departmentID int
-					global.DB.Model(&model.Department{}).Where("name = ?", "北京公司").
+					global.DB.Model(&model.Organization{}).Where("name = ?", "北京公司").
 						Select("id").First(&departmentID)
-					var departmentAndUser model.DepartmentAndUser
+					var departmentAndUser model.OrganizationAndUser
 					departmentAndUser.UserID = &user.ID
-					departmentAndUser.DepartmentID = &departmentID
-					global.DB.Model(&model.DepartmentAndUser{}).
+					departmentAndUser.OrganizationID = &departmentID
+					global.DB.Model(&model.OrganizationAndUser{}).
 						Where("department_id = ?", departmentID).
 						Where("user_id = ?", user.ID).
 						FirstOrCreate(&departmentAndUser)
@@ -104,12 +104,12 @@ func updateUser() {
 
 					//创建部门
 					var departmentID int
-					global.DB.Model(&model.Department{}).Where("name = ?", "水泥工程事业部").
+					global.DB.Model(&model.Organization{}).Where("name = ?", "水泥工程事业部").
 						Select("id").First(&departmentID)
-					var departmentAndUser model.DepartmentAndUser
+					var departmentAndUser model.OrganizationAndUser
 					departmentAndUser.UserID = &user.ID
-					departmentAndUser.DepartmentID = &departmentID
-					global.DB.Model(&model.DepartmentAndUser{}).
+					departmentAndUser.OrganizationID = &departmentID
+					global.DB.Model(&model.OrganizationAndUser{}).
 						Where("department_id = ?", departmentID).
 						Where("user_id = ?", user.ID).
 						FirstOrCreate(&departmentAndUser)
@@ -127,12 +127,12 @@ func updateUser() {
 
 					//创建部门
 					var departmentID int
-					global.DB.Model(&model.Department{}).Where("name = ?", permittedOUs[j]).
+					global.DB.Model(&model.Organization{}).Where("name = ?", permittedOUs[j]).
 						Select("id").First(&departmentID)
-					var departmentAndUser model.DepartmentAndUser
+					var departmentAndUser model.OrganizationAndUser
 					departmentAndUser.UserID = &user.ID
-					departmentAndUser.DepartmentID = &departmentID
-					global.DB.Model(&model.DepartmentAndUser{}).
+					departmentAndUser.OrganizationID = &departmentID
+					global.DB.Model(&model.OrganizationAndUser{}).
 						Where("department_id = ?", departmentID).
 						Where("user_id = ?", user.ID).
 						FirstOrCreate(&departmentAndUser)

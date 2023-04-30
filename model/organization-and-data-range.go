@@ -1,16 +1,16 @@
 package model
 
-// DepartmentAndDataRange 组织机构和数据权限(范围)的中间表
+// OrganizationAndDataRange 组织机构和数据权限(范围)的中间表
 // 此表用来定义一个组织可以查看哪些组织的数据
-type DepartmentAndDataRange struct {
+type OrganizationAndDataRange struct {
 	BasicModel
-	DepartmentID *int
-	DataRangeID  *int //等同于组织机构id，用来定义可以查看哪些组织的数据
+	OrganizationID             *int
+	OrganizationIDForDataRange *int //等同于组织id，用来定义可以查看哪些组织的数据
 }
 
 // TableName 修改表名
-func (*DepartmentAndDataRange) TableName() string {
-	return "department_and_data_range"
+func (*OrganizationAndDataRange) TableName() string {
+	return "organization_and_data_range"
 }
 
 //func (d *Role) BeforeDelete(tx *gorm.DB) error {

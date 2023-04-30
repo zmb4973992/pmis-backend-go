@@ -30,12 +30,6 @@ type DataRangeInput struct {
 	UseDataRangeByOrganization bool `json:"use_data_range_by_organization,omitempty"` //根据组织确定数据范围
 }
 
-type UserInfoInput struct {
-	RoleNames           []string //用户的角色名称数组
-	BusinessDivisionIDs []int    //用户所属的事业部id数组
-	DepartmentIDs       []int    //用户所属的部门id数组
-}
-
 //以下为出参
 
 // ListOutput 为标准的出参形式，几乎所有的list都按这个标准来

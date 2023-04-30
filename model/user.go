@@ -29,7 +29,7 @@ func (d *User) BeforeDelete(tx *gorm.DB) error {
 		return err
 	}
 
-	var records1 []DepartmentAndUser
+	var records1 []OrganizationAndUser
 	err = tx.Where("user_id = ?", d.ID).
 		Find(&records1).Delete(&records1).Error
 	if err != nil {

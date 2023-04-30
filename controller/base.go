@@ -5,7 +5,7 @@ type Base struct{}
 
 type controller struct {
 	captcha
-	department
+	organization
 	noRoute
 	disassembly
 	relatedParty
@@ -28,7 +28,7 @@ var (
 	entrance             = new(controller)
 	Captcha              = entrance.captcha
 	NoRoute              = entrance.noRoute
-	Department           = entrance.department
+	Organization         = entrance.organization
 	Disassembly          = entrance.disassembly
 	RelatedParty         = entrance.relatedParty
 	User                 = entrance.user

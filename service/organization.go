@@ -11,65 +11,65 @@ import (
 //以下为入参
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
-type DepartmentGet struct {
+type OrganizationGet struct {
 	ID int
 }
 
-type DepartmentCreate struct {
+type OrganizationCreate struct {
 	Creator      int
 	LastModifier int
 	SuperiorID   int    `json:"superior_id" binding:"required,gt=0"` //上级机构ID
 	Name         string `json:"name" binding:"required"`             //名称
-	LevelName    string `json:"level_name" binding:"required"`       //级别，如公司、事业部、部门等
+	//LevelName    string `json:"level_name" binding:"required"`       //级别，如公司、事业部、部门等
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
 //如果指针字段为空或0，那么数据库相应字段会改为null；
 //如果指针字段没传，那么数据库不会修改该字段
 
-type DepartmentUpdate struct {
+type OrganizationUpdate struct {
 	LastModifier int
 	ID           int
-	Name         *string `json:"name"`        //名称
-	LevelName    *string `json:"level_name"`  //级别，如公司、事业部、部门等
-	SuperiorID   *int    `json:"superior_id"` //上级机构ID
+	Name         *string `json:"name"` //名称
+	//LevelName    *string `json:"level_name"`  //级别，如公司、事业部、部门等
+	SuperiorID *int `json:"superior_id"` //上级机构ID
 }
 
-type DepartmentDelete struct {
+type OrganizationDelete struct {
 	ID int
 }
 
-type DepartmentGetArray struct {
+type OrganizationGetArray struct {
 	dto.ListInput
 	dto.DataRangeInput
-	SuperiorID  int    `json:"superior_id,omitempty"`
-	LevelName   string `json:"level_name,omitempty"`
+	SuperiorID int `json:"superior_id,omitempty"`
+	//LevelName   string `json:"level_name,omitempty"`
 	Name        string `json:"name,omitempty"`
 	NameInclude string `json:"name_include,omitempty"`
 }
 
-type DepartmentGetList struct {
+type OrganizationGetList struct {
 	dto.ListInput
 	dto.DataRangeInput
-	SuperiorID  int    `json:"superior_id,omitempty"`
-	LevelName   string `json:"level_name,omitempty"`
+	SuperiorID int `json:"superior_id,omitempty"`
+	//LevelName   string `json:"level_name,omitempty"`
 	Name        string `json:"name,omitempty"`
 	NameInclude string `json:"name_include,omitempty"`
 }
 
-type DepartmentOutput struct {
-	Creator      *int    `json:"creator" gorm:"creator"`
-	LastModifier *int    `json:"last_modifier" gorm:"last_modifier"`
-	ID           int     `json:"id" gorm:"id"`
-	Name         string  `json:"name" gorm:"name"`               //名称
-	LevelName    *string `json:"level_name" gorm:"level_name"`   //级别，如公司、事业部、部门等
-	SuperiorID   *int    `json:"superior_id" gorm:"superior_id"` //上级机构id
+type OrganizationOutput struct {
+	Creator      *int   `json:"creator" gorm:"creator"`
+	LastModifier *int   `json:"last_modifier" gorm:"last_modifier"`
+	ID           int    `json:"id" gorm:"id"`
+	Name         string `json:"name" gorm:"name"` //名称
+	//LevelName    *string `json:"level_name" gorm:"level_name"`   //级别，如公司、事业部、部门等
+	SuperiorID *int `json:"superior_id" gorm:"superior_id"` //上级机构id
 }
 
-func (d *DepartmentGet) Get() response.Common {
-	var result DepartmentOutput
+func (d *OrganizationGet) Get() response.Common {
+	var result OrganizationOutput
 
-	err := global.DB.Model(model.Department{}).
+	err := global.DB.Model(model.Organization{}).
 		Where("id = ?", d.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -79,8 +79,8 @@ func (d *DepartmentGet) Get() response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (d *DepartmentCreate) Create() response.Common {
-	var paramOut model.Department
+func (d *OrganizationCreate) Create() response.Common {
+	var paramOut model.Organization
 
 	if d.Creator > 0 {
 		paramOut.Creator = &d.Creator
@@ -92,8 +92,6 @@ func (d *DepartmentCreate) Create() response.Common {
 
 	paramOut.Name = d.Name
 
-	paramOut.LevelName = d.LevelName
-
 	paramOut.SuperiorID = &d.SuperiorID
 
 	err := global.DB.Create(&paramOut).Error
@@ -104,7 +102,7 @@ func (d *DepartmentCreate) Create() response.Common {
 	return response.Success()
 }
 
-func (d *DepartmentUpdate) Update() response.Common {
+func (d *OrganizationUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
 	if d.LastModifier > 0 {
@@ -114,14 +112,6 @@ func (d *DepartmentUpdate) Update() response.Common {
 	if d.Name != nil {
 		if *d.Name != "" {
 			paramOut["name"] = d.Name
-		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
-		}
-	}
-
-	if d.LevelName != nil {
-		if *d.LevelName != "" {
-			paramOut["level_name"] = d.LevelName
 		} else {
 			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
@@ -145,7 +135,7 @@ func (d *DepartmentUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.Department{}).
+	err := global.DB.Model(&model.Organization{}).
 		Where("id = ?", d.ID).Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -155,9 +145,9 @@ func (d *DepartmentUpdate) Update() response.Common {
 	return response.Success()
 }
 
-func (d *DepartmentDelete) Delete() response.Common {
+func (d *OrganizationDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
-	var record model.Department
+	var record model.Organization
 	global.DB.Where("id = ?", d.ID).Find(&record)
 	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
 	if err != nil {
@@ -167,17 +157,13 @@ func (d *DepartmentDelete) Delete() response.Common {
 	return response.Success()
 }
 
-func (d *DepartmentGetArray) GetArray() response.Common {
-	db := global.DB.Model(&model.Department{})
+func (d *OrganizationGetArray) GetArray() response.Common {
+	db := global.DB.Model(&model.Organization{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
 	if d.SuperiorID > 0 {
 		db = db.Where("superior_id = ?", d.SuperiorID)
-	}
-
-	if d.LevelName != "" {
-		db = db.Where("level_name = ?", d.LevelName)
 	}
 
 	if d.Name != "" {
@@ -214,7 +200,7 @@ func (d *DepartmentGetArray) GetArray() response.Common {
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(&model.Department{}, orderBy)
+		exists := util.FieldIsInModel(&model.Organization{}, orderBy)
 		if !exists {
 			return response.Failure(util.ErrorSortingFieldDoesNotExist)
 		}
@@ -257,17 +243,13 @@ func (d *DepartmentGetArray) GetArray() response.Common {
 	}
 }
 
-func (d *DepartmentGetList) GetList() response.List {
-	db := global.DB.Model(&model.Department{})
+func (d *OrganizationGetList) GetList() response.List {
+	db := global.DB.Model(&model.Organization{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
 	if d.SuperiorID > 0 {
 		db = db.Where("superior_id = ?", d.SuperiorID)
-	}
-
-	if d.LevelName != "" {
-		db = db.Where("level_name = ?", d.LevelName)
 	}
 
 	if d.Name != "" {
@@ -286,7 +268,7 @@ func (d *DepartmentGetList) GetList() response.List {
 	//		businessDivisionIDs := util.GetBusinessDivisionIDs(d.UserID)
 	//		//获取归属这些事业部的部门id数组
 	//		var departmentIDs []int
-	//		global.DB.Model(&model.Department{}).Where("superior_id in ?", businessDivisionIDs).
+	//		global.DB.Model(&model.Organization{}).Where("superior_id in ?", businessDivisionIDs).
 	//			Select("id").Find(&departmentIDs)
 	//		//两个数组进行合并
 	//		departmentIDs = append(departmentIDs, businessDivisionIDs...)
@@ -315,7 +297,7 @@ func (d *DepartmentGetList) GetList() response.List {
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(&model.Department{}, orderBy)
+		exists := util.FieldIsInModel(&model.Organization{}, orderBy)
 		if !exists {
 			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
@@ -346,8 +328,8 @@ func (d *DepartmentGetList) GetList() response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []DepartmentOutput
-	db.Model(&model.Department{}).Find(&data)
+	var data []OrganizationOutput
+	db.Model(&model.Organization{}).Find(&data)
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)

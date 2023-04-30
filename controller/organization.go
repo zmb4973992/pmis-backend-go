@@ -12,12 +12,12 @@ import (
 	"strconv"
 )
 
-type department struct{}
+type organization struct{}
 
-func (d *department) Get(c *gin.Context) {
-	param := service.DepartmentGet{}
+func (o *organization) Get(c *gin.Context) {
+	param := service.OrganizationGet{}
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("department-id"))
+	param.ID, err = strconv.Atoi(c.Param("organization-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -29,8 +29,8 @@ func (d *department) Get(c *gin.Context) {
 	return
 }
 
-func (d *department) Create(c *gin.Context) {
-	var param service.DepartmentCreate
+func (o *organization) Create(c *gin.Context) {
+	var param service.OrganizationCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -51,8 +51,8 @@ func (d *department) Create(c *gin.Context) {
 	return
 }
 
-func (d *department) Update(c *gin.Context) {
-	var param service.DepartmentUpdate
+func (o *organization) Update(c *gin.Context) {
+	var param service.OrganizationUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -60,7 +60,7 @@ func (d *department) Update(c *gin.Context) {
 		return
 	}
 
-	param.ID, err = strconv.Atoi(c.Param("department-id"))
+	param.ID, err = strconv.Atoi(c.Param("organization-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidURIParameters))
@@ -78,10 +78,10 @@ func (d *department) Update(c *gin.Context) {
 	return
 }
 
-func (d *department) Delete(c *gin.Context) {
-	var param service.DepartmentDelete
+func (o *organization) Delete(c *gin.Context) {
+	var param service.OrganizationDelete
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("department-id"))
+	param.ID, err = strconv.Atoi(c.Param("organization-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -94,8 +94,8 @@ func (d *department) Delete(c *gin.Context) {
 	return
 }
 
-func (d *department) GetArray(c *gin.Context) {
-	var param service.DepartmentGetArray
+func (o *organization) GetArray(c *gin.Context) {
+	var param service.OrganizationGetArray
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
@@ -118,8 +118,8 @@ func (d *department) GetArray(c *gin.Context) {
 	return
 }
 
-func (d *department) GetList(c *gin.Context) {
-	var param service.DepartmentGetList
+func (o *organization) GetList(c *gin.Context) {
+	var param service.OrganizationGetList
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；

@@ -20,7 +20,7 @@ type ProjectCreate struct {
 	Creator      int
 	LastModifier int
 	//连接其他表的id
-	DepartmentID   int `json:"department_id,omitempty"`
+	OrganizationID int `json:"organization_id,omitempty"`
 	RelatedPartyID int `json:"related_party_id,omitempty"`
 	//连接dictionary_item表的id
 	Country      int `json:"country,omitempty"`
@@ -51,7 +51,7 @@ type ProjectUpdate struct {
 	LastModifier int
 	ID           int
 	//连接其他表的id
-	DepartmentID   *int `json:"department_id"`
+	OrganizationID *int `json:"organization_id"`
 	RelatedPartyID *int `json:"related_party_id"`
 	//连接dictionary_item表的id
 	Country      *int `json:"country"`
@@ -81,9 +81,9 @@ type ProjectDelete struct {
 type ProjectGetList struct {
 	dto.ListInput
 	dto.DataRangeInput
-	NameInclude           string `json:"name_include,omitempty"`
-	DepartmentNameInclude string `json:"department_name_include,omitempty"`
-	DepartmentIDIn        []int  `json:"department_id_in"`
+	NameInclude             string `json:"name_include,omitempty"`
+	OrganizationNameInclude string `json:"organization_name_include,omitempty"`
+	OrganizationIDIn        []int  `json:"organization_id_in"`
 }
 
 //以下为出参
@@ -93,7 +93,7 @@ type ProjectOutput struct {
 	LastModifier *int `json:"last_modifier"`
 	ID           int  `json:"id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
-	DepartmentID   *int `json:"-"`
+	OrganizationID *int `json:"-"`
 	RelatedPartyID *int `json:"-"`
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
 	Country      *int `json:"-"`
@@ -103,7 +103,7 @@ type ProjectOutput struct {
 	Status       *int `json:"-"`
 	OurSignatory *int `json:"-"`
 	//关联表的详情，不需要gorm查询，需要在json中显示
-	DepartmentExternal   *DepartmentOutput   `json:"department" gorm:"-"`
+	OrganizationExternal *OrganizationOutput `json:"organization" gorm:"-"`
 	RelatedPartyExternal *RelatedPartyOutput `json:"related_party_external" gorm:"-"`
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
 	CountryExternal      *DictionaryDetailOutput `json:"country" gorm:"-"`
@@ -148,12 +148,12 @@ func (p *ProjectGet) Get() response.Common {
 	}
 
 	//查部门信息
-	if result.DepartmentID != nil {
-		var record DepartmentOutput
-		res := global.DB.Model(&model.Department{}).
-			Where("id=?", *result.DepartmentID).Limit(1).Find(&record)
+	if result.OrganizationID != nil {
+		var record OrganizationOutput
+		res := global.DB.Model(&model.Organization{}).
+			Where("id=?", *result.OrganizationID).Limit(1).Find(&record)
 		if res.RowsAffected > 0 {
-			result.DepartmentExternal = &record
+			result.OrganizationExternal = &record
 		}
 	}
 
@@ -223,8 +223,8 @@ func (p *ProjectCreate) Create() response.Common {
 	}
 	//连接其他表的id
 	{
-		if p.DepartmentID != 0 {
-			paramOut.DepartmentID = &p.DepartmentID
+		if p.OrganizationID != 0 {
+			paramOut.OrganizationID = &p.OrganizationID
 		}
 		if p.RelatedPartyID != 0 {
 			paramOut.RelatedPartyID = &p.RelatedPartyID
@@ -327,11 +327,11 @@ func (p *ProjectUpdate) Update() response.Common {
 	}
 	//连接其他表的id
 	{
-		if p.DepartmentID != nil {
-			if *p.DepartmentID > 0 {
-				paramOut["department_id"] = p.DepartmentID
-			} else if *p.DepartmentID == -1 {
-				paramOut["department_id"] = nil
+		if p.OrganizationID != nil {
+			if *p.OrganizationID > 0 {
+				paramOut["organization_id"] = p.OrganizationID
+			} else if *p.OrganizationID == -1 {
+				paramOut["organization_id"] = nil
 			}
 		}
 		if p.RelatedPartyID != nil {
@@ -512,22 +512,22 @@ func (p *ProjectGetList) GetList() response.List {
 		db = db.Where("name like ?", "%"+p.NameInclude+"%")
 	}
 
-	if p.DepartmentNameInclude != "" {
-		var departmentIDs []int
-		global.DB.Model(&model.Department{}).Where("name like ?", "%"+p.DepartmentNameInclude+"%").
-			Select("id").Find(&departmentIDs)
-		if len(departmentIDs) > 0 {
-			db = db.Where("department_id in ?", departmentIDs)
+	if p.OrganizationNameInclude != "" {
+		var organizationIDs []int
+		global.DB.Model(&model.Organization{}).Where("name like ?", "%"+p.OrganizationNameInclude+"%").
+			Select("id").Find(&organizationIDs)
+		if len(organizationIDs) > 0 {
+			db = db.Where("organization_id in ?", organizationIDs)
 		}
 	}
 
-	if len(p.DepartmentIDIn) > 0 {
-		db = db.Where("department_id in ?", p.DepartmentIDIn)
+	if len(p.OrganizationIDIn) > 0 {
+		db = db.Where("organization_id in ?", p.OrganizationIDIn)
 	}
 
 	if p.UseDataRangeByOrganization {
-		dataRangeIDs := util.GetDataRangeIDs(p.UserID)
-		db = db.Where("department_id in ?", dataRangeIDs)
+		dataRangeIDs := util.GetOrganizationIDsForDataRange(p.UserID)
+		db = db.Where("organization_id in ?", dataRangeIDs)
 	}
 
 	//if p.IsShowedByRole {
@@ -538,7 +538,7 @@ func (p *ProjectGetList) GetList() response.List {
 	//		businessDivisionIDs := util.GetBusinessDivisionIDs(p.UserID)
 	//		//获取归属这些事业部的部门id数组
 	//		var departmentIDs []int
-	//		global.DB.Model(&model.Department{}).Where("superior_id in ?", businessDivisionIDs).
+	//		global.DB.Model(&model.Organization{}).Where("superior_id in ?", businessDivisionIDs).
 	//			Select("id").Find(&departmentIDs)
 	//		//两个数组进行合并
 	//		departmentIDs = append(departmentIDs, businessDivisionIDs...)
@@ -609,12 +609,12 @@ func (p *ProjectGetList) GetList() response.List {
 		//查询关联表的详情
 		{
 			//查部门信息
-			if data[i].DepartmentID != nil {
-				var record DepartmentOutput
-				res := global.DB.Model(&model.Department{}).
-					Where("id=?", *data[i].DepartmentID).Limit(1).Find(&record)
+			if data[i].OrganizationID != nil {
+				var record OrganizationOutput
+				res := global.DB.Model(&model.Organization{}).
+					Where("id=?", *data[i].OrganizationID).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
-					data[i].DepartmentExternal = &record
+					data[i].OrganizationExternal = &record
 				}
 			}
 			//查相关方信息

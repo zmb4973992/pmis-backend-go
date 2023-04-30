@@ -11,7 +11,7 @@ import (
 )
 
 func Test(c *gin.Context) {
-	res1 := util.GetDataRangeIDs(1)
+	res1 := util.GetOrganizationIDsForDataRange(1)
 	c.JSON(http.StatusOK, gin.H{
 		"data": res1,
 	})

@@ -468,7 +468,7 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 	//		businessDivisionIDs := util.GetBusinessDivisionIDs(i.UserID)
 	//		//获取归属这些事业部的部门id数组
 	//		var departmentIDs []int
-	//		global.DB.Model(&model.Department{}).Where("superior_id in ?", businessDivisionIDs).
+	//		global.DB.Model(&model.Organization{}).Where("superior_id in ?", businessDivisionIDs).
 	//			Select("id").Find(&departmentIDs)
 	//		//两个数组进行合并
 	//		departmentIDs = append(departmentIDs, businessDivisionIDs...)

@@ -17,10 +17,10 @@ var attributes = []string{
 }
 
 type UserInfo struct {
-	ID         int
-	FullName   *string
-	Email      *string
-	Department *string
+	ID           int
+	FullName     *string
+	Email        *string
+	Organization *string
 }
 
 func LoginByLDAP(username, password string) (permitted bool, err error) {
@@ -85,7 +85,7 @@ func LoginByLDAP(username, password string) (permitted bool, err error) {
 					//	user.Email = &email
 					//}
 					//
-					//user.Department = &permittedOUs[j]
+					//user.Organization = &permittedOUs[j]
 
 					return true, nil
 				}

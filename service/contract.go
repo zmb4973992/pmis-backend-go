@@ -21,7 +21,7 @@ type ContractCreate struct {
 	LastModifier int
 	//连接关联表的id
 	ProjectID      int `json:"project_id,omitempty"`
-	DepartmentID   int `json:"department_id,omitempty"`
+	OrganizationID int `json:"organization_id,omitempty"`
 	RelatedPartyID int `json:"related_party_id,omitempty"`
 	//连接dictionary_item表的id
 	FundDirection int `json:"fund_direction,omitempty"`
@@ -56,7 +56,7 @@ type ContractUpdate struct {
 	ID           int
 	//连接关联表的id
 	ProjectID      *int `json:"project_id"`
-	DepartmentID   *int `json:"department_id"`
+	OrganizationID *int `json:"organization_id"`
 	RelatedPartyID *int `json:"related_party_id"`
 	//连接dictionary_item表的id
 	FundDirection *int `json:"fund_direction"`
@@ -102,7 +102,7 @@ type ContractOutput struct {
 	ID           int  `json:"id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
 	ProjectID      *int `json:"-"`
-	DepartmentID   *int `json:"-"`
+	OrganizationID *int `json:"-"`
 	RelatedPartyID *int `json:"-"`
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
 	FundDirection *int `json:"-"`
@@ -111,7 +111,7 @@ type ContractOutput struct {
 	Type          *int `json:"-"`
 	//关联表的详情，不需要gorm查询，需要在json中显示
 	ProjectExternal      *ProjectOutput      `json:"project" gorm:"-"`
-	DepartmentExternal   *DepartmentOutput   `json:"department" gorm:"-"`
+	OrganizationExternal *OrganizationOutput `json:"organization" gorm:"-"`
 	RelatedPartyExternal *RelatedPartyOutput `json:"related_party" gorm:"-"`
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
 	FundDirectionExternal *DictionaryDetailOutput `json:"fund_direction" gorm:"-"`
@@ -157,12 +157,12 @@ func (c *ContractGet) Get() response.Common {
 			}
 		}
 		//查部门信息
-		if result.DepartmentID != nil {
-			var record DepartmentOutput
-			res := global.DB.Model(&model.Department{}).
-				Where("id = ?", *result.DepartmentID).Limit(1).Find(&record)
+		if result.OrganizationID != nil {
+			var record OrganizationOutput
+			res := global.DB.Model(&model.Organization{}).
+				Where("id = ?", *result.OrganizationID).Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
-				result.DepartmentExternal = &record
+				result.OrganizationExternal = &record
 			}
 		}
 		//查相关方信息
@@ -255,8 +255,8 @@ func (c *ContractCreate) Create() response.Common {
 		if c.ProjectID > 0 {
 			paramOut.ProjectID = &c.ProjectID
 		}
-		if c.DepartmentID > 0 {
-			paramOut.DepartmentID = &c.DepartmentID
+		if c.OrganizationID > 0 {
+			paramOut.OrganizationID = &c.OrganizationID
 		}
 		if c.RelatedPartyID > 0 {
 			paramOut.RelatedPartyID = &c.RelatedPartyID
@@ -392,11 +392,11 @@ func (c *ContractUpdate) Update() response.Common {
 				paramOut["project_id"] = *c.ProjectID
 			}
 		}
-		if c.DepartmentID != nil {
-			if *c.DepartmentID > 0 {
-				paramOut["department_id"] = c.DepartmentID
-			} else if *c.DepartmentID == -1 {
-				paramOut["department_id"] = nil
+		if c.OrganizationID != nil {
+			if *c.OrganizationID > 0 {
+				paramOut["organization_id"] = c.OrganizationID
+			} else if *c.OrganizationID == -1 {
+				paramOut["organization_id"] = nil
 			}
 		}
 		if c.RelatedPartyID != nil {
@@ -622,7 +622,7 @@ func (c *ContractGetList) GetList() response.List {
 	//		businessDivisionIDs := util.GetBusinessDivisionIDs(c.UserID)
 	//		//获取归属这些事业部的部门id数组
 	//		var departmentIDs []int
-	//		global.DB.Model(&model.Department{}).Where("superior_id in ?", businessDivisionIDs).
+	//		global.DB.Model(&model.Organization{}).Where("superior_id in ?", businessDivisionIDs).
 	//			Select("id").Find(&departmentIDs)
 	//		//两个数组进行合并
 	//		departmentIDs = append(departmentIDs, businessDivisionIDs...)
@@ -703,12 +703,12 @@ func (c *ContractGetList) GetList() response.List {
 				}
 			}
 			//查部门信息
-			if data[i].DepartmentID != nil {
-				var record DepartmentOutput
-				res := global.DB.Model(&model.Department{}).
-					Where("id = ?", *data[i].DepartmentID).Limit(1).Find(&record)
+			if data[i].OrganizationID != nil {
+				var record OrganizationOutput
+				res := global.DB.Model(&model.Organization{}).
+					Where("id = ?", *data[i].OrganizationID).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
-					data[i].DepartmentExternal = &record
+					data[i].OrganizationExternal = &record
 				}
 			}
 			//查相关方信息

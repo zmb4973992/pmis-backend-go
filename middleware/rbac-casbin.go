@@ -13,11 +13,20 @@ import (
 // 使用了这个中间件后，相关请求就会先走casbin的规则
 func RBAC() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		tempUserID, exists := c.Get("user_id")
+		userID, exists := util.Get(c)
 		if !exists {
 			c.JSON(http.StatusOK, response.Failure(util.ErrorUserIDDoesNotExist))
 			c.Abort()
 			return
+		}
+
+		subjects := roleNames        //获取用户角色,casbin规则的主体参数
+		object := c.Request.URL.Path //获取请求路径，casbin规则的客体参数
+		act := c.Request.Method      //获取请求方法，casbin规则的动作参数
+
+		tempUserID, exists := c.Get("user_id")
+		if !exists {
+
 		}
 
 		userID := tempUserID.(int)

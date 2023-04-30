@@ -6,7 +6,7 @@ type Contract struct {
 	BasicModel
 	//连接其他表的id
 	ProjectID      *int //项目id
-	DepartmentID   *int //部门id
+	OrganizationID *int //组织id
 	RelatedPartyID *int //相关方id
 	//连接dictionary_item表的id
 	FundDirection *int //资金方向

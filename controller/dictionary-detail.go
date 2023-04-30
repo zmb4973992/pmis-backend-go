@@ -15,7 +15,7 @@ import (
 type dictionaryDetail struct{}
 
 func (d *dictionaryDetail) Get(c *gin.Context) {
-	param := service.DepartmentGet{}
+	param := service.OrganizationGet{}
 	var err error
 	param.ID, err = strconv.Atoi(c.Param("dictionary-detail-id"))
 	if err != nil {
