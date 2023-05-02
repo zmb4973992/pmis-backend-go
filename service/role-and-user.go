@@ -15,7 +15,7 @@ type roleAndUser struct{}
 
 func (*roleAndUser) ListByRoleID(roleID int) response.Common {
 	var userIDs []int
-	err := global.DB.Model(&model.RoleAndUser{}).Where("role_id = ?", roleID).Select("user_id").Find(&userIDs).Error
+	err := global.DB.Model(&model.UserAndRole{}).Where("role_id = ?", roleID).Select("user_id").Find(&userIDs).Error
 	if err != nil || len(userIDs) == 0 {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
@@ -29,9 +29,9 @@ func (*roleAndUser) ListByRoleID(roleID int) response.Common {
 }
 
 func (*roleAndUser) CreateByRoleID(roleID int, paramIn dto.RoleAndUserCreateOrUpdate) response.Common {
-	var paramOut []model.RoleAndUser
+	var paramOut []model.UserAndRole
 	for i := range paramIn.UserIDs {
-		var record model.RoleAndUser
+		var record model.UserAndRole
 		if paramIn.Creator != nil {
 			record.Creator = paramIn.Creator
 		}
@@ -55,7 +55,7 @@ func (*roleAndUser) CreateByRoleID(roleID int, paramIn dto.RoleAndUserCreateOrUp
 
 func (*roleAndUser) UpdateByRoleID(roleID int, paramIn dto.RoleAndUserCreateOrUpdate) response.Common {
 	//先删掉原始记录
-	err := global.DB.Where("role_id = ?", roleID).Delete(&model.RoleAndUser{}).Error
+	err := global.DB.Where("role_id = ?", roleID).Delete(&model.UserAndRole{}).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -67,9 +67,9 @@ func (*roleAndUser) UpdateByRoleID(roleID int, paramIn dto.RoleAndUserCreateOrUp
 	}
 
 	//再增加新的记录
-	var paramOut []model.RoleAndUser
+	var paramOut []model.UserAndRole
 	for i := range paramIn.UserIDs {
-		var record model.RoleAndUser
+		var record model.UserAndRole
 		if paramIn.LastModifier != nil {
 			record.LastModifier = paramIn.LastModifier
 		}
@@ -88,7 +88,7 @@ func (*roleAndUser) UpdateByRoleID(roleID int, paramIn dto.RoleAndUserCreateOrUp
 }
 
 func (*roleAndUser) DeleteByRoleID(roleID int) response.Common {
-	err := global.DB.Where("role_id = ?", roleID).Delete(&model.RoleAndUser{}).Error
+	err := global.DB.Where("role_id = ?", roleID).Delete(&model.UserAndRole{}).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
@@ -99,7 +99,7 @@ func (*roleAndUser) DeleteByRoleID(roleID int) response.Common {
 
 func (*roleAndUser) ListByUserID(userID int) response.Common {
 	var roleIDs []int
-	err := global.DB.Model(&model.RoleAndUser{}).Where("user_id = ?", userID).Select("role_id").Find(&roleIDs).Error
+	err := global.DB.Model(&model.UserAndRole{}).Where("user_id = ?", userID).Select("role_id").Find(&roleIDs).Error
 	if err != nil || len(roleIDs) == 0 {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
@@ -121,9 +121,9 @@ func (*roleAndUser) ListByUserID(userID int) response.Common {
 }
 
 func (*roleAndUser) CreateByUserID(userID int, paramIn dto.RoleAndUserCreateOrUpdate) response.Common {
-	var paramOut []model.RoleAndUser
+	var paramOut []model.UserAndRole
 	for i := range paramIn.RoleIDs {
-		var record model.RoleAndUser
+		var record model.UserAndRole
 		if paramIn.Creator != nil {
 			record.Creator = paramIn.Creator
 		}
@@ -147,7 +147,7 @@ func (*roleAndUser) CreateByUserID(userID int, paramIn dto.RoleAndUserCreateOrUp
 
 func (*roleAndUser) UpdateByUserID(userID int, paramIn dto.RoleAndUserCreateOrUpdate) response.Common {
 	//先删掉原始记录
-	err := global.DB.Where("user_id = ?", userID).Delete(&model.RoleAndUser{}).Error
+	err := global.DB.Where("user_id = ?", userID).Delete(&model.UserAndRole{}).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -159,9 +159,9 @@ func (*roleAndUser) UpdateByUserID(userID int, paramIn dto.RoleAndUserCreateOrUp
 	}
 
 	//再增加新的记录
-	var paramOut []model.RoleAndUser
+	var paramOut []model.UserAndRole
 	for i := range paramIn.RoleIDs {
-		var record model.RoleAndUser
+		var record model.UserAndRole
 		if paramIn.LastModifier != nil {
 			record.LastModifier = paramIn.LastModifier
 		}
@@ -179,7 +179,7 @@ func (*roleAndUser) UpdateByUserID(userID int, paramIn dto.RoleAndUserCreateOrUp
 }
 
 func (*roleAndUser) DeleteByUserID(userID int) response.Common {
-	err := global.DB.Where("user_id = ?", userID).Delete(&model.RoleAndUser{}).Error
+	err := global.DB.Where("user_id = ?", userID).Delete(&model.UserAndRole{}).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)

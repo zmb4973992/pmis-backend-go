@@ -1,6 +1,6 @@
 package model
 
-// RoleAndMenu 角色和菜单的中间表
+// MenuAndApi 角色和菜单的中间表
 type RoleAndMenu struct {
 	BasicModel
 	RoleID *int

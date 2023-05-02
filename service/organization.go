@@ -41,7 +41,7 @@ type OrganizationDelete struct {
 
 type OrganizationGetArray struct {
 	dto.ListInput
-	dto.DataRangeInput
+	dto.DataScopeInput
 	SuperiorID int `json:"superior_id,omitempty"`
 	//LevelName   string `json:"level_name,omitempty"`
 	Name        string `json:"name,omitempty"`
@@ -50,7 +50,7 @@ type OrganizationGetArray struct {
 
 type OrganizationGetList struct {
 	dto.ListInput
-	dto.DataRangeInput
+	dto.DataScopeInput
 	SuperiorID int `json:"superior_id,omitempty"`
 	//LevelName   string `json:"level_name,omitempty"`
 	Name        string `json:"name,omitempty"`
@@ -350,3 +350,14 @@ func (d *OrganizationGetList) GetList() response.List {
 		Message: util.GetMessage(util.Success),
 	}
 }
+
+//func DeptList2DeptTree(deptList []model.SysDept, pCode string) []model.SysDept {
+//	var deptTree []model.SysDept
+//	for _, v := range deptList {
+//		if v.ParentCode == pCode {
+//			v.Children = DeptList2DeptTree(deptList, v.DeptCode)
+//			deptTree = append(deptTree, v)
+//		}
+//	}
+//	return deptTree
+//}

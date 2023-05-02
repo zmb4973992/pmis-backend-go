@@ -22,7 +22,7 @@ func (*User) TableName() string {
 func (d *User) BeforeDelete(tx *gorm.DB) error {
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
-	var records []RoleAndUser
+	var records []UserAndRole
 	err = tx.Where("user_id = ?", d.ID).
 		Find(&records).Delete(&records).Error
 	if err != nil {

@@ -72,7 +72,7 @@ type IncomeAndExpenditureDelete struct {
 
 type IncomeAndExpenditureGetList struct {
 	dto.ListInput
-	dto.DataRangeInput
+	dto.DataScopeInput
 	ProjectID     int    `json:"project_id,omitempty"`
 	Kind          int    `json:"kind,omitempty"`
 	Type          int    `json:"type,omitempty"`

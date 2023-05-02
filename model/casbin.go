@@ -2,21 +2,19 @@ package model
 
 import "pmis-backend-go/global"
 
-// casbin的表由系统自建，这里只导入规则
-
 // 各字段含义见：https://blog.csdn.net/github_34457546/article/details/108608686
 
 type CasbinRule struct {
-	ID    int
-	PType *string `gorm:"column:ptype;type:nvarchar(100)"`
-	V0    *string `gorm:"type:nvarchar(100)"`
-	V1    *string `gorm:"type:nvarchar(100)"`
-	V2    *string `gorm:"type:nvarchar(100)"`
-	V3    *string `gorm:"type:nvarchar(100)"`
-	V4    *string `gorm:"type:nvarchar(100)"`
-	V5    *string `gorm:"type:nvarchar(100)"`
-	V6    *string `gorm:"type:nvarchar(100)"`
-	V7    *string `gorm:"type:nvarchar(100)"`
+	BasicModel
+	PType *string `json:"p_type" gorm:"column:ptype;type:nvarchar(100)"`
+	V0    *string `json:"v0" gorm:"type:nvarchar(100)"`
+	V1    *string `json:"v1" gorm:"type:nvarchar(100)"`
+	V2    *string `json:"v2" gorm:"type:nvarchar(100)"`
+	V3    *string `json:"v3" gorm:"type:nvarchar(100)"`
+	V4    *string `json:"v4" gorm:"type:nvarchar(100)"`
+	V5    *string `json:"v5" gorm:"type:nvarchar(100)"`
+	V6    *string `json:"v6" gorm:"type:nvarchar(100)"`
+	V7    *string `json:"v7" gorm:"type:nvarchar(100)"`
 }
 
 func (*CasbinRule) TableName() string {

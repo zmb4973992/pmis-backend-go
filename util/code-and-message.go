@@ -23,7 +23,7 @@ const (
 	ErrorAccessTokenInvalid
 	ErrorAccessTokenNotFound
 	ErrorRoleInfoNotFound
-	ErrorRolePermissionDenied
+	ErrorUnauthorized
 	ErrorNeedAdminPrivilege
 	ErrorFailToEncrypt
 	ErrorInvalidRequest
@@ -46,6 +46,7 @@ const (
 	ErrorFailToCalculateSuperiorProgress
 	ErrorFailToCalculateSelfAndSuperiorProgress
 	ErrorWrongSuperiorInformation
+	ErrorFailToGenerateSnowID
 )
 
 // Message 自定义错误的message
@@ -72,11 +73,11 @@ var Message = map[int]string{
 	ErrorPasswordIncorrect:         "密码错误",
 	ErrorRoleInfoNotFound:          "未找到用户的角色信息",
 
-	ErrorAccessTokenInvalid:   "access_token无效",
-	ErrorAccessTokenNotFound:  "缺少access_token",
-	ErrorRolePermissionDenied: "用户所属角色的权限不足",
-	ErrorNeedAdminPrivilege:   "权限不足，该操作需要管理员权限",
-	ErrorUserIDDoesNotExist:   "用户ID不存在",
+	ErrorAccessTokenInvalid:  "access_token无效",
+	ErrorAccessTokenNotFound: "缺少access_token",
+	ErrorUnauthorized:        "权限不足",
+	ErrorNeedAdminPrivilege:  "权限不足，该操作需要管理员权限",
+	ErrorUserIDDoesNotExist:  "用户ID不存在",
 
 	ErrorFailToEncrypt:    "加密失败",
 	ErrorInvalidRequest:   "请求路径错误",
@@ -99,6 +100,7 @@ var Message = map[int]string{
 	ErrorFailToCalculateSuperiorProgress:        "计算上级进度失败，错误详情请查看系统日志文件",
 	ErrorFailToCalculateSelfAndSuperiorProgress: "计算自身和上级进度失败，错误详情请查看系统日志文件",
 	ErrorWrongSuperiorInformation:               "上级信息错误，可能缺失项目id或层级",
+	ErrorFailToGenerateSnowID:                   "生成snowID失败",
 }
 
 func GetMessage(code int) string {

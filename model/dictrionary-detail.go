@@ -52,9 +52,13 @@ var initialDictionary = []dictionaryDetailFormat{
 		TypeName:    "进度的数据来源",
 		DetailNames: []string{"系统计算", "人工填写"},
 	},
+	{
+		TypeName:    "数据范围",
+		DetailNames: []string{"用户所在部门", "用户所在部门和子部门", "所有部门", "自定义部门"},
+	},
 }
 
-func generateDictionary() (err error) {
+func generateDictionaryDetail() (err error) {
 	var dictionaryDetails []DictionaryDetail
 	for i := range initialDictionary {
 		var dictionaryTypeRecord DictionaryType

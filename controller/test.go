@@ -11,9 +11,16 @@ import (
 )
 
 func Test(c *gin.Context) {
-	res1 := util.GetOrganizationIDsForDataRange(1)
+	res := util.GetOrganizationIDsForDataScope(1)
+	//if err != nil {
+	//	c.JSON(http.StatusOK, gin.H{
+	//		"err": err,
+	//	})
+	//	return
+	//}
+
 	c.JSON(http.StatusOK, gin.H{
-		"data": res1,
+		"data": res,
 	})
 }
 

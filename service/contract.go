@@ -88,7 +88,7 @@ type ContractDelete struct {
 
 type ContractGetList struct {
 	dto.ListInput
-	dto.DataRangeInput
+	dto.DataScopeInput
 	ProjectID     int    `json:"project_id,omitempty"`
 	FundDirection int    `json:"fund_direction,omitempty"`
 	NameInclude   string `json:"name_include,omitempty"`

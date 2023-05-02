@@ -16,7 +16,7 @@ type DictionaryTypeCreate struct {
 	Creator      int
 	LastModifier int
 	Name         string `json:"name" binding:"required"` //名称
-	Sequence     int    `json:"sequence,omitempty"`      //顺序值
+	Sort         int    `json:"sort,omitempty"`          //顺序值
 	Remarks      string `json:"remarks,omitempty"`       //备注
 }
 
@@ -31,9 +31,9 @@ type DictionaryTypeCreateInBatches struct {
 type DictionaryTypeUpdate struct {
 	LastModifier int
 	ID           int
-	Name         *string `json:"name"`     //名称
-	Sequence     *int    `json:"sequence"` //顺序值
-	Remarks      *string `json:"remarks"`  //备注
+	Name         *string `json:"name"`    //名称
+	Sort         *int    `json:"sort"`    //顺序值
+	Remarks      *string `json:"remarks"` //备注
 }
 
 type DictionaryTypeDelete struct {
@@ -51,12 +51,13 @@ type DictionaryTypeGetList struct {
 }
 
 type DictionaryTypeOutput struct {
-	Creator      *int    `json:"creator" gorm:"creator"`
-	LastModifier *int    `json:"last_modifier" gorm:"last_modifier"`
-	ID           int     `json:"id" gorm:"id"`
-	Name         string  `json:"name" gorm:"name"`         //名称
-	Sequence     *int    `json:"sequence" gorm:"sequence"` //顺序值
-	Remarks      *string `json:"remarks" gorm:"remarks"`   //备注
+	Creator      *int    `json:"creator"`
+	LastModifier *int    `json:"last_modifier"`
+	ID           int     `json:"id"`
+	SnowID       uint64  `json:"snow_id"`
+	Name         string  `json:"name"`    //名称
+	Sort         *int    `json:"sort"`    //顺序值
+	Remarks      *string `json:"remarks"` //备注
 }
 
 func (d *DictionaryTypeGet) Get() response.Common {
@@ -82,21 +83,29 @@ func (d *DictionaryTypeCreate) Create() response.Common {
 
 	paramOut.Name = d.Name
 
-	if d.Sequence != 0 {
-		paramOut.Sequence = &d.Sequence
+	if d.Sort != 0 {
+		paramOut.Sort = &d.Sort
 	}
 
 	if d.Remarks != "" {
 		paramOut.Remarks = &d.Remarks
 	}
 
-	err := global.DB.Create(&paramOut).Error
+	snowID, err := util.Snowflake.NextID()
+	if err != nil {
+		return response.Failure(util.ErrorFailToGenerateSnowID)
+	}
+	paramOut.SnowID = snowID
+
+	err = global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
 }
+
+// 这里没写snowID的逻辑，不要用
 
 func (d *DictionaryTypeCreateInBatches) CreateInBatches() response.Common {
 	var paramOut []model.DictionaryType
@@ -113,8 +122,8 @@ func (d *DictionaryTypeCreateInBatches) CreateInBatches() response.Common {
 
 		record.Name = d.Data[i].Name
 
-		if d.Data[i].Sequence != 0 {
-			record.Sequence = &d.Data[i].Sequence
+		if d.Data[i].Sort != 0 {
+			record.Sort = &d.Data[i].Sort
 		}
 
 		if d.Data[i].Remarks != "" {
@@ -147,11 +156,11 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 		}
 	}
 
-	if d.Sequence != nil {
-		if *d.Sequence > 0 {
-			paramOut["sequence"] = d.Sequence
-		} else if *d.Sequence == 0 {
-			paramOut["sequence"] = nil
+	if d.Sort != nil {
+		if *d.Sort > 0 {
+			paramOut["sort"] = d.Sort
+		} else if *d.Sort == 0 {
+			paramOut["sort"] = nil
 		} else {
 			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
