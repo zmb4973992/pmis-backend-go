@@ -47,6 +47,7 @@ const (
 	ErrorFailToCalculateSelfAndSuperiorProgress
 	ErrorWrongSuperiorInformation
 	ErrorFailToGenerateSnowID
+	ErrorFailToUpdateRBACGroupingPolicies
 )
 
 // Message 自定义错误的message
@@ -101,6 +102,7 @@ var Message = map[int]string{
 	ErrorFailToCalculateSelfAndSuperiorProgress: "计算自身和上级进度失败，错误详情请查看系统日志文件",
 	ErrorWrongSuperiorInformation:               "上级信息错误，可能缺失项目id或层级",
 	ErrorFailToGenerateSnowID:                   "生成snowID失败",
+	ErrorFailToUpdateRBACGroupingPolicies:       "更新casbin RBAC分组规则失败",
 }
 
 func GetMessage(code int) string {

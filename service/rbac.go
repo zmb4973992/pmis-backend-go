@@ -14,14 +14,24 @@ import (
 //如果指针字段为空或0，那么数据库相应字段会改为null；
 //如果指针字段没传，那么数据库不会修改该字段
 
-type RBACUpdate struct {
+type RBACUpdatePolicy struct {
 	LastModifier int
 	RoleIDs      []int `json:"role_ids,omitempty"`
 	MenuIDs      []int `json:"menu_ids,omitempty"`
 	ApiIDs       []int `json:"api_ids,omitempty"`
 }
 
-func (r *RBACUpdate) Update() error {
+type rbacUpdateGroupingPolicyByFather struct {
+	Father string
+	Sons   []string
+}
+
+type rbacUpdateGroupingPolicyBySon struct {
+	Son     string
+	Fathers []string
+}
+
+func (r *RBACUpdatePolicy) Update() error {
 	//如果需要更新角色id的权限
 	err := updateRBACRulesByRoleIDs(r.RoleIDs)
 	if err != nil {
@@ -128,5 +138,57 @@ func updateRBACRulesByApiIDs(apiIDs []int) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (u *rbacUpdateGroupingPolicyByFather) UpdateGroupingPolicyByFather() error {
+	if len(u.Sons) == 0 {
+		return nil
+	}
+
+	cachedEnforcer, err := util.NewCachedEnforcer()
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return err
+	}
+
+	_, err = cachedEnforcer.RemoveFilteredGroupingPolicy(1, u.Father)
+	if err != nil {
+		return err
+	}
+
+	for _, son := range u.Sons {
+		_, err = cachedEnforcer.AddGroupingPolicy([]string{son, u.Father})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (u *rbacUpdateGroupingPolicyBySon) UpdateGroupingPolicyBySon() error {
+	if len(u.Fathers) == 0 {
+		return nil
+	}
+
+	cachedEnforcer, err := util.NewCachedEnforcer()
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return err
+	}
+
+	_, err = cachedEnforcer.RemoveFilteredGroupingPolicy(0, u.Son)
+	if err != nil {
+		return err
+	}
+
+	for _, father := range u.Fathers {
+		_, err = cachedEnforcer.AddGroupingPolicy([]string{u.Son, father})
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

@@ -12,7 +12,7 @@ import (
 )
 
 func Test(c *gin.Context) {
-	var param service.RBACUpdate
+	var param service.RBACUpdatePolicy
 	param.ApiIDs = []int{5}
 
 	err := param.Update()

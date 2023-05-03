@@ -5,6 +5,7 @@ import (
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
+	"strconv"
 )
 
 type roleAndUser struct{}
@@ -33,7 +34,7 @@ func (r1 *RoleAndUserUpdateByRoleID) Update() response.Common {
 	err := global.DB.Where("role_id = ?", r1.RoleID).Delete(&model.UserAndRole{}).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 
 	//再增加新的记录
@@ -69,8 +70,20 @@ func (r1 *RoleAndUserUpdateByRoleID) Update() response.Common {
 	err = global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return response.Failure(util.ErrorFailToCreateRecord)
 	}
+
+	//更新casbin的rbac分组规则
+	var param1 rbacUpdateGroupingPolicyByFather
+	param1.Father = strconv.Itoa(r1.RoleID)
+	for _, userID := range r1.UserIDs {
+		param1.Sons = append(param1.Sons, strconv.Itoa(userID))
+	}
+	err = param1.UpdateGroupingPolicyByFather()
+	if err != nil {
+		return response.Failure(util.ErrorFailToUpdateRBACGroupingPolicies)
+	}
+
 	return response.Success()
 }
 
@@ -116,6 +129,17 @@ func (r2 *RoleAndUserUpdateByUserID) Update() response.Common {
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
+	}
+
+	//更新casbin的rbac分组规则
+	var param1 rbacUpdateGroupingPolicyBySon
+	param1.Son = strconv.Itoa(r2.UserID)
+	for _, roleID := range r2.RoleIDs {
+		param1.Fathers = append(param1.Fathers, strconv.Itoa(roleID))
+	}
+	err = param1.UpdateGroupingPolicyBySon()
+	if err != nil {
+		return response.Failure(util.ErrorFailToUpdateRBACGroupingPolicies)
 	}
 	return response.Success()
 }
