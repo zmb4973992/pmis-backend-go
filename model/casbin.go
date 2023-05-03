@@ -1,11 +1,15 @@
 package model
 
-import "pmis-backend-go/global"
+import (
+	"pmis-backend-go/global"
+)
 
 // 各字段含义见：https://blog.csdn.net/github_34457546/article/details/108608686
+// 不继承basicModel了，添加的字段暂时不会处理
+// 因为添加的方法是enforcer.addPolicy()，不走gorm。以后再说
 
 type CasbinRule struct {
-	BasicModel
+	ID    int     `json:"id"`
 	PType *string `json:"p_type" gorm:"column:ptype;type:nvarchar(100)"`
 	V0    *string `json:"v0" gorm:"type:nvarchar(100)"`
 	V1    *string `json:"v1" gorm:"type:nvarchar(100)"`

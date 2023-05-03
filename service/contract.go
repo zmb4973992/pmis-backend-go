@@ -253,13 +253,13 @@ func (c *ContractCreate) Create() response.Common {
 	//连接关联表的id
 	{
 		if c.ProjectID > 0 {
-			paramOut.ProjectID = &c.ProjectID
+			paramOut.ProjectSnowID = &c.ProjectID
 		}
 		if c.OrganizationID > 0 {
-			paramOut.OrganizationID = &c.OrganizationID
+			paramOut.OrganizationSnowID = &c.OrganizationID
 		}
 		if c.RelatedPartyID > 0 {
-			paramOut.RelatedPartyID = &c.RelatedPartyID
+			paramOut.RelatedPartySnowID = &c.RelatedPartyID
 		}
 	}
 

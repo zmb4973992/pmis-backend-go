@@ -43,7 +43,7 @@ type DisassemblyUpdate struct {
 	ID           int
 
 	Name *string `json:"name"` //拆解项名称
-	//ProjectID  *int     `json:"project_id"`  //所属项目id
+	//ProjectSnowID  *int     `json:"project_id"`  //所属项目id
 	//Level      *int     `json:"level"`       //层级
 	Weight *float64 `json:"weight"` //权重
 	//SuperiorID *int     `json:"superior_id"` //上级拆解项ID

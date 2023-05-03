@@ -6,22 +6,21 @@ import (
 	"os"
 	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
-	"pmis-backend-go/service"
 	"pmis-backend-go/util"
 	"strings"
 )
 
 func Test(c *gin.Context) {
-	var param service.RBACUpdatePolicy
-	param.ApiIDs = []int{5}
-
-	err := param.Update()
-	if err != nil {
-		c.JSON(http.StatusOK, gin.H{
-			"err": err,
-		})
-		return
-	}
+	//var param service.RBACUpdatePolicy
+	//param.ApiIDs = []int{5}
+	//
+	//err := param.Update()
+	//if err != nil {
+	//	c.JSON(http.StatusOK, gin.H{
+	//		"err": err,
+	//	})
+	//	return
+	//}
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": "ok",

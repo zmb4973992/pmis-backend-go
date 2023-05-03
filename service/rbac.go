@@ -14,47 +14,29 @@ import (
 //如果指针字段为空或0，那么数据库相应字段会改为null；
 //如果指针字段没传，那么数据库不会修改该字段
 
-type RBACUpdatePolicy struct {
-	LastModifier int
-	RoleIDs      []int `json:"role_ids,omitempty"`
-	MenuIDs      []int `json:"menu_ids,omitempty"`
-	ApiIDs       []int `json:"api_ids,omitempty"`
+type rbacUpdatePolicyByRoleID struct {
+	RoleID int
 }
 
-type rbacUpdateGroupingPolicyByFather struct {
-	Father string
-	Sons   []string
+type rbacUpdatePolicyByMenuID struct {
+	MenuID int
+}
+type rbacUpdatePolicyByApiID struct {
+	ApiID int
 }
 
-type rbacUpdateGroupingPolicyBySon struct {
-	Son     string
-	Fathers []string
+type rbacUpdateGroupingPolicyByGroup struct {
+	Group   string
+	Members []string
 }
 
-func (r *RBACUpdatePolicy) Update() error {
-	//如果需要更新角色id的权限
-	err := updateRBACRulesByRoleIDs(r.RoleIDs)
-	if err != nil {
-		return err
-	}
-
-	//如果需要更新菜单的权限
-	err = updateRBACRulesByMenuIDs(r.MenuIDs)
-	if err != nil {
-		return err
-	}
-
-	//如果需要更新api的权限
-	err = updateRBACRulesByApiIDs(r.ApiIDs)
-	if err != nil {
-		return err
-	}
-
-	return nil
+type rbacUpdateGroupingPolicyByMember struct {
+	Member string
+	Groups []string
 }
 
-func updateRBACRulesByRoleIDs(roleIDs []int) error {
-	if len(roleIDs) == 0 {
+func (r *rbacUpdatePolicyByRoleID) Update() error {
+	if r.RoleID == 0 {
 		return nil
 	}
 
@@ -64,101 +46,86 @@ func updateRBACRulesByRoleIDs(roleIDs []int) error {
 		return err
 	}
 
-	for _, roleID := range roleIDs {
-		subject := strconv.Itoa(roleID)
-		_, err = cachedEnforcer.RemoveFilteredPolicy(0, subject)
+	subject := strconv.Itoa(r.RoleID)
+	_, err = cachedEnforcer.RemoveFilteredPolicy(0, subject)
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return err
+	}
+
+	//找到角色拥有的菜单
+	var menuIDs []int
+	global.DB.Model(&model.RoleAndMenu{}).Where("role_id = ?", r.RoleID).
+		Select("menu_id").Find(&menuIDs)
+
+	//找到菜单拥有的api
+	var apiIDs []int
+	global.DB.Model(&model.MenuAndApi{}).Where("menu_id in ?", menuIDs).
+		Select("api_id").Find(&apiIDs)
+
+	//找到api详细信息
+	var rbacRules [][]string
+	for _, apiID := range apiIDs {
+		var api model.Api
+		err = global.DB.Where("id = ?", apiID).First(&api).Error
 		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return err
+			continue
 		}
-
-		//找到角色拥有的菜单
-		var menuIDs []int
-		global.DB.Model(&model.RoleAndMenu{}).Where("role_id = ?", roleID).
-			Select("menu_id").Find(&menuIDs)
-
-		//找到菜单拥有的api
-		var apiIDs []int
-		global.DB.Model(&model.MenuAndApi{}).Where("menu_id in ?", menuIDs).
-			Select("api_id").Find(&apiIDs)
-
-		//找到api详细信息
-		var rbacRules [][]string
-		for _, apiID := range apiIDs {
-			var api model.Api
-			err = global.DB.Where("id = ?", apiID).First(&api).Error
-			if err != nil {
-				continue
-			}
-			rbacRules = append(rbacRules, []string{subject, api.Path, api.Method})
+		//如果api带param参数，那么rbac规则要带上正则，否则无法放行
+		if api.WithParam {
+			api.Path += "/*"
 		}
+		rbacRules = append(rbacRules, []string{subject, api.Path, api.Method})
+	}
 
-		_, err = cachedEnforcer.AddPolicies(rbacRules)
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return err
-		}
+	_, err = cachedEnforcer.AddPolicies(rbacRules)
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return err
+	}
 
-		//修改了policy以后，因为用的是cachedEnforcer，所以要清除缓存
-		err = cachedEnforcer.InvalidateCache()
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return err
-		}
+	//修改了policy以后，因为用的是cachedEnforcer，所以要清除缓存
+	err = cachedEnforcer.InvalidateCache()
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return err
 	}
 	return nil
 }
 
-func updateRBACRulesByMenuIDs(menuIDs []int) error {
-	if len(menuIDs) == 0 {
+func (r *rbacUpdatePolicyByMenuID) Update() error {
+	if r.MenuID == 0 {
 		return nil
 	}
 
 	//先找到菜单关联的角色id
 	var roleIDs []int
-	global.DB.Model(&model.RoleAndMenu{}).Where("menu_id in ?", menuIDs).
+	global.DB.Model(&model.RoleAndMenu{}).Where("menu_id = ?", r.MenuID).
 		Select("role_id").Find(&roleIDs)
-	err := updateRBACRulesByRoleIDs(roleIDs)
-	if err != nil {
-		return err
+
+	for _, roleID := range roleIDs {
+		param := rbacUpdatePolicyByRoleID{RoleID: roleID}
+		err := param.Update()
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
-func updateRBACRulesByApiIDs(apiIDs []int) error {
-	if len(apiIDs) == 0 {
+func (r *rbacUpdatePolicyByApiID) Update() error {
+	if r.ApiID == 0 {
 		return nil
 	}
 
 	//先找到api关联的菜单id
 	var menuIDs []int
-	global.DB.Model(&model.MenuAndApi{}).Where("api_id in ?", apiIDs).
+	global.DB.Model(&model.MenuAndApi{}).Where("api_id in ?", r.ApiID).
 		Select("menu_id").Find(&menuIDs)
-	err := updateRBACRulesByMenuIDs(menuIDs)
-	if err != nil {
-		return err
-	}
-	return nil
-}
 
-func (u *rbacUpdateGroupingPolicyByFather) UpdateGroupingPolicyByFather() error {
-	if len(u.Sons) == 0 {
-		return nil
-	}
-
-	cachedEnforcer, err := util.NewCachedEnforcer()
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return err
-	}
-
-	_, err = cachedEnforcer.RemoveFilteredGroupingPolicy(1, u.Father)
-	if err != nil {
-		return err
-	}
-
-	for _, son := range u.Sons {
-		_, err = cachedEnforcer.AddGroupingPolicy([]string{son, u.Father})
+	for _, menuID := range menuIDs {
+		param := rbacUpdatePolicyByMenuID{MenuID: menuID}
+		err := param.Update()
 		if err != nil {
 			return err
 		}
@@ -167,8 +134,8 @@ func (u *rbacUpdateGroupingPolicyByFather) UpdateGroupingPolicyByFather() error 
 	return nil
 }
 
-func (u *rbacUpdateGroupingPolicyBySon) UpdateGroupingPolicyBySon() error {
-	if len(u.Fathers) == 0 {
+func (u *rbacUpdateGroupingPolicyByGroup) Update() error {
+	if len(u.Members) == 0 {
 		return nil
 	}
 
@@ -178,13 +145,39 @@ func (u *rbacUpdateGroupingPolicyBySon) UpdateGroupingPolicyBySon() error {
 		return err
 	}
 
-	_, err = cachedEnforcer.RemoveFilteredGroupingPolicy(0, u.Son)
+	_, err = cachedEnforcer.RemoveFilteredGroupingPolicy(1, u.Group)
 	if err != nil {
 		return err
 	}
 
-	for _, father := range u.Fathers {
-		_, err = cachedEnforcer.AddGroupingPolicy([]string{u.Son, father})
+	for _, member := range u.Members {
+		_, err = cachedEnforcer.AddGroupingPolicy([]string{member, u.Group})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (u *rbacUpdateGroupingPolicyByMember) Update() error {
+	if len(u.Groups) == 0 {
+		return nil
+	}
+
+	cachedEnforcer, err := util.NewCachedEnforcer()
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return err
+	}
+
+	_, err = cachedEnforcer.RemoveFilteredGroupingPolicy(0, u.Member)
+	if err != nil {
+		return err
+	}
+
+	for _, group := range u.Groups {
+		_, err = cachedEnforcer.AddGroupingPolicy([]string{u.Member, group})
 		if err != nil {
 			return err
 		}

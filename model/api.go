@@ -2,11 +2,11 @@ package model
 
 type Api struct {
 	BasicModel
-	SnowID uint64
-	Group  string
-	Name   string
-	Path   string
-	Method string
+	Group     string `gorm:"not null;"`
+	Name      string `gorm:"not null;"`
+	Path      string `gorm:"not null;"`
+	Method    string `gorm:"not null;"`
+	WithParam bool   `gorm:"not null;"`
 	//连接其他表的id
 
 	//连接dictionary_item表的id

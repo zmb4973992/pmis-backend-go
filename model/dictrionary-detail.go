@@ -2,15 +2,16 @@ package model
 
 import (
 	"pmis-backend-go/global"
+	"pmis-backend-go/util"
 )
 
 type DictionaryDetail struct {
 	BasicModel
-	DictionaryTypeID   int     //字典类型的id
-	Name               string  //名称
-	Sequence           *int    //用于排序的值
-	IsValidForFrontend *bool   //是否在前端展现
-	Remarks            *string //备注
+	DictionaryTypeSnowID uint64  //字典类型的SnowID
+	Name                 string  //名称
+	Sequence             *int    //用于排序的值
+	IsValidForFrontend   *bool   //是否在前端展现
+	Remarks              *string //备注
 }
 
 // TableName 修改数据库的表名
@@ -64,9 +65,14 @@ func generateDictionaryDetail() (err error) {
 		var dictionaryTypeRecord DictionaryType
 		global.DB.FirstOrCreate(&dictionaryTypeRecord, DictionaryType{Name: initialDictionary[i].TypeName})
 		for j := range initialDictionary[i].DetailNames {
+			snowID, err := util.Snowflake.NextID()
+			if err != nil {
+				return err
+			}
 			dictionaryDetails = append(dictionaryDetails, DictionaryDetail{
-				DictionaryTypeID: dictionaryTypeRecord.ID,
-				Name:             initialDictionary[i].DetailNames[j],
+				BasicModel:           BasicModel{SnowID: snowID},
+				DictionaryTypeSnowID: dictionaryTypeRecord.SnowID,
+				Name:                 initialDictionary[i].DetailNames[j],
 			})
 		}
 	}

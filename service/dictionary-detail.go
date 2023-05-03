@@ -32,7 +32,7 @@ type DictionaryDetailCreateInBatches struct {
 type DictionaryDetailUpdate struct {
 	LastModifier int
 	ID           int
-	//DictionaryTypeID *int    `json:"dictionary_type_id"` //字典类型id
+	//DictionaryTypeSnowID *int    `json:"dictionary_type_id"` //字典类型id
 	Name     *string `json:"name"`     //名称
 	Sequence *int    `json:"sequence"` //顺序值
 	Remarks  *string `json:"remarks"`  //备注
@@ -87,7 +87,7 @@ func (d *DictionaryDetailCreate) Create() response.Common {
 		paramOut.LastModifier = &d.LastModifier
 	}
 
-	paramOut.DictionaryTypeID = d.DictionaryTypeID
+	paramOut.DictionaryTypeSnowID = d.DictionaryTypeID
 
 	paramOut.Name = d.Name
 
@@ -120,7 +120,7 @@ func (d *DictionaryDetailCreateInBatches) CreateInBatches() response.Common {
 			record.LastModifier = &d.Data[i].LastModifier
 		}
 
-		record.DictionaryTypeID = d.Data[i].DictionaryTypeID
+		record.DictionaryTypeSnowID = d.Data[i].DictionaryTypeID
 
 		record.Name = d.Data[i].Name
 
@@ -150,10 +150,10 @@ func (d *DictionaryDetailUpdate) Update() response.Common {
 		paramOut["last_modifier"] = d.LastModifier
 	}
 
-	//if d.DictionaryTypeID != nil {
-	//	if *d.DictionaryTypeID > 0 {
-	//		paramOut["dictionary_type_id"] = d.DictionaryTypeID
-	//	} else if *d.DictionaryTypeID == 0 {
+	//if d.DictionaryTypeSnowID != nil {
+	//	if *d.DictionaryTypeSnowID > 0 {
+	//		paramOut["dictionary_type_id"] = d.DictionaryTypeSnowID
+	//	} else if *d.DictionaryTypeSnowID == 0 {
 	//		paramOut["dictionary_type_id"] = nil
 	//	} else {
 	//		return response.Failure(util.ErrorInvalidJSONParameters)
