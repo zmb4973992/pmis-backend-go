@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"pmis-backend-go/global"
-	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 	"strconv"
@@ -19,10 +18,7 @@ func RBAC() gin.HandlerFunc {
 			return
 		}
 
-		var roleIDs []int
-		global.DB.Model(&model.UserAndRole{}).Where("user_id = ?", userID).
-			Select("role_id").Find(&roleIDs)
-
+		subject := strconv.Itoa(userID)
 		object := c.Request.URL.Path //获取请求路径，casbin规则的客体参数
 		act := c.Request.Method      //获取请求方法，casbin规则的动作参数
 
@@ -31,14 +27,7 @@ func RBAC() gin.HandlerFunc {
 			global.SugaredLogger.Errorln(err)
 		}
 
-		var permitted bool
-		for _, role := range roleIDs {
-			subject := strconv.Itoa(role)
-			permitted, _ = cachedEnforcer.Enforce(subject, object, act)
-			if permitted {
-				break
-			}
-		}
+		permitted, _ := cachedEnforcer.Enforce(subject, object, act)
 
 		if !permitted {
 			c.AbortWithStatusJSON(http.StatusOK, response.Failure(util.ErrorUnauthorized))
