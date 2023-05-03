@@ -57,6 +57,7 @@ type UserGetList struct {
 	dto.ListInput
 	IsValid         *bool  `json:"is_valid"`
 	UsernameInclude string `json:"username_include,omitempty"`
+	RoleID          int    `json:"role_id,omitempty"`
 }
 
 //以下为出参
@@ -253,6 +254,13 @@ func (u *UserGetList) GetList() response.List {
 
 	if u.UsernameInclude != "" {
 		db = db.Where("username like ?", "%"+u.UsernameInclude+"%")
+	}
+
+	if u.RoleID > 0 {
+		var userIDs []int
+		global.DB.Model(&model.UserAndRole{}).Where("role_id = ?", u.RoleID).
+			Select("user_id").Find(&userIDs)
+		db = db.Where("id in ?", userIDs)
 	}
 
 	// count

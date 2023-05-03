@@ -3,8 +3,8 @@ package model
 // UserAndRole 角色和用户的中间表
 type UserAndRole struct {
 	BasicModel
-	RoleID *int
-	UserID *int
+	RoleID int
+	UserID int
 }
 
 // TableName 修改表名

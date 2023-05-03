@@ -13,7 +13,7 @@ import (
 
 func Test(c *gin.Context) {
 	var param service.RBACUpdate
-	param.RoleIDs = []int{200, 300}
+	param.ApiIDs = []int{5}
 
 	err := param.Update()
 	if err != nil {

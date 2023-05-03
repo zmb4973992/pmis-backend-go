@@ -3,10 +3,10 @@ package model
 type Api struct {
 	BasicModel
 	SnowID uint64
-	Group  *string
-	Name   *string
-	Path   *string
-	Method *string
+	Group  string
+	Name   string
+	Path   string
+	Method string
 	//连接其他表的id
 
 	//连接dictionary_item表的id

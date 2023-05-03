@@ -31,6 +31,7 @@ type CustomRouterGroup struct {
 	private.ProgressRouter
 	private.IncomeAndExpenditureRouter
 	private.RoleRouter
+	private.UserAndRoleRouter
 }
 
 // InitEngine 初始化路由器,最终返回*gin.Engine类型，给main调用
@@ -71,26 +72,13 @@ func InitEngine() *gin.Engine {
 	customRouterGroup.InitProgressRouter(privateGroup)
 	customRouterGroup.InitIncomeAndExpenditureRouter(privateGroup)
 	customRouterGroup.InitRoleRouter(privateGroup)
+	customRouterGroup.InitUserAndRoleRouter(privateGroup)
 
 	engine.GET("/snow-id", controller.SnowID.Get) //获取雪花id，以后可删
 	//依次加载所有的路由组，以下都需要jwt验证
 	api := engine.Group("/api")
 	api.Use(middleware.RateLimit())
 	{
-		roleAndUser := api.Group("/role-and-user")
-		{
-			roleAndUser.GET("/role/:role-id", controller.RoleAndUser.ListByRoleID)      //根据角色ID获取角色和用户的列表
-			roleAndUser.POST("/role/:role-id", controller.RoleAndUser.CreateByRoleID)   //根据角色ID批量新增角色和用户
-			roleAndUser.PUT("/role/:role-id", controller.RoleAndUser.UpdateByRoleID)    //根据角色ID批量修改角色和用户
-			roleAndUser.DELETE("/role/:role-id", controller.RoleAndUser.DeleteByRoleID) //根据角色ID批量删除角色和用户
-
-			roleAndUser.GET("/user/:user-id", controller.RoleAndUser.ListByUserID)      //根据用户ID获取角色和用户的列表
-			roleAndUser.POST("/user/:user-id", controller.RoleAndUser.CreateByUserID)   //根据用户ID批量新增角色和用户
-			roleAndUser.PUT("/user/:user-id", controller.RoleAndUser.UpdateByUserID)    //根据用户ID批量修改角色和用户
-			roleAndUser.DELETE("/user/:user-id", controller.RoleAndUser.DeleteByUserID) //根据用户ID批量删除角色和用户
-
-			roleAndUser.GET("/by-token-in-header", controller.RoleAndUser.ListByTokenInHeader) //根据header里的token获取角色和用户的列表
-		}
 		operationLog := api.Group("/operation-log")
 		{
 			operationLog.GET("/:operation-log-id", controller.OperationRecord.Get)       //获取操作记录详情
