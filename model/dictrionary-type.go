@@ -7,11 +7,11 @@ import (
 
 type DictionaryType struct {
 	BasicModel
-	SnowID             uint64  `gorm:"not null;uniqueIndex;"`
-	Name               string  //名称
-	Sort               *int    //排序
-	IsValidForFrontend *bool   //是否在前端展现
-	Remarks            *string //备注
+	SnowID  uint64  `gorm:"not null;uniqueIndex;"`
+	Name    string  //名称
+	Sort    *int    //排序
+	Status  *bool   //状态
+	Remarks *string //备注
 }
 
 // TableName 修改数据库的表名

@@ -6,22 +6,27 @@ import (
 	"os"
 	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
+	"pmis-backend-go/service"
 	"pmis-backend-go/util"
 	"strings"
 )
 
 func Test(c *gin.Context) {
-	res := util.GetOrganizationIDsForDataScope(1)
-	//if err != nil {
-	//	c.JSON(http.StatusOK, gin.H{
-	//		"err": err,
-	//	})
-	//	return
-	//}
+	var param service.RBACUpdate
+	param.RoleIDs = []int{200, 300}
+
+	err := param.Update()
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"err": err,
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": res,
+		"data": "ok",
 	})
+	return
 }
 
 func Download(c *gin.Context) {

@@ -17,7 +17,7 @@ type CustomRouterGroup struct {
 	public.DownloadRouter
 	public.RegisterRouter
 	public.CaptchaRouter
-	public.ValidateTokenRouter
+	public.JWTRouter
 
 	private.UserRouter
 	private.FileRouter
@@ -55,10 +55,10 @@ func InitEngine() *gin.Engine {
 	customRouterGroup.InitDownloadRouter(publicGroup)
 	customRouterGroup.InitRegisterRouter(publicGroup)
 	customRouterGroup.InitCaptchaRouter(publicGroup)
-	customRouterGroup.InitValidateTokenRouter(publicGroup)
+	customRouterGroup.InitJWTRouter(publicGroup)
 
 	privateGroup := engine.Group("")
-	privateGroup.Use(middleware.RateLimit())
+	privateGroup.Use(middleware.RateLimit(), middleware.JWT())
 	customRouterGroup.InitUserRouter(privateGroup)
 	customRouterGroup.InitFileRouter(privateGroup)
 	customRouterGroup.InitRelatedPartyRouter(privateGroup)
@@ -72,6 +72,7 @@ func InitEngine() *gin.Engine {
 	customRouterGroup.InitIncomeAndExpenditureRouter(privateGroup)
 	customRouterGroup.InitRoleRouter(privateGroup)
 
+	engine.GET("/snow-id", controller.SnowID.Get) //获取雪花id，以后可删
 	//依次加载所有的路由组，以下都需要jwt验证
 	api := engine.Group("/api")
 	api.Use(middleware.RateLimit())

@@ -15,8 +15,10 @@ import (
 
 type RBACUpdate struct {
 	LastModifier int
-	RoleID       int `json:"role_id,omitempty"`
-	RBACInfos    []RBACInfo
+	RoleIDs      []int `json:"role_ids,omitempty"`
+	MenuSnowIDs  []int `json:"menu_snow_ids,omitempty"`
+	APISnowIDs   []int `json:"api_snow_ids,omitempty"`
+	//RBACInfos    []RBACInfo
 	//连接关联表的id
 
 	//连接dictionary_item表的id
@@ -90,35 +92,38 @@ type RBACInfo struct {
 //}
 
 func (r *RBACUpdate) Update() error {
-	subject := strconv.Itoa(r.RoleID)
 	cachedEnforcer, err := util.NewCachedEnforcer()
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return err
 	}
 
-	ok, err := cachedEnforcer.RemoveFilteredNamedPolicy("p", 0, subject)
-	if err != nil || !ok {
-		global.SugaredLogger.Errorln(err)
-		return err
-	}
+	for i := range r.RoleIDs {
+		subject := strconv.Itoa(r.RoleIDs[i])
+		var ok bool
+		ok, err = cachedEnforcer.RemoveFilteredNamedPolicy("p", 0, subject)
+		if err != nil || !ok {
+			global.SugaredLogger.Errorln(err)
+			return err
+		}
 
-	var RBACRules [][]string
-	for _, v := range r.RBACInfos {
-		RBACRules = append(RBACRules, []string{subject, v.Path, v.Method})
-	}
+		//var RBACRules [][]string
+		//for _, v := range r.RBACInfos {
+		//	RBACRules = append(RBACRules, []string{subject, v.Path, v.Method})
+		//}
 
-	ok, err = cachedEnforcer.AddPolicies(RBACRules)
-	if err != nil || !ok {
-		global.SugaredLogger.Errorln(err)
-		return err
-	}
+		//ok, err = cachedEnforcer.AddPolicies(RBACRules)
+		//if err != nil || !ok {
+		//	global.SugaredLogger.Errorln(err)
+		//	return err
+		//}
 
-	//修改了policy以后，因为用的是cachedEnforcer，所以要清除缓存
-	err = cachedEnforcer.InvalidateCache()
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return err
+		//修改了policy以后，因为用的是cachedEnforcer，所以要清除缓存
+		err = cachedEnforcer.InvalidateCache()
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+			return err
+		}
 	}
 
 	return nil
