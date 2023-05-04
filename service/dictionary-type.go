@@ -1,7 +1,7 @@
 package service
 
 import (
-	"pmis-backend-go/dto"
+	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
@@ -9,12 +9,12 @@ import (
 )
 
 type DictionaryTypeGet struct {
-	SnowID uint64
+	SnowID int64
 }
 
 type DictionaryTypeCreate struct {
-	Creator      int
-	LastModifier int
+	Creator      int64
+	LastModifier int64
 	Name         string `json:"name" binding:"required"` //名称
 	Sort         int    `json:"sort,omitempty"`          //顺序值
 	Remarks      string `json:"remarks,omitempty"`       //备注
@@ -29,31 +29,31 @@ type DictionaryTypeCreateInBatches struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type DictionaryTypeUpdate struct {
-	LastModifier int
-	SnowID       uint64
+	LastModifier int64
+	SnowID       int64
 	Name         *string `json:"name"`    //名称
 	Sort         *int    `json:"sort"`    //顺序值
 	Remarks      *string `json:"remarks"` //备注
 }
 
 type DictionaryTypeDelete struct {
-	SnowID uint64
+	SnowID int64
 }
 
 type DictionaryTypeGetArray struct {
-	dto.ListInput
+	ListInput
 	NameInclude string `json:"name_include,omitempty"`
 }
 
 type DictionaryTypeGetList struct {
-	dto.ListInput
+	ListInput
 	NameInclude string `json:"name_include,omitempty"`
 }
 
 type DictionaryTypeOutput struct {
-	Creator      *int    `json:"creator"`
-	LastModifier *int    `json:"last_modifier"`
-	SnowID       uint64  `json:"snow_id"`
+	Creator      *int64  `json:"creator"`
+	LastModifier *int64  `json:"last_modifier"`
+	SnowID       int64   `json:"snow_id"`
 	Name         string  `json:"name"`    //名称
 	Sort         *int    `json:"sort"`    //顺序值
 	Remarks      *string `json:"remarks"` //备注
@@ -90,13 +90,9 @@ func (d *DictionaryTypeCreate) Create() response.Common {
 		paramOut.Remarks = &d.Remarks
 	}
 
-	snowID, err := util.Snowflake.NextID()
-	if err != nil {
-		return response.Failure(util.ErrorFailToGenerateSnowID)
-	}
-	paramOut.SnowID = snowID
+	paramOut.SnowID = idgen.NextId()
 
-	err = global.DB.Create(&paramOut).Error
+	err := global.DB.Create(&paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
@@ -334,7 +330,7 @@ func (d *DictionaryTypeGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &dto.PagingOutput{
+		Paging: &PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

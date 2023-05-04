@@ -7,7 +7,7 @@ import (
 
 type OperationLog struct {
 	BasicModel
-	UserSnowID   *uint64    //操作人SnowID
+	UserSnowID   *int64     //操作人SnowID
 	IP           *string    //IP
 	Location     *string    //所在地
 	Method       *string    //请求方式

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
@@ -12,14 +11,14 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type OrganizationGet struct {
-	ID int
+	SnowID int64
 }
 
 type OrganizationCreate struct {
-	Creator      int
-	LastModifier int
-	SuperiorID   int    `json:"superior_id" binding:"required,gt=0"` //上级机构ID
-	Name         string `json:"name" binding:"required"`             //名称
+	Creator        int64
+	LastModifier   int64
+	SuperiorSnowID int64  `json:"superior_snow_id" binding:"required,gt=0"` //上级机构ID
+	Name           string `json:"name" binding:"required"`                  //名称
 	//LevelName    string `json:"level_name" binding:"required"`       //级别，如公司、事业部、部门等
 }
 
@@ -28,49 +27,46 @@ type OrganizationCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type OrganizationUpdate struct {
-	LastModifier int
-	ID           int
-	Name         *string `json:"name"` //名称
-	//LevelName    *string `json:"level_name"`  //级别，如公司、事业部、部门等
-	SuperiorID *int `json:"superior_id"` //上级机构ID
+	LastModifier   int64
+	SnowID         int64
+	Name           *string `json:"name"`             //名称
+	SuperiorSnowID *int64  `json:"superior_snow_id"` //上级机构ID
 }
 
 type OrganizationDelete struct {
-	ID int
+	SnowID int64
 }
 
-type OrganizationGetArray struct {
-	dto.ListInput
-	dto.DataScopeInput
-	SuperiorID int `json:"superior_id,omitempty"`
-	//LevelName   string `json:"level_name,omitempty"`
-	Name        string `json:"name,omitempty"`
-	NameInclude string `json:"name_include,omitempty"`
-}
+//type OrganizationGetArray struct {
+//	dto.ListInput
+//	dto.DataScopeInput
+//	SuperiorSnowID int `json:"superior_id,omitempty"`
+//	//LevelName   string `json:"level_name,omitempty"`
+//	Name        string `json:"name,omitempty"`
+//	NameInclude string `json:"name_include,omitempty"`
+//}
 
 type OrganizationGetList struct {
-	dto.ListInput
-	dto.DataScopeInput
-	SuperiorID int `json:"superior_id,omitempty"`
-	//LevelName   string `json:"level_name,omitempty"`
-	Name        string `json:"name,omitempty"`
-	NameInclude string `json:"name_include,omitempty"`
+	ListInput
+	DataScopeInput
+	SuperiorSnowID int64  `json:"superior_snow_id,omitempty"`
+	Name           string `json:"name,omitempty"`
+	NameInclude    string `json:"name_include,omitempty"`
 }
 
 type OrganizationOutput struct {
-	Creator      *int   `json:"creator" gorm:"creator"`
-	LastModifier *int   `json:"last_modifier" gorm:"last_modifier"`
-	ID           int    `json:"id" gorm:"id"`
-	Name         string `json:"name" gorm:"name"` //名称
-	//LevelName    *string `json:"level_name" gorm:"level_name"`   //级别，如公司、事业部、部门等
-	SuperiorID *int `json:"superior_id" gorm:"superior_id"` //上级机构id
+	Creator      *int64 `json:"creator"`
+	LastModifier *int64 `json:"last_modifier"`
+	SnowID       int64  `json:"snow_id"`
+	Name         string `json:"name"`                           //名称
+	SuperiorID   *int   `json:"superior_id" gorm:"superior_id"` //上级机构id
 }
 
 func (d *OrganizationGet) Get() response.Common {
 	var result OrganizationOutput
 
 	err := global.DB.Model(model.Organization{}).
-		Where("id = ?", d.ID).First(&result).Error
+		Where("id = ?", d.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -92,7 +88,7 @@ func (d *OrganizationCreate) Create() response.Common {
 
 	paramOut.Name = d.Name
 
-	paramOut.SuperiorSnowID = &d.SuperiorID
+	paramOut.SuperiorSnowID = &d.SuperiorSnowID
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
@@ -117,10 +113,10 @@ func (d *OrganizationUpdate) Update() response.Common {
 		}
 	}
 
-	if d.SuperiorID != nil {
-		if *d.SuperiorID > 0 {
-			paramOut["superior_id"] = d.SuperiorID
-		} else if *d.SuperiorID == -1 {
+	if d.SuperiorSnowID != nil {
+		if *d.SuperiorSnowID > 0 {
+			paramOut["superior_id"] = d.SuperiorSnowID
+		} else if *d.SuperiorSnowID == -1 {
 			paramOut["superior_id"] = nil
 		} else {
 			return response.Failure(util.ErrorInvalidJSONParameters)
@@ -136,7 +132,7 @@ func (d *OrganizationUpdate) Update() response.Common {
 	}
 
 	err := global.DB.Model(&model.Organization{}).
-		Where("id = ?", d.ID).Updates(paramOut).Error
+		Where("id = ?", d.SnowID).Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -148,8 +144,8 @@ func (d *OrganizationUpdate) Update() response.Common {
 func (d *OrganizationDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.Organization
-	global.DB.Where("id = ?", d.ID).Find(&record)
-	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
+	global.DB.Where("id = ?", d.SnowID).Find(&record)
+	err := global.DB.Where("id = ?", d.SnowID).Delete(&record).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
@@ -157,99 +153,99 @@ func (d *OrganizationDelete) Delete() response.Common {
 	return response.Success()
 }
 
-func (d *OrganizationGetArray) GetArray() response.Common {
-	db := global.DB.Model(&model.Organization{})
-	// 顺序：where -> count -> Order -> limit -> offset -> data
-
-	//where
-	if d.SuperiorID > 0 {
-		db = db.Where("superior_id = ?", d.SuperiorID)
-	}
-
-	if d.Name != "" {
-		db = db.Where("name = ?", d.Name)
-	}
-
-	if d.NameInclude != "" {
-		db = db.Where("name like ?", "%"+d.NameInclude+"%")
-	}
-
-	//if d.IsShowedByRole {
-	//	biggestRoleName := util.GetBiggestRoleName(d.UserSnowID)
-	//	if biggestRoleName == "事业部级" {
-	//		businessDivisionIDs := util.GetBusinessDivisionIDs(d.UserSnowID)
-	//		db = db.Where("superior_id in ?", businessDivisionIDs)
-	//	} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
-	//		departmentIDs := util.GetDepartmentIDsOld(d.UserSnowID)
-	//		db = db.Where("id in ?", departmentIDs)
-	//	}
-	//}
-
-	// count
-	var count int64
-	db.Count(&count)
-
-	//Order
-	orderBy := d.SortingInput.OrderBy
-	desc := d.SortingInput.Desc
-	//如果排序字段为空
-	if orderBy == "" {
-		//如果要求降序排列
-		if desc == true {
-			db = db.Order("id desc")
-		}
-	} else { //如果有排序字段
-		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(&model.Organization{}, orderBy)
-		if !exists {
-			return response.Failure(util.ErrorSortingFieldDoesNotExist)
-		}
-		//如果要求降序排列
-		if desc == true {
-			db = db.Order(orderBy + " desc")
-		} else { //如果没有要求排序方式
-			db = db.Order(orderBy)
-		}
-	}
-
-	//limit
-	page := 1
-	if d.PagingInput.Page > 0 {
-		page = d.PagingInput.Page
-	}
-	pageSize := global.Config.DefaultPageSize
-	if d.PagingInput.PageSize != nil && *d.PagingInput.PageSize >= 0 &&
-		*d.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = *d.PagingInput.PageSize
-	}
-	db = db.Limit(pageSize)
-
-	//offset
-	offset := (page - 1) * pageSize
-	db = db.Offset(offset)
-
-	//array
-	var array []string
-	db.Model(&model.DictionaryType{}).Select("name").Find(&array)
-
-	if len(array) == 0 {
-		return response.Failure(util.ErrorRecordNotFound)
-	}
-
-	return response.Common{
-		Data:    array,
-		Code:    util.Success,
-		Message: util.GetMessage(util.Success),
-	}
-}
+//func (d *OrganizationGetArray) GetArray() response.Common {
+//	db := global.DB.Model(&model.Organization{})
+//	// 顺序：where -> count -> Order -> limit -> offset -> data
+//
+//	//where
+//	if d.SuperiorSnowID > 0 {
+//		db = db.Where("superior_id = ?", d.SuperiorSnowID)
+//	}
+//
+//	if d.Name != "" {
+//		db = db.Where("name = ?", d.Name)
+//	}
+//
+//	if d.NameInclude != "" {
+//		db = db.Where("name like ?", "%"+d.NameInclude+"%")
+//	}
+//
+//	//if d.IsShowedByRole {
+//	//	biggestRoleName := util.GetBiggestRoleName(d.UserSnowID)
+//	//	if biggestRoleName == "事业部级" {
+//	//		businessDivisionIDs := util.GetBusinessDivisionIDs(d.UserSnowID)
+//	//		db = db.Where("superior_id in ?", businessDivisionIDs)
+//	//	} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
+//	//		departmentIDs := util.GetDepartmentIDsOld(d.UserSnowID)
+//	//		db = db.Where("id in ?", departmentIDs)
+//	//	}
+//	//}
+//
+//	// count
+//	var count int64
+//	db.Count(&count)
+//
+//	//Order
+//	orderBy := d.SortingInput.OrderBy
+//	desc := d.SortingInput.Desc
+//	//如果排序字段为空
+//	if orderBy == "" {
+//		//如果要求降序排列
+//		if desc == true {
+//			db = db.Order("id desc")
+//		}
+//	} else { //如果有排序字段
+//		//先看排序字段是否存在于表中
+//		exists := util.FieldIsInModel(&model.Organization{}, orderBy)
+//		if !exists {
+//			return response.Failure(util.ErrorSortingFieldDoesNotExist)
+//		}
+//		//如果要求降序排列
+//		if desc == true {
+//			db = db.Order(orderBy + " desc")
+//		} else { //如果没有要求排序方式
+//			db = db.Order(orderBy)
+//		}
+//	}
+//
+//	//limit
+//	page := 1
+//	if d.PagingInput.Page > 0 {
+//		page = d.PagingInput.Page
+//	}
+//	pageSize := global.Config.DefaultPageSize
+//	if d.PagingInput.PageSize != nil && *d.PagingInput.PageSize >= 0 &&
+//		*d.PagingInput.PageSize <= global.Config.MaxPageSize {
+//		pageSize = *d.PagingInput.PageSize
+//	}
+//	db = db.Limit(pageSize)
+//
+//	//offset
+//	offset := (page - 1) * pageSize
+//	db = db.Offset(offset)
+//
+//	//array
+//	var array []string
+//	db.Model(&model.DictionaryType{}).Select("name").Find(&array)
+//
+//	if len(array) == 0 {
+//		return response.Failure(util.ErrorRecordNotFound)
+//	}
+//
+//	return response.Common{
+//		Data:    array,
+//		Code:    util.Success,
+//		Message: util.GetMessage(util.Success),
+//	}
+//}
 
 func (d *OrganizationGetList) GetList() response.List {
 	db := global.DB.Model(&model.Organization{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if d.SuperiorID > 0 {
-		db = db.Where("superior_id = ?", d.SuperiorID)
+	if d.SuperiorSnowID > 0 {
+		db = db.Where("superior_id = ?", d.SuperiorSnowID)
 	}
 
 	if d.Name != "" {
@@ -340,7 +336,7 @@ func (d *OrganizationGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &dto.PagingOutput{
+		Paging: &PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

@@ -8,15 +8,15 @@ import (
 type Project struct {
 	BasicModel
 	//连接其他表的id
-	OrganizationSnowID *uint64 //见organization
-	RelatedPartySnowID *uint64 //见related_party
+	OrganizationSnowID *int64 //见organization
+	RelatedPartySnowID *int64 //见related_party
 	//连接dictionary_item表的id
-	Country      *int
-	Type         *int
-	DetailedType *int //细分的项目类型
-	Currency     *int
-	Status       *int
-	OurSignatory *int //我方签约主体
+	Country      *int64
+	Type         *int64
+	DetailedType *int64 //细分的项目类型
+	Currency     *int64
+	Status       *int64
+	OurSignatory *int64 //我方签约主体
 	//日期
 	SigningDate       *time.Time `gorm:"type:date"` //签约日期
 	EffectiveDate     *time.Time `gorm:"type:date"` //生效日期
@@ -44,21 +44,21 @@ func (d *Project) BeforeDelete(tx *gorm.DB) error {
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var records []Disassembly
-	err = tx.Where("project_id = ?", d.ID).
+	err = tx.Where(&Disassembly{ProjectSnowID: &d.SnowID}).
 		Find(&records).Delete(&records).Error
 	if err != nil {
 		return err
 	}
 
 	var records1 []Contract
-	err = tx.Where("project_id = ?", d.ID).
+	err = tx.Where(&Disassembly{ProjectSnowID: &d.SnowID}).
 		Find(&records1).Delete(&records1).Error
 	if err != nil {
 		return err
 	}
 
 	var records2 []IncomeAndExpenditure
-	err = tx.Where("project_id = ?", d.ID).
+	err = tx.Where(&Disassembly{ProjectSnowID: &d.SnowID}).
 		Find(&records2).Delete(&records2).Error
 	if err != nil {
 		return err

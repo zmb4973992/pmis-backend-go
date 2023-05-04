@@ -17,7 +17,7 @@ type operationLog struct{}
 func (o *operationLog) Get(c *gin.Context) {
 	var param service.OperationLogGet
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("operation-log-id"))
+	param.SnowID, err = strconv.ParseInt(c.Param("operation-log-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -32,7 +32,7 @@ func (o *operationLog) Get(c *gin.Context) {
 func (o *operationLog) Delete(c *gin.Context) {
 	var param service.OperationLogDelete
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("operation-log-id"))
+	param.SnowID, err = strconv.ParseInt(c.Param("operation-log-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,

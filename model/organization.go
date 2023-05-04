@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/yitter/idgenerator-go/idgen"
 	"gorm.io/gorm"
 	"pmis-backend-go/global"
 )
@@ -14,7 +15,7 @@ type Organization struct {
 	//日期，暂无
 
 	//数字(允许为0、nil)
-	SuperiorSnowID *uint64 //上级机构SnowID，引用自身
+	SuperiorSnowID *int64 //上级机构SnowID，引用自身
 	//数字(不允许为0、nil，必须有值)
 	Sequence int //部门在当前层级下的顺序
 	//字符串(允许为nil)
@@ -25,15 +26,15 @@ type Organization struct {
 }
 
 // TableName 修改表名
-func (*Organization) TableName() string {
+func (o *Organization) TableName() string {
 	return "organization"
 }
 
-func (d *Organization) BeforeDelete(tx *gorm.DB) error {
+func (o *Organization) BeforeDelete(tx *gorm.DB) error {
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var records []OrganizationAndUser
-	err = tx.Where("organization_id = ?", d.ID).
+	err = tx.Where(&OrganizationAndUser{OrganizationSnowID: o.SnowID}).
 		Find(&records).Delete(&records).Error
 	if err != nil {
 		return err
@@ -68,7 +69,10 @@ func generateOrganizations() error {
 		{Name: "国内企业管理部", Sequence: 23},
 	}
 	for _, organization := range organizations {
-		err := global.DB.FirstOrCreate(&Organization{}, organization).Error
+		err = global.DB.Where(&Organization{Name: organization.Name}).
+			Where(&Organization{Sequence: organization.Sequence}).
+			Attrs(&Organization{BasicModel: BasicModel{SnowID: idgen.NextId()}}).
+			FirstOrCreate(&organization).Error
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
 			return err

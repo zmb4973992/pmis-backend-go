@@ -5,12 +5,12 @@ import "time"
 type IncomeAndExpenditure struct {
 	BasicModel
 	//连接其他表的id
-	ProjectSnowID  *uint64 //项目SnowID
-	ContractSnowID *uint64 //合同SnowID
+	ProjectSnowID  *int64 //项目SnowID
+	ContractSnowID *int64 //合同SnowID
 	//连接dictionary_item表的id
-	FundDirection *int //资金方向(收款、付款)
-	Currency      *int //币种
-	Kind          *int //款项种类(计划、实际、预测等)
+	FundDirection *int64 //资金方向(收款、付款)
+	Currency      *int64 //币种
+	Kind          *int64 //款项种类(计划、实际、预测等)
 	//日期
 	Date *time.Time `gorm:"type:date"`
 	//数字

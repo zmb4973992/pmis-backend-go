@@ -68,31 +68,31 @@ func updateUser() {
 					strings.Contains(DN, "公司专务") ||
 					strings.Contains(DN, "公司总监") {
 					//创建角色
-					var roleID int
+					var roleSnowID int64
 					global.DB.Model(&model.Role{}).Where("name = ?", "公司级").
-						Select("id").First(&roleID)
+						Select("id").First(&roleSnowID)
 					var roleAndUser model.UserAndRole
 					roleAndUser.UserSnowID = user.ID
-					roleAndUser.RoleSnowID = roleID
-					global.DB.Where("role_id = ?", roleID).
+					roleAndUser.RoleSnowID = roleSnowID
+					global.DB.Where("role_id = ?", roleSnowID).
 						Where("user_id = ?", user.ID).
 						FirstOrCreate(&roleAndUser)
 
 					//创建部门
-					var departmentID int
+					var organizationID int64
 					global.DB.Model(&model.Organization{}).Where("name = ?", "北京公司").
-						Select("id").First(&departmentID)
+						Select("id").First(&organizationID)
 					var departmentAndUser model.OrganizationAndUser
-					departmentAndUser.UserSnowID = &user.ID
-					departmentAndUser.OrganizationSnowID = &departmentID
+					departmentAndUser.UserSnowID = user.ID
+					departmentAndUser.OrganizationSnowID = organizationID
 					global.DB.Model(&model.OrganizationAndUser{}).
-						Where("department_id = ?", departmentID).
+						Where("department_id = ?", organizationID).
 						Where("user_id = ?", user.ID).
 						FirstOrCreate(&departmentAndUser)
 					//给事业部领导
 				} else if strings.Contains(DN, "事业部管理委员会和水泥工程事业部") {
 					//创建角色
-					var roleID int
+					var roleID int64
 					global.DB.Model(&model.Role{}).Where("name = ?", "事业部级").
 						Select("id").First(&roleID)
 					var roleAndUser model.UserAndRole
@@ -103,19 +103,19 @@ func updateUser() {
 						FirstOrCreate(&roleAndUser)
 
 					//创建部门
-					var departmentID int
+					var departmentID int64
 					global.DB.Model(&model.Organization{}).Where("name = ?", "水泥工程事业部").
 						Select("id").First(&departmentID)
 					var departmentAndUser model.OrganizationAndUser
-					departmentAndUser.UserSnowID = &user.ID
-					departmentAndUser.OrganizationSnowID = &departmentID
+					departmentAndUser.UserSnowID = user.ID
+					departmentAndUser.OrganizationSnowID = departmentID
 					global.DB.Model(&model.OrganizationAndUser{}).
 						Where("department_id = ?", departmentID).
 						Where("user_id = ?", user.ID).
 						FirstOrCreate(&departmentAndUser)
 				} else {
 					//创建角色
-					var roleID int
+					var roleID int64
 					global.DB.Model(&model.Role{}).Where("name = ?", "部门级").
 						Select("id").First(&roleID)
 					var roleAndUser model.UserAndRole
@@ -126,12 +126,12 @@ func updateUser() {
 						FirstOrCreate(&roleAndUser)
 
 					//创建部门
-					var departmentID int
+					var departmentID int64
 					global.DB.Model(&model.Organization{}).Where("name = ?", permittedOUs[j]).
 						Select("id").First(&departmentID)
 					var departmentAndUser model.OrganizationAndUser
-					departmentAndUser.UserSnowID = &user.ID
-					departmentAndUser.OrganizationSnowID = &departmentID
+					departmentAndUser.UserSnowID = user.ID
+					departmentAndUser.OrganizationSnowID = departmentID
 					global.DB.Model(&model.OrganizationAndUser{}).
 						Where("department_id = ?", departmentID).
 						Where("user_id = ?", user.ID).

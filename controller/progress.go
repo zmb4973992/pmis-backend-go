@@ -15,7 +15,7 @@ type progress struct{}
 func (p *progress) Get(c *gin.Context) {
 	var param service.ProgressGet
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("progress-id"))
+	param.SnowID, err = strconv.ParseInt(c.Param("progress-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -39,7 +39,7 @@ func (p *progress) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userID, exists := util.GetUserSnowID(c)
 	if exists {
 		param.Creator = userID
 		param.LastModifier = userID
@@ -60,7 +60,7 @@ func (p *progress) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.ID, err = strconv.Atoi(c.Param("progress-id"))
+	param.SnowID, err = strconv.ParseInt(c.Param("progress-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -69,7 +69,7 @@ func (p *progress) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userID, exists := util.GetUserSnowID(c)
 	if exists {
 		param.LastModifier = userID
 	}
@@ -82,7 +82,7 @@ func (p *progress) Update(c *gin.Context) {
 func (p *progress) Delete(c *gin.Context) {
 	var param service.ProgressDelete
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("progress-id"))
+	param.SnowID, err = strconv.ParseInt(c.Param("progress-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,

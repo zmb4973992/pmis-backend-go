@@ -2,7 +2,7 @@ package model
 
 type Menu struct {
 	BasicModel
-	SuperiorSnowID *uint64
+	SuperiorSnowID *int64
 	RoutePath      *string //路由访问路径
 	Group          string
 	Name           string  //名称

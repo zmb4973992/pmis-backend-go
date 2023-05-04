@@ -4,8 +4,8 @@ package model
 // 此表用来定义一个组织可以查看哪些组织的数据
 type RoleAndOrganizationForDataScope struct {
 	BasicModel
-	RoleSnowID                     *uint64
-	OrganizationSnowIDForDataScope *uint64 //等同于组织SnowID，用来定义可以查看哪些组织的数据
+	RoleSnowID         *int64 `gorm:"nut null;"`
+	OrganizationSnowID *int64 `gorm:"nut null;"` //等同于组织SnowID，用来定义可以查看哪些组织的数据
 }
 
 // TableName 修改表名

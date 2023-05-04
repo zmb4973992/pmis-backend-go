@@ -1,7 +1,6 @@
 package service
 
 import (
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
@@ -17,40 +16,40 @@ import (
 //如果指针字段没传，那么数据库不会修改该字段
 
 type OperationLogGet struct {
-	ID int
+	SnowID int64
 }
 
 type OperationLogDelete struct {
-	ID int
+	SnowID int64
 }
 
 type OperationLogGetList struct {
-	dto.ListInput
-	UserID int `json:"user_id,omitempty"`
+	ListInput
+	UserSnowID int64 `json:"user_snow_id,omitempty"`
 }
 
 //以下为出参
 
 type OperationLogOutput struct {
-	Creator      *int       `json:"creator" gorm:"creator"`
-	LastModifier *int       `json:"last_modifier" gorm:"last_modifier"`
-	ID           int        `json:"id" gorm:"id"`
-	UserID       *int       `json:"user_id" gorm:"user_id"`             //操作人id
-	IP           *string    `json:"ip" gorm:"ip"`                       //IP
-	Location     *string    `json:"location" gorm:"location"`           //所在地
-	Method       *string    `json:"method" gorm:"method"`               //请求方式
-	Path         *string    `json:"path" gorm:"path"`                   //请求路径
-	Remarks      *string    `json:"remarks" gorm:"remarks"`             //备注
-	ResponseCode *int       `json:"response_code" gorm:"response_code"` //响应码
-	StartTime    *time.Time `json:"start_time" gorm:"start_time"`       //发起时间
-	TimeElapsed  *int       `json:"time_elapsed" gorm:"time_elapsed"`   //处理耗时（毫秒）
-	UserAgent    *string    `json:"user_agent" gorm:"user_agent"`       //浏览器标识
+	Creator      *int64     `json:"creator"`
+	LastModifier *int64     `json:"last_modifier"`
+	SnowID       int64      `json:"snow_id"`
+	UserSnowID   *int64     `json:"user_snow_id"`  //操作人id
+	IP           *string    `json:"ip"`            //IP
+	Location     *string    `json:"location"`      //所在地
+	Method       *string    `json:"method"`        //请求方式
+	Path         *string    `json:"path"`          //请求路径
+	Remarks      *string    `json:"remarks"`       //备注
+	ResponseCode *int       `json:"response_code"` //响应码
+	StartTime    *time.Time `json:"start_time"`    //发起时间
+	TimeElapsed  *int       `json:"time_elapsed"`  //处理耗时（毫秒）
+	UserAgent    *string    `json:"user_agent"`    //浏览器标识
 }
 
 func (o *OperationLogGet) Get() response.Common {
 	var result OperationLogOutput
 	err := global.DB.Model(model.OperationLog{}).
-		Where("id = ?", o.ID).First(&result).Error
+		Where("id = ?", o.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -61,8 +60,8 @@ func (o *OperationLogGet) Get() response.Common {
 func (o *OperationLogDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.OperationLog
-	global.DB.Where("id = ?", o.ID).Find(&record)
-	err := global.DB.Where("id = ?", o.ID).Delete(&record).Error
+	global.DB.Where("id = ?", o.SnowID).Find(&record)
+	err := global.DB.Where("id = ?", o.SnowID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -76,8 +75,8 @@ func (o *OperationLogGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if o.UserID > 0 {
-		db = db.Where("user_id = ?", o.UserID)
+	if o.UserSnowID > 0 {
+		db = db.Where("user_id = ?", o.UserSnowID)
 	}
 
 	// count
@@ -138,7 +137,7 @@ func (o *OperationLogGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &dto.PagingOutput{
+		Paging: &PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

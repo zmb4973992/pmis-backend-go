@@ -1,7 +1,6 @@
 package service
 
 import (
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
@@ -12,12 +11,12 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type RoleGet struct {
-	ID int
+	SnowID int64
 }
 
 type RoleCreate struct {
-	Creator      int
-	LastModifier int
+	Creator      int64
+	LastModifier int64
 	//连接关联表的id
 
 	//连接dictionary_item表的id
@@ -25,7 +24,7 @@ type RoleCreate struct {
 	//日期
 
 	//数字(允许为0、nil)
-	SuperiorID *int `json:"superior_id"`
+	SuperiorSnowID *int64 `json:"superior_snow_id"`
 
 	Name string `json:"name" binding:"required"`
 }
@@ -35,8 +34,8 @@ type RoleCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type RoleUpdate struct {
-	LastModifier int
-	ID           int
+	LastModifier int64
+	SnowID       int64
 	//连接关联表的id
 
 	//连接dictionary_item表的id
@@ -44,26 +43,26 @@ type RoleUpdate struct {
 	//日期
 
 	//允许为0的数字
-	SuperiorID *int `json:"superior_id"`
+	SuperiorSnowID *int64 `json:"superior_snow_id"`
 
 	//允许为null的字符串
 	Name *string `json:"name"`
 }
 
 type RoleDelete struct {
-	ID int
+	SnowID int64
 }
 
 type RoleGetList struct {
-	dto.ListInput
+	ListInput
 }
 
 //以下为出参
 
 type RoleOutput struct {
-	Creator      *int `json:"creator"`
-	LastModifier *int `json:"last_modifier"`
-	ID           int  `json:"id"`
+	Creator      *int64 `json:"creator"`
+	LastModifier *int64 `json:"last_modifier"`
+	SnowID       int64  `json:"id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
 
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
@@ -74,13 +73,13 @@ type RoleOutput struct {
 
 	//其他属性
 	Name       *string `json:"name"`
-	SuperiorID *int    `json:"superior_id"`
+	SuperiorID *int64  `json:"superior_id"`
 }
 
 func (r *RoleGet) Get() response.Common {
 	var result RoleOutput
 	err := global.DB.Model(model.Role{}).
-		Where("id = ?", r.ID).First(&result).Error
+		Where("id = ?", r.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -101,8 +100,8 @@ func (r *RoleCreate) Create() response.Common {
 
 	//允许为0的数字
 	{
-		if r.SuperiorID != nil {
-			paramOut.SuperiorSnowID = r.SuperiorID
+		if r.SuperiorSnowID != nil {
+			paramOut.SuperiorSnowID = r.SuperiorSnowID
 		}
 	}
 
@@ -142,9 +141,9 @@ func (r *RoleUpdate) Update() response.Common {
 
 	//允许为0的数字
 	{
-		if r.SuperiorID != nil {
-			if *r.SuperiorID != -1 {
-				paramOut["superior_id"] = r.SuperiorID
+		if r.SuperiorSnowID != nil {
+			if *r.SuperiorSnowID != -1 {
+				paramOut["superior_id"] = r.SuperiorSnowID
 			} else {
 				paramOut["superior_id"] = nil
 			}
@@ -170,7 +169,7 @@ func (r *RoleUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.Role{}).Where("id = ?", r.ID).
+	err := global.DB.Model(&model.Role{}).Where("id = ?", r.SnowID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -183,8 +182,8 @@ func (r *RoleUpdate) Update() response.Common {
 func (r *RoleDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Role
-	global.DB.Where("id = ?", r.ID).Find(&record)
-	err := global.DB.Where("id = ?", r.ID).Delete(&record).Error
+	global.DB.Where("id = ?", r.SnowID).Find(&record)
+	err := global.DB.Where("id = ?", r.SnowID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -258,7 +257,7 @@ func (r *RoleGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &dto.PagingOutput{
+		Paging: &PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

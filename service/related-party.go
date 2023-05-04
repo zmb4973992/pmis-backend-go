@@ -1,7 +1,6 @@
 package service
 
 import (
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
@@ -12,12 +11,12 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type RelatedPartyGet struct {
-	ID int
+	SnowID int64
 }
 
 type RelatedPartyCreate struct {
-	Creator      int
-	LastModifier int
+	Creator      int64
+	LastModifier int64
 
 	ChineseName             string `json:"chinese_name,omitempty"`
 	EnglishName             string `json:"english_name,omitempty"`
@@ -31,8 +30,8 @@ type RelatedPartyCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type RelatedPartyUpdate struct {
-	LastModifier int
-	ID           int
+	LastModifier int64
+	SnowID       int64
 
 	ChineseName             *string `json:"chinese_name"`
 	EnglishName             *string `json:"english_name"`
@@ -42,11 +41,11 @@ type RelatedPartyUpdate struct {
 }
 
 type RelatedPartyDelete struct {
-	ID int
+	SnowID int64
 }
 
 type RelatedPartyGetList struct {
-	dto.ListInput
+	ListInput
 
 	ChineseNameInclude string `json:"chinese_name_include,omitempty"`
 	EnglishNameInclude string `json:"english_name_include,omitempty"`
@@ -55,21 +54,21 @@ type RelatedPartyGetList struct {
 //以下为出参
 
 type RelatedPartyOutput struct {
-	Creator      *int `json:"creator" gorm:"creator"`
-	LastModifier *int `json:"last_modifier" gorm:"last_modifier"`
-	ID           int  `json:"id" gorm:"id"`
+	Creator      *int64 `json:"creator"`
+	LastModifier *int64 `json:"last_modifier"`
+	SnowID       int64  `json:"snow_id"`
 
-	ChineseName             *string `json:"chinese_name" gorm:"chinese_name"`
-	EnglishName             *string `json:"english_name" gorm:"english_name"`
-	Address                 *string `json:"address" gorm:"address"`
-	UniformSocialCreditCode *string `json:"uniform_social_credit_code" gorm:"uniform_social_credit_code"` //统一社会信用代码
-	Telephone               *string `json:"telephone" gorm:"telephone"`
+	ChineseName             *string `json:"chinese_name"`
+	EnglishName             *string `json:"english_name"`
+	Address                 *string `json:"address"`
+	UniformSocialCreditCode *string `json:"uniform_social_credit_code"` //统一社会信用代码
+	Telephone               *string `json:"telephone"`
 }
 
 func (r *RelatedPartyGet) Get() response.Common {
 	var result RelatedPartyOutput
 	err := global.DB.Model(&model.RelatedParty{}).
-		Where("id = ?", r.ID).First(&result).Error
+		Where("id = ?", r.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -181,7 +180,7 @@ func (r *RelatedPartyUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.RelatedParty{}).Where("id = ?", r.ID).
+	err := global.DB.Model(&model.RelatedParty{}).Where("id = ?", r.SnowID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -194,8 +193,8 @@ func (r *RelatedPartyUpdate) Update() response.Common {
 func (r *RelatedPartyDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.RelatedParty
-	global.DB.Where("id = ?", r.ID).Find(&record)
-	err := global.DB.Where("id = ?", r.ID).Delete(&record).Error
+	global.DB.Where("id = ?", r.SnowID).Find(&record)
+	err := global.DB.Where("id = ?", r.SnowID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -275,7 +274,7 @@ func (r *RelatedPartyGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &dto.PagingOutput{
+		Paging: &PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

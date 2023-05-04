@@ -31,7 +31,7 @@ func SendEmail(to string, subject string, body string) error {
 	return nil
 }
 
-// SendEmail2 使用gomail库，测试通过
+// SendEmail2 使用goMail库，测试通过
 func SendEmail2(to string, subject string, body string) error {
 	m := gomail.NewMessage()
 	m.SetHeader("From", "19725912@qq.com")

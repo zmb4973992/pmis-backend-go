@@ -10,8 +10,8 @@ import (
 )
 
 // UpdateProgressOfSuperiors 给定拆解id、进度类型，计算所有上级的进度
-func UpdateProgressOfSuperiors(disassemblyID int, progressType int) (err error) {
-	superiorIDs := getSuperiorIDs(disassemblyID)
+func UpdateProgressOfSuperiors(disassemblySnowID int64, progressType int) (err error) {
+	superiorIDs := getSuperiorSnowIDs(disassemblySnowID)
 
 	for i := range superiorIDs {
 		err = UpdateSelfProgress(superiorIDs[i], progressType)
@@ -23,7 +23,7 @@ func UpdateProgressOfSuperiors(disassemblyID int, progressType int) (err error) 
 }
 
 // UpdateSelfProgress 给定拆解id、进度类型，计算自身的进度
-func UpdateSelfProgress(disassemblyID int, progressType int) (err error) {
+func UpdateSelfProgress(disassemblySnowID int64, progressType int) (err error) {
 	//找到"系统计算"的字典值
 	var dataSource int
 	err = global.DB.Model(&model.DictionaryDetail{}).
@@ -33,14 +33,14 @@ func UpdateSelfProgress(disassemblyID int, progressType int) (err error) {
 	}
 
 	//删除相关进度,防止产生重复数据
-	global.DB.Where("disassembly_id = ?", disassemblyID).
+	global.DB.Where("disassembly_id = ?", disassemblySnowID).
 		Where("data_source = ?", dataSource).
 		Where("type = ?", progressType).
 		Delete(&model.Progress{})
 
 	//获取下级拆解情况
 	var subDisassembly []model.Disassembly
-	err = global.DB.Where("superior_id = ?", disassemblyID).
+	err = global.DB.Where("superior_id = ?", disassemblySnowID).
 		Find(&subDisassembly).Error
 	if err != nil {
 		return err
@@ -75,7 +75,7 @@ func UpdateSelfProgress(disassemblyID int, progressType int) (err error) {
 			return err1
 		}
 
-		err = updateSelfProgress1(disassemblyID, date, progressType)
+		err = updateSelfProgress1(disassemblySnowID, date, progressType)
 		if err != nil {
 			return err
 		}
@@ -84,16 +84,16 @@ func UpdateSelfProgress(disassemblyID int, progressType int) (err error) {
 }
 
 // 给定拆解id、日期、进度类型，计算自身的进度
-func updateSelfProgress1(disassemblyID int, date time.Time, progressType int) (err error) {
+func updateSelfProgress1(disassemblySnowID int64, date time.Time, progressType int) (err error) {
 	//删除相关进度,防止产生重复数据
-	global.DB.Where("disassembly_id = ?", disassemblyID).
+	global.DB.Where("disassembly_id = ?", disassemblySnowID).
 		Where("date = ?", date).
 		Where("type = ?", progressType).
 		Delete(&model.Progress{})
 
 	//获取下级拆解情况
 	var subDisassembly []model.Disassembly
-	err = global.DB.Where("superior_id = ?", disassemblyID).
+	err = global.DB.Where("superior_id = ?", disassemblySnowID).
 		Find(&subDisassembly).Error
 	if err != nil {
 		return err
@@ -141,7 +141,7 @@ func updateSelfProgress1(disassemblyID int, date time.Time, progressType int) (e
 	}
 
 	var progress = model.Progress{
-		DisassemblySnowID: &disassemblyID,
+		DisassemblySnowID: &disassemblySnowID,
 		Date:              &date,
 		Type:              &progressType,
 		Value:             &sumOfProgress,

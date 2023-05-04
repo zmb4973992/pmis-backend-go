@@ -37,7 +37,7 @@ func Login(c *gin.Context) {
 func (u *user) Get(c *gin.Context) {
 	var param service.UserGet
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("user-id"))
+	param.SnowID, err = strconv.ParseInt(c.Param("user-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -60,7 +60,7 @@ func (u *user) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userID, exists := util.GetUserSnowID(c)
 	if exists {
 		param.Creator = userID
 		param.LastModifier = userID
@@ -81,7 +81,7 @@ func (u *user) Update(c *gin.Context) {
 		return
 	}
 
-	param.ID, err = strconv.Atoi(c.Param("user-id"))
+	param.SnowID, err = strconv.ParseInt(c.Param("user-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -90,7 +90,7 @@ func (u *user) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userID, exists := util.GetUserSnowID(c)
 	if exists {
 		param.LastModifier = userID
 	}
@@ -103,7 +103,7 @@ func (u *user) Update(c *gin.Context) {
 func (u *user) Delete(c *gin.Context) {
 	var param service.UserDelete
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("user-id"))
+	param.SnowID, err = strconv.ParseInt(c.Param("user-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -136,15 +136,13 @@ func (u *user) List(c *gin.Context) {
 
 func (u *user) GetByToken(c *gin.Context) {
 	var param service.UserGet
-	//通过中间件，设定header必须带有token才能访问
-	//header里有token后，中间件会自动在context里添加user_id属性，详见自定义的中间件
-	tempUserID, exists := c.Get("user_id")
+	userSnowID, exists := util.GetUserSnowID(c)
 	if !exists {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorAccessTokenInvalid))
 		return
 	}
-	param.ID = tempUserID.(int)
+	param.SnowID = userSnowID
 	res := param.Get()
 	c.JSON(http.StatusOK, res)
 	return

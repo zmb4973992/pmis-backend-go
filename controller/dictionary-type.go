@@ -18,7 +18,7 @@ type dictionaryType struct {
 func (d *dictionaryType) Get(c *gin.Context) {
 	var param = service.DictionaryTypeGet{}
 	var err error
-	param.SnowID, err = strconv.Atoi(c.Param("dictionary-type-id"))
+	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-type-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -41,7 +41,7 @@ func (d *dictionaryType) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userID, exists := util.GetUserSnowID(c)
 	if exists {
 		param.Creator = userID
 		param.LastModifier = userID
@@ -63,10 +63,9 @@ func (d *dictionaryType) CreateInBatches(c *gin.Context) {
 		return
 	}
 
-	//处理creator、lastModifier字段
-	tempUserID, _ := c.Get("user_id")
-	if tempUserID != nil {
-		userID := tempUserID.(int)
+	//处理creator、last_modifier字段
+	userID, exists := util.GetUserSnowID(c)
+	if exists {
 		for i := range param.Data {
 			param.Data[i].Creator = userID
 			param.Data[i].LastModifier = userID
@@ -88,7 +87,7 @@ func (d *dictionaryType) Update(c *gin.Context) {
 		return
 	}
 
-	param.SnowID, err = strconv.Atoi(c.Param("dictionary-type-id"))
+	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-type-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -97,7 +96,7 @@ func (d *dictionaryType) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userID, exists := util.GetUserSnowID(c)
 	if exists {
 		param.LastModifier = userID
 	}
@@ -110,7 +109,7 @@ func (d *dictionaryType) Update(c *gin.Context) {
 func (d *dictionaryType) Delete(c *gin.Context) {
 	var param service.DictionaryTypeDelete
 	var err error
-	param.SnowID, err = strconv.Atoi(c.Param("dictionary-type-id"))
+	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-type-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,

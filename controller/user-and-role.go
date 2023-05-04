@@ -22,7 +22,7 @@ func (u *userAndRole) UpdateByRoleID(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.RoleID, err = strconv.Atoi(c.Param("role-id"))
+	param.RoleSnowID, err = strconv.ParseInt(c.Param("role-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -31,7 +31,7 @@ func (u *userAndRole) UpdateByRoleID(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userID, exists := util.GetUserSnowID(c)
 	if exists {
 		param.Creator = userID
 		param.LastModifier = userID
@@ -52,7 +52,7 @@ func (u *userAndRole) UpdateByUserID(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.UserID, err = strconv.Atoi(c.Param("user-id"))
+	param.UserSnowID, err = strconv.ParseInt(c.Param("user-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -61,7 +61,7 @@ func (u *userAndRole) UpdateByUserID(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userID, exists := util.GetUserSnowID(c)
 	if exists {
 		param.Creator = userID
 		param.LastModifier = userID

@@ -5,14 +5,14 @@ import "time"
 type Contract struct {
 	BasicModel
 	//连接其他表的id
-	ProjectSnowID      *uint64 //项目snowID
-	OrganizationSnowID *uint64 //组织snowID
-	RelatedPartySnowID *uint64 //相关方snowID
+	ProjectSnowID      *int64 //项目snowID
+	OrganizationSnowID *int64 //组织snowID
+	RelatedPartySnowID *int64 //相关方snowID
 	//连接dictionary_item表的id
-	FundDirection *int //资金方向
-	OurSignatory  *int //我方签约主体
-	Currency      *int //币种
-	Type          *int //类型(总包、采购、结算单等)
+	FundDirection *int64 //资金方向
+	OurSignatory  *int64 //我方签约主体
+	Currency      *int64 //币种
+	Type          *int64 //类型(总包、采购、结算单等)
 	//日期
 	SigningDate       *time.Time `gorm:"type:date"` //签约日期
 	EffectiveDate     *time.Time `gorm:"type:date"` //生效日期

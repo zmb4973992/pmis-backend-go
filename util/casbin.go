@@ -7,23 +7,6 @@ import (
 	"time"
 )
 
-// 待删
-func NewEnforcer() (enforcer *casbin.Enforcer, err error) {
-	adapter, err := gormAdapter.NewAdapterByDB(global.DB)
-	if err != nil {
-		return nil, err
-	}
-	enforcer, err = casbin.NewEnforcer("./config/casbin-model.conf", adapter)
-	if err != nil {
-		return nil, err
-	}
-	err = enforcer.LoadPolicy()
-	if err != nil {
-		return nil, err
-	}
-	return enforcer, nil
-}
-
 func NewCachedEnforcer() (cachedEnforcer *casbin.CachedEnforcer, err error) {
 	adapter, err := gormAdapter.NewAdapterByDB(global.DB)
 	if err != nil {

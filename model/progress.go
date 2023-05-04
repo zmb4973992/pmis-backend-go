@@ -7,11 +7,11 @@ import (
 
 type Progress struct {
 	BasicModel
-	DisassemblySnowID *uint64    //拆解情况SnowID
+	DisassemblySnowID *int64     //拆解情况SnowID
 	Date              *time.Time `gorm:"type:date"`
 	Type              *int
 	Value             *float64
-	DataSource        *int
+	DataSource        *int64
 	Remarks           *string
 
 	//PlannedProgress             *float64 //初始计划进度

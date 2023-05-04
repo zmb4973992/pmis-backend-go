@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
+	"pmis-backend-go/util"
 	"time"
 )
 
@@ -30,9 +31,9 @@ func OperationLog() gin.HandlerFunc {
 		var operationLog model.OperationLog
 
 		//处理creator、lastModifier、userID字段
-		tempUserID1, exists := c.Get("user_id")
+		tempUserID1, exists := util.GetUserSnowID(c)
 		if exists {
-			tempUserID2 := tempUserID1.(int)
+			tempUserID2 := tempUserID1
 			operationLog.UserSnowID = &tempUserID2
 			operationLog.Creator = &tempUserID2
 			operationLog.LastModifier = &tempUserID2

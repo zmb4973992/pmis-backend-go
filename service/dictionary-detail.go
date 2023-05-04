@@ -1,7 +1,6 @@
 package service
 
 import (
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
@@ -9,13 +8,13 @@ import (
 )
 
 type DictionaryDetailGet struct {
-	SnowID uint64
+	SnowID int64
 }
 
 type DictionaryDetailCreate struct {
-	Creator              int
-	LastModifier         int
-	DictionaryTypeSnowID uint64 `json:"dictionary_type_snow_id" binding:"required,gt=0"` //字典类型id
+	Creator              int64
+	LastModifier         int64
+	DictionaryTypeSnowID int64  `json:"dictionary_type_snow_id" binding:"required,gt=0"` //字典类型id
 	Name                 string `json:"name" binding:"required"`                         //名称
 	Sequence             int    `json:"sequence,omitempty"`                              //顺序值
 	Remarks              string `json:"remarks,omitempty"`                               //备注
@@ -30,36 +29,36 @@ type DictionaryDetailCreateInBatches struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type DictionaryDetailUpdate struct {
-	LastModifier int
-	SnowID       uint64
+	LastModifier int64
+	SnowID       int64
 	Name         *string `json:"name"`     //名称
 	Sequence     *int    `json:"sequence"` //顺序值
 	Remarks      *string `json:"remarks"`  //备注
 }
 
 type DictionaryDetailDelete struct {
-	SnowID uint64
+	SnowID int64
 }
 
 type DictionaryDetailGetArray struct {
-	dto.ListInput
-	DictionaryTypeSnowID uint64 `json:"dictionary_type_snow_id,omitempty"`
+	ListInput
+	DictionaryTypeSnowID int64  `json:"dictionary_type_snow_id,omitempty"`
 	DictionaryTypeName   string `json:"dictionary_type_name,omitempty"`
 }
 
 type DictionaryDetailGetList struct {
-	dto.ListInput
-	DictionaryTypeSnowID uint64 `json:"dictionary_type_snow_id,omitempty"`
+	ListInput
+	DictionaryTypeSnowID int64  `json:"dictionary_type_snow_id,omitempty"`
 	DictionaryTypeName   string `json:"dictionary_type_name,omitempty"`
 }
 
 //以下为出参
 
 type DictionaryDetailOutput struct {
-	Creator              *int    `json:"creator"`
-	LastModifier         *int    `json:"last_modifier"`
-	SnowID               uint64  `json:"snow_id"`
-	DictionaryTypeSnowID uint64  `json:"dictionary_type_snow_id"` //字典类型
+	Creator              *int64  `json:"creator"`
+	LastModifier         *int64  `json:"last_modifier"`
+	SnowID               int64   `json:"snow_id"`
+	DictionaryTypeSnowID int64   `json:"dictionary_type_snow_id"` //字典类型
 	Name                 string  `json:"name"`                    //名称
 	Sequence             *int    `json:"sequence"`                //顺序值
 	Remarks              *string `json:"remarks"`                 //备注
@@ -357,7 +356,7 @@ func (d *DictionaryDetailGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &dto.PagingOutput{
+		Paging: &PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

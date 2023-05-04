@@ -1,7 +1,6 @@
 package service
 
 import (
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
@@ -13,12 +12,12 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type ErrorLogGet struct {
-	ID int
+	SnowID int64
 }
 
 type ErrorLogCreate struct {
-	Creator      int
-	LastModifier int
+	Creator      int64
+	LastModifier int64
 
 	Detail        string `json:"detail,omitempty" `
 	Date          string `json:"date,omitempty"`
@@ -32,8 +31,8 @@ type ErrorLogCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type ErrorLogUpdate struct {
-	LastModifier int
-	ID           int
+	LastModifier int64
+	SnowID       int64
 
 	Detail        *string `json:"detail"`
 	Date          *string `json:"date"`
@@ -43,11 +42,11 @@ type ErrorLogUpdate struct {
 }
 
 type ErrorLogDelete struct {
-	ID int
+	SnowID int64
 }
 
 type ErrorLogGetList struct {
-	dto.ListInput
+	ListInput
 
 	DetailInclude string `json:"detail_include,omitempty" `
 	Date          string `json:"date,omitempty"`
@@ -59,21 +58,21 @@ type ErrorLogGetList struct {
 //以下为出参
 
 type ErrorLogOutput struct {
-	Creator      *int `json:"creator" gorm:"creator"`
-	LastModifier *int `json:"last_modifier" gorm:"last_modifier"`
-	ID           int  `json:"id" gorm:"id"`
+	Creator      *int64 `json:"creator"`
+	LastModifier *int64 `json:"last_modifier"`
+	SnowID       int64  `json:"snow_id"`
 
-	Detail        *string `json:"detail" gorm:"detail"`
-	Date          *string `json:"date" gorm:"date"`
-	MajorCategory *string `json:"major_category" gorm:"major_category"`
-	MinorCategory *string `json:"minor_category" gorm:"minor_category"`
-	IsResolved    *bool   `json:"is_resolved" gorm:"is_resolved"`
+	Detail        *string `json:"detail"`
+	Date          *string `json:"date"`
+	MajorCategory *string `json:"major_category"`
+	MinorCategory *string `json:"minor_category"`
+	IsResolved    *bool   `json:"is_resolved"`
 }
 
 func (e *ErrorLogGet) Get() response.Common {
 	var result ErrorLogOutput
 	err := global.DB.Model(model.ErrorLog{}).
-		Where("id = ?", e.ID).First(&result).Error
+		Where("id = ?", e.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -187,7 +186,7 @@ func (e *ErrorLogUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.ErrorLog{}).Where("id = ?", e.ID).
+	err := global.DB.Model(&model.ErrorLog{}).Where("id = ?", e.SnowID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -200,8 +199,8 @@ func (e *ErrorLogUpdate) Update() response.Common {
 func (e *ErrorLogDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.ErrorLog
-	global.DB.Where("id = ?", e.ID).Find(&record)
-	err := global.DB.Where("id = ?", e.ID).Delete(&record).Error
+	global.DB.Where("id = ?", e.SnowID).Find(&record)
+	err := global.DB.Where("id = ?", e.SnowID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -295,7 +294,7 @@ func (e *ErrorLogGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &dto.PagingOutput{
+		Paging: &PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

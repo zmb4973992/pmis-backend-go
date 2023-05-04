@@ -14,9 +14,9 @@ const (
 
 type Role struct {
 	BasicModel
-	Name           string  //角色名称
-	SuperiorSnowID *uint64 //上级角色SnowID
-	DataScopeType  int     //数据范围的类型
+	Name           string //角色名称
+	SuperiorSnowID *int64 //上级角色SnowID
+	DataScopeType  int    //数据范围的类型
 }
 
 // TableName 修改表名
@@ -28,7 +28,7 @@ func (d *Role) BeforeDelete(tx *gorm.DB) error {
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var records []UserAndRole
-	err = tx.Where("role_id = ?", d.ID).
+	err = tx.Where(UserAndRole{RoleSnowID: d.SnowID}).
 		Find(&records).Delete(&records).Error
 	if err != nil {
 		return err

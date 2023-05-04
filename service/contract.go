@@ -1,7 +1,6 @@
 package service
 
 import (
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
@@ -13,16 +12,16 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type ContractGet struct {
-	SnowID uint64
+	SnowID int64
 }
 
 type ContractCreate struct {
-	Creator      int
-	LastModifier int
+	Creator      int64
+	LastModifier int64
 	//连接关联表的id
-	ProjectSnowID      uint64 `json:"project_snow_id,omitempty"`
-	OrganizationSnowID uint64 `json:"organization_snow_id,omitempty"`
-	RelatedPartySnowID uint64 `json:"related_party_snow_id,omitempty"`
+	ProjectSnowID      int64 `json:"project_snow_id,omitempty"`
+	OrganizationSnowID int64 `json:"organization_snow_id,omitempty"`
+	RelatedPartySnowID int64 `json:"related_party_snow_id,omitempty"`
 	//连接dictionary_item表的id
 	FundDirection int `json:"fund_direction,omitempty"`
 	OurSignatory  int `json:"our_signatory,omitempty"`
@@ -52,12 +51,12 @@ type ContractCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type ContractUpdate struct {
-	LastModifier int
-	SnowID       uint64
+	LastModifier int64
+	SnowID       int64
 	//连接关联表的id
-	ProjectSnowID      *uint64 `json:"project_snow_id"`
-	OrganizationSnowID *uint64 `json:"organization_snow_id"`
-	RelatedPartySnowID *uint64 `json:"related_party_snow_id"`
+	ProjectSnowID      *int64 `json:"project_snow_id"`
+	OrganizationSnowID *int64 `json:"organization_snow_id"`
+	RelatedPartySnowID *int64 `json:"related_party_snow_id"`
 	//连接dictionary_item表的id
 	FundDirection *int `json:"fund_direction"`
 	OurSignatory  *int `json:"our_signatory"`
@@ -83,13 +82,13 @@ type ContractUpdate struct {
 }
 
 type ContractDelete struct {
-	SnowID uint64
+	SnowID int64
 }
 
 type ContractGetList struct {
-	dto.ListInput
-	dto.DataScopeInput
-	ProjectSnowID uint64 `json:"project_snow_id,omitempty"`
+	ListInput
+	DataScopeInput
+	ProjectSnowID int64  `json:"project_snow_id,omitempty"`
 	FundDirection int    `json:"fund_direction,omitempty"`
 	NameInclude   string `json:"name_include,omitempty"`
 }
@@ -97,13 +96,13 @@ type ContractGetList struct {
 //以下为出参
 
 type ContractOutput struct {
-	Creator      *int   `json:"creator"`
-	LastModifier *int   `json:"last_modifier"`
-	SnowID       uint64 `json:"snow_id"`
+	Creator      *int64 `json:"creator"`
+	LastModifier *int64 `json:"last_modifier"`
+	SnowID       int64  `json:"snow_id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
-	ProjectSnowID      *uint64 `json:"-"`
-	OrganizationSnowID *uint64 `json:"-"`
-	RelatedPartySnowID *uint64 `json:"-"`
+	ProjectSnowID      *int64 `json:"-"`
+	OrganizationSnowID *int64 `json:"-"`
+	RelatedPartySnowID *int64 `json:"-"`
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
 	FundDirection *int `json:"-"`
 	OurSignatory  *int `json:"-"`
@@ -777,7 +776,7 @@ func (c *ContractGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &dto.PagingOutput{
+		Paging: &PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

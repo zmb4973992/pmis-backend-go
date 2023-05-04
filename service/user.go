@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/mojocn/base64Captcha"
-	"pmis-backend-go/dto"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/response"
@@ -20,12 +19,12 @@ type UserLogin struct {
 }
 
 type UserGet struct {
-	ID int
+	SnowID int64
 }
 
 type UserCreate struct {
-	Creator           int
-	LastModifier      int
+	Creator           int64
+	LastModifier      int64
 	Username          string `json:"username" binding:"required"`
 	Password          string `json:"password" binding:"required"`
 	FullName          string `json:"full_name,omitempty"`           //全名
@@ -40,8 +39,8 @@ type UserCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type UserUpdate struct {
-	LastModifier      int
-	ID                int
+	LastModifier      int64
+	SnowID            int64
 	FullName          *string `json:"full_name"`           //全名
 	EmailAddress      *string `json:"email_address"`       //邮箱地址
 	IsValid           *bool   `json:"is_valid"`            //是否有效
@@ -50,11 +49,11 @@ type UserUpdate struct {
 }
 
 type UserDelete struct {
-	ID int
+	SnowID int64
 }
 
 type UserGetList struct {
-	dto.ListInput
+	ListInput
 	IsValid         *bool  `json:"is_valid"`
 	UsernameInclude string `json:"username_include,omitempty"`
 	RoleID          int    `json:"role_id,omitempty"`
@@ -63,16 +62,16 @@ type UserGetList struct {
 //以下为出参
 
 type UserOutput struct {
-	Creator      *int `json:"creator" gorm:"creator"`
-	LastModifier *int `json:"last_modifier" gorm:"last_modifier"`
-	ID           int  `json:"id" gorm:"id"`
+	Creator      *int64 `json:"creator"`
+	LastModifier *int64 `json:"last_modifier"`
+	SnowID       int64  `json:"snow_id"`
 
-	Username          string  `json:"username" gorm:"username"`                       //用户名
-	FullName          *string `json:"full_name" gorm:"full_name"`                     //全名
-	EmailAddress      *string `json:"email_address" gorm:"email_address"`             //邮箱地址
-	IsValid           *bool   `json:"is_valid" gorm:"is_valid"`                       //是否有效
-	MobilePhoneNumber *string `json:"mobile_phone_number" gorm:"mobile_phone_number"` //手机号
-	EmployeeNumber    *string `json:"employee_number" gorm:"employee_number"`         //工号
+	Username          string  `json:"username"`            //用户名
+	FullName          *string `json:"full_name"`           //全名
+	EmailAddress      *string `json:"email_address"`       //邮箱地址
+	IsValid           *bool   `json:"is_valid"`            //是否有效
+	MobilePhoneNumber *string `json:"mobile_phone_number"` //手机号
+	EmployeeNumber    *string `json:"employee_number"`     //工号
 }
 
 func (u *UserLogin) Verify() bool {
@@ -100,7 +99,7 @@ func (u *UserLogin) Login() response.Common {
 		return response.Failure(util.ErrorInvalidUsernameOrPassword)
 	}
 
-	token, err1 := util.GenerateToken(user.ID)
+	token, err1 := util.GenerateToken(user.SnowID)
 	if err1 != nil {
 		return response.Failure(util.ErrorFailToGenerateToken)
 	}
@@ -114,7 +113,7 @@ func (u *UserLogin) Login() response.Common {
 func (u *UserGet) Get() response.Common {
 	var result UserOutput
 	err := global.DB.Model(model.User{}).
-		Where("id = ?", u.ID).First(&result).Error
+		Where("id = ?", u.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -220,7 +219,7 @@ func (u *UserUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.User{}).Where("id = ?", u.ID).
+	err := global.DB.Model(&model.User{}).Where("id = ?", u.SnowID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -233,8 +232,8 @@ func (u *UserUpdate) Update() response.Common {
 func (u *UserDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.User
-	global.DB.Where("id = ?", u.ID).Find(&record)
-	err := global.DB.Where("id = ?", u.ID).Delete(&record).Error
+	global.DB.Where("id = ?", u.SnowID).Find(&record)
+	err := global.DB.Where("id = ?", u.SnowID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -321,7 +320,7 @@ func (u *UserGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &dto.PagingOutput{
+		Paging: &PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
