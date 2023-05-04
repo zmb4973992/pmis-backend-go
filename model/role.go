@@ -14,9 +14,9 @@ const (
 
 type Role struct {
 	BasicModel
-	Name          string //角色名称
-	SuperiorID    *int   //上级角色id
-	DataScopeType int    //数据范围的类型
+	Name           string  //角色名称
+	SuperiorSnowID *uint64 //上级角色SnowID
+	DataScopeType  int     //数据范围的类型
 }
 
 // TableName 修改表名

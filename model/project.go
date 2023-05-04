@@ -8,8 +8,8 @@ import (
 type Project struct {
 	BasicModel
 	//连接其他表的id
-	OrganizationID *int //见organization
-	RelatedPartyID *int //见related_party
+	OrganizationSnowID *uint64 //见organization
+	RelatedPartySnowID *uint64 //见related_party
 	//连接dictionary_item表的id
 	Country      *int
 	Type         *int

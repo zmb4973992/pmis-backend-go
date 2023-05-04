@@ -224,10 +224,10 @@ func (p *ProjectCreate) Create() response.Common {
 	//连接其他表的id
 	{
 		if p.OrganizationID != 0 {
-			paramOut.OrganizationID = &p.OrganizationID
+			paramOut.OrganizationSnowID = &p.OrganizationID
 		}
 		if p.RelatedPartyID != 0 {
-			paramOut.RelatedPartyID = &p.RelatedPartyID
+			paramOut.RelatedPartySnowID = &p.RelatedPartyID
 		}
 	}
 	//连接dictionary_item表的id

@@ -3,8 +3,8 @@ package model
 // UserAndRole 角色和用户的中间表
 type UserAndRole struct {
 	BasicModel
-	RoleID int
-	UserID int
+	RoleSnowID uint64 `gorm:"nut null;"`
+	UserSnowID uint64 `gorm:"nut null;"`
 }
 
 // TableName 修改表名

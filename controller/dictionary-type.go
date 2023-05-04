@@ -18,7 +18,7 @@ type dictionaryType struct {
 func (d *dictionaryType) Get(c *gin.Context) {
 	var param = service.DictionaryTypeGet{}
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("dictionary-type-id"))
+	param.SnowID, err = strconv.Atoi(c.Param("dictionary-type-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -88,7 +88,7 @@ func (d *dictionaryType) Update(c *gin.Context) {
 		return
 	}
 
-	param.ID, err = strconv.Atoi(c.Param("dictionary-type-id"))
+	param.SnowID, err = strconv.Atoi(c.Param("dictionary-type-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -110,7 +110,7 @@ func (d *dictionaryType) Update(c *gin.Context) {
 func (d *dictionaryType) Delete(c *gin.Context) {
 	var param service.DictionaryTypeDelete
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("dictionary-type-id"))
+	param.SnowID, err = strconv.Atoi(c.Param("dictionary-type-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,

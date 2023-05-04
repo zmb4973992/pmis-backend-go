@@ -141,11 +141,11 @@ func updateSelfProgress1(disassemblyID int, date time.Time, progressType int) (e
 	}
 
 	var progress = model.Progress{
-		DisassemblyID: &disassemblyID,
-		Date:          &date,
-		Type:          &progressType,
-		Value:         &sumOfProgress,
-		DataSource:    &dataSource,
+		DisassemblySnowID: &disassemblyID,
+		Date:              &date,
+		Type:              &progressType,
+		Value:             &sumOfProgress,
+		DataSource:        &dataSource,
 	}
 
 	err = global.DB.Create(&progress).Error

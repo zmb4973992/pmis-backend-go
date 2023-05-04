@@ -17,7 +17,7 @@ type contract struct{}
 func (co *contract) Get(c *gin.Context) {
 	var param service.ContractGet
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("role-id"))
+	param.SnowID, err = strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -61,7 +61,7 @@ func (co *contract) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.ID, err = strconv.Atoi(c.Param("role-id"))
+	param.SnowID, err = strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -83,7 +83,7 @@ func (co *contract) Update(c *gin.Context) {
 func (co *contract) Delete(c *gin.Context) {
 	var param service.ContractDelete
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("role-id"))
+	param.SnowID, err = strconv.Atoi(c.Param("role-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,

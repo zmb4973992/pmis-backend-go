@@ -12,22 +12,22 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type DisassemblyGet struct {
-	ID int
+	SnowID uint64
 }
 
 type DisassemblyTree struct {
-	Creator      int
-	LastModifier int
-	ProjectID    int `json:"project_id" binding:"required"`
+	Creator       int
+	LastModifier  int
+	ProjectSnowID uint64 `json:"project_snow_id" binding:"required"`
 }
 
 type DisassemblyCreate struct {
 	Creator      int
 	LastModifier int
 
-	Name       string  `json:"name" binding:"required"`        //拆解项名称
-	Weight     float64 `json:"weight" binding:"required"`      //权重
-	SuperiorID int     `json:"superior_id" binding:"required"` //上级拆解项ID
+	Name           string  `json:"name" binding:"required"`             //拆解项名称
+	Weight         float64 `json:"weight" binding:"required"`           //权重
+	SuperiorSnowID uint64  `json:"superior_snow_id" binding:"required"` //上级拆解项ID
 }
 
 type DisassemblyCreateInBatches struct {
@@ -40,51 +40,51 @@ type DisassemblyCreateInBatches struct {
 
 type DisassemblyUpdate struct {
 	LastModifier int
-	ID           int
+	SnowID       uint64
 
 	Name *string `json:"name"` //拆解项名称
 	//ProjectSnowID  *int     `json:"project_id"`  //所属项目id
 	//Level      *int     `json:"level"`       //层级
 	Weight *float64 `json:"weight"` //权重
-	//SuperiorID *int     `json:"superior_id"` //上级拆解项ID
+	//SuperiorSnowID *int     `json:"superior_id"` //上级拆解项ID
 }
 
 type DisassemblyDelete struct {
-	ID int
+	SnowID uint64
 }
 
 type DisassemblyDeleteWithInferiors struct {
-	ID int
+	SnowID uint64
 }
 
 type DisassemblyGetList struct {
 	dto.ListInput
 	NameInclude string `json:"name_include,omitempty"`
 
-	ProjectID  int  `json:"project_id"`
-	SuperiorID int  `json:"superior_id"`
-	Level      int  `json:"level"`
-	LevelGte   *int `json:"level_gte"`
-	LevelLte   *int `json:"level_lte"`
+	ProjectSnowID  uint64 `json:"project_snow_id"`
+	SuperiorSnowID uint64 `json:"superior_snow_id"`
+	Level          int    `json:"level"`
+	LevelGte       *int   `json:"level_gte"`
+	LevelLte       *int   `json:"level_lte"`
 }
 
 //以下为出参
 
 type DisassemblyOutput struct {
-	Creator      *int `json:"creator" gorm:"creator"`
-	LastModifier *int `json:"last_modifier" gorm:"last_modifier"`
-	ID           int  `json:"id" gorm:"id"`
+	Creator      *int   `json:"creator"`
+	LastModifier *int   `json:"last_modifier"`
+	SnowID       uint64 `json:"snow_id"`
 
-	Name       *string  `json:"name" gorm:"name"`               //名称
-	ProjectID  *int     `json:"project_id" gorm:"project_id"`   //所属项目id
-	Level      *int     `json:"level" gorm:"level"`             //层级
-	Weight     *float64 `json:"weight" gorm:"weight"`           //权重
-	SuperiorID *int     `json:"superior_id" gorm:"superior_id"` //上级拆解项id
+	Name           *string  `json:"name"`             //名称
+	ProjectSnowID  *uint64  `json:"project_snow_id"`  //所属项目SnowID
+	Level          *int     `json:"level"`            //层级
+	Weight         *float64 `json:"weight"`           //权重
+	SuperiorSnowID *uint64  `json:"superior_snow_id"` //上级拆解项SnowID
 }
 
 type DisassemblyTreeOutput struct {
 	Name     *string                 `json:"name"`
-	ID       int                     `json:"id"`
+	SnowID uint64                     `json:"snow_id"`
 	Level    int                     `json:"level"`
 	Children []DisassemblyTreeOutput `json:"children" gorm:"-"`
 }
@@ -92,7 +92,7 @@ type DisassemblyTreeOutput struct {
 func (d *DisassemblyGet) Get() response.Common {
 	var result DisassemblyOutput
 	err := global.DB.Model(model.Disassembly{}).
-		Where("id = ?", d.ID).First(&result).Error
+		Where("id = ?", d.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -108,7 +108,7 @@ func treeRecursion(superiorID int) []DisassemblyTreeOutput {
 		return nil
 	}
 	for i := range result {
-		result[i].Children = treeRecursion(result[i].ID)
+		result[i].Children = treeRecursion(result[i].Children)
 	}
 	return result
 }
@@ -117,7 +117,7 @@ func (d *DisassemblyTree) Tree() response.Common {
 	//根据project_id获取disassembly_id
 	var disassemblyID int
 	res := global.DB.Model(model.Disassembly{}).Select("id").
-		Where("project_id = ?", d.ProjectID).Where("level = 1").
+		Where("project_id = ?", d.ProjectSnowID).Where("level = 1").
 		Find(&disassemblyID)
 	if res.RowsAffected == 0 {
 		return response.Failure(util.ErrorRecordNotFound)
@@ -133,7 +133,7 @@ func (d *DisassemblyTree) Tree() response.Common {
 
 	//第二轮及以后的查找，查询条件为superior_id
 	for i := range result {
-		result[i].Children = treeRecursion(result[i].ID)
+		result[i].Children = treeRecursion(result[i].)
 	}
 
 	return response.SuccessWithData(result)
@@ -151,20 +151,20 @@ func (d *DisassemblyCreate) Create() response.Common {
 
 	paramOut.Name = &d.Name
 	paramOut.Weight = &d.Weight
-	paramOut.SuperiorID = &d.SuperiorID
+	paramOut.SuperiorSnowID = &d.SuperiorSnowID
 
 	//根据上级拆解id，找到项目id和层级
 	var superiorDisassembly model.Disassembly
-	err := global.DB.Where("id = ?", d.SuperiorID).First(&superiorDisassembly).Error
+	err := global.DB.Where("id = ?", d.SuperiorSnowID).First(&superiorDisassembly).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 
-	if superiorDisassembly.ProjectID == nil || superiorDisassembly.Level == nil {
+	if superiorDisassembly.ProjectSnowID == nil || superiorDisassembly.Level == nil {
 		return response.Failure(util.ErrorWrongSuperiorInformation)
 	}
 
-	paramOut.ProjectID = superiorDisassembly.ProjectID
+	paramOut.ProjectSnowID = superiorDisassembly.ProjectSnowID
 	level := *superiorDisassembly.Level + 1
 	paramOut.Level = &level
 
@@ -193,7 +193,7 @@ func (d *DisassemblyCreateInBatches) CreateInBatches() response.Common {
 
 		record.Weight = &d.Param[i].Weight
 
-		record.SuperiorID = &d.Param[i].SuperiorID
+		record.SuperiorSnowID = &d.Param[i].SuperiorSnowID
 
 		paramOut = append(paramOut, record)
 	}
@@ -237,7 +237,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.Disassembly{}).Where("id = ?", d.ID).
+	err := global.DB.Model(&model.Disassembly{}).Where("id = ?", d.SnowID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -265,13 +265,13 @@ func (d *DisassemblyUpdate) Update() response.Common {
 			//更新自身和所有上级的进度
 			for _, v := range progressItemIDs {
 				//更新自身进度
-				err = util.UpdateSelfProgress(d.ID, v)
+				err = util.UpdateSelfProgress(d.SnowID, v)
 				if err != nil {
 					global.SugaredLogger.Errorln(err)
 					return response.Failure(util.ErrorFailToCalculateSelfProgress)
 				}
 				//更新所有上级的进度
-				err = util.UpdateProgressOfSuperiors(d.ID, v)
+				err = util.UpdateProgressOfSuperiors(d.SnowID, v)
 				if err != nil {
 					global.SugaredLogger.Errorln(err)
 					return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
@@ -286,7 +286,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 func (d *DisassemblyDelete) Delete() response.Common {
 	//先找到记录，这样参数才能获得值、触发钩子函数，再删除记录
 	var record model.Disassembly
-	err := global.DB.Where("id = ?", d.ID).Find(&record).Delete(&record).Error
+	err := global.DB.Where("id = ?", d.SnowID).Find(&record).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -312,7 +312,7 @@ func (d *DisassemblyDelete) Delete() response.Common {
 
 	//更新所有上级的进度(删除自身进度的任务放在删除的钩子函数里)
 	for _, v := range progressItemIDs {
-		err = util.UpdateProgressOfSuperiors(d.ID, v)
+		err = util.UpdateProgressOfSuperiors(d.SnowID, v)
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
 			return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
@@ -323,8 +323,8 @@ func (d *DisassemblyDelete) Delete() response.Common {
 }
 
 func (d *DisassemblyDeleteWithInferiors) DeleteWithInferiors() response.Common {
-	inferiorIDs := util.GetInferiorIDs(d.ID)
-	ToBeDeletedIDs := append([]int{d.ID}, inferiorIDs...)
+	inferiorIDs := util.GetInferiorIDs(d.SnowID)
+	ToBeDeletedIDs := append([]int{d.SnowID}, inferiorIDs...)
 
 	//先找到记录，这样参数才能获得值、触发钩子函数，再删除记录
 	var disassemblies []model.Disassembly
@@ -348,12 +348,12 @@ func (d *DisassemblyGetList) GetList() response.List {
 		db = db.Where("name like ?", "%"+d.NameInclude+"%")
 	}
 
-	if d.ProjectID > 0 {
-		db = db.Where("project_id = ?", d.ProjectID)
+	if d.ProjectSnowID > 0 {
+		db = db.Where("project_id = ?", d.ProjectSnowID)
 	}
 
-	if d.SuperiorID > 0 {
-		db = db.Where("superior_id = ?", d.SuperiorID)
+	if d.SuperiorSnowID > 0 {
+		db = db.Where("superior_id = ?", d.SuperiorSnowID)
 	}
 
 	if d.Level > 0 {

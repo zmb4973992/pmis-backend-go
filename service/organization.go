@@ -92,7 +92,7 @@ func (d *OrganizationCreate) Create() response.Common {
 
 	paramOut.Name = d.Name
 
-	paramOut.SuperiorID = &d.SuperiorID
+	paramOut.SuperiorSnowID = &d.SuperiorID
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
@@ -175,12 +175,12 @@ func (d *OrganizationGetArray) GetArray() response.Common {
 	}
 
 	//if d.IsShowedByRole {
-	//	biggestRoleName := util.GetBiggestRoleName(d.UserID)
+	//	biggestRoleName := util.GetBiggestRoleName(d.UserSnowID)
 	//	if biggestRoleName == "事业部级" {
-	//		businessDivisionIDs := util.GetBusinessDivisionIDs(d.UserID)
+	//		businessDivisionIDs := util.GetBusinessDivisionIDs(d.UserSnowID)
 	//		db = db.Where("superior_id in ?", businessDivisionIDs)
 	//	} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
-	//		departmentIDs := util.GetDepartmentIDsOld(d.UserID)
+	//		departmentIDs := util.GetDepartmentIDsOld(d.UserSnowID)
 	//		db = db.Where("id in ?", departmentIDs)
 	//	}
 	//}
@@ -262,10 +262,10 @@ func (d *OrganizationGetList) GetList() response.List {
 
 	//if d.IsShowedByRole {
 	//	//先获得最大角色的名称
-	//	biggestRoleName := util.GetBiggestRoleName(d.UserID)
+	//	biggestRoleName := util.GetBiggestRoleName(d.UserSnowID)
 	//	if biggestRoleName == "事业部级" {
 	//		//获取所在事业部的id数组
-	//		businessDivisionIDs := util.GetBusinessDivisionIDs(d.UserID)
+	//		businessDivisionIDs := util.GetBusinessDivisionIDs(d.UserSnowID)
 	//		//获取归属这些事业部的部门id数组
 	//		var departmentIDs []int
 	//		global.DB.Model(&model.Organization{}).Where("superior_id in ?", businessDivisionIDs).
@@ -276,7 +276,7 @@ func (d *OrganizationGetList) GetList() response.List {
 	//		db = db.Where("id in ?", departmentIDs)
 	//	} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
 	//		//获取用户所属部门的id数组
-	//		departmentIDs := util.GetDepartmentIDsOld(d.UserID)
+	//		departmentIDs := util.GetDepartmentIDsOld(d.UserSnowID)
 	//		//找到部门id在上面数组中的记录
 	//		db = db.Where("id in ?", departmentIDs)
 	//	}

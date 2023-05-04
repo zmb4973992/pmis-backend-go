@@ -7,12 +7,12 @@ import (
 
 type OperationLog struct {
 	BasicModel
-	UserID       *int       //操作人id
+	UserSnowID   *uint64    //操作人SnowID
 	IP           *string    //IP
 	Location     *string    //所在地
 	Method       *string    //请求方式
 	Path         *string    //请求路径
-	URIParams    gin.Params `gorm:"type:nvarchar(max)"` //URI参数
+	URIParams    gin.Params `gorm:"type:nvarchar(500)"` //URI参数
 	Remarks      *string    //备注
 	ResponseCode *int       //响应码
 	StartTime    *time.Time //发起时间

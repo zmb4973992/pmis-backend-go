@@ -13,16 +13,16 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type ContractGet struct {
-	ID int
+	SnowID uint64
 }
 
 type ContractCreate struct {
 	Creator      int
 	LastModifier int
 	//连接关联表的id
-	ProjectID      int `json:"project_id,omitempty"`
-	OrganizationID int `json:"organization_id,omitempty"`
-	RelatedPartyID int `json:"related_party_id,omitempty"`
+	ProjectSnowID      uint64 `json:"project_snow_id,omitempty"`
+	OrganizationSnowID uint64 `json:"organization_snow_id,omitempty"`
+	RelatedPartySnowID uint64 `json:"related_party_snow_id,omitempty"`
 	//连接dictionary_item表的id
 	FundDirection int `json:"fund_direction,omitempty"`
 	OurSignatory  int `json:"our_signatory,omitempty"`
@@ -53,11 +53,11 @@ type ContractCreate struct {
 
 type ContractUpdate struct {
 	LastModifier int
-	ID           int
+	SnowID       uint64
 	//连接关联表的id
-	ProjectID      *int `json:"project_id"`
-	OrganizationID *int `json:"organization_id"`
-	RelatedPartyID *int `json:"related_party_id"`
+	ProjectSnowID      *uint64 `json:"project_snow_id"`
+	OrganizationSnowID *uint64 `json:"organization_snow_id"`
+	RelatedPartySnowID *uint64 `json:"related_party_snow_id"`
 	//连接dictionary_item表的id
 	FundDirection *int `json:"fund_direction"`
 	OurSignatory  *int `json:"our_signatory"`
@@ -83,13 +83,13 @@ type ContractUpdate struct {
 }
 
 type ContractDelete struct {
-	ID int
+	SnowID uint64
 }
 
 type ContractGetList struct {
 	dto.ListInput
 	dto.DataScopeInput
-	ProjectID     int    `json:"project_id,omitempty"`
+	ProjectSnowID uint64 `json:"project_snow_id,omitempty"`
 	FundDirection int    `json:"fund_direction,omitempty"`
 	NameInclude   string `json:"name_include,omitempty"`
 }
@@ -97,13 +97,13 @@ type ContractGetList struct {
 //以下为出参
 
 type ContractOutput struct {
-	Creator      *int `json:"creator"`
-	LastModifier *int `json:"last_modifier"`
-	ID           int  `json:"id"`
+	Creator      *int   `json:"creator"`
+	LastModifier *int   `json:"last_modifier"`
+	SnowID       uint64 `json:"snow_id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
-	ProjectID      *int `json:"-"`
-	OrganizationID *int `json:"-"`
-	RelatedPartyID *int `json:"-"`
+	ProjectSnowID      *uint64 `json:"-"`
+	OrganizationSnowID *uint64 `json:"-"`
+	RelatedPartySnowID *uint64 `json:"-"`
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
 	FundDirection *int `json:"-"`
 	OurSignatory  *int `json:"-"`
@@ -140,7 +140,7 @@ type ContractOutput struct {
 func (c *ContractGet) Get() response.Common {
 	var result ContractOutput
 	err := global.DB.Model(model.Contract{}).
-		Where("id = ?", c.ID).First(&result).Error
+		Where("id = ?", c.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -148,28 +148,28 @@ func (c *ContractGet) Get() response.Common {
 	//查询关联表的详情
 	{
 		//查项目信息
-		if result.ProjectID != nil {
+		if result.ProjectSnowID != nil {
 			var record ProjectOutput
 			res := global.DB.Model(&model.Project{}).
-				Where("id = ?", *result.ProjectID).Limit(1).Find(&record)
+				Where("id = ?", *result.ProjectSnowID).Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
 				result.ProjectExternal = &record
 			}
 		}
 		//查部门信息
-		if result.OrganizationID != nil {
+		if result.OrganizationSnowID != nil {
 			var record OrganizationOutput
 			res := global.DB.Model(&model.Organization{}).
-				Where("id = ?", *result.OrganizationID).Limit(1).Find(&record)
+				Where("id = ?", *result.OrganizationSnowID).Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
 				result.OrganizationExternal = &record
 			}
 		}
 		//查相关方信息
-		if result.RelatedPartyID != nil {
+		if result.RelatedPartySnowID != nil {
 			var record RelatedPartyOutput
 			res := global.DB.Model(&model.RelatedParty{}).
-				Where("id = ?", *result.RelatedPartyID).Limit(1).Find(&record)
+				Where("id = ?", *result.RelatedPartySnowID).Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
 				result.RelatedPartyExternal = &record
 			}
@@ -252,14 +252,14 @@ func (c *ContractCreate) Create() response.Common {
 
 	//连接关联表的id
 	{
-		if c.ProjectID > 0 {
-			paramOut.ProjectSnowID = &c.ProjectID
+		if c.ProjectSnowID > 0 {
+			paramOut.ProjectSnowID = &c.ProjectSnowID
 		}
-		if c.OrganizationID > 0 {
-			paramOut.OrganizationSnowID = &c.OrganizationID
+		if c.OrganizationSnowID > 0 {
+			paramOut.OrganizationSnowID = &c.OrganizationSnowID
 		}
-		if c.RelatedPartyID > 0 {
-			paramOut.RelatedPartySnowID = &c.RelatedPartyID
+		if c.RelatedPartySnowID > 0 {
+			paramOut.RelatedPartySnowID = &c.RelatedPartySnowID
 		}
 	}
 
@@ -387,22 +387,22 @@ func (c *ContractUpdate) Update() response.Common {
 
 	//连接关联表的id
 	{
-		if c.ProjectID != nil {
-			if *c.ProjectID > 0 {
-				paramOut["project_id"] = *c.ProjectID
+		if c.ProjectSnowID != nil {
+			if *c.ProjectSnowID > 0 {
+				paramOut["project_id"] = *c.ProjectSnowID
 			}
 		}
-		if c.OrganizationID != nil {
-			if *c.OrganizationID > 0 {
-				paramOut["organization_id"] = c.OrganizationID
-			} else if *c.OrganizationID == -1 {
+		if c.OrganizationSnowID != nil {
+			if *c.OrganizationSnowID > 0 {
+				paramOut["organization_id"] = c.OrganizationSnowID
+			} else if *c.OrganizationSnowID == -1 {
 				paramOut["organization_id"] = nil
 			}
 		}
-		if c.RelatedPartyID != nil {
-			if *c.RelatedPartyID > 0 {
-				paramOut["related_party_id"] = c.RelatedPartyID
-			} else if *c.RelatedPartyID == -1 {
+		if c.RelatedPartySnowID != nil {
+			if *c.RelatedPartySnowID > 0 {
+				paramOut["related_party_id"] = c.RelatedPartySnowID
+			} else if *c.RelatedPartySnowID == -1 {
 				paramOut["related_party_id"] = nil
 			}
 		}
@@ -574,7 +574,7 @@ func (c *ContractUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.Contract{}).Where("id = ?", c.ID).
+	err := global.DB.Model(&model.Contract{}).Where("id = ?", c.SnowID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -587,8 +587,8 @@ func (c *ContractUpdate) Update() response.Common {
 func (c *ContractDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Contract
-	global.DB.Where("id = ?", c.ID).Find(&record)
-	err := global.DB.Where("id = ?", c.ID).Delete(&record).Error
+	global.DB.Where("id = ?", c.SnowID).Find(&record)
+	err := global.DB.Where("id = ?", c.SnowID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -602,8 +602,8 @@ func (c *ContractGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if c.ProjectID > 0 {
-		db = db.Where("project_id = ?", c.ProjectID)
+	if c.ProjectSnowID > 0 {
+		db = db.Where("project_id = ?", c.ProjectSnowID)
 	}
 
 	if c.FundDirection > 0 {
@@ -616,10 +616,10 @@ func (c *ContractGetList) GetList() response.List {
 
 	//if c.IsShowedByRole {
 	//	//先获得最大角色的名称
-	//	biggestRoleName := util.GetBiggestRoleName(c.UserID)
+	//	biggestRoleName := util.GetBiggestRoleName(c.UserSnowID)
 	//	if biggestRoleName == "事业部级" {
 	//		//获取所在事业部的id数组
-	//		businessDivisionIDs := util.GetBusinessDivisionIDs(c.UserID)
+	//		businessDivisionIDs := util.GetBusinessDivisionIDs(c.UserSnowID)
 	//		//获取归属这些事业部的部门id数组
 	//		var departmentIDs []int
 	//		global.DB.Model(&model.Organization{}).Where("superior_id in ?", businessDivisionIDs).
@@ -630,7 +630,7 @@ func (c *ContractGetList) GetList() response.List {
 	//		db = db.Where("department_id in ?", departmentIDs)
 	//	} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
 	//		//获取用户所属部门的id数组
-	//		departmentIDs := util.GetDepartmentIDsOld(c.UserID)
+	//		departmentIDs := util.GetDepartmentIDsOld(c.UserSnowID)
 	//		//找到部门id在上面数组中的记录
 	//		db = db.Where("department_id in ?", departmentIDs)
 	//	}
@@ -694,28 +694,28 @@ func (c *ContractGetList) GetList() response.List {
 		//查询关联表的详情
 		{
 			//查项目信息
-			if data[i].ProjectID != nil {
+			if data[i].ProjectSnowID != nil {
 				var record ProjectOutput
 				res := global.DB.Model(&model.Project{}).
-					Where("id = ?", *data[i].ProjectID).Limit(1).Find(&record)
+					Where("id = ?", *data[i].ProjectSnowID).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].ProjectExternal = &record
 				}
 			}
 			//查部门信息
-			if data[i].OrganizationID != nil {
+			if data[i].OrganizationSnowID != nil {
 				var record OrganizationOutput
 				res := global.DB.Model(&model.Organization{}).
-					Where("id = ?", *data[i].OrganizationID).Limit(1).Find(&record)
+					Where("id = ?", *data[i].OrganizationSnowID).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].OrganizationExternal = &record
 				}
 			}
 			//查相关方信息
-			if data[i].RelatedPartyID != nil {
+			if data[i].RelatedPartySnowID != nil {
 				var record RelatedPartyOutput
 				res := global.DB.Model(&model.RelatedParty{}).
-					Where("id = ?", *data[i].RelatedPartyID).Limit(1).Find(&record)
+					Where("id = ?", *data[i].RelatedPartySnowID).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].RelatedPartyExternal = &record
 				}

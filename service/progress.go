@@ -124,7 +124,7 @@ func (p *ProgressCreate) Create() response.Common {
 		paramOut.LastModifier = &p.LastModifier
 	}
 
-	paramOut.DisassemblyID = &p.DisassemblyID
+	paramOut.DisassemblySnowID = &p.DisassemblyID
 
 	date, err := time.Parse("2006-01-02", p.Date)
 	if err != nil {
@@ -168,11 +168,11 @@ func (p *ProgressCreate) Create() response.Common {
 
 	//检查数据库是否已有相同日期、相同类型的记录
 	res := global.DB.FirstOrCreate(&paramOut, model.Progress{
-		DisassemblyID: &p.DisassemblyID,
-		Date:          &date,
-		Type:          &p.Type,
+		DisassemblySnowID: &p.DisassemblyID,
+		Date:              &date,
+		Type:              &p.Type,
 		//Value:         p.Value,
-		//DataSource:    &dictionaryItem.ID,
+		//DataSource:    &dictionaryItem.SnowID,
 	})
 
 	if res.Error != nil {
@@ -271,9 +271,9 @@ func (p *ProgressUpdate) Update() response.Common {
 			return response.Failure(util.ErrorInvalidDateFormat)
 		}
 		global.DB.Model(&model.Progress{}).Where(&model.Progress{
-			DisassemblyID: progress.DisassemblyID,
-			Date:          &tempDate,
-			Type:          p.Type,
+			DisassemblySnowID: progress.DisassemblySnowID,
+			Date:              &tempDate,
+			Type:              p.Type,
 		}).Select("id").Find(&tempProgressIDs)
 		//如果数据库有记录、且待修改的progressID不在数据库记录的progressIDs里面，说明是新的记录
 		//则不允许修改
@@ -291,7 +291,7 @@ func (p *ProgressUpdate) Update() response.Common {
 	}
 
 	//更新所有上级的进度
-	if progress.DisassemblyID != nil {
+	if progress.DisassemblySnowID != nil {
 		//如果传入了type值(意味着type值可能从a改成b，同时影响a、b)，就准备更新所有的进度类型
 		if p.Type != nil {
 			//找出”进度类型“的dictionary_type值
@@ -309,14 +309,14 @@ func (p *ProgressUpdate) Update() response.Common {
 				Select("id").Find(&progressTypeIDs)
 
 			for _, v := range progressTypeIDs {
-				err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, v)
+				err = util.UpdateProgressOfSuperiors(*progress.DisassemblySnowID, v)
 				if err != nil {
 					global.SugaredLogger.Errorln(err)
 					return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
 				}
 			}
 		} else { //如果没有传入type值(意味着记录的type值不变)，则只更新原来的进度类型
-			err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, *progress.Type)
+			err = util.UpdateProgressOfSuperiors(*progress.DisassemblySnowID, *progress.Type)
 			if err != nil {
 				global.SugaredLogger.Errorln(err)
 				return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
@@ -338,8 +338,8 @@ func (p *ProgressDelete) Delete() response.Common {
 	}
 
 	//更新所有上级的进度
-	if progress.DisassemblyID != nil && progress.Type != nil {
-		err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, *progress.Type)
+	if progress.DisassemblySnowID != nil && progress.Type != nil {
+		err = util.UpdateProgressOfSuperiors(*progress.DisassemblySnowID, *progress.Type)
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
 			return response.Failure(util.ErrorFailToCalculateSuperiorProgress)

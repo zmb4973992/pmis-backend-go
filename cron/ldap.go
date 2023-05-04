@@ -72,8 +72,8 @@ func updateUser() {
 					global.DB.Model(&model.Role{}).Where("name = ?", "公司级").
 						Select("id").First(&roleID)
 					var roleAndUser model.UserAndRole
-					roleAndUser.UserID = user.ID
-					roleAndUser.RoleID = roleID
+					roleAndUser.UserSnowID = user.ID
+					roleAndUser.RoleSnowID = roleID
 					global.DB.Where("role_id = ?", roleID).
 						Where("user_id = ?", user.ID).
 						FirstOrCreate(&roleAndUser)
@@ -83,8 +83,8 @@ func updateUser() {
 					global.DB.Model(&model.Organization{}).Where("name = ?", "北京公司").
 						Select("id").First(&departmentID)
 					var departmentAndUser model.OrganizationAndUser
-					departmentAndUser.UserID = &user.ID
-					departmentAndUser.OrganizationID = &departmentID
+					departmentAndUser.UserSnowID = &user.ID
+					departmentAndUser.OrganizationSnowID = &departmentID
 					global.DB.Model(&model.OrganizationAndUser{}).
 						Where("department_id = ?", departmentID).
 						Where("user_id = ?", user.ID).
@@ -96,8 +96,8 @@ func updateUser() {
 					global.DB.Model(&model.Role{}).Where("name = ?", "事业部级").
 						Select("id").First(&roleID)
 					var roleAndUser model.UserAndRole
-					roleAndUser.UserID = user.ID
-					roleAndUser.RoleID = roleID
+					roleAndUser.UserSnowID = user.ID
+					roleAndUser.RoleSnowID = roleID
 					global.DB.Where("role_id = ?", roleID).
 						Where("user_id = ?", user.ID).
 						FirstOrCreate(&roleAndUser)
@@ -107,8 +107,8 @@ func updateUser() {
 					global.DB.Model(&model.Organization{}).Where("name = ?", "水泥工程事业部").
 						Select("id").First(&departmentID)
 					var departmentAndUser model.OrganizationAndUser
-					departmentAndUser.UserID = &user.ID
-					departmentAndUser.OrganizationID = &departmentID
+					departmentAndUser.UserSnowID = &user.ID
+					departmentAndUser.OrganizationSnowID = &departmentID
 					global.DB.Model(&model.OrganizationAndUser{}).
 						Where("department_id = ?", departmentID).
 						Where("user_id = ?", user.ID).
@@ -119,8 +119,8 @@ func updateUser() {
 					global.DB.Model(&model.Role{}).Where("name = ?", "部门级").
 						Select("id").First(&roleID)
 					var roleAndUser model.UserAndRole
-					roleAndUser.UserID = user.ID
-					roleAndUser.RoleID = roleID
+					roleAndUser.UserSnowID = user.ID
+					roleAndUser.RoleSnowID = roleID
 					global.DB.Where("role_id = ?", roleID).
 						Where("user_id = ?", user.ID).
 						FirstOrCreate(&roleAndUser)
@@ -130,8 +130,8 @@ func updateUser() {
 					global.DB.Model(&model.Organization{}).Where("name = ?", permittedOUs[j]).
 						Select("id").First(&departmentID)
 					var departmentAndUser model.OrganizationAndUser
-					departmentAndUser.UserID = &user.ID
-					departmentAndUser.OrganizationID = &departmentID
+					departmentAndUser.UserSnowID = &user.ID
+					departmentAndUser.OrganizationSnowID = &departmentID
 					global.DB.Model(&model.OrganizationAndUser{}).
 						Where("department_id = ?", departmentID).
 						Where("user_id = ?", user.ID).

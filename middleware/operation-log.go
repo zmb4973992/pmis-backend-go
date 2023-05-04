@@ -33,7 +33,7 @@ func OperationLog() gin.HandlerFunc {
 		tempUserID1, exists := c.Get("user_id")
 		if exists {
 			tempUserID2 := tempUserID1.(int)
-			operationLog.UserID = &tempUserID2
+			operationLog.UserSnowID = &tempUserID2
 			operationLog.Creator = &tempUserID2
 			operationLog.LastModifier = &tempUserID2
 		}

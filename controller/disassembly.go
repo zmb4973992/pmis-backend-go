@@ -17,7 +17,7 @@ type disassembly struct{}
 func (d *disassembly) Get(c *gin.Context) {
 	var param service.DisassemblyGet
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
+	param.SnowID, err = strconv.Atoi(c.Param("disassembly-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -103,7 +103,7 @@ func (d *disassembly) Update(c *gin.Context) {
 		return
 	}
 
-	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
+	param.SnowID, err = strconv.Atoi(c.Param("disassembly-id"))
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
@@ -124,7 +124,7 @@ func (d *disassembly) Update(c *gin.Context) {
 func (d *disassembly) Delete(c *gin.Context) {
 	var param service.DisassemblyDelete
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
+	param.SnowID, err = strconv.Atoi(c.Param("disassembly-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -140,7 +140,7 @@ func (d *disassembly) Delete(c *gin.Context) {
 func (d *disassembly) DeleteWithInferiors(c *gin.Context) {
 	var param service.DisassemblyDeleteWithInferiors
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("disassembly-id"))
+	param.SnowID, err = strconv.Atoi(c.Param("disassembly-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,

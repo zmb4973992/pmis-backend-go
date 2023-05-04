@@ -5,8 +5,8 @@ import "time"
 type IncomeAndExpenditure struct {
 	BasicModel
 	//连接其他表的id
-	ProjectID  *int //项目id
-	ContractID *int //合同id
+	ProjectSnowID  *uint64 //项目SnowID
+	ContractSnowID *uint64 //合同SnowID
 	//连接dictionary_item表的id
 	FundDirection *int //资金方向(收款、付款)
 	Currency      *int //币种

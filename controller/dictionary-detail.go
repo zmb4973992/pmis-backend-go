@@ -88,7 +88,7 @@ func (d *dictionaryDetail) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.ID, err = strconv.Atoi(c.Param("dictionary-detail-id"))
+	param.SnowID, err = strconv.Atoi(c.Param("dictionary-detail-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -110,7 +110,7 @@ func (d *dictionaryDetail) Update(c *gin.Context) {
 func (d *dictionaryDetail) Delete(c *gin.Context) {
 	var param service.DictionaryDetailDelete
 	var err error
-	param.ID, err = strconv.Atoi(c.Param("dictionary-detail-id"))
+	param.SnowID, err = strconv.Atoi(c.Param("dictionary-detail-id"))
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -123,23 +123,23 @@ func (d *dictionaryDetail) Delete(c *gin.Context) {
 	return
 }
 
-func (d *dictionaryDetail) GetArray(c *gin.Context) {
-	var param service.DictionaryDetailGetArray
-	err := c.ShouldBindJSON(&param)
-
-	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
-	//如果是其他错误，就正常报错
-	if err != nil && !errors.Is(err, io.EOF) {
-		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusBadRequest,
-			response.FailureForList(util.ErrorInvalidJSONParameters))
-		return
-	}
-
-	res := param.GetArray()
-	c.JSON(http.StatusOK, res)
-	return
-}
+//func (d *dictionaryDetail) GetArray(c *gin.Context) {
+//	var param service.DictionaryDetailGetArray
+//	err := c.ShouldBindJSON(&param)
+//
+//	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
+//	//如果是其他错误，就正常报错
+//	if err != nil && !errors.Is(err, io.EOF) {
+//		global.SugaredLogger.Errorln(err)
+//		c.JSON(http.StatusBadRequest,
+//			response.FailureForList(util.ErrorInvalidJSONParameters))
+//		return
+//	}
+//
+//	res := param.GetArray()
+//	c.JSON(http.StatusOK, res)
+//	return
+//}
 
 func (d *dictionaryDetail) GetList(c *gin.Context) {
 	var param service.DictionaryDetailGetList

@@ -200,10 +200,10 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 	//连接关联表的id
 	{
 		if i.ProjectID > 0 {
-			paramOut.ProjectID = &i.ProjectID
+			paramOut.ProjectSnowID = &i.ProjectID
 		}
 		if i.ContractID > 0 {
-			paramOut.ContractID = &i.ContractID
+			paramOut.ContractSnowID = &i.ContractID
 		}
 	}
 
@@ -462,10 +462,10 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 
 	//if i.IsShowedByRole {
 	//	//先获得最大角色的名称
-	//	biggestRoleName := util.GetBiggestRoleName(i.UserID)
+	//	biggestRoleName := util.GetBiggestRoleName(i.UserSnowID)
 	//	if biggestRoleName == "事业部级" {
 	//		//获取所在事业部的id数组
-	//		businessDivisionIDs := util.GetBusinessDivisionIDs(i.UserID)
+	//		businessDivisionIDs := util.GetBusinessDivisionIDs(i.UserSnowID)
 	//		//获取归属这些事业部的部门id数组
 	//		var departmentIDs []int
 	//		global.DB.Model(&model.Organization{}).Where("superior_id in ?", businessDivisionIDs).
@@ -476,7 +476,7 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 	//		db = db.Where("department_id in ?", departmentIDs)
 	//	} else if biggestRoleName == "部门级" || biggestRoleName == "项目级" {
 	//		//获取用户所属部门的id数组
-	//		departmentIDs := util.GetDepartmentIDsOld(i.UserID)
+	//		departmentIDs := util.GetDepartmentIDsOld(i.UserSnowID)
 	//		//找到部门id在上面数组中的记录
 	//		db = db.Where("department_id in ?", departmentIDs)
 	//	}

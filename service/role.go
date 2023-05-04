@@ -102,7 +102,7 @@ func (r *RoleCreate) Create() response.Common {
 	//允许为0的数字
 	{
 		if r.SuperiorID != nil {
-			paramOut.SuperiorID = r.SuperiorID
+			paramOut.SuperiorSnowID = r.SuperiorID
 		}
 	}
 

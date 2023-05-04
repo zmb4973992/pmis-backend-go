@@ -9,16 +9,16 @@ import (
 )
 
 type DictionaryDetailGet struct {
-	ID int
+	SnowID uint64
 }
 
 type DictionaryDetailCreate struct {
-	Creator          int
-	LastModifier     int
-	DictionaryTypeID int    `json:"dictionary_type_id" binding:"required,gt=0"` //字典类型id
-	Name             string `json:"name" binding:"required"`                    //名称
-	Sequence         int    `json:"sequence,omitempty"`                         //顺序值
-	Remarks          string `json:"remarks,omitempty"`                          //备注
+	Creator              int
+	LastModifier         int
+	DictionaryTypeSnowID uint64 `json:"dictionary_type_snow_id" binding:"required,gt=0"` //字典类型id
+	Name                 string `json:"name" binding:"required"`                         //名称
+	Sequence             int    `json:"sequence,omitempty"`                              //顺序值
+	Remarks              string `json:"remarks,omitempty"`                               //备注
 }
 
 type DictionaryDetailCreateInBatches struct {
@@ -31,45 +31,44 @@ type DictionaryDetailCreateInBatches struct {
 
 type DictionaryDetailUpdate struct {
 	LastModifier int
-	ID           int
-	//DictionaryTypeSnowID *int    `json:"dictionary_type_id"` //字典类型id
-	Name     *string `json:"name"`     //名称
-	Sequence *int    `json:"sequence"` //顺序值
-	Remarks  *string `json:"remarks"`  //备注
+	SnowID       uint64
+	Name         *string `json:"name"`     //名称
+	Sequence     *int    `json:"sequence"` //顺序值
+	Remarks      *string `json:"remarks"`  //备注
 }
 
 type DictionaryDetailDelete struct {
-	ID int
+	SnowID uint64
 }
 
 type DictionaryDetailGetArray struct {
 	dto.ListInput
-	DictionaryTypeID   int    `json:"dictionary_type_id,omitempty"`
-	DictionaryTypeName string `json:"dictionary_type_name,omitempty"`
+	DictionaryTypeSnowID uint64 `json:"dictionary_type_snow_id,omitempty"`
+	DictionaryTypeName   string `json:"dictionary_type_name,omitempty"`
 }
 
 type DictionaryDetailGetList struct {
 	dto.ListInput
-	DictionaryTypeID   int    `json:"dictionary_type_id,omitempty"`
-	DictionaryTypeName string `json:"dictionary_type_name,omitempty"`
+	DictionaryTypeSnowID uint64 `json:"dictionary_type_snow_id,omitempty"`
+	DictionaryTypeName   string `json:"dictionary_type_name,omitempty"`
 }
 
 //以下为出参
 
 type DictionaryDetailOutput struct {
-	Creator          *int    `json:"creator"`
-	LastModifier     *int    `json:"last_modifier"`
-	ID               int     `json:"id"`
-	DictionaryTypeID int     `json:"dictionary_type_id"` //字典类型id
-	Name             string  `json:"name"`               //名称
-	Sequence         *int    `json:"sequence"`           //顺序值
-	Remarks          *string `json:"remarks"`            //备注
+	Creator              *int    `json:"creator"`
+	LastModifier         *int    `json:"last_modifier"`
+	SnowID               uint64  `json:"snow_id"`
+	DictionaryTypeSnowID uint64  `json:"dictionary_type_snow_id"` //字典类型
+	Name                 string  `json:"name"`                    //名称
+	Sequence             *int    `json:"sequence"`                //顺序值
+	Remarks              *string `json:"remarks"`                 //备注
 }
 
 func (d *DictionaryDetailGet) Get() response.Common {
 	var result DictionaryDetailOutput
 	err := global.DB.Model(model.DictionaryDetail{}).
-		Where("id = ?", d.ID).First(&result).Error
+		Where("id = ?", d.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -87,7 +86,7 @@ func (d *DictionaryDetailCreate) Create() response.Common {
 		paramOut.LastModifier = &d.LastModifier
 	}
 
-	paramOut.DictionaryTypeSnowID = d.DictionaryTypeID
+	paramOut.DictionaryTypeSnowID = d.DictionaryTypeSnowID
 
 	paramOut.Name = d.Name
 
@@ -120,7 +119,7 @@ func (d *DictionaryDetailCreateInBatches) CreateInBatches() response.Common {
 			record.LastModifier = &d.Data[i].LastModifier
 		}
 
-		record.DictionaryTypeSnowID = d.Data[i].DictionaryTypeID
+		record.DictionaryTypeSnowID = d.Data[i].DictionaryTypeSnowID
 
 		record.Name = d.Data[i].Name
 
@@ -194,7 +193,7 @@ func (d *DictionaryDetailUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.DictionaryDetail{}).Where("id = ?", d.ID).
+	err := global.DB.Model(&model.DictionaryDetail{}).Where("id = ?", d.SnowID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -207,8 +206,8 @@ func (d *DictionaryDetailUpdate) Update() response.Common {
 func (d *DictionaryDetailDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.DictionaryDetail
-	global.DB.Where("id = ?", d.ID).Find(&record)
-	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
+	global.DB.Where("id = ?", d.SnowID).Find(&record)
+	err := global.DB.Where("id = ?", d.SnowID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -217,76 +216,76 @@ func (d *DictionaryDetailDelete) Delete() response.Common {
 	return response.Success()
 }
 
-func (d *DictionaryDetailGetArray) GetArray() response.Common {
-	db := global.DB.Model(&model.DictionaryDetail{})
-	// 顺序：where -> count -> Order -> limit -> offset -> array
-
-	//where
-	if d.DictionaryTypeID != 0 {
-		db = db.Where("dictionary_type_id = ?", d.DictionaryTypeID)
-	}
-
-	//Order
-	orderBy := d.SortingInput.OrderBy
-	desc := d.SortingInput.Desc
-	//如果排序字段为空
-	if orderBy == "" {
-		//如果要求降序排列
-		if desc == true {
-			db = db.Order("id desc")
-		}
-	} else { //如果有排序字段
-		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(&model.DictionaryDetail{}, orderBy)
-		if !exists {
-			return response.Failure(util.ErrorSortingFieldDoesNotExist)
-		}
-		//如果要求降序排列
-		if desc == true {
-			db = db.Order(orderBy + " desc")
-		} else { //如果没有要求排序方式
-			db = db.Order(orderBy)
-		}
-	}
-
-	//limit
-	page := 1
-	if d.PagingInput.Page > 0 {
-		page = d.PagingInput.Page
-	}
-	pageSize := global.Config.DefaultPageSize
-	if d.PagingInput.PageSize != nil && *d.PagingInput.PageSize >= 0 &&
-		*d.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = *d.PagingInput.PageSize
-	}
-	db = db.Limit(pageSize)
-
-	//offset
-	offset := (page - 1) * pageSize
-	db = db.Offset(offset)
-
-	//array
-	var array []string
-	db.Model(&model.DictionaryDetail{}).Select("name").Find(&array)
-
-	if len(array) == 0 {
-		return response.Failure(util.ErrorRecordNotFound)
-	}
-
-	return response.Common{
-		Data:    array,
-		Code:    util.Success,
-		Message: util.GetMessage(util.Success),
-	}
-}
+//func (d *DictionaryDetailGetArray) GetArray() response.Common {
+//	db := global.DB.Model(&model.DictionaryDetail{})
+//	// 顺序：where -> count -> Order -> limit -> offset -> array
+//
+//	//where
+//	if d.DictionaryTypeSnowID != 0 {
+//		db = db.Where("dictionary_type_id = ?", d.DictionaryTypeSnowID)
+//	}
+//
+//	//Order
+//	orderBy := d.SortingInput.OrderBy
+//	desc := d.SortingInput.Desc
+//	//如果排序字段为空
+//	if orderBy == "" {
+//		//如果要求降序排列
+//		if desc == true {
+//			db = db.Order("id desc")
+//		}
+//	} else { //如果有排序字段
+//		//先看排序字段是否存在于表中
+//		exists := util.FieldIsInModel(&model.DictionaryDetail{}, orderBy)
+//		if !exists {
+//			return response.Failure(util.ErrorSortingFieldDoesNotExist)
+//		}
+//		//如果要求降序排列
+//		if desc == true {
+//			db = db.Order(orderBy + " desc")
+//		} else { //如果没有要求排序方式
+//			db = db.Order(orderBy)
+//		}
+//	}
+//
+//	//limit
+//	page := 1
+//	if d.PagingInput.Page > 0 {
+//		page = d.PagingInput.Page
+//	}
+//	pageSize := global.Config.DefaultPageSize
+//	if d.PagingInput.PageSize != nil && *d.PagingInput.PageSize >= 0 &&
+//		*d.PagingInput.PageSize <= global.Config.MaxPageSize {
+//		pageSize = *d.PagingInput.PageSize
+//	}
+//	db = db.Limit(pageSize)
+//
+//	//offset
+//	offset := (page - 1) * pageSize
+//	db = db.Offset(offset)
+//
+//	//array
+//	var array []string
+//	db.Model(&model.DictionaryDetail{}).Select("name").Find(&array)
+//
+//	if len(array) == 0 {
+//		return response.Failure(util.ErrorRecordNotFound)
+//	}
+//
+//	return response.Common{
+//		Data:    array,
+//		Code:    util.Success,
+//		Message: util.GetMessage(util.Success),
+//	}
+//}
 
 func (d *DictionaryDetailGetList) GetList() response.List {
 	db := global.DB.Model(&model.DictionaryDetail{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if d.DictionaryTypeID != 0 {
-		db = db.Where("dictionary_type_id = ?", d.DictionaryTypeID)
+	if d.DictionaryTypeSnowID != 0 {
+		db = db.Where("dictionary_type_id = ?", d.DictionaryTypeSnowID)
 	}
 
 	if d.DictionaryTypeName != "" {

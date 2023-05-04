@@ -9,7 +9,7 @@ import (
 )
 
 type DictionaryTypeGet struct {
-	ID int
+	SnowID uint64
 }
 
 type DictionaryTypeCreate struct {
@@ -30,14 +30,14 @@ type DictionaryTypeCreateInBatches struct {
 
 type DictionaryTypeUpdate struct {
 	LastModifier int
-	ID           int
+	SnowID       uint64
 	Name         *string `json:"name"`    //名称
 	Sort         *int    `json:"sort"`    //顺序值
 	Remarks      *string `json:"remarks"` //备注
 }
 
 type DictionaryTypeDelete struct {
-	ID int
+	SnowID uint64
 }
 
 type DictionaryTypeGetArray struct {
@@ -53,7 +53,6 @@ type DictionaryTypeGetList struct {
 type DictionaryTypeOutput struct {
 	Creator      *int    `json:"creator"`
 	LastModifier *int    `json:"last_modifier"`
-	ID           int     `json:"id"`
 	SnowID       uint64  `json:"snow_id"`
 	Name         string  `json:"name"`    //名称
 	Sort         *int    `json:"sort"`    //顺序值
@@ -63,7 +62,7 @@ type DictionaryTypeOutput struct {
 func (d *DictionaryTypeGet) Get() response.Common {
 	var result DictionaryTypeOutput
 	err := global.DB.Model(model.DictionaryType{}).
-		Where("id = ?", d.ID).First(&result).Error
+		Where("id = ?", d.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -182,7 +181,7 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.DictionaryType{}).Where("id = ?", d.ID).
+	err := global.DB.Model(&model.DictionaryType{}).Where("id = ?", d.SnowID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -195,8 +194,8 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 func (d *DictionaryTypeDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.DictionaryType
-	global.DB.Where("id = ?", d.ID).Find(&record)
-	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
+	global.DB.Where("id = ?", d.SnowID).Find(&record)
+	err := global.DB.Where("id = ?", d.SnowID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)

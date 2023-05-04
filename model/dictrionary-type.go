@@ -7,7 +7,6 @@ import (
 
 type DictionaryType struct {
 	BasicModel
-	SnowID  uint64  `gorm:"not null;uniqueIndex;"`
 	Name    string  //名称
 	Sort    *int    //排序
 	Status  *bool   //状态

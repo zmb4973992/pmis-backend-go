@@ -14,13 +14,13 @@ type Organization struct {
 	//日期，暂无
 
 	//数字(允许为0、nil)
-	SuperiorID *int `json:"superior_id"` //上级机构ID，引用自身
+	SuperiorSnowID *uint64 //上级机构SnowID，引用自身
 	//数字(不允许为0、nil，必须有值)
-	Sequence int `json:"sequence"` //部门在当前层级下的顺序
+	Sequence int //部门在当前层级下的顺序
 	//字符串(允许为nil)
-	Remarks *string `json:"remarks"` //备注
+	Remarks *string //备注
 	//字符串(不允许为nil，必须有值)
-	Name string `json:"name"` //名称
+	Name string //名称
 	//LevelName string `json:"level_name"` //层级名称，如公司、事业部、部门等
 }
 

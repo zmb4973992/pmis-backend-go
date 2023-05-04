@@ -57,8 +57,8 @@ func (r *RoleAndUserUpdateByRoleID) Update() response.Common {
 				record.LastModifier = &r.LastModifier
 			}
 
-			record.RoleID = r.RoleID
-			record.UserID = userID
+			record.RoleSnowID = r.RoleID
+			record.UserSnowID = userID
 			paramOut = append(paramOut, record)
 		}
 
@@ -132,8 +132,8 @@ func (r *RoleAndUserUpdateByUserID) Update() response.Common {
 				record.LastModifier = &r.LastModifier
 			}
 
-			record.UserID = r.UserID
-			record.RoleID = roleID
+			record.UserSnowID = r.UserID
+			record.RoleSnowID = roleID
 			paramOut = append(paramOut, record)
 		}
 

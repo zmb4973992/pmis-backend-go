@@ -13,12 +13,12 @@ func getSuperiorIDs(disassemblyID int) (superiorIDs []int) {
 		First(&disassembly).Error
 
 	//如果发生任何错误、或者上级id为空：
-	if err != nil || disassembly.SuperiorID == nil {
+	if err != nil || disassembly.SuperiorSnowID == nil {
 		return nil
 	}
 
-	superiorIDs = append(superiorIDs, *disassembly.SuperiorID)
-	res := getSuperiorIDs(*disassembly.SuperiorID)
+	superiorIDs = append(superiorIDs, *disassembly.SuperiorSnowID)
+	res := getSuperiorIDs(*disassembly.SuperiorSnowID)
 
 	superiorIDs = append(superiorIDs, res...)
 

@@ -4,8 +4,8 @@ package model
 // 此表用来定义一个组织可以查看哪些组织的数据
 type RoleAndOrganizationForDataScope struct {
 	BasicModel
-	RoleID                     *int
-	OrganizationIDForDataScope *int //等同于组织id，用来定义可以查看哪些组织的数据
+	RoleSnowID                     *uint64
+	OrganizationSnowIDForDataScope *uint64 //等同于组织SnowID，用来定义可以查看哪些组织的数据
 }
 
 // TableName 修改表名
@@ -17,7 +17,7 @@ func (*RoleAndOrganizationForDataScope) TableName() string {
 //	//删除相关的子表记录
 //	//先find，再delete，可以激活相关的钩子函数
 //	var records []UserAndRole
-//	err = tx.Where("role_id = ?", d.ID).
+//	err = tx.Where("role_id = ?", d.SnowID).
 //		Find(&records).Delete(&records).Error
 //	if err != nil {
 //		return err
