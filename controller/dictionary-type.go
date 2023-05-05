@@ -18,7 +18,7 @@ type dictionaryType struct {
 func (d *dictionaryType) Get(c *gin.Context) {
 	var param = service.DictionaryTypeGet{}
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-type-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-type-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -41,10 +41,10 @@ func (d *dictionaryType) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.Creator = userID
-		param.LastModifier = userID
+		param.Creator = userSnowID
+		param.LastModifier = userSnowID
 	}
 
 	res := param.Create()
@@ -53,29 +53,29 @@ func (d *dictionaryType) Create(c *gin.Context) {
 	return
 }
 
-func (d *dictionaryType) CreateInBatches(c *gin.Context) {
-	var param service.DictionaryTypeCreateInBatches
-	err := c.ShouldBindJSON(&param)
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidJSONParameters))
-		return
-	}
-
-	//处理creator、last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
-	if exists {
-		for i := range param.Data {
-			param.Data[i].Creator = userID
-			param.Data[i].LastModifier = userID
-		}
-	}
-
-	res := param.CreateInBatches()
-	c.JSON(http.StatusOK, res)
-	return
-}
+//func (d *dictionaryType) CreateInBatches(c *gin.Context) {
+//	var param service.DictionaryTypeCreateInBatches
+//	err := c.ShouldBindJSON(&param)
+//	if err != nil {
+//		global.SugaredLogger.Errorln(err)
+//		c.JSON(http.StatusBadRequest,
+//			response.Failure(util.ErrorInvalidJSONParameters))
+//		return
+//	}
+//
+//	//处理creator、last_modifier字段
+//	userSnowID, exists := util.GetUserSnowID(c)
+//	if exists {
+//		for i := range param.Data {
+//			param.Data[i].Creator = userSnowID
+//			param.Data[i].LastModifier = userSnowID
+//		}
+//	}
+//
+//	res := param.CreateInBatches()
+//	c.JSON(http.StatusOK, res)
+//	return
+//}
 
 func (d *dictionaryType) Update(c *gin.Context) {
 	var param service.DictionaryTypeUpdate
@@ -87,7 +87,7 @@ func (d *dictionaryType) Update(c *gin.Context) {
 		return
 	}
 
-	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-type-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-type-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -96,9 +96,9 @@ func (d *dictionaryType) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.LastModifier = userID
+		param.LastModifier = userSnowID
 	}
 
 	res := param.Update()
@@ -109,7 +109,7 @@ func (d *dictionaryType) Update(c *gin.Context) {
 func (d *dictionaryType) Delete(c *gin.Context) {
 	var param service.DictionaryTypeDelete
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-type-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-type-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -122,24 +122,24 @@ func (d *dictionaryType) Delete(c *gin.Context) {
 	return
 }
 
-func (d *dictionaryType) GetArray(c *gin.Context) {
-	var param service.DictionaryTypeGetArray
-	err := c.ShouldBindJSON(&param)
-
-	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
-	//如果是其他错误，就正常报错
-	if err != nil && !errors.Is(err, io.EOF) {
-		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusBadRequest,
-			response.FailureForList(util.ErrorInvalidJSONParameters))
-		return
-	}
-
-	//生成Service,然后调用它的方法
-	res := param.GetArray()
-	c.JSON(http.StatusOK, res)
-	return
-}
+//func (d *dictionaryType) GetArray(c *gin.Context) {
+//	var param service.DictionaryTypeGetArray
+//	err := c.ShouldBindJSON(&param)
+//
+//	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
+//	//如果是其他错误，就正常报错
+//	if err != nil && !errors.Is(err, io.EOF) {
+//		global.SugaredLogger.Errorln(err)
+//		c.JSON(http.StatusBadRequest,
+//			response.FailureForList(util.ErrorInvalidJSONParameters))
+//		return
+//	}
+//
+//	//生成Service,然后调用它的方法
+//	res := param.GetArray()
+//	c.JSON(http.StatusOK, res)
+//	return
+//}
 
 func (d *dictionaryType) GetList(c *gin.Context) {
 	var param service.DictionaryTypeGetList

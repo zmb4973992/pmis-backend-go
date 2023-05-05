@@ -1,12 +1,12 @@
-package service
+package list
 
 //以下为入参
 
-// ListInput 标准的list入参，几乎所有的list都要用到这些参数
-type ListInput struct {
+// Input 标准的list入参，几乎所有的list都要用到这些参数
+type Input struct {
 	PagingInput
 	SortingInput
-	SqlConditionInput
+	//SqlConditionInput
 }
 
 type PagingInput struct {
@@ -19,9 +19,9 @@ type SortingInput struct {
 	Desc    bool   `json:"desc"`     //是否为降序（从大到小）
 }
 
-type SqlConditionInput struct {
-	SelectedColumns []string `json:"selected_columns"` //需要显示数据的列
-}
+//type SqlConditionInput struct {
+//	SelectedColumns []string `json:"selected_columns"` //需要显示数据的列
+//}
 
 // DataScopeInput 用于校验角色、分级显示的入参，按需导入
 type DataScopeInput struct {
@@ -31,8 +31,8 @@ type DataScopeInput struct {
 
 //以下为出参
 
-// ListOutput 为标准的出参形式，几乎所有的list都按这个标准来
-type ListOutput struct {
+// Output 为标准的出参形式，几乎所有的list都按这个标准来
+type Output struct {
 	PagingOutput
 	SortingOutput
 }

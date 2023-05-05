@@ -21,7 +21,7 @@ var (
 	ErrorFailToUpdateRBACGroupingPolicies = errors.New(util.GetMessage(util.ErrorFailToUpdateRBACGroupingPolicies))
 )
 
-type RoleAndUserUpdateByRoleID struct {
+type RoleAndUserUpdateByRoleSnowID struct {
 	Creator      int64
 	LastModifier int64
 
@@ -29,7 +29,7 @@ type RoleAndUserUpdateByRoleID struct {
 	UserSnowIDs []int64 `json:"user_snow_ids,omitempty"`
 }
 
-type RoleAndUserUpdateByUserID struct {
+type RoleAndUserUpdateByUserSnowID struct {
 	Creator      int64
 	LastModifier int64
 
@@ -37,10 +37,10 @@ type RoleAndUserUpdateByUserID struct {
 	RoleSnowIDs []int64 `json:"role_snow_ids,omitempty"`
 }
 
-func (r *RoleAndUserUpdateByRoleID) Update() response.Common {
+func (r *RoleAndUserUpdateByRoleSnowID) Update() response.Common {
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		//先删掉原始记录
-		err := tx.Where("role_id = ?", r.RoleSnowID).Delete(&model.UserAndRole{}).Error
+		err := tx.Where("role_snow_id = ?", r.RoleSnowID).Delete(&model.UserAndRole{}).Error
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
 			return ErrorFailToDeleteRecord
@@ -48,7 +48,7 @@ func (r *RoleAndUserUpdateByRoleID) Update() response.Common {
 
 		//再增加新的记录
 		var paramOut []model.UserAndRole
-		for _, userID := range r.UserSnowIDs {
+		for _, userSnowID := range r.UserSnowIDs {
 			var record model.UserAndRole
 			if r.Creator > 0 {
 				record.Creator = &r.Creator
@@ -58,7 +58,7 @@ func (r *RoleAndUserUpdateByRoleID) Update() response.Common {
 			}
 
 			record.RoleSnowID = r.RoleSnowID
-			record.UserSnowID = userID
+			record.UserSnowID = userSnowID
 			paramOut = append(paramOut, record)
 		}
 
@@ -85,8 +85,8 @@ func (r *RoleAndUserUpdateByRoleID) Update() response.Common {
 		//更新casbin的rbac分组规则
 		var param1 rbacUpdateGroupingPolicyByGroup
 		param1.Group = strconv.FormatInt(r.RoleSnowID, 10)
-		for _, userID := range r.UserSnowIDs {
-			param1.Members = append(param1.Members, strconv.FormatInt(userID, 10))
+		for _, userSnowID := range r.UserSnowIDs {
+			param1.Members = append(param1.Members, strconv.FormatInt(userSnowID, 10))
 		}
 		err = param1.Update()
 		if err != nil {
@@ -112,10 +112,10 @@ func (r *RoleAndUserUpdateByRoleID) Update() response.Common {
 	}
 }
 
-func (r *RoleAndUserUpdateByUserID) Update() response.Common {
+func (r *RoleAndUserUpdateByUserSnowID) Update() response.Common {
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		//先删掉原始记录
-		err := tx.Where("user_id = ?", r.UserSnowID).Delete(&model.UserAndRole{}).Error
+		err := tx.Where("user_snow_id = ?", r.UserSnowID).Delete(&model.UserAndRole{}).Error
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
 			return ErrorFailToDeleteRecord
@@ -160,8 +160,8 @@ func (r *RoleAndUserUpdateByUserID) Update() response.Common {
 		//更新casbin的rbac分组规则
 		var param1 rbacUpdateGroupingPolicyByMember
 		param1.Member = strconv.FormatInt(r.UserSnowID, 10)
-		for _, roleID := range r.RoleSnowIDs {
-			param1.Groups = append(param1.Groups, strconv.FormatInt(roleID, 10))
+		for _, roleSnowID := range r.RoleSnowIDs {
+			param1.Groups = append(param1.Groups, strconv.FormatInt(roleSnowID, 10))
 		}
 		err = param1.Update()
 		if err != nil {

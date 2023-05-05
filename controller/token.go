@@ -11,7 +11,7 @@ import (
 type token struct{}
 
 func (t *token) Validate(c *gin.Context) {
-	token := c.Param("token")
+	token := c.Param("access-token")
 	if token == "" {
 		c.JSON(http.StatusBadRequest,
 			response.Failure(util.ErrorInvalidURIParameters))

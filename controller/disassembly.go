@@ -17,7 +17,7 @@ type disassembly struct{}
 func (d *disassembly) Get(c *gin.Context) {
 	var param service.DisassemblyGet
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("disassembly-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -55,42 +55,16 @@ func (d *disassembly) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.Creator = userID
-		param.LastModifier = userID
+		param.Creator = userSnowID
+		param.LastModifier = userSnowID
 	}
 
 	res := param.Create()
 	c.JSON(http.StatusOK, res)
 	return
 }
-
-// deprecated
-// 逻辑较复杂，暂时废弃
-//func (d *disassembly) CreateInBatches(c *gin.Context) {
-//	var param service.DisassemblyCreateInBatches
-//	err := c.ShouldBindJSON(&param)
-//	if err != nil {
-//		global.SugaredLogger.Errorln(err)
-//		c.JSON(http.StatusBadRequest,
-//			response.Failure(util.ErrorInvalidJSONParameters))
-//		return
-//	}
-//
-//	//处理creator、last_modifier字段
-//	userID, exists := util.GetUserSnowID(c)
-//	if exists {
-//		for i := range param.Data {
-//			param.Data[i].Creator = userID
-//			param.Data[i].LastModifier = userID
-//		}
-//	}
-//
-//	res := param.CreateInBatches()
-//	c.JSON(http.StatusOK, res)
-//	return
-//}
 
 func (d *disassembly) Update(c *gin.Context) {
 	var param service.DisassemblyUpdate
@@ -102,7 +76,7 @@ func (d *disassembly) Update(c *gin.Context) {
 		return
 	}
 
-	param.SnowID, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("disassembly-snow-id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
@@ -110,9 +84,9 @@ func (d *disassembly) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.LastModifier = userID
+		param.LastModifier = userSnowID
 	}
 
 	res := param.Update()
@@ -123,7 +97,7 @@ func (d *disassembly) Update(c *gin.Context) {
 func (d *disassembly) Delete(c *gin.Context) {
 	var param service.DisassemblyDelete
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("disassembly-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -139,7 +113,7 @@ func (d *disassembly) Delete(c *gin.Context) {
 func (d *disassembly) DeleteWithInferiors(c *gin.Context) {
 	var param service.DisassemblyDeleteWithInferiors
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("disassembly-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,

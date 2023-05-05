@@ -7,6 +7,7 @@ import (
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service/upload"
 	"pmis-backend-go/util"
+	"strconv"
 )
 
 type fileManagement struct{}
@@ -61,23 +62,10 @@ func (f *fileManagement) UploadMultipleFiles(c *gin.Context) {
 
 func (f *fileManagement) DeleteFile(c *gin.Context) {
 
-	uuid := c.Param("file-uuid")
-
-	//处理deleter字段
-	//tempUserID, exists := c.Get("user_id")
-	//if exists {
-	//	userID := tempUserID.(int)
-	//	param.Deleter = userID
-	//}
-	//res := param.Delete()
-	//
-	//if err != nil {
-	//	c.JSON(http.StatusOK, response.Failure(util.ErrorFailToDeleteFiles))
-	//	return
-	//}
+	fileSnowID, _ := strconv.ParseInt(c.Param("file-snow-id"), 10, 64)
 
 	oss := upload.NewOss()
-	err := oss.Delete(uuid)
+	err := oss.Delete(fileSnowID)
 	if err != nil {
 		c.JSON(http.StatusOK, response.Failure(util.ErrorFailToDeleteFiles))
 		return

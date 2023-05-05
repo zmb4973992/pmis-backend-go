@@ -17,7 +17,7 @@ type organization struct{}
 func (o *organization) Get(c *gin.Context) {
 	param := service.OrganizationGet{}
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("organization-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("organization-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -40,10 +40,10 @@ func (o *organization) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.Creator = userID
-		param.LastModifier = userID
+		param.Creator = userSnowID
+		param.LastModifier = userSnowID
 	}
 
 	res := param.Create()
@@ -60,7 +60,7 @@ func (o *organization) Update(c *gin.Context) {
 		return
 	}
 
-	param.SnowID, err = strconv.ParseInt(c.Param("organization-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("organization-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidURIParameters))
@@ -68,9 +68,9 @@ func (o *organization) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.LastModifier = userID
+		param.LastModifier = userSnowID
 	}
 
 	res := param.Update()
@@ -81,7 +81,7 @@ func (o *organization) Update(c *gin.Context) {
 func (o *organization) Delete(c *gin.Context) {
 	var param service.OrganizationDelete
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("organization-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("organization-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -93,30 +93,6 @@ func (o *organization) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 	return
 }
-
-//func (o *organization) GetArray(c *gin.Context) {
-//	var param service.OrganizationGetArray
-//	err := c.ShouldBindJSON(&param)
-//
-//	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
-//	//如果是其他错误，就正常报错
-//	if err != nil && !errors.Is(err, io.EOF) {
-//		global.SugaredLogger.Errorln(err)
-//		c.JSON(http.StatusBadRequest,
-//			response.FailureForList(util.ErrorInvalidJSONParameters))
-//		return
-//	}
-//
-//	tempUserID, exists := c.Get("user_id")
-//	if exists {
-//		userID := tempUserID.(int)
-//		param.UserID = userID
-//	}
-//
-//	res := param.GetArray()
-//	c.JSON(http.StatusOK, res)
-//	return
-//}
 
 func (o *organization) GetList(c *gin.Context) {
 	var param service.OrganizationGetList
@@ -132,9 +108,9 @@ func (o *organization) GetList(c *gin.Context) {
 	}
 
 	//AuthorityInput需要userID
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.UserSnowID = userID
+		param.UserSnowID = userSnowID
 	}
 
 	res := param.GetList()

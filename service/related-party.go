@@ -3,6 +3,7 @@ package service
 import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
+	"pmis-backend-go/serializer/list"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 )
@@ -45,7 +46,7 @@ type RelatedPartyDelete struct {
 }
 
 type RelatedPartyGetList struct {
-	ListInput
+	list.Input
 
 	ChineseNameInclude string `json:"chinese_name_include,omitempty"`
 	EnglishNameInclude string `json:"english_name_include,omitempty"`
@@ -68,7 +69,7 @@ type RelatedPartyOutput struct {
 func (r *RelatedPartyGet) Get() response.Common {
 	var result RelatedPartyOutput
 	err := global.DB.Model(&model.RelatedParty{}).
-		Where("id = ?", r.SnowID).First(&result).Error
+		Where("snow_id = ?", r.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -180,7 +181,7 @@ func (r *RelatedPartyUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.RelatedParty{}).Where("id = ?", r.SnowID).
+	err := global.DB.Model(&model.RelatedParty{}).Where("snow_id = ?", r.SnowID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -193,8 +194,8 @@ func (r *RelatedPartyUpdate) Update() response.Common {
 func (r *RelatedPartyDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.RelatedParty
-	global.DB.Where("id = ?", r.SnowID).Find(&record)
-	err := global.DB.Where("id = ?", r.SnowID).Delete(&record).Error
+	global.DB.Where("snow_id = ?", r.SnowID).Find(&record)
+	err := global.DB.Where("snow_id = ?", r.SnowID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -227,7 +228,7 @@ func (r *RelatedPartyGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("id desc")
+			db = db.Order("snow_id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
@@ -274,7 +275,7 @@ func (r *RelatedPartyGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &PagingOutput{
+		Paging: &list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

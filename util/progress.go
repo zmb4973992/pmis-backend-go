@@ -10,11 +10,11 @@ import (
 )
 
 // UpdateProgressOfSuperiors 给定拆解id、进度类型，计算所有上级的进度
-func UpdateProgressOfSuperiors(disassemblySnowID int64, progressType int) (err error) {
-	superiorIDs := getSuperiorSnowIDs(disassemblySnowID)
+func UpdateProgressOfSuperiors(disassemblySnowID int64, progressType int64) (err error) {
+	superiorSnowIDs := getSuperiorSnowIDs(disassemblySnowID)
 
-	for i := range superiorIDs {
-		err = UpdateSelfProgress(superiorIDs[i], progressType)
+	for i := range superiorSnowIDs {
+		err = UpdateSelfProgress(superiorSnowIDs[i], progressType)
 		if err != nil {
 			return err
 		}
@@ -23,24 +23,24 @@ func UpdateProgressOfSuperiors(disassemblySnowID int64, progressType int) (err e
 }
 
 // UpdateSelfProgress 给定拆解id、进度类型，计算自身的进度
-func UpdateSelfProgress(disassemblySnowID int64, progressType int) (err error) {
+func UpdateSelfProgress(disassemblySnowID int64, progressType int64) (err error) {
 	//找到"系统计算"的字典值
-	var dataSource int
+	var dataSource int64
 	err = global.DB.Model(&model.DictionaryDetail{}).
-		Where("name = '系统计算'").Select("id").First(&dataSource).Error
+		Where("name = '系统计算'").Select("snow_id").First(&dataSource).Error
 	if err != nil {
 		return err
 	}
 
 	//删除相关进度,防止产生重复数据
-	global.DB.Where("disassembly_id = ?", disassemblySnowID).
+	global.DB.Where("disassembly_snow_id = ?", disassemblySnowID).
 		Where("data_source = ?", dataSource).
 		Where("type = ?", progressType).
 		Delete(&model.Progress{})
 
 	//获取下级拆解情况
 	var subDisassembly []model.Disassembly
-	err = global.DB.Where("superior_id = ?", disassemblySnowID).
+	err = global.DB.Where("superior_snow_id = ?", disassemblySnowID).
 		Find(&subDisassembly).Error
 	if err != nil {
 		return err
@@ -51,7 +51,7 @@ func UpdateSelfProgress(disassemblySnowID int64, progressType int) (err error) {
 	for i := range subDisassembly {
 		var subDates []string
 		global.DB.Model(&model.Progress{}).
-			Where("disassembly_id = ?", subDisassembly[i].ID).
+			Where("disassembly_snow_id = ?", subDisassembly[i].SnowID).
 			Where("type = ?", progressType).
 			Select("date").Find(&subDates)
 		tempDates = append(tempDates, subDates...)
@@ -84,16 +84,16 @@ func UpdateSelfProgress(disassemblySnowID int64, progressType int) (err error) {
 }
 
 // 给定拆解id、日期、进度类型，计算自身的进度
-func updateSelfProgress1(disassemblySnowID int64, date time.Time, progressType int) (err error) {
+func updateSelfProgress1(disassemblySnowID int64, date time.Time, progressType int64) (err error) {
 	//删除相关进度,防止产生重复数据
-	global.DB.Where("disassembly_id = ?", disassemblySnowID).
+	global.DB.Where("disassembly_snow_id = ?", disassemblySnowID).
 		Where("date = ?", date).
 		Where("type = ?", progressType).
 		Delete(&model.Progress{})
 
 	//获取下级拆解情况
 	var subDisassembly []model.Disassembly
-	err = global.DB.Where("superior_id = ?", disassemblySnowID).
+	err = global.DB.Where("superior_snow_id = ?", disassemblySnowID).
 		Find(&subDisassembly).Error
 	if err != nil {
 		return err
@@ -105,7 +105,7 @@ func updateSelfProgress1(disassemblySnowID int64, date time.Time, progressType i
 		//下级拆解id是否包含有效记录
 		var count int64
 		global.DB.Model(&model.Progress{}).
-			Where("disassembly_id = ?", subDisassembly[i].ID).
+			Where("disassembly_snow_id = ?", subDisassembly[i].SnowID).
 			Where("type = ?", progressType).
 			Where("date <= ?", date).
 			Count(&count)
@@ -114,7 +114,7 @@ func updateSelfProgress1(disassemblySnowID int64, date time.Time, progressType i
 
 		if count > 0 {
 			global.DB.Model(&model.Progress{}).
-				Where("disassembly_id = ?", subDisassembly[i].ID).
+				Where("disassembly_snow_id = ?", subDisassembly[i].SnowID).
 				Where("type = ?", progressType).
 				Where("date <= ?", date).
 				Order("date desc").Select("value").
@@ -133,9 +133,9 @@ func updateSelfProgress1(disassemblySnowID int64, date time.Time, progressType i
 	}
 
 	//找到"系统计算"的字典值
-	var dataSource int
+	var dataSource int64
 	err = global.DB.Model(&model.DictionaryDetail{}).
-		Where("name = '系统计算'").Select("id").First(&dataSource).Error
+		Where("name = '系统计算'").Select("snow_id").First(&dataSource).Error
 	if err != nil {
 		return err
 	}

@@ -16,13 +16,6 @@ var attributes = []string{
 	"mail",              //邮箱，如：zhangsan@intl-bj.avic.com
 }
 
-type UserInfo struct {
-	ID           int
-	FullName     *string
-	Email        *string
-	Organization *string
-}
-
 func LoginByLDAP(username, password string) (permitted bool, err error) {
 	//以下这段为测试专用，记得删除
 	{

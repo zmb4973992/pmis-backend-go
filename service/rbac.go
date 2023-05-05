@@ -14,14 +14,14 @@ import (
 //如果指针字段为空或0，那么数据库相应字段会改为null；
 //如果指针字段没传，那么数据库不会修改该字段
 
-type rbacUpdatePolicyByRoleID struct {
+type rbacUpdatePolicyByRoleSnowID struct {
 	RoleSnowID int64
 }
 
-type rbacUpdatePolicyByMenuID struct {
+type rbacUpdatePolicyByMenuSnowID struct {
 	MenuSnowID int64
 }
-type rbacUpdatePolicyByApiID struct {
+type rbacUpdatePolicyByApiSnowID struct {
 	ApiSnowID int64
 }
 
@@ -35,7 +35,7 @@ type rbacUpdateGroupingPolicyByMember struct {
 	Groups []string
 }
 
-func (r *rbacUpdatePolicyByRoleID) Update() error {
+func (r *rbacUpdatePolicyByRoleSnowID) Update() error {
 	if r.RoleSnowID == 0 {
 		return nil
 	}
@@ -54,20 +54,20 @@ func (r *rbacUpdatePolicyByRoleID) Update() error {
 	}
 
 	//找到角色拥有的菜单
-	var menuIDs []int
-	global.DB.Model(&model.RoleAndMenu{}).Where("role_id = ?", r.RoleSnowID).
-		Select("menu_id").Find(&menuIDs)
+	var menuSnowIDs []int64
+	global.DB.Model(&model.RoleAndMenu{}).Where("role_snow_id = ?", r.RoleSnowID).
+		Select("menu_snow_id").Find(&menuSnowIDs)
 
 	//找到菜单拥有的api
-	var apiIDs []int
-	global.DB.Model(&model.MenuAndApi{}).Where("menu_id in ?", menuIDs).
-		Select("api_id").Find(&apiIDs)
+	var apiSnowIDs []int64
+	global.DB.Model(&model.MenuAndApi{}).Where("menu_snow_id in ?", menuSnowIDs).
+		Select("api_snow_id").Find(&apiSnowIDs)
 
 	//找到api详细信息
 	var rbacRules [][]string
-	for _, apiID := range apiIDs {
+	for _, apiSnowID := range apiSnowIDs {
 		var api model.Api
-		err = global.DB.Where("id = ?", apiID).First(&api).Error
+		err = global.DB.Where("snow_id = ?", apiSnowID).First(&api).Error
 		if err != nil {
 			continue
 		}
@@ -93,18 +93,18 @@ func (r *rbacUpdatePolicyByRoleID) Update() error {
 	return nil
 }
 
-func (r *rbacUpdatePolicyByMenuID) Update() error {
+func (r *rbacUpdatePolicyByMenuSnowID) Update() error {
 	if r.MenuSnowID == 0 {
 		return nil
 	}
 
 	//先找到菜单关联的角色id
 	var roleSnowIDs []int64
-	global.DB.Model(&model.RoleAndMenu{}).Where("menu_id = ?", r.MenuSnowID).
-		Select("role_id").Find(&roleSnowIDs)
+	global.DB.Model(&model.RoleAndMenu{}).Where("menu_snow_id = ?", r.MenuSnowID).
+		Select("role_snow_id").Find(&roleSnowIDs)
 
-	for _, roleID := range roleSnowIDs {
-		param := rbacUpdatePolicyByRoleID{RoleSnowID: roleID}
+	for _, roleSnowID := range roleSnowIDs {
+		param := rbacUpdatePolicyByRoleSnowID{RoleSnowID: roleSnowID}
 		err := param.Update()
 		if err != nil {
 			return err
@@ -113,18 +113,18 @@ func (r *rbacUpdatePolicyByMenuID) Update() error {
 	return nil
 }
 
-func (r *rbacUpdatePolicyByApiID) Update() error {
+func (r *rbacUpdatePolicyByApiSnowID) Update() error {
 	if r.ApiSnowID == 0 {
 		return nil
 	}
 
 	//先找到api关联的菜单id
 	var menuSnowIDs []int64
-	global.DB.Model(&model.MenuAndApi{}).Where("api_id in ?", r.ApiSnowID).
-		Select("menu_id").Find(&menuSnowIDs)
+	global.DB.Model(&model.MenuAndApi{}).Where("api_snow_id in ?", r.ApiSnowID).
+		Select("menu_snow_id").Find(&menuSnowIDs)
 
-	for _, menuID := range menuSnowIDs {
-		param := rbacUpdatePolicyByMenuID{MenuSnowID: menuID}
+	for _, menuSnowID := range menuSnowIDs {
+		param := rbacUpdatePolicyByMenuSnowID{MenuSnowID: menuSnowID}
 		err := param.Update()
 		if err != nil {
 			return err

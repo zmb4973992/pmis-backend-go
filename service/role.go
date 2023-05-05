@@ -3,6 +3,7 @@ package service
 import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
+	"pmis-backend-go/serializer/list"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 )
@@ -54,7 +55,7 @@ type RoleDelete struct {
 }
 
 type RoleGetList struct {
-	ListInput
+	list.Input
 }
 
 //以下为出参
@@ -62,7 +63,7 @@ type RoleGetList struct {
 type RoleOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	SnowID       int64  `json:"id"`
+	SnowID       int64  `json:"snow_id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
 
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
@@ -72,14 +73,14 @@ type RoleOutput struct {
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
 
 	//其他属性
-	Name       *string `json:"name"`
-	SuperiorID *int64  `json:"superior_id"`
+	Name           *string `json:"name"`
+	SuperiorSnowID *int64  `json:"superior_snow_id"`
 }
 
 func (r *RoleGet) Get() response.Common {
 	var result RoleOutput
 	err := global.DB.Model(model.Role{}).
-		Where("id = ?", r.SnowID).First(&result).Error
+		Where("snow_id = ?", r.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -143,9 +144,9 @@ func (r *RoleUpdate) Update() response.Common {
 	{
 		if r.SuperiorSnowID != nil {
 			if *r.SuperiorSnowID != -1 {
-				paramOut["superior_id"] = r.SuperiorSnowID
+				paramOut["superior_snow_id"] = r.SuperiorSnowID
 			} else {
-				paramOut["superior_id"] = nil
+				paramOut["superior_snow_id"] = nil
 			}
 		}
 	}
@@ -169,7 +170,7 @@ func (r *RoleUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.Role{}).Where("id = ?", r.SnowID).
+	err := global.DB.Model(&model.Role{}).Where("snow_id = ?", r.SnowID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -182,8 +183,8 @@ func (r *RoleUpdate) Update() response.Common {
 func (r *RoleDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Role
-	global.DB.Where("id = ?", r.SnowID).Find(&record)
-	err := global.DB.Where("id = ?", r.SnowID).Delete(&record).Error
+	global.DB.Where("snow_id = ?", r.SnowID).Find(&record)
+	err := global.DB.Where("snow_id = ?", r.SnowID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -209,7 +210,7 @@ func (r *RoleGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("id desc")
+			db = db.Order("snow_id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
@@ -257,7 +258,7 @@ func (r *RoleGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &PagingOutput{
+		Paging: &list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

@@ -24,11 +24,15 @@ func (*Role) TableName() string {
 	return "role"
 }
 
-func (d *Role) BeforeDelete(tx *gorm.DB) error {
+func (r *Role) BeforeDelete(tx *gorm.DB) error {
+	if r.SnowID == 0 {
+		return nil
+	}
+
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var records []UserAndRole
-	err = tx.Where(UserAndRole{RoleSnowID: d.SnowID}).
+	err = tx.Where(UserAndRole{RoleSnowID: r.SnowID}).
 		Find(&records).Delete(&records).Error
 	if err != nil {
 		return err

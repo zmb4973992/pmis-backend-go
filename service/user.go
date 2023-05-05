@@ -4,6 +4,7 @@ import (
 	"github.com/mojocn/base64Captcha"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
+	"pmis-backend-go/serializer/list"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 )
@@ -12,10 +13,10 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type UserLogin struct {
-	Username  string `json:"username" binding:"required"`
-	Password  string `json:"password" binding:"required"`
-	CaptchaID string `json:"captcha_id"`
-	Captcha   string `json:"captcha"`
+	Username      string `json:"username" binding:"required"`
+	Password      string `json:"password" binding:"required"`
+	CaptchaSnowID string `json:"captcha_snow_id"`
+	Captcha       string `json:"captcha"`
 }
 
 type UserGet struct {
@@ -53,10 +54,10 @@ type UserDelete struct {
 }
 
 type UserGetList struct {
-	ListInput
+	list.Input
 	IsValid         *bool  `json:"is_valid"`
 	UsernameInclude string `json:"username_include,omitempty"`
-	RoleID          int    `json:"role_id,omitempty"`
+	RoleSnowID      int64  `json:"role_snow_id,omitempty"`
 }
 
 //以下为出参
@@ -76,7 +77,7 @@ type UserOutput struct {
 
 func (u *UserLogin) Verify() bool {
 	store := base64Captcha.DefaultMemStore
-	permitted := store.Verify(u.CaptchaID, u.Captcha, true)
+	permitted := store.Verify(u.CaptchaSnowID, u.Captcha, true)
 	return permitted
 }
 
@@ -113,7 +114,7 @@ func (u *UserLogin) Login() response.Common {
 func (u *UserGet) Get() response.Common {
 	var result UserOutput
 	err := global.DB.Model(model.User{}).
-		Where("id = ?", u.SnowID).First(&result).Error
+		Where("snow_id = ?", u.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -219,7 +220,7 @@ func (u *UserUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.User{}).Where("id = ?", u.SnowID).
+	err := global.DB.Model(&model.User{}).Where("snow_id = ?", u.SnowID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -232,8 +233,8 @@ func (u *UserUpdate) Update() response.Common {
 func (u *UserDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.User
-	global.DB.Where("id = ?", u.SnowID).Find(&record)
-	err := global.DB.Where("id = ?", u.SnowID).Delete(&record).Error
+	global.DB.Where("snow_id = ?", u.SnowID).Find(&record)
+	err := global.DB.Where("snow_id = ?", u.SnowID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -255,11 +256,11 @@ func (u *UserGetList) GetList() response.List {
 		db = db.Where("username like ?", "%"+u.UsernameInclude+"%")
 	}
 
-	if u.RoleID > 0 {
-		var userIDs []int
-		global.DB.Model(&model.UserAndRole{}).Where("role_id = ?", u.RoleID).
-			Select("user_id").Find(&userIDs)
-		db = db.Where("id in ?", userIDs)
+	if u.RoleSnowID > 0 {
+		var userSnowIDs []int64
+		global.DB.Model(&model.UserAndRole{}).Where("role_snow_id = ?", u.RoleSnowID).
+			Select("user_snow_id").Find(&userSnowIDs)
+		db = db.Where("snow_id in ?", userSnowIDs)
 	}
 
 	// count
@@ -273,7 +274,7 @@ func (u *UserGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("id desc")
+			db = db.Order("snow_id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
@@ -320,7 +321,7 @@ func (u *UserGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &PagingOutput{
+		Paging: &list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

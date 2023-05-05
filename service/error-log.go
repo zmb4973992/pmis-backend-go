@@ -3,6 +3,7 @@ package service
 import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
+	"pmis-backend-go/serializer/list"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 	"time"
@@ -46,7 +47,7 @@ type ErrorLogDelete struct {
 }
 
 type ErrorLogGetList struct {
-	ListInput
+	list.Input
 
 	DetailInclude string `json:"detail_include,omitempty" `
 	Date          string `json:"date,omitempty"`
@@ -72,7 +73,7 @@ type ErrorLogOutput struct {
 func (e *ErrorLogGet) Get() response.Common {
 	var result ErrorLogOutput
 	err := global.DB.Model(model.ErrorLog{}).
-		Where("id = ?", e.SnowID).First(&result).Error
+		Where("snow_id = ?", e.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -186,7 +187,7 @@ func (e *ErrorLogUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.ErrorLog{}).Where("id = ?", e.SnowID).
+	err := global.DB.Model(&model.ErrorLog{}).Where("snow_id = ?", e.SnowID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -199,8 +200,8 @@ func (e *ErrorLogUpdate) Update() response.Common {
 func (e *ErrorLogDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.ErrorLog
-	global.DB.Where("id = ?", e.SnowID).Find(&record)
-	err := global.DB.Where("id = ?", e.SnowID).Delete(&record).Error
+	global.DB.Where("snow_id = ?", e.SnowID).Find(&record)
+	err := global.DB.Where("snow_id = ?", e.SnowID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -247,7 +248,7 @@ func (e *ErrorLogGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("id desc")
+			db = db.Order("snow_id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
@@ -294,7 +295,7 @@ func (e *ErrorLogGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &PagingOutput{
+		Paging: &list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

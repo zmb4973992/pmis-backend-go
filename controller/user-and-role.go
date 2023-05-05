@@ -12,8 +12,8 @@ import (
 
 type userAndRole struct{}
 
-func (u *userAndRole) UpdateByRoleID(c *gin.Context) {
-	var param service.RoleAndUserUpdateByRoleID
+func (u *userAndRole) UpdateByRoleSnowID(c *gin.Context) {
+	var param service.RoleAndUserUpdateByRoleSnowID
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -22,7 +22,7 @@ func (u *userAndRole) UpdateByRoleID(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.RoleSnowID, err = strconv.ParseInt(c.Param("role-id"), 10, 64)
+	param.RoleSnowID, err = strconv.ParseInt(c.Param("role-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -31,10 +31,10 @@ func (u *userAndRole) UpdateByRoleID(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.Creator = userID
-		param.LastModifier = userID
+		param.Creator = userSnowID
+		param.LastModifier = userSnowID
 	}
 
 	res := param.Update()
@@ -42,8 +42,8 @@ func (u *userAndRole) UpdateByRoleID(c *gin.Context) {
 	return
 }
 
-func (u *userAndRole) UpdateByUserID(c *gin.Context) {
-	var param service.RoleAndUserUpdateByUserID
+func (u *userAndRole) UpdateByUserSnowID(c *gin.Context) {
+	var param service.RoleAndUserUpdateByUserSnowID
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -52,7 +52,7 @@ func (u *userAndRole) UpdateByUserID(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.UserSnowID, err = strconv.ParseInt(c.Param("user-id"), 10, 64)
+	param.UserSnowID, err = strconv.ParseInt(c.Param("user-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -61,10 +61,10 @@ func (u *userAndRole) UpdateByUserID(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.Creator = userID
-		param.LastModifier = userID
+		param.Creator = userSnowID
+		param.LastModifier = userSnowID
 	}
 
 	res := param.Update()

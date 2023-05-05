@@ -2,7 +2,6 @@ package model
 
 type File struct {
 	BasicModel
-	UUID string
 	Name string
 	Mode string
 	Path string

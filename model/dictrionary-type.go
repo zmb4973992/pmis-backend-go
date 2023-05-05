@@ -20,14 +20,19 @@ func (*DictionaryType) TableName() string {
 }
 
 func (d *DictionaryType) BeforeDelete(tx *gorm.DB) error {
+	if d.SnowID == 0 {
+		return nil
+	}
+
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var records []DictionaryDetail
-	err = tx.Where("dictionary_type_snow_id = ?", d.SnowID).
+	err = tx.Where(DictionaryDetail{DictionaryTypeSnowID: d.SnowID}).
 		Find(&records).Delete(&records).Error
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -37,75 +42,83 @@ type dictionaryTypeFormat struct {
 	Sort   int
 }
 
-var dictionaryTypes = []dictionaryTypeFormat{
+var dictionaryTypes = []DictionaryType{
 	{
 		Name: "国家",
-		Sort: 1,
+		Sort: IntToPointer(1),
 	},
 	{
 		Name: "项目类型",
-		Sort: 2,
+		Sort: IntToPointer(2),
 	},
 	{
 		Name: "项目状态",
-		Sort: 3,
+		Sort: IntToPointer(3),
 	},
 	{
 		Name: "合同类型",
-		Sort: 4,
+		Sort: IntToPointer(4),
 	},
 	{
 		Name: "敏感词",
-		Sort: 5,
+		Sort: IntToPointer(5),
 	},
 	{
 		Name: "敏感词",
-		Sort: 6,
+		Sort: IntToPointer(6),
 	},
 	{
 		Name: "收付款方式",
-		Sort: 7,
+		Sort: IntToPointer(7),
 	},
 	{
 		Name: "币种",
-		Sort: 8,
+		Sort: IntToPointer(8),
 	},
 	{
 		Name: "进度类型",
-		Sort: 9,
+		Sort: IntToPointer(9),
 	},
 	{
 		Name: "银行名称",
-		Sort: 10,
+		Sort: IntToPointer(10),
 	},
 	{
 		Name: "进度的数据来源",
-		Sort: 11,
+		Sort: IntToPointer(11),
 	},
 	{
 		Name: "合同资金方向",
-		Sort: 12,
+		Sort: IntToPointer(12),
 	},
 	{
 		Name: "我方签约主体",
-		Sort: 13,
+		Sort: IntToPointer(13),
 	},
 	{
 		Name: "省份",
-		Sort: 14,
+		Sort: IntToPointer(14),
 	},
 	{
 		Name: "数据范围",
-		Sort: 15,
+		Sort: IntToPointer(15),
+	},
+	{
+		Name: "LDAP允许的OU",
+		Sort: IntToPointer(16),
 	},
 }
 
 func generateDictionaryType() (err error) {
 	for i := range dictionaryTypes {
-		err = global.DB.Model(&DictionaryType{}).
-			Where("name = ?", dictionaryTypes[i].Name).
+		err = global.DB.Where("name = ?", dictionaryTypes[i].Name).
 			Where("sort = ?", dictionaryTypes[i].Sort).
-			Attrs("snow_id = ?", idgen.NextId()).
+			Attrs(DictionaryType{
+				BasicModel: BasicModel{
+					SnowID: idgen.NextId(),
+				},
+				Status: BoolToPointer(true),
+			}).
 			FirstOrCreate(&dictionaryTypes[i]).Error
 		if err != nil {
 			return err

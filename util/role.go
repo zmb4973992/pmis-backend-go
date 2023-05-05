@@ -5,63 +5,63 @@ import (
 	"pmis-backend-go/model"
 )
 
-func GetOrganizationIDsForDataScope(userID int) (organizationIDsForDataScope []int) {
+func GetOrganizationSnowIDsForDataScope(userSnowID int64) (organizationSnowIDsForDataScope []int64) {
 	//先获取角色
-	var roleIDs []int
-	global.DB.Model(&model.UserAndRole{}).Where("user_id = ?", userID).
-		Select("role_id").Find(&roleIDs)
+	var roleSnowIDs []int64
+	global.DB.Model(&model.UserAndRole{}).Where("user_snow_id = ?", userSnowID).
+		Select("role_snow_id").Find(&roleSnowIDs)
 
 	//获得所属角色的数据范围类型
-	var dataScopeType []int
-	global.DB.Model(&model.Role{}).Where("id in ?", roleIDs).
+	var dataScopeType []int64
+	global.DB.Model(&model.Role{}).Where("snow_id in ?", roleSnowIDs).
 		Select("data_scope_type").Find(&dataScopeType)
 
-	var tempOrganizationIDs []int
+	var tempOrganizationSnowIDs []int64
 	//判断数据范围的类型
 	switch {
 	//如果数据范围的类型为AllOrganization，就返回全部的组织id
 	case SliceIncludes(dataScopeType, model.AllOrganization):
-		global.DB.Model(&model.Organization{}).Select("id").Find(&organizationIDsForDataScope)
+		global.DB.Model(&model.Organization{}).Select("snow_id").Find(&organizationSnowIDsForDataScope)
 		return
 		//如果数据范围的类型为HisOrganizationAndInferiors，就返回该条件下的所有组织id
 		//并继续向下穿透执行
 	case SliceIncludes(dataScopeType, model.HisOrganizationAndInferiors):
-		tempOrganizationIDs = GetOrganizationIDsWithInferiors(userID)
+		tempOrganizationSnowIDs = GetOrganizationSnowIDsWithInferiors(userSnowID)
 		fallthrough
 	case SliceIncludes(dataScopeType, model.HisOrganization):
-		var tempOrganizationIDs1 []int
-		global.DB.Model(&model.OrganizationAndUser{}).Where("user_id = ?", userID).
-			Select("organization_id").Find(&tempOrganizationIDs1)
-		tempOrganizationIDs = append(tempOrganizationIDs, tempOrganizationIDs1...)
+		var tempOrganizationSnowIDs1 []int64
+		global.DB.Model(&model.OrganizationAndUser{}).Where("user_snow_id = ?", userSnowID).
+			Select("organization_snow_id").Find(&tempOrganizationSnowIDs1)
+		tempOrganizationSnowIDs = append(tempOrganizationSnowIDs, tempOrganizationSnowIDs1...)
 		fallthrough
 	case SliceIncludes(dataScopeType, model.CustomOrganization):
-		var tempOrganizationIDs2 []int
-		global.DB.Model(&model.RoleAndOrganizationForDataScope{}).Where("role_id in ?", roleIDs).
-			Select("organization_id_for_data_scope").Find(&tempOrganizationIDs2)
-		tempOrganizationIDs = append(tempOrganizationIDs, tempOrganizationIDs2...)
+		var tempOrganizationSnowIDs2 []int64
+		global.DB.Model(&model.RoleAndOrganizationForDataScope{}).Where("role_snow_id in ?", roleSnowIDs).
+			Select("organization_snow_id_for_data_scope").Find(&tempOrganizationSnowIDs2)
+		tempOrganizationSnowIDs = append(tempOrganizationSnowIDs, tempOrganizationSnowIDs2...)
 	}
-	organizationIDsForDataScope = RemoveDuplication(tempOrganizationIDs)
+	organizationSnowIDsForDataScope = RemoveDuplication(tempOrganizationSnowIDs)
 	return
 }
 
-// GetOrganizationIDsWithInferiors 获得所有的组织id(含子组织)
-func GetOrganizationIDsWithInferiors(userID int) (organizationIDs []int) {
-	global.DB.Model(&model.OrganizationAndUser{}).Where("user_id = ?", userID).
-		Select("organization_id").Find(&organizationIDs)
-	for i := range organizationIDs {
-		res := getInferiorOrganizationIDs(organizationIDs[i])
-		organizationIDs = append(organizationIDs, res...)
+// GetOrganizationSnowIDsWithInferiors 获得所有的组织id(含子组织)
+func GetOrganizationSnowIDsWithInferiors(userSnowID int64) (organizationSnowIDs []int64) {
+	global.DB.Model(&model.OrganizationAndUser{}).Where("user_snow_id = ?", userSnowID).
+		Select("organization_snow_id").Find(&organizationSnowIDs)
+	for i := range organizationSnowIDs {
+		res := getInferiorOrganizationSnowIDs(organizationSnowIDs[i])
+		organizationSnowIDs = append(organizationSnowIDs, res...)
 	}
-	organizationIDs = RemoveDuplication(organizationIDs)
+	organizationSnowIDs = RemoveDuplication(organizationSnowIDs)
 	return
 }
 
-func getInferiorOrganizationIDs(organizationID int) (organizationIDs []int) {
-	global.DB.Model(&model.Organization{}).Where("superior_id = ?", organizationID).
-		Select("id").Find(&organizationIDs)
-	for i := range organizationIDs {
-		res := getInferiorOrganizationIDs(organizationIDs[i])
-		organizationIDs = append(organizationIDs, res...)
+func getInferiorOrganizationSnowIDs(organizationSnowID int64) (organizationSnowIDs []int64) {
+	global.DB.Model(&model.Organization{}).Where("superior_snow_id = ?", organizationSnowID).
+		Select("snow_id").Find(&organizationSnowIDs)
+	for i := range organizationSnowIDs {
+		res := getInferiorOrganizationSnowIDs(organizationSnowIDs[i])
+		organizationSnowIDs = append(organizationSnowIDs, res...)
 	}
 	return
 }

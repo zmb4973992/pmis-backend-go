@@ -1,11 +1,53 @@
 package cron
 
 import (
+	"fmt"
 	"github.com/go-ldap/ldap/v3"
+	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"strings"
 )
+
+func UpdateOrganization() error {
+	ldapServer := global.Config.LDAPConfig.Server
+	baseDN := global.Config.LDAPConfig.BaseDN
+	filter := global.Config.LDAPConfig.Filter
+	//permittedOUs := global.Config.LDAPConfig.PermittedOUs
+	attributes := global.Config.LDAPConfig.Attributes
+
+	l, err := ldap.DialURL(ldapServer)
+	defer l.Close()
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return err
+	}
+
+	err = l.Bind("z0030975@avicbj.ad", "Bfsu028912")
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return err
+	}
+
+	searchRequest := ldap.NewSearchRequest(
+		baseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		0, 0, false, filter, attributes, nil,
+	)
+
+	sr, err := l.Search(searchRequest)
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return err
+	}
+
+	//for i := range sr.Entries {
+	//	fmt.Println(sr.Entries[i])
+	//}
+
+	fmt.Println(sr.Entries)
+
+	return nil
+}
 
 func updateUser() {
 	ldapServer := global.Config.LDAPConfig.Server
@@ -70,7 +112,7 @@ func updateUser() {
 					//创建角色
 					var roleSnowID int64
 					global.DB.Model(&model.Role{}).Where("name = ?", "公司级").
-						Select("id").First(&roleSnowID)
+						Select("snow_id").First(&roleSnowID)
 					var roleAndUser model.UserAndRole
 					roleAndUser.UserSnowID = user.ID
 					roleAndUser.RoleSnowID = roleSnowID
@@ -140,4 +182,70 @@ func updateUser() {
 			}
 		}
 	}
+}
+
+func updateUsers() error {
+	ldapServer := global.Config.LDAPConfig.Server
+	baseDN := global.Config.LDAPConfig.BaseDN
+	filter := global.Config.LDAPConfig.Filter
+	permittedOUs := global.Config.LDAPConfig.PermittedOUs
+	attributes := global.Config.LDAPConfig.Attributes
+
+	l, err := ldap.DialURL(ldapServer)
+	defer l.Close()
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return err
+	}
+
+	err = l.Bind("z0030975@avicbj.ad", "Bfsu028912")
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return err
+	}
+
+	searchRequest := ldap.NewSearchRequest(
+		baseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
+		0, 0, false, filter, attributes, nil,
+	)
+
+	sr, err := l.Search(searchRequest)
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return err
+	}
+
+	for i := range sr.Entries {
+		entry := sr.Entries[i]
+		DN := entry.GetAttributeValue("distinguishedName")
+		for j := range permittedOUs {
+			if strings.Contains(DN, permittedOUs[j]) {
+				//添加用户
+				var user model.User
+				user.Username = entry.GetAttributeValue("sAMAccountName")
+
+				isValid := true
+				user.IsValid = &isValid
+
+				fullName := entry.GetAttributeValue("cn")
+				if fullName != "" {
+					user.FullName = &fullName
+				}
+
+				email := entry.GetAttributeValue("mail")
+				if email != "" {
+					user.EmailAddress = &email
+				}
+
+				err = global.DB.Where("username = ?", user.Username).
+					Attrs(&model.User{BasicModel: model.BasicModel{SnowID: idgen.NextId()}}).
+					FirstOrCreate(&user).Error
+				if err != nil {
+					global.SugaredLogger.Errorln(err)
+					return err
+				}
+			}
+		}
+	}
+	return nil
 }

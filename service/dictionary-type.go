@@ -4,6 +4,7 @@ import (
 	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
+	"pmis-backend-go/serializer/list"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 )
@@ -41,12 +42,12 @@ type DictionaryTypeDelete struct {
 }
 
 type DictionaryTypeGetArray struct {
-	ListInput
+	list.Input
 	NameInclude string `json:"name_include,omitempty"`
 }
 
 type DictionaryTypeGetList struct {
-	ListInput
+	list.Input
 	NameInclude string `json:"name_include,omitempty"`
 }
 
@@ -62,7 +63,7 @@ type DictionaryTypeOutput struct {
 func (d *DictionaryTypeGet) Get() response.Common {
 	var result DictionaryTypeOutput
 	err := global.DB.Model(model.DictionaryType{}).
-		Where("id = ?", d.SnowID).First(&result).Error
+		Where("snow_id = ?", d.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -91,42 +92,6 @@ func (d *DictionaryTypeCreate) Create() response.Common {
 	}
 
 	paramOut.SnowID = idgen.NextId()
-
-	err := global.DB.Create(&paramOut).Error
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
-	}
-	return response.Success()
-}
-
-// 这里没写snowID的逻辑，不要用
-
-func (d *DictionaryTypeCreateInBatches) CreateInBatches() response.Common {
-	var paramOut []model.DictionaryType
-	for i := range d.Data {
-		var record model.DictionaryType
-
-		if d.Data[i].Creator > 0 {
-			record.Creator = &d.Data[i].Creator
-		}
-
-		if d.Data[i].LastModifier > 0 {
-			record.LastModifier = &d.Data[i].LastModifier
-		}
-
-		record.Name = d.Data[i].Name
-
-		if d.Data[i].Sort != 0 {
-			record.Sort = &d.Data[i].Sort
-		}
-
-		if d.Data[i].Remarks != "" {
-			record.Remarks = &d.Data[i].Remarks
-		}
-
-		paramOut = append(paramOut, record)
-	}
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
@@ -177,7 +142,7 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.DictionaryType{}).Where("id = ?", d.SnowID).
+	err := global.DB.Model(&model.DictionaryType{}).Where("snow_id = ?", d.SnowID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -190,8 +155,8 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 func (d *DictionaryTypeDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.DictionaryType
-	global.DB.Where("id = ?", d.SnowID).Find(&record)
-	err := global.DB.Where("id = ?", d.SnowID).Delete(&record).Error
+	global.DB.Where("snow_id = ?", d.SnowID).Find(&record)
+	err := global.DB.Where("snow_id = ?", d.SnowID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -200,68 +165,68 @@ func (d *DictionaryTypeDelete) Delete() response.Common {
 	return response.Success()
 }
 
-func (d *DictionaryTypeGetArray) GetArray() response.Common {
-	db := global.DB.Model(&model.DictionaryType{})
-	// 顺序：where -> count -> Order -> limit -> offset -> array
-
-	//where
-	if d.NameInclude != "" {
-		db = db.Where("name like ?", "%"+d.NameInclude+"%")
-	}
-
-	//Order
-	orderBy := d.SortingInput.OrderBy
-	desc := d.SortingInput.Desc
-	//如果排序字段为空
-	if orderBy == "" {
-		//如果要求降序排列
-		if desc == true {
-			db = db.Order("id desc")
-		}
-	} else { //如果有排序字段
-		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(&model.DictionaryType{}, orderBy)
-		if !exists {
-			return response.Failure(util.ErrorSortingFieldDoesNotExist)
-		}
-		//如果要求降序排列
-		if desc == true {
-			db = db.Order(orderBy + " desc")
-		} else { //如果没有要求排序方式
-			db = db.Order(orderBy)
-		}
-	}
-
-	//limit
-	page := 1
-	if d.PagingInput.Page > 0 {
-		page = d.PagingInput.Page
-	}
-	pageSize := global.Config.DefaultPageSize
-	if d.PagingInput.PageSize != nil && *d.PagingInput.PageSize >= 0 &&
-		*d.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = *d.PagingInput.PageSize
-	}
-	db = db.Limit(pageSize)
-
-	//offset
-	offset := (page - 1) * pageSize
-	db = db.Offset(offset)
-
-	//array
-	var array []string
-	db.Model(&model.DictionaryType{}).Select("name").Find(&array)
-
-	if len(array) == 0 {
-		return response.Failure(util.ErrorRecordNotFound)
-	}
-
-	return response.Common{
-		Data:    array,
-		Code:    util.Success,
-		Message: util.GetMessage(util.Success),
-	}
-}
+//func (d *DictionaryTypeGetArray) GetArray() response.Common {
+//	db := global.DB.Model(&model.DictionaryType{})
+//	// 顺序：where -> count -> Order -> limit -> offset -> array
+//
+//	//where
+//	if d.NameInclude != "" {
+//		db = db.Where("name like ?", "%"+d.NameInclude+"%")
+//	}
+//
+//	//Order
+//	orderBy := d.SortingInput.OrderBy
+//	desc := d.SortingInput.Desc
+//	//如果排序字段为空
+//	if orderBy == "" {
+//		//如果要求降序排列
+//		if desc == true {
+//			db = db.Order("snow_id desc")
+//		}
+//	} else { //如果有排序字段
+//		//先看排序字段是否存在于表中
+//		exists := util.FieldIsInModel(&model.DictionaryType{}, orderBy)
+//		if !exists {
+//			return response.Failure(util.ErrorSortingFieldDoesNotExist)
+//		}
+//		//如果要求降序排列
+//		if desc == true {
+//			db = db.Order(orderBy + " desc")
+//		} else { //如果没有要求排序方式
+//			db = db.Order(orderBy)
+//		}
+//	}
+//
+//	//limit
+//	page := 1
+//	if d.PagingInput.Page > 0 {
+//		page = d.PagingInput.Page
+//	}
+//	pageSize := global.Config.DefaultPageSize
+//	if d.PagingInput.PageSize != nil && *d.PagingInput.PageSize >= 0 &&
+//		*d.PagingInput.PageSize <= global.Config.MaxPageSize {
+//		pageSize = *d.PagingInput.PageSize
+//	}
+//	db = db.Limit(pageSize)
+//
+//	//offset
+//	offset := (page - 1) * pageSize
+//	db = db.Offset(offset)
+//
+//	//array
+//	var array []string
+//	db.Model(&model.DictionaryType{}).Select("name").Find(&array)
+//
+//	if len(array) == 0 {
+//		return response.Failure(util.ErrorRecordNotFound)
+//	}
+//
+//	return response.Common{
+//		Data:    array,
+//		Code:    util.Success,
+//		Message: util.GetMessage(util.Success),
+//	}
+//}
 
 func (d *DictionaryTypeGetList) GetList() response.List {
 	db := global.DB.Model(&model.DictionaryType{})
@@ -283,7 +248,7 @@ func (d *DictionaryTypeGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("id desc")
+			db = db.Order("snow_id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
@@ -330,7 +295,7 @@ func (d *DictionaryTypeGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &PagingOutput{
+		Paging: &list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

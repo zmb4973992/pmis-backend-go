@@ -12,5 +12,5 @@ func (j *JWTRouter) InitJWTRouter(param *gin.RouterGroup) {
 	jwtRouter := param.Group("")
 	jwtRouter.Use(middleware.RateLimit())
 	//校验token是否有效
-	jwtRouter.GET("/jwt/:token", controller.Token.Validate)
+	jwtRouter.GET("/jwt/:access-token", controller.Token.Validate)
 }

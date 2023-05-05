@@ -19,13 +19,18 @@ func (*Disassembly) TableName() string {
 }
 
 func (d *Disassembly) BeforeDelete(tx *gorm.DB) error {
+	if d.SnowID == 0 {
+		return nil
+	}
+
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var records []Progress
-	err = tx.Where("disassembly_snow_id = ?", d.SnowID).
+	err = tx.Where(Progress{DisassemblySnowID: &d.SnowID}).
 		Find(&records).Delete(&records).Error
 	if err != nil {
 		return err
 	}
+
 	return nil
 }

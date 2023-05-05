@@ -17,7 +17,7 @@ type relatedParty struct{}
 func (r *relatedParty) Get(c *gin.Context) {
 	var param service.RelatedPartyGet
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("related-party-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("related-party-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -40,10 +40,10 @@ func (r *relatedParty) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.Creator = userID
-		param.LastModifier = userID
+		param.Creator = userSnowID
+		param.LastModifier = userSnowID
 	}
 
 	res := param.Create()
@@ -61,7 +61,7 @@ func (r *relatedParty) Update(c *gin.Context) {
 		return
 	}
 
-	param.SnowID, err = strconv.ParseInt(c.Param("related-party-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("related-party-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -70,9 +70,9 @@ func (r *relatedParty) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.LastModifier = userID
+		param.LastModifier = userSnowID
 	}
 
 	res := param.Update()
@@ -83,7 +83,7 @@ func (r *relatedParty) Update(c *gin.Context) {
 func (r *relatedParty) Delete(c *gin.Context) {
 	var param service.RelatedPartyDelete
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("related-party-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("related-party-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,

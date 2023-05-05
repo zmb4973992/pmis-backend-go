@@ -3,6 +3,7 @@ package service
 import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
+	"pmis-backend-go/serializer/list"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 )
@@ -54,7 +55,7 @@ type DisassemblyDeleteWithInferiors struct {
 }
 
 type DisassemblyGetList struct {
-	ListInput
+	list.Input
 	NameInclude string `json:"name_include,omitempty"`
 
 	ProjectSnowID  int64 `json:"project_snow_id"`
@@ -88,7 +89,7 @@ type DisassemblyTreeOutput struct {
 func (d *DisassemblyGet) Get() response.Common {
 	var result DisassemblyOutput
 	err := global.DB.Model(model.Disassembly{}).
-		Where("id = ?", d.SnowID).First(&result).Error
+		Where("snow_id = ?", d.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -99,7 +100,7 @@ func (d *DisassemblyGet) Get() response.Common {
 func treeRecursion(superiorSnowID int64) []DisassemblyTreeOutput {
 	var result []DisassemblyTreeOutput
 	res := global.DB.Model(model.Disassembly{}).
-		Where("superior_id = ?", superiorSnowID).Find(&result)
+		Where("superior_snow_id = ?", superiorSnowID).Find(&result)
 	if res.RowsAffected == 0 {
 		return nil
 	}
@@ -111,10 +112,10 @@ func treeRecursion(superiorSnowID int64) []DisassemblyTreeOutput {
 
 func (d *DisassemblyTree) Tree() response.Common {
 	//根据project_id获取disassembly_id
-	var disassemblyID int
-	res := global.DB.Model(model.Disassembly{}).Select("id").
-		Where("project_id = ?", d.ProjectSnowID).Where("level = 1").
-		Find(&disassemblyID)
+	var disassemblySnowID int64
+	res := global.DB.Model(model.Disassembly{}).Select("snow_id").
+		Where("project_snow_id = ?", d.ProjectSnowID).Where("level = 1").
+		Find(&disassemblySnowID)
 	if res.RowsAffected == 0 {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
@@ -122,7 +123,7 @@ func (d *DisassemblyTree) Tree() response.Common {
 	//第一轮查找，查询条件为id
 	var result []DisassemblyTreeOutput
 	res = global.DB.Model(model.Disassembly{}).
-		Where("id = ?", disassemblyID).Find(&result)
+		Where("snow_id = ?", disassemblySnowID).Find(&result)
 	if res.RowsAffected == 0 {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
@@ -151,7 +152,7 @@ func (d *DisassemblyCreate) Create() response.Common {
 
 	//根据上级拆解id，找到项目id和层级
 	var superiorDisassembly model.Disassembly
-	err := global.DB.Where("id = ?", d.SuperiorSnowID).First(&superiorDisassembly).Error
+	err := global.DB.Where("snow_id = ?", d.SuperiorSnowID).First(&superiorDisassembly).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
@@ -170,37 +171,6 @@ func (d *DisassemblyCreate) Create() response.Common {
 	}
 	return response.Success()
 }
-
-// deprecated
-// 逻辑较复杂，暂时废弃
-//func (d *DisassemblyCreateInBatches) CreateInBatches() response.Common {
-//	var paramOut []model.Disassembly
-//	for i := range d.Param {
-//		var record model.Disassembly
-//		if d.Param[i].Creator > 0 {
-//			record.Creator = &d.Param[i].Creator
-//		}
-//
-//		if d.Param[i].LastModifier > 0 {
-//			record.LastModifier = &d.Param[i].LastModifier
-//		}
-//
-//		record.Name = &d.Param[i].Name
-//
-//		record.Weight = &d.Param[i].Weight
-//
-//		record.SuperiorSnowID = &d.Param[i].SuperiorSnowID
-//
-//		paramOut = append(paramOut, record)
-//	}
-//
-//	err := global.DB.Create(&paramOut).Error
-//	if err != nil {
-//		global.SugaredLogger.Errorln(err)
-//		return response.Failure(util.ErrorFailToCreateRecord)
-//	}
-//	return response.Success()
-//}
 
 func (d *DisassemblyUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
@@ -233,7 +203,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.Disassembly{}).Where("id = ?", d.SnowID).
+	err := global.DB.Model(&model.Disassembly{}).Where("snow_id = ?", d.SnowID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -244,22 +214,22 @@ func (d *DisassemblyUpdate) Update() response.Common {
 	for i := range paramOut {
 		if i == "weight" {
 			//获取进度类型在字典类型表中的值
-			var progressTypeID int
+			var progressTypeSnowID int64
 			err = global.DB.Model(&model.DictionaryType{}).
-				Where("name = '进度类型'").Select("id").First(&progressTypeID).Error
+				Where("name = '进度类型'").Select("snow_id").First(&progressTypeSnowID).Error
 			if err != nil {
 				return response.Failure(util.ErrorFailToCalculateSelfAndSuperiorProgress)
 			}
 			//获取进度类型在字典详情表中的值
-			var progressItemIDs []int
+			var progressItemSnowIDs []int64
 			err = global.DB.Model(&model.DictionaryDetail{}).
-				Where("dictionary_type_id = ?", progressTypeID).
-				Select("id").Find(&progressItemIDs).Error
+				Where("dictionary_type_snow_id = ?", progressTypeSnowID).
+				Select("snow_id").Find(&progressItemSnowIDs).Error
 			if err != nil {
 				return response.Failure(util.ErrorFailToCalculateSelfAndSuperiorProgress)
 			}
 			//更新自身和所有上级的进度
-			for _, v := range progressItemIDs {
+			for _, v := range progressItemSnowIDs {
 				//更新自身进度
 				err = util.UpdateSelfProgress(d.SnowID, v)
 				if err != nil {
@@ -282,7 +252,7 @@ func (d *DisassemblyUpdate) Update() response.Common {
 func (d *DisassemblyDelete) Delete() response.Common {
 	//先找到记录，这样参数才能获得值、触发钩子函数，再删除记录
 	var record model.Disassembly
-	err := global.DB.Where("id = ?", d.SnowID).Find(&record).Delete(&record).Error
+	err := global.DB.Where("snow_id = ?", d.SnowID).Find(&record).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -290,24 +260,24 @@ func (d *DisassemblyDelete) Delete() response.Common {
 	}
 
 	//获取进度类型在字典类型表中的值
-	var progressTypeID int
+	var progressTypeSnowID int
 	err = global.DB.Model(&model.DictionaryType{}).
-		Where("name = '进度类型'").Select("id").First(&progressTypeID).Error
+		Where("name = '进度类型'").Select("snow_id").First(&progressTypeSnowID).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToCalculateSelfAndSuperiorProgress)
 	}
 
 	//获取进度类型在字典详情表中的值
-	var progressItemIDs []int
+	var progressItemSnowIDs []int64
 	err = global.DB.Model(&model.DictionaryDetail{}).
-		Where("dictionary_type_id = ?", progressTypeID).
-		Select("id").Find(&progressItemIDs).Error
+		Where("dictionary_type_snow_id = ?", progressTypeSnowID).
+		Select("snow_id").Find(&progressItemSnowIDs).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToCalculateSelfAndSuperiorProgress)
 	}
 
 	//更新所有上级的进度(删除自身进度的任务放在删除的钩子函数里)
-	for _, v := range progressItemIDs {
+	for _, v := range progressItemSnowIDs {
 		err = util.UpdateProgressOfSuperiors(d.SnowID, v)
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
@@ -324,7 +294,7 @@ func (d *DisassemblyDeleteWithInferiors) DeleteWithInferiors() response.Common {
 
 	//先找到记录，这样参数才能获得值、触发钩子函数，再删除记录
 	var disassemblies []model.Disassembly
-	err := global.DB.Where("id in ?", ToBeDeletedSnowIDs).
+	err := global.DB.Where("snow_id in ?", ToBeDeletedSnowIDs).
 		Find(&disassemblies).Delete(&disassemblies).Error
 
 	if err != nil {
@@ -345,11 +315,11 @@ func (d *DisassemblyGetList) GetList() response.List {
 	}
 
 	if d.ProjectSnowID > 0 {
-		db = db.Where("project_id = ?", d.ProjectSnowID)
+		db = db.Where("project_snow_id = ?", d.ProjectSnowID)
 	}
 
 	if d.SuperiorSnowID > 0 {
-		db = db.Where("superior_id = ?", d.SuperiorSnowID)
+		db = db.Where("superior_snow_id = ?", d.SuperiorSnowID)
 	}
 
 	if d.Level > 0 {
@@ -375,7 +345,7 @@ func (d *DisassemblyGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("id desc")
+			db = db.Order("snow_id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
@@ -422,7 +392,7 @@ func (d *DisassemblyGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &PagingOutput{
+		Paging: &list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

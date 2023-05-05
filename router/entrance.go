@@ -81,16 +81,16 @@ func InitEngine() *gin.Engine {
 	{
 		operationLog := api.Group("/operation-log")
 		{
-			operationLog.GET("/:operation-log-id", controller.OperationRecord.Get)       //获取操作记录详情
-			operationLog.DELETE("/:operation-log-id", controller.OperationRecord.Delete) //删除操作记录
-			operationLog.POST("/list", controller.OperationRecord.GetList)               //获取操作详情列表
+			operationLog.GET("/:operation-log-snow-id", controller.OperationRecord.Get)       //获取操作记录详情
+			operationLog.DELETE("/:operation-log-snow-id", controller.OperationRecord.Delete) //删除操作记录
+			operationLog.POST("/list", controller.OperationRecord.GetList)                    //获取操作详情列表
 		}
 		errorLog := api.Group("/error-log")
 		{
-			errorLog.GET("/:error-log-id", controller.ErrorLog.Get)       //获取错误日志详情
-			errorLog.POST("", controller.ErrorLog.Create)                 //新增错误日志
-			errorLog.PATCH("/:error-log-id", controller.ErrorLog.Update)  //修改错误日志
-			errorLog.DELETE("/:error-log-id", controller.ErrorLog.Delete) //删除错误日志
+			errorLog.GET("/:error-log-snow-id", controller.ErrorLog.Get)       //获取错误日志详情
+			errorLog.POST("", controller.ErrorLog.Create)                      //新增错误日志
+			errorLog.PATCH("/:error-log-snow-id", controller.ErrorLog.Update)  //修改错误日志
+			errorLog.DELETE("/:error-log-snow-id", controller.ErrorLog.Delete) //删除错误日志
 		}
 	}
 

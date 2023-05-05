@@ -41,6 +41,10 @@ func (*Project) TableName() string {
 }
 
 func (d *Project) BeforeDelete(tx *gorm.DB) error {
+	if d.SnowID == 0 {
+		return nil
+	}
+
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var records []Disassembly
@@ -51,14 +55,14 @@ func (d *Project) BeforeDelete(tx *gorm.DB) error {
 	}
 
 	var records1 []Contract
-	err = tx.Where(&Disassembly{ProjectSnowID: &d.SnowID}).
+	err = tx.Where(&Contract{ProjectSnowID: &d.SnowID}).
 		Find(&records1).Delete(&records1).Error
 	if err != nil {
 		return err
 	}
 
 	var records2 []IncomeAndExpenditure
-	err = tx.Where(&Disassembly{ProjectSnowID: &d.SnowID}).
+	err = tx.Where(&IncomeAndExpenditure{ProjectSnowID: &d.SnowID}).
 		Find(&records2).Delete(&records2).Error
 	if err != nil {
 		return err

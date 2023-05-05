@@ -17,7 +17,7 @@ type dictionaryDetail struct{}
 func (d *dictionaryDetail) Get(c *gin.Context) {
 	param := service.OrganizationGet{}
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-detail-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-detail-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest, response.Common{
@@ -43,10 +43,10 @@ func (d *dictionaryDetail) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.Creator = userID
-		param.LastModifier = userID
+		param.Creator = userSnowID
+		param.LastModifier = userSnowID
 	}
 
 	res := param.Create()
@@ -65,11 +65,11 @@ func (d *dictionaryDetail) CreateInBatches(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
 		for i := range param.Data {
-			param.Data[i].Creator = userID
-			param.Data[i].LastModifier = userID
+			param.Data[i].Creator = userSnowID
+			param.Data[i].LastModifier = userSnowID
 		}
 	}
 
@@ -88,7 +88,7 @@ func (d *dictionaryDetail) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-detail-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-detail-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -97,9 +97,9 @@ func (d *dictionaryDetail) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.LastModifier = userID
+		param.LastModifier = userSnowID
 	}
 
 	res := param.Update()
@@ -110,7 +110,7 @@ func (d *dictionaryDetail) Update(c *gin.Context) {
 func (d *dictionaryDetail) Delete(c *gin.Context) {
 	var param service.DictionaryDetailDelete
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-detail-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-detail-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -122,24 +122,6 @@ func (d *dictionaryDetail) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 	return
 }
-
-//func (d *dictionaryDetail) GetArray(c *gin.Context) {
-//	var param service.DictionaryDetailGetArray
-//	err := c.ShouldBindJSON(&param)
-//
-//	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
-//	//如果是其他错误，就正常报错
-//	if err != nil && !errors.Is(err, io.EOF) {
-//		global.SugaredLogger.Errorln(err)
-//		c.JSON(http.StatusBadRequest,
-//			response.FailureForList(util.ErrorInvalidJSONParameters))
-//		return
-//	}
-//
-//	res := param.GetArray()
-//	c.JSON(http.StatusOK, res)
-//	return
-//}
 
 func (d *dictionaryDetail) GetList(c *gin.Context) {
 	var param service.DictionaryDetailGetList

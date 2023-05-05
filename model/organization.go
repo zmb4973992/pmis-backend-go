@@ -31,6 +31,10 @@ func (o *Organization) TableName() string {
 }
 
 func (o *Organization) BeforeDelete(tx *gorm.DB) error {
+	if o.SnowID == 0 {
+		return nil
+	}
+
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var records []OrganizationAndUser
@@ -39,6 +43,7 @@ func (o *Organization) BeforeDelete(tx *gorm.DB) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -93,7 +98,7 @@ func generateOrganizations() error {
 				return err
 			}
 			//把上级部门的id赋值给本部门
-			err = global.DB.Model(&Organization{}).Where("name = ?", organization.Name).Update("superior_id", superiorOrganization.ID).Error
+			err = global.DB.Model(&Organization{}).Where("name = ?", organization.Name).Update("superior_snow_id", superiorOrganization.SnowID).Error
 			if err != nil {
 				global.SugaredLogger.Errorln(err)
 				return err
@@ -106,7 +111,7 @@ func generateOrganizations() error {
 				return err
 			}
 			//把上级部门的id赋值给本部门
-			err = global.DB.Model(&Organization{}).Where("name = ?", organization.Name).Update("superior_id", superiorOrganization.ID).Error
+			err = global.DB.Model(&Organization{}).Where("name = ?", organization.Name).Update("superior_snow_id", superiorOrganization.SnowID).Error
 			if err != nil {
 				global.SugaredLogger.Errorln(err)
 				return err

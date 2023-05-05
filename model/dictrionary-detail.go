@@ -10,7 +10,7 @@ type DictionaryDetail struct {
 	DictionaryTypeSnowID int64   //字典类型的SnowID
 	Name                 string  //名称
 	Sequence             *int    //用于排序的值
-	IsValidForFrontend   *bool   //是否在前端展现
+	Status               *bool   //是否启用
 	Remarks              *string //备注
 }
 
@@ -62,19 +62,31 @@ var initialDictionary = []dictionaryDetailFormat{
 func generateDictionaryDetail() (err error) {
 	var dictionaryDetails []DictionaryDetail
 	for i := range initialDictionary {
-		var dictionaryTypeRecord DictionaryType
-		global.DB.FirstOrCreate(&dictionaryTypeRecord, DictionaryType{Name: initialDictionary[i].TypeName})
+		//先找到字典类型的记录
+		var dictionaryTypeInfo DictionaryType
+		err = global.DB.Where("name = ?", initialDictionary[i].TypeName).
+			First(&dictionaryTypeInfo).Error
+		if err != nil {
+			return err
+		}
+
 		for j := range initialDictionary[i].DetailNames {
 			dictionaryDetails = append(dictionaryDetails, DictionaryDetail{
-				BasicModel:           BasicModel{SnowID: idgen.NextId()},
-				DictionaryTypeSnowID: dictionaryTypeRecord.SnowID,
+				DictionaryTypeSnowID: dictionaryTypeInfo.SnowID,
 				Name:                 initialDictionary[i].DetailNames[j],
 			})
 		}
 	}
 
 	for _, dictionaryDetail := range dictionaryDetails {
-		err = global.DB.FirstOrCreate(&DictionaryDetail{}, dictionaryDetail).Error
+		err = global.DB.Where("name = ?", dictionaryDetail.Name).
+			Attrs(&DictionaryDetail{
+				BasicModel: BasicModel{
+					SnowID: idgen.NextId(),
+				},
+				Status: BoolToPointer(true),
+			}).
+			FirstOrCreate(&dictionaryDetail).Error
 		if err != nil {
 			return err
 		}

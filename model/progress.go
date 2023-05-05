@@ -9,7 +9,7 @@ type Progress struct {
 	BasicModel
 	DisassemblySnowID *int64     //拆解情况SnowID
 	Date              *time.Time `gorm:"type:date"`
-	Type              *int
+	Type              *int64
 	Value             *float64
 	DataSource        *int64
 	Remarks           *string
@@ -34,6 +34,9 @@ func (*Progress) TableName() string {
 }
 
 func (d *Progress) BeforeDelete(tx *gorm.DB) error {
+	if d.SnowID == 0 {
+		return nil
+	}
 
 	//删除相关的子表记录
 	//先find、再delete，可以激活相关的钩子函数

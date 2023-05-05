@@ -12,13 +12,13 @@ import (
 // RBAC 如果需要根据角色进行鉴权，则使用该中间件
 func RBAC() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		userID, exists := util.GetUserSnowID(c)
+		userSnowID, exists := util.GetUserSnowID(c)
 		if !exists {
 			c.AbortWithStatusJSON(http.StatusOK, response.Failure(util.ErrorUserIDDoesNotExist))
 			return
 		}
 
-		subject := strconv.FormatInt(userID, 10)
+		subject := strconv.FormatInt(userSnowID, 10)
 		object := c.Request.URL.Path //获取请求路径，casbin规则的客体参数
 		act := c.Request.Method      //获取请求方法，casbin规则的动作参数
 

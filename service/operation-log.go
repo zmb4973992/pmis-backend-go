@@ -3,6 +3,7 @@ package service
 import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
+	"pmis-backend-go/serializer/list"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 	"time"
@@ -24,7 +25,7 @@ type OperationLogDelete struct {
 }
 
 type OperationLogGetList struct {
-	ListInput
+	list.Input
 	UserSnowID int64 `json:"user_snow_id,omitempty"`
 }
 
@@ -49,7 +50,7 @@ type OperationLogOutput struct {
 func (o *OperationLogGet) Get() response.Common {
 	var result OperationLogOutput
 	err := global.DB.Model(model.OperationLog{}).
-		Where("id = ?", o.SnowID).First(&result).Error
+		Where("snow_id = ?", o.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -60,8 +61,8 @@ func (o *OperationLogGet) Get() response.Common {
 func (o *OperationLogDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.OperationLog
-	global.DB.Where("id = ?", o.SnowID).Find(&record)
-	err := global.DB.Where("id = ?", o.SnowID).Delete(&record).Error
+	global.DB.Where("snow_id = ?", o.SnowID).Find(&record)
+	err := global.DB.Where("snow_id = ?", o.SnowID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -76,7 +77,7 @@ func (o *OperationLogGetList) GetList() response.List {
 
 	//where
 	if o.UserSnowID > 0 {
-		db = db.Where("user_id = ?", o.UserSnowID)
+		db = db.Where("user_snow_id = ?", o.UserSnowID)
 	}
 
 	// count
@@ -90,7 +91,7 @@ func (o *OperationLogGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("id desc")
+			db = db.Order("snow_id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
@@ -137,7 +138,7 @@ func (o *OperationLogGetList) GetList() response.List {
 
 	return response.List{
 		Data: data,
-		Paging: &PagingOutput{
+		Paging: &list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,

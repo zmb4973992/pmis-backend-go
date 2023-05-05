@@ -11,7 +11,7 @@ import (
 type snowID struct{}
 
 func (s *snowID) Get(c *gin.Context) {
-	snowID, err := util.Snowflake.NextID()
+	snowId, err := util.Snowflake.NextID()
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -19,6 +19,6 @@ func (s *snowID) Get(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, snowID)
+	c.JSON(http.StatusOK, snowId)
 	return
 }

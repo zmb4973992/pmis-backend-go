@@ -17,7 +17,7 @@ type project struct{}
 func (p *project) Get(c *gin.Context) {
 	var param service.ProjectGet
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("project-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("project-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -40,10 +40,10 @@ func (p *project) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.Creator = userID
-		param.LastModifier = userID
+		param.Creator = userSnowID
+		param.LastModifier = userSnowID
 	}
 
 	res := param.Create()
@@ -61,7 +61,7 @@ func (p *project) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.SnowID, err = strconv.ParseInt(c.Param("project-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("project-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -70,9 +70,9 @@ func (p *project) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.LastModifier = userID
+		param.LastModifier = userSnowID
 	}
 
 	res := param.Update()
@@ -83,7 +83,7 @@ func (p *project) Update(c *gin.Context) {
 func (p *project) Delete(c *gin.Context) {
 	var param service.ProjectDelete
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("project-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("project-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -110,9 +110,9 @@ func (p *project) GetList(c *gin.Context) {
 	}
 
 	//AuthorityInput需要userID
-	userID, exists := util.GetUserSnowID(c)
+	userSnowID, exists := util.GetUserSnowID(c)
 	if exists {
-		param.UserSnowID = userID
+		param.UserSnowID = userSnowID
 	}
 
 	res := param.GetList()
