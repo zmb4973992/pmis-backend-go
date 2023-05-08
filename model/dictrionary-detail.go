@@ -9,7 +9,7 @@ type DictionaryDetail struct {
 	BasicModel
 	DictionaryTypeSnowID int64   //字典类型的SnowID
 	Name                 string  //名称
-	Sequence             *int    //用于排序的值
+	Sort                 *int    //用于排序的值
 	Status               *bool   //是否启用
 	Remarks              *string //备注
 }

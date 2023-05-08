@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -250,6 +251,8 @@ func (c *ContractCreate) Create() response.Common {
 		paramOut.LastModifier = &c.LastModifier
 	}
 
+	paramOut.SnowID = idgen.NextId()
+
 	//连接关联表的id
 	{
 		if c.ProjectSnowID > 0 {
@@ -364,7 +367,7 @@ func (c *ContractCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "CreateAt", "UpdatedAt")
+		"Creator", "LastModifier", "CreateAt", "UpdatedAt", "SnowID")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)

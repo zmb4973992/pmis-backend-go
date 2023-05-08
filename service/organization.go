@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -18,9 +19,9 @@ type OrganizationGet struct {
 type OrganizationCreate struct {
 	Creator        int64
 	LastModifier   int64
-	SuperiorSnowID int64  `json:"superior_snow_id" binding:"required,gt=0"` //上级机构ID
-	Name           string `json:"name" binding:"required"`                  //名称
-	//LevelName    string `json:"level_name" binding:"required"`       //级别，如公司、事业部、部门等
+	SuperiorSnowID int64  `json:"superior_snow_id" binding:"required"` //上级机构ID
+	Name           string `json:"name" binding:"required"`             //名称
+	//Sort           int    `json:"sort" binding:"required"`       //级别，如公司、事业部、部门等
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -40,7 +41,7 @@ type OrganizationDelete struct {
 
 type OrganizationGetList struct {
 	list.Input
-	list.DataScopeInput
+	//list.DataScopeInput
 	SuperiorSnowID int64  `json:"superior_snow_id,omitempty"`
 	Name           string `json:"name,omitempty"`
 	NameInclude    string `json:"name_include,omitempty"`
@@ -77,6 +78,8 @@ func (d *OrganizationCreate) Create() response.Common {
 	if d.LastModifier > 0 {
 		paramOut.LastModifier = &d.LastModifier
 	}
+
+	paramOut.SnowID = idgen.NextId()
 
 	paramOut.Name = d.Name
 

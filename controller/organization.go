@@ -108,10 +108,10 @@ func (o *organization) GetList(c *gin.Context) {
 	}
 
 	//AuthorityInput需要userID
-	userSnowID, exists := util.GetUserSnowID(c)
-	if exists {
-		param.UserSnowID = userSnowID
-	}
+	//userSnowID, exists := util.GetUserSnowID(c)
+	//if exists {
+	//	param.UserSnowID = userSnowID
+	//}
 
 	res := param.GetList()
 	c.JSON(http.StatusOK, res)

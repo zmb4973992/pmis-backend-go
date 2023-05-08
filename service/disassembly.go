@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -56,7 +57,7 @@ type DisassemblyDeleteWithInferiors struct {
 
 type DisassemblyGetList struct {
 	list.Input
-	NameInclude string `json:"name_include,omitempty"`
+	//NameInclude string `json:"name_include,omitempty"`
 
 	ProjectSnowID  int64 `json:"project_snow_id"`
 	SuperiorSnowID int64 `json:"superior_snow_id"`
@@ -146,6 +147,8 @@ func (d *DisassemblyCreate) Create() response.Common {
 		paramOut.LastModifier = &d.LastModifier
 	}
 
+	paramOut.SnowID = idgen.NextId()
+
 	paramOut.Name = &d.Name
 	paramOut.Weight = &d.Weight
 	paramOut.SuperiorSnowID = &d.SuperiorSnowID
@@ -154,7 +157,7 @@ func (d *DisassemblyCreate) Create() response.Common {
 	var superiorDisassembly model.Disassembly
 	err := global.DB.Where("snow_id = ?", d.SuperiorSnowID).First(&superiorDisassembly).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return response.Failure(util.ErrorWrongSuperiorInformation)
 	}
 
 	if superiorDisassembly.ProjectSnowID == nil || superiorDisassembly.Level == nil {
@@ -310,9 +313,9 @@ func (d *DisassemblyGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if d.NameInclude != "" {
-		db = db.Where("name like ?", "%"+d.NameInclude+"%")
-	}
+	//if d.NameInclude != "" {
+	//	db = db.Where("name like ?", "%"+d.NameInclude+"%")
+	//}
 
 	if d.ProjectSnowID > 0 {
 		db = db.Where("project_snow_id = ?", d.ProjectSnowID)

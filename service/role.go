@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -99,6 +100,8 @@ func (r *RoleCreate) Create() response.Common {
 		paramOut.LastModifier = &r.LastModifier
 	}
 
+	paramOut.SnowID = idgen.NextId()
+
 	//允许为0的数字
 	{
 		if r.SuperiorSnowID != nil {
@@ -119,7 +122,7 @@ func (r *RoleCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "CreateAt", "UpdatedAt")
+		"Creator", "LastModifier", "CreateAt", "UpdatedAt", "SnowID")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)

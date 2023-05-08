@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -124,6 +125,8 @@ func (p *ProgressCreate) Create() response.Common {
 		paramOut.LastModifier = &p.LastModifier
 	}
 
+	paramOut.SnowID = idgen.NextId()
+
 	paramOut.DisassemblySnowID = &p.DisassemblySnowID
 
 	date, err := time.Parse("2006-01-02", p.Date)
@@ -153,7 +156,7 @@ func (p *ProgressCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt")
+		"Creator", "LastModifier", "CreateAt", "UpdatedAt", "SnowID")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)

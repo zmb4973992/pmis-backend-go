@@ -168,8 +168,8 @@ func loadConfig() {
 	Config.EmailConfig.Account = v.GetString("email.account")
 	Config.EmailConfig.Password = v.GetString("email.password")
 
-	Config.PagingConfig.DefaultPageSize = v.GetInt("list.default-page-size")
-	Config.PagingConfig.MaxPageSize = v.GetInt("list.max-page-size")
+	Config.PagingConfig.DefaultPageSize = v.GetInt("paging.default-page-size")
+	Config.PagingConfig.MaxPageSize = v.GetInt("paging.max-page-size")
 
 	Config.RateLimitConfig.Limit = v.GetFloat64("rate-limit.limit")
 	Config.RateLimitConfig.Burst = v.GetInt("rate-limit.burst")

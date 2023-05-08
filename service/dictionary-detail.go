@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -86,12 +87,14 @@ func (d *DictionaryDetailCreate) Create() response.Common {
 		paramOut.LastModifier = &d.LastModifier
 	}
 
+	paramOut.SnowID = idgen.NextId()
+
 	paramOut.DictionaryTypeSnowID = d.DictionaryTypeSnowID
 
 	paramOut.Name = d.Name
 
 	if d.Sequence != 0 {
-		paramOut.Sequence = &d.Sequence
+		paramOut.Sort = &d.Sequence
 	}
 
 	if d.Remarks != "" {
@@ -124,7 +127,7 @@ func (d *DictionaryDetailCreateInBatches) CreateInBatches() response.Common {
 		record.Name = d.Data[i].Name
 
 		if d.Data[i].Sequence != 0 {
-			record.Sequence = &d.Data[i].Sequence
+			record.Sort = &d.Data[i].Sequence
 		}
 
 		if d.Data[i].Remarks != "" {

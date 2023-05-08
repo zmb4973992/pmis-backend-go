@@ -81,6 +81,8 @@ func (d *DictionaryTypeCreate) Create() response.Common {
 		paramOut.LastModifier = &d.LastModifier
 	}
 
+	paramOut.SnowID = idgen.NextId()
+
 	paramOut.Name = d.Name
 
 	if d.Sort != 0 {
@@ -136,7 +138,7 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 
 	//计算有修改值的字段数，分别进行不同处理
 	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt")
+		"LastModifier", "CreateAt", "UpdatedAt", "SnowID")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)

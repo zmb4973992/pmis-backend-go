@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -94,6 +95,8 @@ func (e *ErrorLogCreate) Create() response.Common {
 	if e.LastModifier > 0 {
 		paramOut.LastModifier = &e.LastModifier
 	}
+
+	paramOut.SnowID = idgen.NextId()
 
 	if e.Detail != "" {
 		paramOut.Detail = &e.Detail

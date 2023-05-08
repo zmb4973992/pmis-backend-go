@@ -6,7 +6,6 @@ package list
 type Input struct {
 	PagingInput
 	SortingInput
-	//SqlConditionInput
 }
 
 type PagingInput struct {
@@ -18,10 +17,6 @@ type SortingInput struct {
 	OrderBy string `json:"order_by"` //排序字段
 	Desc    bool   `json:"desc"`     //是否为降序（从大到小）
 }
-
-//type SqlConditionInput struct {
-//	SelectedColumns []string `json:"selected_columns"` //需要显示数据的列
-//}
 
 // DataScopeInput 用于校验角色、分级显示的入参，按需导入
 type DataScopeInput struct {
