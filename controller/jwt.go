@@ -11,15 +11,15 @@ import (
 type token struct{}
 
 func (t *token) Validate(c *gin.Context) {
-	token := c.Param("access-token")
-	if token == "" {
+	accessToken := c.Param("access-token")
+	if accessToken == "" {
 		c.JSON(http.StatusBadRequest,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
 	//开始解析token
-	res, err := util.ParseToken(token)
+	res, err := util.ParseToken(accessToken)
 	//如果存在错误或token已过期
 	if err != nil || res.ExpiresAt.Unix() < time.Now().Unix() {
 		c.JSON(http.StatusOK, response.Failure(util.ErrorAccessTokenInvalid))
@@ -27,6 +27,11 @@ func (t *token) Validate(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Success())
+	userSnowID := res.UserSnowID
+	res1 := map[string]int64{
+		"user_snow_id": userSnowID,
+	}
+
+	c.JSON(http.StatusOK, response.SuccessWithData(res1))
 	return
 }

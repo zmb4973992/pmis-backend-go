@@ -90,6 +90,9 @@ ldap:
   base-dn: "ou=中航国际北京公司,dc=avicbj,dc=ad"
   suffix: "@avicbj.ad"
   filter: "(&(objectClass=user))"
+  #用来访问LDAP的账号密码，不需要管理员权限
+  account: "z0030975"
+  password: "Bfsu028912"
   #有访问权限的ou(organization unit)
   permitted-OUs: [ "公司领导", "公司专务", "公司总监", "综合管理和法律部","人力资源和海外机构事务部",
                    "财务管理部", "党建和纪检审计部", "储运管理部", "事业部管理委员会和水泥工程事业部",

@@ -8,7 +8,7 @@ import (
 
 type BasicModel struct {
 	ID           int64     `json:"id"`
-	SnowID       int64     `gorm:""`
+	SnowID       int64     `json:"snow_id" gorm:""`
 	CreatedAt    time.Time `json:"created_at" gorm:"type:datetime;size:0"`
 	UpdatedAt    time.Time `json:"updated_at" gorm:"type:datetime;size:0"`
 	Creator      *int64    `json:"creator"`

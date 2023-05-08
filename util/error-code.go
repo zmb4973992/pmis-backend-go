@@ -33,7 +33,7 @@ const (
 	ErrorFieldsToBeCreatedNotFound
 	ErrorFieldsToBeUpdatedNotFound
 	ErrorSortingFieldDoesNotExist
-	ErrorUserIDDoesNotExist
+	ErrorUserDoesNotExist
 	ErrorFailToGenerateCaptcha
 	ErrorWrongCaptcha
 	ErrorFailToGenerateToken
@@ -78,7 +78,7 @@ var Message = map[int]string{
 	ErrorAccessTokenNotFound: "缺少access_token",
 	ErrorUnauthorized:        "权限不足",
 	ErrorNeedAdminPrivilege:  "权限不足，该操作需要管理员权限",
-	ErrorUserIDDoesNotExist:  "用户ID不存在",
+	ErrorUserDoesNotExist:    "用户不存在",
 
 	ErrorFailToEncrypt:    "加密失败",
 	ErrorInvalidRequest:   "请求路径错误",

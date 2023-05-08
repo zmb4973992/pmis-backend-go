@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/mojocn/base64Captcha"
+	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -131,6 +132,8 @@ func (u *UserCreate) Create() response.Common {
 	if u.LastModifier > 0 {
 		paramOut.LastModifier = &u.LastModifier
 	}
+
+	paramOut.SnowID = idgen.NextId()
 
 	paramOut.Username = u.Username
 	encryptedPassword, err := util.Encrypt(u.Password)

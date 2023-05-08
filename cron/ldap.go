@@ -1,7 +1,6 @@
 package cron
 
 import (
-	"fmt"
 	"github.com/go-ldap/ldap/v3"
 	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
@@ -9,185 +8,17 @@ import (
 	"strings"
 )
 
-func UpdateOrganization() error {
-	ldapServer := global.Config.LDAPConfig.Server
-	baseDN := global.Config.LDAPConfig.BaseDN
-	filter := global.Config.LDAPConfig.Filter
-	//permittedOUs := global.Config.LDAPConfig.PermittedOUs
-	attributes := global.Config.LDAPConfig.Attributes
-
-	l, err := ldap.DialURL(ldapServer)
-	defer l.Close()
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return err
-	}
-
-	err = l.Bind("z0030975@avicbj.ad", "Bfsu028912")
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return err
-	}
-
-	searchRequest := ldap.NewSearchRequest(
-		baseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		0, 0, false, filter, attributes, nil,
-	)
-
-	sr, err := l.Search(searchRequest)
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return err
-	}
-
-	//for i := range sr.Entries {
-	//	fmt.Println(sr.Entries[i])
-	//}
-
-	fmt.Println(sr.Entries)
-
-	return nil
-}
-
-func updateUser() {
-	ldapServer := global.Config.LDAPConfig.Server
-	baseDN := global.Config.LDAPConfig.BaseDN
-	filter := global.Config.LDAPConfig.Filter
-	permittedOUs := global.Config.LDAPConfig.PermittedOUs
-	attributes := global.Config.LDAPConfig.Attributes
-
-	l, err := ldap.DialURL(ldapServer)
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-	}
-	defer l.Close()
-
-	err = l.Bind("z0030975@avicbj.ad", "Bfsu028912")
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-	}
-
-	searchRequest := ldap.NewSearchRequest(
-		baseDN, ldap.ScopeWholeSubtree, ldap.NeverDerefAliases,
-		0, 0, false, filter, attributes, nil,
-	)
-
-	sr, err := l.Search(searchRequest)
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-	}
-
-	for i := range sr.Entries {
-		entry := sr.Entries[i]
-		DN := entry.GetAttributeValue("distinguishedName")
-		for j := range permittedOUs {
-			if strings.Contains(DN, permittedOUs[j]) {
-				//添加用户
-				var user model.User
-				user.Username = entry.GetAttributeValue("sAMAccountName")
-
-				isValid := true
-				user.IsValid = &isValid
-
-				fullName := entry.GetAttributeValue("cn")
-				if fullName != "" {
-					user.FullName = &fullName
-				}
-
-				email := entry.GetAttributeValue("mail")
-				if email != "" {
-					user.EmailAddress = &email
-				}
-
-				res := global.DB.Where("username = ?", user.Username).
-					FirstOrCreate(&user)
-				if res.Error != nil {
-					global.SugaredLogger.Errorln(err)
-				}
-
-				//给公司领导
-				if strings.Contains(DN, "公司领导") ||
-					strings.Contains(DN, "公司专务") ||
-					strings.Contains(DN, "公司总监") {
-					//创建角色
-					var roleSnowID int64
-					global.DB.Model(&model.Role{}).Where("name = ?", "公司级").
-						Select("snow_id").First(&roleSnowID)
-					var roleAndUser model.UserAndRole
-					roleAndUser.UserSnowID = user.ID
-					roleAndUser.RoleSnowID = roleSnowID
-					global.DB.Where("role_id = ?", roleSnowID).
-						Where("user_id = ?", user.ID).
-						FirstOrCreate(&roleAndUser)
-
-					//创建部门
-					var organizationID int64
-					global.DB.Model(&model.Organization{}).Where("name = ?", "北京公司").
-						Select("id").First(&organizationID)
-					var departmentAndUser model.OrganizationAndUser
-					departmentAndUser.UserSnowID = user.ID
-					departmentAndUser.OrganizationSnowID = organizationID
-					global.DB.Model(&model.OrganizationAndUser{}).
-						Where("department_id = ?", organizationID).
-						Where("user_id = ?", user.ID).
-						FirstOrCreate(&departmentAndUser)
-					//给事业部领导
-				} else if strings.Contains(DN, "事业部管理委员会和水泥工程事业部") {
-					//创建角色
-					var roleID int64
-					global.DB.Model(&model.Role{}).Where("name = ?", "事业部级").
-						Select("id").First(&roleID)
-					var roleAndUser model.UserAndRole
-					roleAndUser.UserSnowID = user.ID
-					roleAndUser.RoleSnowID = roleID
-					global.DB.Where("role_id = ?", roleID).
-						Where("user_id = ?", user.ID).
-						FirstOrCreate(&roleAndUser)
-
-					//创建部门
-					var departmentID int64
-					global.DB.Model(&model.Organization{}).Where("name = ?", "水泥工程事业部").
-						Select("id").First(&departmentID)
-					var departmentAndUser model.OrganizationAndUser
-					departmentAndUser.UserSnowID = user.ID
-					departmentAndUser.OrganizationSnowID = departmentID
-					global.DB.Model(&model.OrganizationAndUser{}).
-						Where("department_id = ?", departmentID).
-						Where("user_id = ?", user.ID).
-						FirstOrCreate(&departmentAndUser)
-				} else {
-					//创建角色
-					var roleID int64
-					global.DB.Model(&model.Role{}).Where("name = ?", "部门级").
-						Select("id").First(&roleID)
-					var roleAndUser model.UserAndRole
-					roleAndUser.UserSnowID = user.ID
-					roleAndUser.RoleSnowID = roleID
-					global.DB.Where("role_id = ?", roleID).
-						Where("user_id = ?", user.ID).
-						FirstOrCreate(&roleAndUser)
-
-					//创建部门
-					var departmentID int64
-					global.DB.Model(&model.Organization{}).Where("name = ?", permittedOUs[j]).
-						Select("id").First(&departmentID)
-					var departmentAndUser model.OrganizationAndUser
-					departmentAndUser.UserSnowID = user.ID
-					departmentAndUser.OrganizationSnowID = departmentID
-					global.DB.Model(&model.OrganizationAndUser{}).
-						Where("department_id = ?", departmentID).
-						Where("user_id = ?", user.ID).
-						FirstOrCreate(&departmentAndUser)
-				}
-			}
-		}
-	}
-}
+//目前存在一个问题，就是导入用户后，用户会一直有效。
+//后期需要增加用户有效性校验的函数。
+//可以把从ldap读取到的用户列表放到临时表，然后把现在的用户表和临时表进行比对
 
 func updateUsers() error {
 	ldapServer := global.Config.LDAPConfig.Server
 	baseDN := global.Config.LDAPConfig.BaseDN
 	filter := global.Config.LDAPConfig.Filter
+	suffix := global.Config.LDAPConfig.Suffix
+	account := global.Config.LDAPConfig.Account
+	password := global.Config.LDAPConfig.Password
 	permittedOUs := global.Config.LDAPConfig.PermittedOUs
 	attributes := global.Config.LDAPConfig.Attributes
 
@@ -198,7 +29,7 @@ func updateUsers() error {
 		return err
 	}
 
-	err = l.Bind("z0030975@avicbj.ad", "Bfsu028912")
+	err = l.Bind(account+suffix, password)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return err
@@ -209,17 +40,20 @@ func updateUsers() error {
 		0, 0, false, filter, attributes, nil,
 	)
 
-	sr, err := l.Search(searchRequest)
-	if err != nil {
+	sr, err1 := l.Search(searchRequest)
+	if err1 != nil {
 		global.SugaredLogger.Errorln(err)
 		return err
 	}
 
+	//把组织-用户中间表中的ldap导入数据删除
+	global.DB.Where("imported_by_ldap = ?", 1).Delete(&model.OrganizationAndUser{})
+
 	for i := range sr.Entries {
 		entry := sr.Entries[i]
 		DN := entry.GetAttributeValue("distinguishedName")
-		for j := range permittedOUs {
-			if strings.Contains(DN, permittedOUs[j]) {
+		for _, permittedOU := range permittedOUs {
+			if strings.Contains(DN, permittedOU) {
 				//添加用户
 				var user model.User
 				user.Username = entry.GetAttributeValue("sAMAccountName")
@@ -237,12 +71,95 @@ func updateUsers() error {
 					user.EmailAddress = &email
 				}
 
+				//添加用户信息
 				err = global.DB.Where("username = ?", user.Username).
-					Attrs(&model.User{BasicModel: model.BasicModel{SnowID: idgen.NextId()}}).
+					Attrs(&model.User{
+						BasicModel: model.BasicModel{
+							SnowID: idgen.NextId(),
+						}}).
 					FirstOrCreate(&user).Error
+
 				if err != nil {
 					global.SugaredLogger.Errorln(err)
 					return err
+				}
+
+				//部门信息不从LDAP导入，因为LDAP不是严格按照部门进行设置的
+
+				//添加组织机构和用户的关联
+				if permittedOU == "公司领导" ||
+					permittedOU == "公司总监" ||
+					permittedOU == "公司专务" {
+					var organization model.Organization
+					err = global.DB.Where("name = ?", "北京公司").First(&organization).Error
+					if err != nil {
+						global.SugaredLogger.Errorln(err)
+						return err
+					}
+					record := model.OrganizationAndUser{
+						UserSnowID:         user.SnowID,
+						OrganizationSnowID: organization.SnowID,
+					}
+					err = global.DB.Where("organization_snow_id = ?", organization.SnowID).
+						Where("user_snow_id = ?", user.SnowID).
+						Attrs(&model.OrganizationAndUser{
+							ImportedByLDAP: model.BoolToPointer(true),
+							BasicModel: model.BasicModel{
+								SnowID: idgen.NextId(),
+							}}).
+						FirstOrCreate(&record).Error
+					if err != nil {
+						global.SugaredLogger.Errorln(err)
+						return err
+					}
+
+				} else if permittedOU == "事业部管理委员会和水泥工程事业部" {
+					var organization model.Organization
+					err = global.DB.Where("name = ?", "水泥工程事业部").First(&organization).Error
+					if err != nil {
+						global.SugaredLogger.Errorln(err)
+						return err
+					}
+					record := model.OrganizationAndUser{
+						UserSnowID:         user.SnowID,
+						OrganizationSnowID: organization.SnowID,
+					}
+					err = global.DB.Where("organization_snow_id = ?", organization.SnowID).
+						Where("user_snow_id = ?", user.SnowID).
+						Attrs(&model.OrganizationAndUser{
+							ImportedByLDAP: model.BoolToPointer(true),
+							BasicModel: model.BasicModel{
+								SnowID: idgen.NextId(),
+							}}).
+						FirstOrCreate(&record).Error
+					if err != nil {
+						global.SugaredLogger.Errorln(err)
+						return err
+					}
+
+				} else {
+					var organization model.Organization
+					err = global.DB.Where("name = ?", permittedOU).First(&organization).Error
+					if err != nil {
+						global.SugaredLogger.Errorln(err)
+						return err
+					}
+					record := model.OrganizationAndUser{
+						UserSnowID:         user.SnowID,
+						OrganizationSnowID: organization.SnowID,
+					}
+					err = global.DB.Where("organization_snow_id = ?", organization.SnowID).
+						Where("user_snow_id = ?", user.SnowID).
+						Attrs(&model.OrganizationAndUser{
+							ImportedByLDAP: model.BoolToPointer(true),
+							BasicModel: model.BasicModel{
+								SnowID: idgen.NextId(),
+							}}).
+						FirstOrCreate(&record).Error
+					if err != nil {
+						global.SugaredLogger.Errorln(err)
+						return err
+					}
 				}
 			}
 		}

@@ -61,7 +61,6 @@ func (f *fileManagement) UploadMultipleFiles(c *gin.Context) {
 }
 
 func (f *fileManagement) DeleteFile(c *gin.Context) {
-
 	fileSnowID, _ := strconv.ParseInt(c.Param("file-snow-id"), 10, 64)
 
 	oss := upload.NewOss()

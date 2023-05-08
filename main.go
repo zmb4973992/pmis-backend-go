@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	//加载全局变量,如应用基础设置、数据库连接信息、jwt信息、日志设置登
+	//加载全局变量
 	global.InitConfig()
 	//加载日志记录器，使用的是zap
 	util.InitLogger()

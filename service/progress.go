@@ -242,7 +242,7 @@ func (p *ProgressUpdate) Update() response.Common {
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
-	paramOut["data_source"] = dataSource.ID
+	paramOut["data_source"] = dataSource.SnowID
 
 	//计算有修改值的字段数，分别进行不同处理
 	//data_source是自动添加的，也需要排除在外

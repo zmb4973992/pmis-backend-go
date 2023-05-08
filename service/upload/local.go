@@ -26,6 +26,22 @@ func (l *Local) UploadSingleFile(fileHeader *multipart.FileHeader) (fileName str
 	if err != nil {
 		return "", err
 	}
+
+	file := model.File{
+		BasicModel: model.BasicModel{
+			SnowID: snowID,
+		},
+		Name: fileHeader.Filename,
+		Mode: "local",
+		Path: storagePath,
+		Size: int(fileHeader.Size >> 20), //MB
+	}
+
+	err = global.DB.Create(&file).Error
+	if err != nil {
+		return "", err
+	}
+
 	return fileName, nil
 }
 
@@ -49,6 +65,7 @@ func (l *Local) UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (fileNa
 		}
 
 		//保存记录
+
 		var record model.File
 		record.SnowID = snowID
 		record.Name = fileHeaders[i].Filename
@@ -73,9 +90,9 @@ func (l *Local) Delete(snowID int64) error {
 	}
 
 	if record.SnowID > 0 {
-		filePath := record.Path
+		filePath := record.Path + strconv.FormatInt(snowID, 10)
 		fileName := record.Name
-		_ = os.Remove(filePath + fileName)
+		_ = os.Remove(filePath + "--" + fileName)
 
 		err = global.DB.Delete(&record).Error
 		if err != nil {

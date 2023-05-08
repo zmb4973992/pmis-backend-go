@@ -40,13 +40,6 @@ func (d *dictionaryType) Create(c *gin.Context) {
 		return
 	}
 
-	//处理creator、last_modifier字段
-	userSnowID, exists := util.GetUserSnowID(c)
-	if exists {
-		param.Creator = userSnowID
-		param.LastModifier = userSnowID
-	}
-
 	res := param.Create()
 
 	c.JSON(http.StatusOK, res)
@@ -121,25 +114,6 @@ func (d *dictionaryType) Delete(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 	return
 }
-
-//func (d *dictionaryType) GetArray(c *gin.Context) {
-//	var param service.DictionaryTypeGetArray
-//	err := c.ShouldBindJSON(&param)
-//
-//	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
-//	//如果是其他错误，就正常报错
-//	if err != nil && !errors.Is(err, io.EOF) {
-//		global.SugaredLogger.Errorln(err)
-//		c.JSON(http.StatusBadRequest,
-//			response.FailureForList(util.ErrorInvalidJSONParameters))
-//		return
-//	}
-//
-//	//生成Service,然后调用它的方法
-//	res := param.GetArray()
-//	c.JSON(http.StatusOK, res)
-//	return
-//}
 
 func (d *dictionaryType) GetList(c *gin.Context) {
 	var param service.DictionaryTypeGetList

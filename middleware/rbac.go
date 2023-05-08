@@ -14,7 +14,7 @@ func RBAC() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userSnowID, exists := util.GetUserSnowID(c)
 		if !exists {
-			c.AbortWithStatusJSON(http.StatusOK, response.Failure(util.ErrorUserIDDoesNotExist))
+			c.AbortWithStatusJSON(http.StatusOK, response.Failure(util.ErrorUserDoesNotExist))
 			return
 		}
 

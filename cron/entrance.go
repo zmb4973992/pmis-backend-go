@@ -11,10 +11,11 @@ func Init() {
 	//添加每分钟执行一次的任务
 	_, err := c.AddFunc("* * * * ?", test)
 	if err != nil {
-		global.SugaredLogger.Panicln("添加定时任务失败，请检查")
+		global.SugaredLogger.Errorln("添加定时任务失败，请检查")
 	}
 
-	_, err = c.AddFunc("* * * * ?", func() {
+	//At 14:02 PM, every day
+	_, err = c.AddFunc("02 14 * * *", func() {
 		err = updateUsers()
 		if err != nil {
 			//这里要完善错误处理逻辑，以后再说

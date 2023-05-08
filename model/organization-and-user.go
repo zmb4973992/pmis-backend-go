@@ -5,6 +5,7 @@ type OrganizationAndUser struct {
 	BasicModel
 	OrganizationSnowID int64 `gorm:"nut null;"`
 	UserSnowID         int64 `gorm:"nut null;"`
+	ImportedByLDAP     *bool
 }
 
 // TableName 修改表名

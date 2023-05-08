@@ -165,69 +165,6 @@ func (d *DictionaryTypeDelete) Delete() response.Common {
 	return response.Success()
 }
 
-//func (d *DictionaryTypeGetArray) GetArray() response.Common {
-//	db := global.DB.Model(&model.DictionaryType{})
-//	// 顺序：where -> count -> Order -> limit -> offset -> array
-//
-//	//where
-//	if d.NameInclude != "" {
-//		db = db.Where("name like ?", "%"+d.NameInclude+"%")
-//	}
-//
-//	//Order
-//	orderBy := d.SortingInput.OrderBy
-//	desc := d.SortingInput.Desc
-//	//如果排序字段为空
-//	if orderBy == "" {
-//		//如果要求降序排列
-//		if desc == true {
-//			db = db.Order("snow_id desc")
-//		}
-//	} else { //如果有排序字段
-//		//先看排序字段是否存在于表中
-//		exists := util.FieldIsInModel(&model.DictionaryType{}, orderBy)
-//		if !exists {
-//			return response.Failure(util.ErrorSortingFieldDoesNotExist)
-//		}
-//		//如果要求降序排列
-//		if desc == true {
-//			db = db.Order(orderBy + " desc")
-//		} else { //如果没有要求排序方式
-//			db = db.Order(orderBy)
-//		}
-//	}
-//
-//	//limit
-//	page := 1
-//	if d.PagingInput.Page > 0 {
-//		page = d.PagingInput.Page
-//	}
-//	pageSize := global.Config.DefaultPageSize
-//	if d.PagingInput.PageSize != nil && *d.PagingInput.PageSize >= 0 &&
-//		*d.PagingInput.PageSize <= global.Config.MaxPageSize {
-//		pageSize = *d.PagingInput.PageSize
-//	}
-//	db = db.Limit(pageSize)
-//
-//	//offset
-//	offset := (page - 1) * pageSize
-//	db = db.Offset(offset)
-//
-//	//array
-//	var array []string
-//	db.Model(&model.DictionaryType{}).Select("name").Find(&array)
-//
-//	if len(array) == 0 {
-//		return response.Failure(util.ErrorRecordNotFound)
-//	}
-//
-//	return response.Common{
-//		Data:    array,
-//		Code:    util.Success,
-//		Message: util.GetMessage(util.Success),
-//	}
-//}
-
 func (d *DictionaryTypeGetList) GetList() response.List {
 	db := global.DB.Model(&model.DictionaryType{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data

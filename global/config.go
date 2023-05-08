@@ -107,6 +107,8 @@ type LDAPConfig struct {
 	BaseDN       string
 	Filter       string
 	Suffix       string
+	Account      string
+	Password     string
 	PermittedOUs []string
 	Attributes   []string
 }
@@ -184,6 +186,8 @@ func loadConfig() {
 	Config.LDAPConfig.BaseDN = v.GetString("ldap.base-dn")
 	Config.LDAPConfig.Filter = v.GetString("ldap.filter")
 	Config.LDAPConfig.Suffix = v.GetString("ldap.suffix")
+	Config.LDAPConfig.Account = v.GetString("ldap.account")
+	Config.LDAPConfig.Password = v.GetString("ldap.password")
 	Config.LDAPConfig.PermittedOUs = v.GetStringSlice("ldap.permitted-OUs")
 	Config.LDAPConfig.Attributes = v.GetStringSlice("ldap.attributes")
 }
