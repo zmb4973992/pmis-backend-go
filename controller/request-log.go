@@ -12,12 +12,12 @@ import (
 	"strconv"
 )
 
-type operationLog struct{}
+type requestLog struct{}
 
-func (o *operationLog) Get(c *gin.Context) {
-	var param service.OperationLogGet
+func (o *requestLog) Get(c *gin.Context) {
+	var param service.RequestLogGet
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("operation-log-snow-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("request-log-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -29,10 +29,10 @@ func (o *operationLog) Get(c *gin.Context) {
 	return
 }
 
-func (o *operationLog) Delete(c *gin.Context) {
-	var param service.OperationLogDelete
+func (o *requestLog) Delete(c *gin.Context) {
+	var param service.RequestLogDelete
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("operation-log-snow-id"), 10, 64)
+	param.SnowID, err = strconv.ParseInt(c.Param("request-log-snow-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -45,8 +45,8 @@ func (o *operationLog) Delete(c *gin.Context) {
 	return
 }
 
-func (o *operationLog) GetList(c *gin.Context) {
-	var param service.OperationLogGetList
+func (o *requestLog) GetList(c *gin.Context) {
+	var param service.RequestLogGetList
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；

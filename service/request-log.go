@@ -16,22 +16,22 @@ import (
 //如果指针字段为空或0，那么数据库相应字段会改为null；
 //如果指针字段没传，那么数据库不会修改该字段
 
-type OperationLogGet struct {
+type RequestLogGet struct {
 	SnowID int64
 }
 
-type OperationLogDelete struct {
+type RequestLogDelete struct {
 	SnowID int64
 }
 
-type OperationLogGetList struct {
+type RequestLogGetList struct {
 	list.Input
 	UserSnowID int64 `json:"user_snow_id,omitempty"`
 }
 
 //以下为出参
 
-type OperationLogOutput struct {
+type RequestLogOutput struct {
 	Creator      *int64     `json:"creator"`
 	LastModifier *int64     `json:"last_modifier"`
 	SnowID       int64      `json:"snow_id"`
@@ -47,9 +47,9 @@ type OperationLogOutput struct {
 	UserAgent    *string    `json:"user_agent"`    //浏览器标识
 }
 
-func (o *OperationLogGet) Get() response.Common {
-	var result OperationLogOutput
-	err := global.DB.Model(model.OperationLog{}).
+func (o *RequestLogGet) Get() response.Common {
+	var result RequestLogOutput
+	err := global.DB.Model(model.RequestLog{}).
 		Where("snow_id = ?", o.SnowID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -58,9 +58,9 @@ func (o *OperationLogGet) Get() response.Common {
 	return response.SuccessWithData(result)
 }
 
-func (o *OperationLogDelete) Delete() response.Common {
+func (o *RequestLogDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
-	var record model.OperationLog
+	var record model.RequestLog
 	global.DB.Where("snow_id = ?", o.SnowID).Find(&record)
 	err := global.DB.Where("snow_id = ?", o.SnowID).Delete(&record).Error
 
@@ -71,8 +71,8 @@ func (o *OperationLogDelete) Delete() response.Common {
 	return response.Success()
 }
 
-func (o *OperationLogGetList) GetList() response.List {
-	db := global.DB.Model(&model.OperationLog{})
+func (o *RequestLogGetList) GetList() response.List {
+	db := global.DB.Model(&model.RequestLog{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
@@ -95,7 +95,7 @@ func (o *OperationLogGetList) GetList() response.List {
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(&model.OperationLog{}, orderBy)
+		exists := util.FieldIsInModel(&model.RequestLog{}, orderBy)
 		if !exists {
 			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
@@ -126,8 +126,8 @@ func (o *OperationLogGetList) GetList() response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []OperationLogOutput
-	db.Model(&model.OperationLog{}).Find(&data)
+	var data []RequestLogOutput
+	db.Model(&model.RequestLog{}).Find(&data)
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)

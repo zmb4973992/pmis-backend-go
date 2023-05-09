@@ -10,7 +10,7 @@ type controller struct {
 	disassembly
 	relatedParty
 	user
-	operationLog
+	requestLog
 	userAndRole
 	errorLog
 	token
@@ -33,7 +33,7 @@ var (
 	Disassembly          = entrance.disassembly
 	RelatedParty         = entrance.relatedParty
 	User                 = entrance.user
-	OperationRecord      = entrance.operationLog
+	RequestLog           = entrance.requestLog
 	UserAndRole          = entrance.userAndRole
 	ErrorLog             = entrance.errorLog
 	Token                = entrance.token

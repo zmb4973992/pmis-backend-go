@@ -2,15 +2,16 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/util"
 	"time"
 )
 
-var channelOfOperationLogs = make(chan model.OperationLog, 50)
+var channelOfOperationLogs = make(chan model.RequestLog, 50)
 
-func OperationLog() gin.HandlerFunc {
+func RequestLog() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// 开始时间
 		startTime := time.Now()
@@ -23,48 +24,48 @@ func OperationLog() gin.HandlerFunc {
 
 		// 执行耗时（毫秒）
 		timeElapsed := int(endTime.Sub(startTime).Milliseconds())
-		//fmt.Println("命令耗时:", timeElapsed, "毫秒")
 
-		//这里不用dto了，因为都是程序内部操作，不对外暴露接口和数据
 		//直接操作model更方便
-		var operationLog model.OperationLog
+		var requestLog model.RequestLog
+
+		requestLog.SnowID = idgen.NextId()
 
 		//处理creator、lastModifier、userID字段
 		userSnowID, exists := util.GetUserSnowID(c)
 		if exists {
-			operationLog.UserSnowID = &userSnowID
-			operationLog.Creator = &userSnowID
-			operationLog.LastModifier = &userSnowID
+			requestLog.Creator = &userSnowID
+			requestLog.LastModifier = &userSnowID
 		}
+
 		//获取访问路径
 		tempPath := c.FullPath()
-		operationLog.Path = &tempPath
+		requestLog.Path = &tempPath
 
 		//获取URI参数
-		operationLog.URIParams = c.Params
+		//requestLog.URIParams = c.Params
 
 		//获取请求方式
 		tempMethod := c.Request.Method
-		operationLog.Method = &tempMethod
+		requestLog.Method = &tempMethod
 
 		//获取ip
 		tempIP := c.ClientIP()
-		operationLog.IP = &tempIP
+		requestLog.IP = &tempIP
 
 		//获取响应码
 		tempCode := c.Writer.Status()
-		operationLog.ResponseCode = &tempCode
+		requestLog.ResponseCode = &tempCode
 
 		//获取开始时间和执行耗时(毫秒)
-		operationLog.StartTime = &startTime
-		operationLog.TimeElapsed = &timeElapsed
+		requestLog.StartTime = &startTime
+		requestLog.TimeElapsed = &timeElapsed
 
 		//获取用户的浏览器标识
 		tempUserAgent := c.Request.UserAgent()
-		operationLog.UserAgent = &tempUserAgent
+		requestLog.UserAgent = &tempUserAgent
 
 		//把日志放到通道中，等待保存到数据库
-		channelOfOperationLogs <- operationLog
+		channelOfOperationLogs <- requestLog
 
 	}
 }

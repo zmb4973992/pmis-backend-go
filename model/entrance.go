@@ -40,7 +40,7 @@ func InitDatabase() {
 		&Disassembly{},                     //项目拆解
 		&Progress{},                        //工作进度
 		&IncomeAndExpenditure{},            //收付款
-		&OperationLog{},                    //操作记录
+		&RequestLog{},                      //操作记录
 		&ErrorLog{},                        //错误日志
 		&WorkNote{},                        //工作备注
 		&WorkReview{},                      //工作点评
