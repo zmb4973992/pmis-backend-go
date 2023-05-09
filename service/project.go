@@ -528,10 +528,9 @@ func (p *ProjectGetList) GetList() response.List {
 		db = db.Where("organization_snow_id in ?", p.OrganizationSnowIDIn)
 	}
 
-	if p.LoadDataScopeByRole {
-		organizationIDsForDataScope := util.GetOrganizationSnowIDsForDataScope(p.UserSnowID)
-		db = db.Where("organization_snow_id in ?", organizationIDsForDataScope)
-	}
+	//用来确定数据范围
+	organizationIDsForDataScope := util.GetOrganizationSnowIDsInDataScope(p.UserSnowID)
+	db = db.Where("organization_snow_id in ?", organizationIDsForDataScope)
 
 	//count
 	var count int64

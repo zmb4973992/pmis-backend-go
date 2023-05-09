@@ -20,8 +20,8 @@ type SortingInput struct {
 
 // DataScopeInput 用于校验角色、分级显示的入参，按需导入
 type DataScopeInput struct {
-	UserSnowID          int64
-	LoadDataScopeByRole bool `json:"load_data_scope_by_role,omitempty"` //根据组织确定数据范围
+	UserSnowID int64
+	//LoadDataScopeByRole bool `json:"load_data_scope_by_role,omitempty"` //根据组织确定数据范围
 }
 
 //以下为出参

@@ -18,11 +18,8 @@ type DictionaryTypeCreate struct {
 	LastModifier int64
 	Name         string `json:"name" binding:"required"` //名称
 	Sort         int    `json:"sort,omitempty"`          //顺序值
+	Status       *bool  `json:"status"`                  //是否启用
 	Remarks      string `json:"remarks,omitempty"`       //备注
-}
-
-type DictionaryTypeCreateInBatches struct {
-	Data []DictionaryTypeCreate `json:"data"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -34,6 +31,7 @@ type DictionaryTypeUpdate struct {
 	SnowID       int64
 	Name         *string `json:"name"`    //名称
 	Sort         *int    `json:"sort"`    //顺序值
+	Status       *bool   `json:"status"`  //是否启用
 	Remarks      *string `json:"remarks"` //备注
 }
 
@@ -93,6 +91,10 @@ func (d *DictionaryTypeCreate) Create() response.Common {
 		paramOut.Remarks = &d.Remarks
 	}
 
+	if d.Status != nil {
+		paramOut.Status = d.Status
+	}
+
 	paramOut.SnowID = idgen.NextId()
 
 	err := global.DB.Create(&paramOut).Error
@@ -126,6 +128,10 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 		} else {
 			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
+	}
+
+	if d.Status != nil {
+		paramOut["status"] = d.Status
 	}
 
 	if d.Remarks != nil {

@@ -617,6 +617,16 @@ func (c *ContractGetList) GetList() response.List {
 		db = db.Where("name like ?", "%"+c.NameInclude+"%")
 	}
 
+	//用来确定数据范围
+	organizationIDsForDataScope := util.GetOrganizationSnowIDsInDataScope(c.UserSnowID)
+	//先找出项目的数据范围
+	var projectSnowIDs []int64
+	global.DB.Model(&model.Project{}).Where("organization_snow_id in ?", organizationIDsForDataScope).
+		Select("snow_id").Find(&projectSnowIDs)
+	//然后再加上组织的数据范围
+	db = db.Where("organization_snow_id in ?", organizationIDsForDataScope).
+		Or("project_snow_id in ?", projectSnowIDs)
+
 	//count
 	var count int64
 	db.Count(&count)

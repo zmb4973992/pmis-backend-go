@@ -40,6 +40,13 @@ func (d *dictionaryType) Create(c *gin.Context) {
 		return
 	}
 
+	//处理creator、last_modifier字段
+	userSnowID, exists := util.GetUserSnowID(c)
+	if exists {
+		param.Creator = userSnowID
+		param.LastModifier = userSnowID
+	}
+
 	res := param.Create()
 
 	c.JSON(http.StatusOK, res)

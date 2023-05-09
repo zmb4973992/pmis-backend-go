@@ -3,11 +3,13 @@ package service
 import (
 	"github.com/mojocn/base64Captcha"
 	"github.com/yitter/idgenerator-go/idgen"
+	"gorm.io/gorm"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
+	"strconv"
 )
 
 //以下为入参
@@ -59,6 +61,14 @@ type UserGetList struct {
 	IsValid         *bool  `json:"is_valid"`
 	UsernameInclude string `json:"username_include,omitempty"`
 	RoleSnowID      int64  `json:"role_snow_id,omitempty"`
+}
+
+type UserUpdateRoles struct {
+	Creator      int64
+	LastModifier int64
+
+	UserSnowID  int64    `json:"-"`
+	RoleSnowIDs *[]int64 `json:"role_snow_ids"`
 }
 
 //以下为出参
@@ -332,5 +342,94 @@ func (u *UserGetList) GetList() response.List {
 		},
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),
+	}
+}
+
+func (u *UserUpdateRoles) Update() response.Common {
+	if u.RoleSnowIDs == nil {
+		return response.Failure(util.ErrorInvalidJSONParameters)
+	}
+
+	if len(*u.RoleSnowIDs) == 0 {
+		err := global.DB.Where("user_snow_id = ?", u.UserSnowID).Delete(&model.UserAndRole{}).Error
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+			return response.Failure(util.ErrorFailToDeleteRecord)
+		}
+		return response.Success()
+	}
+
+	err := global.DB.Transaction(func(tx *gorm.DB) error {
+		//先删掉原始记录
+		err := tx.Where("user_snow_id = ?", u.UserSnowID).Delete(&model.UserAndRole{}).Error
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+			return ErrorFailToDeleteRecord
+		}
+
+		//再增加新的记录
+		var paramOut []model.UserAndRole
+		for _, roleID := range *u.RoleSnowIDs {
+			var record model.UserAndRole
+			if u.Creator > 0 {
+				record.Creator = &u.Creator
+			}
+			if u.LastModifier > 0 {
+				record.LastModifier = &u.LastModifier
+			}
+
+			record.UserSnowID = u.UserSnowID
+			record.RoleSnowID = roleID
+			record.SnowID = idgen.NextId()
+			paramOut = append(paramOut, record)
+		}
+
+		for i := range paramOut {
+			//计算有修改值的字段数，分别进行不同处理
+			tempParamOut, err := util.StructToMap(paramOut[i])
+			if err != nil {
+				return ErrorFailToUpdateRecord
+			}
+			paramOutForCounting := util.MapCopy(tempParamOut,
+				"Creator", "LastModifier", "CreateAt", "UpdatedAt", "SnowId")
+
+			if len(paramOutForCounting) == 0 {
+				return ErrorFieldsToBeCreatedNotFound
+			}
+		}
+
+		err = global.DB.Create(&paramOut).Error
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+			return ErrorFailToCreateRecord
+		}
+
+		//更新casbin的rbac分组规则
+		var param1 rbacUpdateGroupingPolicyByMember
+		param1.Member = strconv.FormatInt(u.UserSnowID, 10)
+		for _, roleSnowID := range *u.RoleSnowIDs {
+			param1.Groups = append(param1.Groups, strconv.FormatInt(roleSnowID, 10))
+		}
+		err = param1.Update()
+		if err != nil {
+			return ErrorFailToUpdateRBACGroupingPolicies
+		}
+
+		return nil
+	})
+
+	switch err {
+	case nil:
+		return response.Success()
+	case ErrorFailToCreateRecord:
+		return response.Failure(util.ErrorFailToCreateRecord)
+	case ErrorFailToDeleteRecord:
+		return response.Failure(util.ErrorFailToDeleteRecord)
+	case ErrorFieldsToBeCreatedNotFound:
+		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
+	case ErrorFailToUpdateRBACGroupingPolicies:
+		return response.Failure(util.ErrorFailToUpdateRBACGroupingPolicies)
+	default:
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 }

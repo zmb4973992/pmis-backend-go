@@ -16,10 +16,11 @@ type DictionaryDetailGet struct {
 type DictionaryDetailCreate struct {
 	Creator              int64
 	LastModifier         int64
-	DictionaryTypeSnowID int64  `json:"dictionary_type_snow_id" binding:"required,gt=0"` //字典类型id
-	Name                 string `json:"name" binding:"required"`                         //名称
-	Sequence             int    `json:"sequence,omitempty"`                              //顺序值
-	Remarks              string `json:"remarks,omitempty"`                               //备注
+	DictionaryTypeSnowID int64  `json:"dictionary_type_snow_id" binding:"required"` //字典类型id
+	Name                 string `json:"name" binding:"required"`                    //名称
+	Sort                 int    `json:"sort,omitempty"`                             //顺序值
+	Status               *bool  `json:"status"`                                     //是否启用
+	Remarks              string `json:"remarks,omitempty"`                          //备注
 }
 
 type DictionaryDetailCreateInBatches struct {
@@ -33,9 +34,10 @@ type DictionaryDetailCreateInBatches struct {
 type DictionaryDetailUpdate struct {
 	LastModifier int64
 	SnowID       int64
-	Name         *string `json:"name"`     //名称
-	Sequence     *int    `json:"sequence"` //顺序值
-	Remarks      *string `json:"remarks"`  //备注
+	Name         *string `json:"name"`    //名称
+	Sort         *int    `json:"sort"`    //顺序值
+	Status       *bool   `json:"status"`  //是否启用
+	Remarks      *string `json:"remarks"` //备注
 }
 
 type DictionaryDetailDelete struct {
@@ -50,8 +52,7 @@ type DictionaryDetailGetArray struct {
 
 type DictionaryDetailGetList struct {
 	list.Input
-	DictionaryTypeSnowID int64  `json:"dictionary_type_snow_id,omitempty"`
-	DictionaryTypeName   string `json:"dictionary_type_name,omitempty"`
+	DictionaryTypeSnowID int64 `json:"dictionary_type_snow_id,omitempty"`
 }
 
 //以下为出参
@@ -62,7 +63,8 @@ type DictionaryDetailOutput struct {
 	SnowID               int64   `json:"snow_id"`
 	DictionaryTypeSnowID int64   `json:"dictionary_type_snow_id"` //字典类型
 	Name                 string  `json:"name"`                    //名称
-	Sequence             *int    `json:"sequence"`                //顺序值
+	Sort                 *int    `json:"sort"`                    //顺序值
+	Status               *bool   `json:"status"`                  //是否启用
 	Remarks              *string `json:"remarks"`                 //备注
 }
 
@@ -93,48 +95,16 @@ func (d *DictionaryDetailCreate) Create() response.Common {
 
 	paramOut.Name = d.Name
 
-	if d.Sequence != 0 {
-		paramOut.Sort = &d.Sequence
+	if d.Sort != 0 {
+		paramOut.Sort = &d.Sort
 	}
 
 	if d.Remarks != "" {
 		paramOut.Remarks = &d.Remarks
 	}
 
-	err := global.DB.Create(&paramOut).Error
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
-	}
-	return response.Success()
-}
-
-func (d *DictionaryDetailCreateInBatches) CreateInBatches() response.Common {
-	var paramOut []model.DictionaryDetail
-	for i := range d.Data {
-		var record model.DictionaryDetail
-
-		if d.Data[i].Creator > 0 {
-			record.Creator = &d.Data[i].Creator
-		}
-
-		if d.Data[i].LastModifier > 0 {
-			record.LastModifier = &d.Data[i].LastModifier
-		}
-
-		record.DictionaryTypeSnowID = d.Data[i].DictionaryTypeSnowID
-
-		record.Name = d.Data[i].Name
-
-		if d.Data[i].Sequence != 0 {
-			record.Sort = &d.Data[i].Sequence
-		}
-
-		if d.Data[i].Remarks != "" {
-			record.Remarks = &d.Data[i].Remarks
-		}
-
-		paramOut = append(paramOut, record)
+	if d.Status != nil {
+		paramOut.Status = d.Status
 	}
 
 	err := global.DB.Create(&paramOut).Error
@@ -144,6 +114,42 @@ func (d *DictionaryDetailCreateInBatches) CreateInBatches() response.Common {
 	}
 	return response.Success()
 }
+
+//func (d *DictionaryDetailCreateInBatches) CreateInBatches() response.Common {
+//	var paramOut []model.DictionaryDetail
+//	for i := range d.Data {
+//		var record model.DictionaryDetail
+//
+//		if d.Data[i].Creator > 0 {
+//			record.Creator = &d.Data[i].Creator
+//		}
+//
+//		if d.Data[i].LastModifier > 0 {
+//			record.LastModifier = &d.Data[i].LastModifier
+//		}
+//
+//		record.DictionaryTypeSnowID = d.Data[i].DictionaryTypeSnowID
+//
+//		record.Name = d.Data[i].Name
+//
+//		if d.Data[i].Sort != 0 {
+//			record.Sort = &d.Data[i].Sort
+//		}
+//
+//		if d.Data[i].Remarks != "" {
+//			record.Remarks = &d.Data[i].Remarks
+//		}
+//
+//		paramOut = append(paramOut, record)
+//	}
+//
+//	err := global.DB.Create(&paramOut).Error
+//	if err != nil {
+//		global.SugaredLogger.Errorln(err)
+//		return response.Failure(util.ErrorFailToCreateRecord)
+//	}
+//	return response.Success()
+//}
 
 func (d *DictionaryDetailUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
@@ -160,14 +166,18 @@ func (d *DictionaryDetailUpdate) Update() response.Common {
 		}
 	}
 
-	if d.Sequence != nil {
-		if *d.Sequence > 0 {
-			paramOut["sequence"] = d.Sequence
-		} else if *d.Sequence == 0 {
-			paramOut["sequence"] = nil
+	if d.Sort != nil {
+		if *d.Sort > 0 {
+			paramOut["sort"] = d.Sort
+		} else if *d.Sort == 0 {
+			paramOut["sort"] = nil
 		} else {
 			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
+	}
+
+	if d.Status != nil {
+		paramOut["status"] = d.Status
 	}
 
 	if d.Remarks != nil {
@@ -216,17 +226,6 @@ func (d *DictionaryDetailGetList) GetList() response.List {
 	//where
 	if d.DictionaryTypeSnowID != 0 {
 		db = db.Where("dictionary_type_snow_id = ?", d.DictionaryTypeSnowID)
-	}
-
-	if d.DictionaryTypeName != "" {
-		var dictionaryTypeSnowID int64
-		global.DB.Model(&model.DictionaryType{}).Where("name = ?", d.DictionaryTypeName).
-			Select("snow_id").Limit(1).Find(&dictionaryTypeSnowID)
-		if dictionaryTypeSnowID > 0 {
-			db = db.Where("dictionary_type_snow_id = ?", dictionaryTypeSnowID)
-		} else {
-			return response.FailureForList(util.ErrorDictionaryTypeNameNotFound)
-		}
 	}
 
 	// count

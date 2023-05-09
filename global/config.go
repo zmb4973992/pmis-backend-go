@@ -20,6 +20,14 @@ var (
 	v             = viper.New()
 )
 
+// 用于确定角色的数据范围
+const (
+	HisOrganization = iota + 1
+	HisOrganizationAndInferiors
+	AllOrganization
+	CustomOrganization
+)
+
 // 这层只是中间的汇总层，只是包内引用、不展示，所以小写
 type config struct {
 	AppConfig

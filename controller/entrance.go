@@ -11,7 +11,6 @@ type controller struct {
 	relatedParty
 	user
 	requestLog
-	userAndRole
 	errorLog
 	token
 	project
@@ -34,7 +33,6 @@ var (
 	RelatedParty         = entrance.relatedParty
 	User                 = entrance.user
 	RequestLog           = entrance.requestLog
-	UserAndRole          = entrance.userAndRole
 	ErrorLog             = entrance.errorLog
 	Token                = entrance.token
 	Project              = entrance.project
@@ -45,4 +43,5 @@ var (
 	Progress             = entrance.progress
 	IncomeAndExpenditure = entrance.incomeAndExpenditure
 	SnowID               = entrance.snowID
+	Role                 = entrance.role
 )

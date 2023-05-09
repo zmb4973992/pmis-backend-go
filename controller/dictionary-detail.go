@@ -15,7 +15,7 @@ import (
 type dictionaryDetail struct{}
 
 func (d *dictionaryDetail) Get(c *gin.Context) {
-	param := service.OrganizationGet{}
+	var param service.DictionaryDetailGet
 	var err error
 	param.SnowID, err = strconv.ParseInt(c.Param("dictionary-detail-snow-id"), 10, 64)
 	if err != nil {
@@ -54,29 +54,29 @@ func (d *dictionaryDetail) Create(c *gin.Context) {
 	return
 }
 
-func (d *dictionaryDetail) CreateInBatches(c *gin.Context) {
-	var param service.DictionaryDetailCreateInBatches
-	err := c.ShouldBindJSON(&param)
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidJSONParameters))
-		return
-	}
-
-	//处理creator、last_modifier字段
-	userSnowID, exists := util.GetUserSnowID(c)
-	if exists {
-		for i := range param.Data {
-			param.Data[i].Creator = userSnowID
-			param.Data[i].LastModifier = userSnowID
-		}
-	}
-
-	res := param.CreateInBatches()
-	c.JSON(http.StatusOK, res)
-	return
-}
+//func (d *dictionaryDetail) CreateInBatches(c *gin.Context) {
+//	var param service.DictionaryDetailCreateInBatches
+//	err := c.ShouldBindJSON(&param)
+//	if err != nil {
+//		global.SugaredLogger.Errorln(err)
+//		c.JSON(http.StatusBadRequest,
+//			response.Failure(util.ErrorInvalidJSONParameters))
+//		return
+//	}
+//
+//	//处理creator、last_modifier字段
+//	userSnowID, exists := util.GetUserSnowID(c)
+//	if exists {
+//		for i := range param.Data {
+//			param.Data[i].Creator = userSnowID
+//			param.Data[i].LastModifier = userSnowID
+//		}
+//	}
+//
+//	res := param.CreateInBatches()
+//	c.JSON(http.StatusOK, res)
+//	return
+//}
 
 func (d *dictionaryDetail) Update(c *gin.Context) {
 	var param service.DictionaryDetailUpdate

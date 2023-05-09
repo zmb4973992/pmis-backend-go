@@ -2,11 +2,13 @@ package service
 
 import (
 	"github.com/yitter/idgenerator-go/idgen"
+	"gorm.io/gorm"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
+	"strconv"
 )
 
 //以下为入参
@@ -29,6 +31,8 @@ type RoleCreate struct {
 	SuperiorSnowID *int64 `json:"superior_snow_id"`
 
 	Name string `json:"name" binding:"required"`
+
+	DataScopeType int `json:"data_scope_type,omitempty"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -45,10 +49,11 @@ type RoleUpdate struct {
 	//日期
 
 	//允许为0的数字
-	SuperiorSnowID *int64 `json:"superior_snow_id"`
+	//SuperiorSnowID *int64 `json:"superior_snow_id"`
 
 	//允许为null的字符串
-	Name *string `json:"name"`
+	Name          *string `json:"name"`
+	DataScopeType *int    `json:"data_scope_type"`
 }
 
 type RoleDelete struct {
@@ -57,6 +62,14 @@ type RoleDelete struct {
 
 type RoleGetList struct {
 	list.Input
+}
+
+type RoleUpdateUsers struct {
+	Creator      int64
+	LastModifier int64
+
+	RoleSnowID  int64    `json:"-"`
+	UserSnowIDs *[]int64 `json:"user_snow_ids"`
 }
 
 //以下为出参
@@ -116,13 +129,19 @@ func (r *RoleCreate) Create() response.Common {
 		}
 	}
 
+	if r.DataScopeType > 0 {
+		paramOut.DataScopeType = r.DataScopeType
+	} else {
+		paramOut.DataScopeType = global.HisOrganizationAndInferiors
+	}
+
 	//计算有修改值的字段数，分别进行不同处理
 	tempParamOut, err := util.StructToMap(paramOut)
 	if err != nil {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "CreateAt", "UpdatedAt", "SnowID")
+		"Creator", "LastModifier", "CreateAt", "UpdatedAt", "SnowId")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -144,15 +163,15 @@ func (r *RoleUpdate) Update() response.Common {
 	}
 
 	//允许为0的数字
-	{
-		if r.SuperiorSnowID != nil {
-			if *r.SuperiorSnowID != -1 {
-				paramOut["superior_snow_id"] = r.SuperiorSnowID
-			} else {
-				paramOut["superior_snow_id"] = nil
-			}
-		}
-	}
+	//{
+	//	if r.SuperiorSnowID != nil {
+	//		if *r.SuperiorSnowID != -1 {
+	//			paramOut["superior_snow_id"] = r.SuperiorSnowID
+	//		} else {
+	//			paramOut["superior_snow_id"] = nil
+	//		}
+	//	}
+	//}
 
 	//允许为null的字符串
 	{
@@ -165,9 +184,17 @@ func (r *RoleUpdate) Update() response.Common {
 		}
 	}
 
+	if r.DataScopeType != nil {
+		if *r.DataScopeType == -1 {
+			paramOut["data_scope_type"] = nil
+		} else {
+			paramOut["data_scope_type"] = r.DataScopeType
+		}
+	}
+
 	//计算有修改值的字段数，分别进行不同处理
 	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt")
+		"LastModifier", "CreateAt", "UpdatedAt", "SnowId")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
@@ -269,5 +296,94 @@ func (r *RoleGetList) GetList() response.List {
 		},
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),
+	}
+}
+
+func (r *RoleUpdateUsers) Update() response.Common {
+	if r.UserSnowIDs == nil {
+		return response.Failure(util.ErrorInvalidJSONParameters)
+	}
+
+	if len(*r.UserSnowIDs) == 0 {
+		err := global.DB.Where("role_snow_id = ?", r.RoleSnowID).Delete(&model.UserAndRole{}).Error
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+			return response.Failure(util.ErrorFailToDeleteRecord)
+		}
+		return response.Success()
+	}
+
+	err := global.DB.Transaction(func(tx *gorm.DB) error {
+		//先删掉原始记录
+		err := tx.Where("role_snow_id = ?", r.RoleSnowID).Delete(&model.UserAndRole{}).Error
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+			return ErrorFailToDeleteRecord
+		}
+
+		//再增加新的记录
+		var paramOut []model.UserAndRole
+		for _, userSnowID := range *r.UserSnowIDs {
+			var record model.UserAndRole
+			if r.Creator > 0 {
+				record.Creator = &r.Creator
+			}
+			if r.LastModifier > 0 {
+				record.LastModifier = &r.LastModifier
+			}
+
+			record.RoleSnowID = r.RoleSnowID
+			record.UserSnowID = userSnowID
+			record.SnowID = idgen.NextId()
+			paramOut = append(paramOut, record)
+		}
+
+		for i := range paramOut {
+			//计算有修改值的字段数，分别进行不同处理
+			tempParamOut, err := util.StructToMap(paramOut[i])
+			if err != nil {
+				return ErrorFailToUpdateRecord
+			}
+			paramOutForCounting := util.MapCopy(tempParamOut,
+				"Creator", "LastModifier", "CreateAt", "UpdatedAt", "SnowId")
+
+			if len(paramOutForCounting) == 0 {
+				return ErrorFieldsToBeCreatedNotFound
+			}
+		}
+
+		err = global.DB.Create(&paramOut).Error
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+			return ErrorFailToCreateRecord
+		}
+
+		//更新casbin的rbac分组规则
+		var param1 rbacUpdateGroupingPolicyByGroup
+		param1.Group = strconv.FormatInt(r.RoleSnowID, 10)
+		for _, userSnowID := range *r.UserSnowIDs {
+			param1.Members = append(param1.Members, strconv.FormatInt(userSnowID, 10))
+		}
+		err = param1.Update()
+		if err != nil {
+			return ErrorFailToUpdateRBACGroupingPolicies
+		}
+
+		return nil
+	})
+
+	switch err {
+	case nil:
+		return response.Success()
+	case ErrorFailToCreateRecord:
+		return response.Failure(util.ErrorFailToCreateRecord)
+	case ErrorFailToDeleteRecord:
+		return response.Failure(util.ErrorFailToDeleteRecord)
+	case ErrorFieldsToBeCreatedNotFound:
+		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
+	case ErrorFailToUpdateRBACGroupingPolicies:
+		return response.Failure(util.ErrorFailToUpdateRBACGroupingPolicies)
+	default:
+		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 }

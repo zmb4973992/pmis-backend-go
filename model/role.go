@@ -5,13 +5,6 @@ import (
 	"pmis-backend-go/global"
 )
 
-const (
-	HisOrganization = iota + 1
-	HisOrganizationAndInferiors
-	AllOrganization
-	CustomOrganization
-)
-
 type Role struct {
 	BasicModel
 	Name           string //角色名称
@@ -42,15 +35,15 @@ func (r *Role) BeforeDelete(tx *gorm.DB) error {
 
 func generateRoles() error {
 	roles := []Role{
-		{Name: "管理员", DataScopeType: AllOrganization},
+		{Name: "管理员", DataScopeType: global.AllOrganization},
 		{Name: "公司级"},
 		{Name: "事业部级"},
 		{Name: "部门级"},
 		{Name: "项目级"},
-		{Name: "所有部门", DataScopeType: AllOrganization},
-		{Name: "本部门和子部门", DataScopeType: HisOrganizationAndInferiors},
-		{Name: "本部门", DataScopeType: HisOrganization},
-		{Name: "自定义部门", DataScopeType: CustomOrganization},
+		{Name: "所有部门", DataScopeType: global.AllOrganization},
+		{Name: "本部门和子部门", DataScopeType: global.HisOrganizationAndInferiors},
+		{Name: "本部门", DataScopeType: global.HisOrganization},
+		{Name: "自定义部门", DataScopeType: global.CustomOrganization},
 	}
 	for _, role := range roles {
 		err := global.DB.FirstOrCreate(&Role{}, role).Error

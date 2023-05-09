@@ -147,3 +147,33 @@ func (u *user) GetByToken(c *gin.Context) {
 	c.JSON(http.StatusOK, res)
 	return
 }
+
+func (u *user) UpdateRoles(c *gin.Context) {
+	var param service.UserUpdateRoles
+	err := c.ShouldBindJSON(&param)
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidJSONParameters))
+		return
+	}
+	//把uri上的id参数传递给结构体形式的入参
+	param.UserSnowID, err = strconv.ParseInt(c.Param("user-snow-id"), 10, 64)
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidURIParameters))
+		return
+	}
+
+	//处理last_modifier字段
+	userSnowID, exists := util.GetUserSnowID(c)
+	if exists {
+		param.Creator = userSnowID
+		param.LastModifier = userSnowID
+	}
+
+	res := param.Update()
+	c.JSON(http.StatusOK, res)
+	return
+}

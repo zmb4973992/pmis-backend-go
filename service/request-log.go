@@ -35,7 +35,6 @@ type RequestLogOutput struct {
 	Creator      *int64     `json:"creator"`
 	LastModifier *int64     `json:"last_modifier"`
 	SnowID       int64      `json:"snow_id"`
-	UserSnowID   *int64     `json:"user_snow_id"`  //操作人id
 	IP           *string    `json:"ip"`            //IP
 	Location     *string    `json:"location"`      //所在地
 	Method       *string    `json:"method"`        //请求方式
@@ -77,7 +76,7 @@ func (o *RequestLogGetList) GetList() response.List {
 
 	//where
 	if o.UserSnowID > 0 {
-		db = db.Where("user_snow_id = ?", o.UserSnowID)
+		db = db.Where("creator = ?", o.UserSnowID)
 	}
 
 	// count

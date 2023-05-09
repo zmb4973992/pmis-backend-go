@@ -31,7 +31,6 @@ type CustomRouterGroup struct {
 	private.ProgressRouter
 	private.IncomeAndExpenditureRouter
 	private.RoleRouter
-	private.UserAndRoleRouter
 	private.RequestLogRouter
 }
 
@@ -78,7 +77,6 @@ func InitEngine() *gin.Engine {
 	customRouterGroup.InitProgressRouter(privateGroup)
 	customRouterGroup.InitIncomeAndExpenditureRouter(privateGroup)
 	customRouterGroup.InitRoleRouter(privateGroup)
-	customRouterGroup.InitUserAndRoleRouter(privateGroup)
 	customRouterGroup.InitRequestLogRouter(privateGroup)
 
 	engine.GET("/snow-id", controller.SnowID.Get) //获取雪花id，以后可删

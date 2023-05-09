@@ -1,16 +1,16 @@
 package model
 
-// RoleAndOrganizationForDataScope 组织机构和数据权限(范围)的中间表
-// 此表用来定义一个组织可以查看哪些组织的数据
-type RoleAndOrganizationForDataScope struct {
+// RoleAndOrganization 组织机构和数据权限(范围)的中间表
+// 当角色的数据范围为自定义时，系统会到这个表来查询，具体能访问哪些组织的数据
+type RoleAndOrganization struct {
 	BasicModel
 	RoleSnowID         *int64 `gorm:"nut null;"`
 	OrganizationSnowID *int64 `gorm:"nut null;"` //等同于组织SnowID，用来定义可以查看哪些组织的数据
 }
 
 // TableName 修改表名
-func (*RoleAndOrganizationForDataScope) TableName() string {
-	return "role_and_organization_for_data_scope"
+func (*RoleAndOrganization) TableName() string {
+	return "role_and_organization"
 }
 
 //func (d *Role) BeforeDelete(tx *gorm.DB) error {
