@@ -12,7 +12,7 @@ func GetOrganizationSnowIDsInDataScope(userSnowID int64) (organizationSnowIDsInD
 	global.DB.Model(&model.UserAndRole{}).Where("user_snow_id = ?", userSnowID).
 		Select("role_snow_id").Find(&roleSnowIDs)
 
-	fmt.Println("角色id：", roleSnowIDs)
+	fmt.Println("角色snow_id：", roleSnowIDs)
 
 	//获得所属角色的数据范围类型
 	var dataScopeTypes []int
@@ -47,7 +47,7 @@ func GetOrganizationSnowIDsInDataScope(userSnowID int64) (organizationSnowIDsInD
 		tempOrganizationSnowIDs = append(tempOrganizationSnowIDs, tempOrganizationSnowIDs2...)
 	}
 	organizationSnowIDsInDataScope = RemoveDuplication(tempOrganizationSnowIDs)
-	fmt.Println("数据范围内的组织id：", organizationSnowIDsInDataScope)
+	fmt.Println("数据范围内的组织snow_id：", organizationSnowIDsInDataScope)
 	return
 }
 

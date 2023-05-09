@@ -21,11 +21,11 @@ type ErrorLogCreate struct {
 	Creator      int64
 	LastModifier int64
 
-	Detail        string `json:"detail,omitempty" `
-	Date          string `json:"date,omitempty"`
-	MajorCategory string `json:"major_category,omitempty"`
-	MinorCategory string `json:"minor_category,omitempty"`
-	IsResolved    bool   `json:"is_resolved,omitempty"`
+	Detail            string `json:"detail,omitempty" `
+	Date              string `json:"date,omitempty"`
+	MainCategory      string `json:"main_category,omitempty"`
+	SecondaryCategory string `json:"secondary_category,omitempty"`
+	IsResolved        bool   `json:"is_resolved,omitempty"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -36,11 +36,11 @@ type ErrorLogUpdate struct {
 	LastModifier int64
 	SnowID       int64
 
-	Detail        *string `json:"detail"`
-	Date          *string `json:"date"`
-	MajorCategory *string `json:"major_category"`
-	MinorCategory *string `json:"minor_category"`
-	IsResolved    *bool   `json:"is_resolved"`
+	Detail            *string `json:"detail"`
+	Date              *string `json:"date"`
+	MainCategory      *string `json:"main_category"`
+	SecondaryCategory *string `json:"secondary_category"`
+	IsResolved        *bool   `json:"is_resolved"`
 }
 
 type ErrorLogDelete struct {
@@ -50,11 +50,11 @@ type ErrorLogDelete struct {
 type ErrorLogGetList struct {
 	list.Input
 
-	DetailInclude string `json:"detail_include,omitempty" `
-	Date          string `json:"date,omitempty"`
-	MajorCategory string `json:"major_category,omitempty"`
-	MinorCategory string `json:"minor_category,omitempty"`
-	IsResolved    bool   `json:"is_resolved,omitempty"`
+	DetailInclude     string `json:"detail_include,omitempty" `
+	Date              string `json:"date,omitempty"`
+	MainCategory      string `json:"main_category,omitempty"`
+	SecondaryCategory string `json:"secondary_category,omitempty"`
+	IsResolved        bool   `json:"is_resolved,omitempty"`
 }
 
 //以下为出参
@@ -64,11 +64,11 @@ type ErrorLogOutput struct {
 	LastModifier *int64 `json:"last_modifier"`
 	SnowID       int64  `json:"snow_id"`
 
-	Detail        *string `json:"detail"`
-	Date          *string `json:"date"`
-	MajorCategory *string `json:"major_category"`
-	MinorCategory *string `json:"minor_category"`
-	IsResolved    *bool   `json:"is_resolved"`
+	Detail            *string `json:"detail"`
+	Date              *string `json:"date"`
+	MainCategory      *string `json:"main_category"`
+	SecondaryCategory *string `json:"secondary_category"`
+	IsResolved        *bool   `json:"is_resolved"`
 }
 
 func (e *ErrorLogGet) Get() response.Common {
@@ -112,12 +112,12 @@ func (e *ErrorLogCreate) Create() response.Common {
 		}
 	}
 
-	if e.MajorCategory != "" {
-		paramOut.MajorCategory = &e.MajorCategory
+	if e.MainCategory != "" {
+		paramOut.MainCategory = &e.MainCategory
 	}
 
-	if e.MinorCategory != "" {
-		paramOut.MinorCategory = &e.MinorCategory
+	if e.SecondaryCategory != "" {
+		paramOut.SecondaryCategory = &e.SecondaryCategory
 	}
 
 	if e.IsResolved != false {
@@ -159,19 +159,19 @@ func (e *ErrorLogUpdate) Update() response.Common {
 		}
 	}
 
-	if e.MajorCategory != nil {
-		if *e.MajorCategory != "" {
-			paramOut["major_category"] = e.MajorCategory
+	if e.MainCategory != nil {
+		if *e.MainCategory != "" {
+			paramOut["main_category"] = e.MainCategory
 		} else {
-			paramOut["major_category"] = nil
+			paramOut["main_category"] = nil
 		}
 	}
 
-	if e.MinorCategory != nil {
-		if *e.MinorCategory != "" {
-			paramOut["minor_category"] = e.MinorCategory
+	if e.SecondaryCategory != nil {
+		if *e.SecondaryCategory != "" {
+			paramOut["secondary_category"] = e.SecondaryCategory
 		} else {
-			paramOut["minor_category"] = nil
+			paramOut["secondary_category"] = nil
 		}
 	}
 
@@ -184,7 +184,7 @@ func (e *ErrorLogUpdate) Update() response.Common {
 	}
 	//计算有修改值的字段数，分别进行不同处理
 	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt")
+		"LastModifier", "CreateAt", "UpdatedAt", "SnowId")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
@@ -228,12 +228,12 @@ func (e *ErrorLogGetList) GetList() response.List {
 
 	}
 
-	if e.MajorCategory != "" {
-		db = db.Where("major_category = ?", e.MajorCategory)
+	if e.MainCategory != "" {
+		db = db.Where("main_category = ?", e.MainCategory)
 	}
 
-	if e.MinorCategory != "" {
-		db = db.Where("minor_category = ?", e.MinorCategory)
+	if e.SecondaryCategory != "" {
+		db = db.Where("secondary_category = ?", e.SecondaryCategory)
 	}
 
 	if e.IsResolved != false {

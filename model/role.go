@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/yitter/idgenerator-go/idgen"
 	"gorm.io/gorm"
 	"pmis-backend-go/global"
 )
@@ -35,18 +36,19 @@ func (r *Role) BeforeDelete(tx *gorm.DB) error {
 
 func generateRoles() error {
 	roles := []Role{
-		{Name: "管理员", DataScopeType: global.AllOrganization},
-		{Name: "公司级"},
-		{Name: "事业部级"},
-		{Name: "部门级"},
-		{Name: "项目级"},
 		{Name: "所有部门", DataScopeType: global.AllOrganization},
 		{Name: "本部门和子部门", DataScopeType: global.HisOrganizationAndInferiors},
 		{Name: "本部门", DataScopeType: global.HisOrganization},
 		{Name: "自定义部门", DataScopeType: global.CustomOrganization},
 	}
 	for _, role := range roles {
-		err := global.DB.FirstOrCreate(&Role{}, role).Error
+		err = global.DB.Where("name = ?", role.Name).
+			Where("data_scope_type = ?", role.DataScopeType).
+			Attrs(Role{
+				BasicModel: BasicModel{
+					SnowID: idgen.NextId(),
+				}}).
+			FirstOrCreate(&role).Error
 		if err != nil {
 			return err
 		}

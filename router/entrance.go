@@ -32,6 +32,7 @@ type CustomRouterGroup struct {
 	private.IncomeAndExpenditureRouter
 	private.RoleRouter
 	private.RequestLogRouter
+	private.ErrorLogRouter
 }
 
 // InitEngine 初始化路由器,最终返回*gin.Engine类型，给main调用
@@ -78,20 +79,9 @@ func InitEngine() *gin.Engine {
 	customRouterGroup.InitIncomeAndExpenditureRouter(privateGroup)
 	customRouterGroup.InitRoleRouter(privateGroup)
 	customRouterGroup.InitRequestLogRouter(privateGroup)
+	customRouterGroup.InitErrorLogRouter(privateGroup)
 
 	engine.GET("/snow-id", controller.SnowID.Get) //获取雪花id，以后可删
-	//依次加载所有的路由组，以下都需要jwt验证
-	api := engine.Group("/api")
-	api.Use(middleware.RateLimit())
-	{
-		errorLog := api.Group("/error-log")
-		{
-			errorLog.GET("/:error-log-snow-id", controller.ErrorLog.Get)       //获取错误日志详情
-			errorLog.POST("", controller.ErrorLog.Create)                      //新增错误日志
-			errorLog.PATCH("/:error-log-snow-id", controller.ErrorLog.Update)  //修改错误日志
-			errorLog.DELETE("/:error-log-snow-id", controller.ErrorLog.Delete) //删除错误日志
-		}
-	}
 
 	//引擎配置完成后，返回
 	return engine

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -462,6 +463,23 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 	if i.DateLte != "" {
 		db = db.Where("date <= ?", i.DateLte)
 	}
+
+	//用来确定数据范围
+	organizationIDsForDataScope := util.GetOrganizationSnowIDsInDataScope(i.UserSnowID)
+	//先找出项目的数据范围
+	var projectSnowIDs []int64
+	global.DB.Model(&model.Project{}).Where("organization_snow_id in ?", organizationIDsForDataScope).
+		Select("snow_id").Find(&projectSnowIDs)
+	fmt.Println("项目snow_id：", projectSnowIDs)
+	//然后再找出合同的数据范围
+	var contractSnowIDs []int64
+	global.DB.Model(&model.Contract{}).Where("organization_snow_id in ?", organizationIDsForDataScope).
+		Or("project_snow_id in ?", projectSnowIDs).
+		Select("snow_id").Find(&contractSnowIDs)
+	fmt.Println("合同snow_id：", contractSnowIDs)
+	//汇总
+	db = db.Where("project_snow_id in ?", projectSnowIDs).
+		Or("contract_snow_id in ?", contractSnowIDs)
 
 	//count
 	var count int64
