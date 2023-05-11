@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/yitter/idgenerator-go/idgen"
 	"gorm.io/gorm"
 	"pmis-backend-go/global"
 )
@@ -15,7 +14,7 @@ type Organization struct {
 	//日期，暂无
 
 	//数字(允许为0、nil)
-	SuperiorSnowID *int64 //上级机构SnowID，引用自身
+	SuperiorID *int64 //上级机构ID，引用自身
 	//数字(不允许为0、nil，必须有值)
 	Sort int //部门在当前层级下的顺序
 	//字符串(允许为nil)
@@ -31,14 +30,14 @@ func (o *Organization) TableName() string {
 }
 
 func (o *Organization) BeforeDelete(tx *gorm.DB) error {
-	if o.SnowID == 0 {
+	if o.ID == 0 {
 		return nil
 	}
 
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var records []OrganizationAndUser
-	err = tx.Where(&OrganizationAndUser{OrganizationSnowID: o.SnowID}).
+	err = tx.Where(&OrganizationAndUser{OrganizationID: o.ID}).
 		Find(&records).Delete(&records).Error
 	if err != nil {
 		return err
@@ -76,7 +75,6 @@ func generateOrganizations() error {
 	for _, organization := range organizations {
 		err = global.DB.Where(&Organization{Name: organization.Name}).
 			Where(&Organization{Sort: organization.Sort}).
-			Attrs(&Organization{BasicModel: BasicModel{SnowID: idgen.NextId()}}).
 			FirstOrCreate(&organization).Error
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
@@ -98,7 +96,7 @@ func generateOrganizations() error {
 				return err
 			}
 			//把上级部门的id赋值给本部门
-			err = global.DB.Model(&Organization{}).Where("name = ?", organization.Name).Update("superior_snow_id", superiorOrganization.SnowID).Error
+			err = global.DB.Model(&Organization{}).Where("name = ?", organization.Name).Update("superior_id", superiorOrganization.ID).Error
 			if err != nil {
 				global.SugaredLogger.Errorln(err)
 				return err
@@ -111,7 +109,7 @@ func generateOrganizations() error {
 				return err
 			}
 			//把上级部门的id赋值给本部门
-			err = global.DB.Model(&Organization{}).Where("name = ?", organization.Name).Update("superior_snow_id", superiorOrganization.SnowID).Error
+			err = global.DB.Model(&Organization{}).Where("name = ?", organization.Name).Update("superior_id", superiorOrganization.ID).Error
 			if err != nil {
 				global.SugaredLogger.Errorln(err)
 				return err

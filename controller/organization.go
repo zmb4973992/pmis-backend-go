@@ -17,7 +17,7 @@ type organization struct{}
 func (o *organization) Get(c *gin.Context) {
 	param := service.OrganizationGet{}
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("organization-snow-id"), 10, 64)
+	param.ID, err = strconv.ParseInt(c.Param("organization-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -40,10 +40,10 @@ func (o *organization) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userSnowID, exists := util.GetUserSnowID(c)
+	userID, exists := util.GetUserID(c)
 	if exists {
-		param.Creator = userSnowID
-		param.LastModifier = userSnowID
+		param.Creator = userID
+		param.LastModifier = userID
 	}
 
 	res := param.Create()
@@ -60,7 +60,7 @@ func (o *organization) Update(c *gin.Context) {
 		return
 	}
 
-	param.SnowID, err = strconv.ParseInt(c.Param("organization-snow-id"), 10, 64)
+	param.ID, err = strconv.ParseInt(c.Param("organization-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidURIParameters))
@@ -68,9 +68,9 @@ func (o *organization) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userSnowID, exists := util.GetUserSnowID(c)
+	userID, exists := util.GetUserID(c)
 	if exists {
-		param.LastModifier = userSnowID
+		param.LastModifier = userID
 	}
 
 	res := param.Update()
@@ -81,7 +81,7 @@ func (o *organization) Update(c *gin.Context) {
 func (o *organization) Delete(c *gin.Context) {
 	var param service.OrganizationDelete
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("organization-snow-id"), 10, 64)
+	param.ID, err = strconv.ParseInt(c.Param("organization-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -108,9 +108,9 @@ func (o *organization) GetList(c *gin.Context) {
 	}
 
 	//AuthorityInput需要userID
-	//userSnowID, exists := util.GetUserSnowID(c)
+	//userID, exists := util.GetUserID(c)
 	//if exists {
-	//	param.UserSnowID = userSnowID
+	//	param.UserID = userID
 	//}
 
 	res := param.GetList()

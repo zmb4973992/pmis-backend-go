@@ -6,29 +6,29 @@ import (
 )
 
 // 给定拆解id，找到所有上级id
-func getSuperiorSnowIDs(disassemblySnowID int64) (superiorSnowIDs []int64) {
+func getSuperiorIDs(disassemblyID int64) (superiorIDs []int64) {
 	//superior_id可能为空，所以用指针来接收
 	var disassembly model.Disassembly
-	err := global.DB.Where("snow_id = ?", disassemblySnowID).
+	err := global.DB.Where("id = ?", disassemblyID).
 		First(&disassembly).Error
 
 	//如果发生任何错误、或者上级id为空：
-	if err != nil || disassembly.SuperiorSnowID == nil {
+	if err != nil || disassembly.SuperiorID == nil {
 		return nil
 	}
 
-	superiorSnowIDs = append(superiorSnowIDs, *disassembly.SuperiorSnowID)
-	res := getSuperiorSnowIDs(*disassembly.SuperiorSnowID)
+	superiorIDs = append(superiorIDs, *disassembly.SuperiorID)
+	res := getSuperiorIDs(*disassembly.SuperiorID)
 
-	superiorSnowIDs = append(superiorSnowIDs, res...)
+	superiorIDs = append(superiorIDs, res...)
 
-	return superiorSnowIDs
+	return superiorIDs
 }
 
-// GetInferiorSnowIDs 给定拆解id，找到所有下级id
-func GetInferiorSnowIDs(disassemblySnowID int64) (inferiorSnowIDs []int64) {
+// GetInferiorIDs 给定拆解id，找到所有下级id
+func GetInferiorIDs(disassemblyID int64) (inferiorIDs []int64) {
 	var disassemblies []model.Disassembly
-	err := global.DB.Where("superior_snow_id = ?", disassemblySnowID).
+	err := global.DB.Where("superior_id = ?", disassemblyID).
 		Find(&disassemblies).Error
 
 	if err != nil {
@@ -36,11 +36,11 @@ func GetInferiorSnowIDs(disassemblySnowID int64) (inferiorSnowIDs []int64) {
 	}
 
 	for i := range disassemblies {
-		inferiorSnowIDs = append(inferiorSnowIDs, disassemblies[i].SnowID)
-		res := GetInferiorSnowIDs(disassemblies[i].SnowID)
+		inferiorIDs = append(inferiorIDs, disassemblies[i].ID)
+		res := GetInferiorIDs(disassemblies[i].ID)
 
-		inferiorSnowIDs = append(inferiorSnowIDs, res...)
+		inferiorIDs = append(inferiorIDs, res...)
 	}
 
-	return inferiorSnowIDs
+	return inferiorIDs
 }

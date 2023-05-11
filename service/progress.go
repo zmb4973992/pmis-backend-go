@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -13,23 +12,23 @@ import (
 //以下为入参
 
 type ProgressGet struct {
-	SnowID int64
+	ID int64
 }
 
 type ProgressCreate struct {
 	Creator      int64
 	LastModifier int64
 
-	DisassemblySnowID int64    `json:"disassembly_snow_id" binding:"required"`
-	Date              string   `json:"date" binding:"required"`
-	Type              int64    `json:"type" binding:"required"`
-	Value             *float64 `json:"value" binding:"required"`
-	Remarks           string   `json:"remarks,omitempty"`
+	DisassemblyID int64    `json:"disassembly_id" binding:"required"`
+	Date          string   `json:"date" binding:"required"`
+	Type          int64    `json:"type" binding:"required"`
+	Value         *float64 `json:"value" binding:"required"`
+	Remarks       string   `json:"remarks,omitempty"`
 }
 
 type ProgressUpdate struct {
 	LastModifier int64
-	SnowID       int64
+	ID           int64
 
 	Date    *string  `json:"date"`
 	Type    *int64   `json:"type"`
@@ -38,20 +37,20 @@ type ProgressUpdate struct {
 }
 
 type ProgressDelete struct {
-	SnowID int64
+	ID int64
 }
 
 type ProgressGetList struct {
 	list.Input
 
-	DisassemblySnowID int64    `json:"disassembly_snow_id" binding:"required"`
-	DateGte           string   `json:"date_gte,omitempty"`
-	DateLte           string   `json:"date_lte,omitempty"`
-	Type              int64    `json:"type,omitempty"`
-	TypeIn            []int64  `json:"type_in"`
-	ValueGte          *float64 `json:"value_gte"`
-	ValueLte          *float64 `json:"value_lte"`
-	DataSource        int64    `json:"data_source"`
+	DisassemblyID int64    `json:"disassembly_id" binding:"required"`
+	DateGte       string   `json:"date_gte,omitempty"`
+	DateLte       string   `json:"date_lte,omitempty"`
+	Type          int64    `json:"type,omitempty"`
+	TypeIn        []int64  `json:"type_in"`
+	ValueGte      *float64 `json:"value_gte"`
+	ValueLte      *float64 `json:"value_lte"`
+	DataSource    int64    `json:"data_source"`
 }
 
 //以下为出参
@@ -59,9 +58,9 @@ type ProgressGetList struct {
 type ProgressOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	SnowID       int64  `json:"snow_id"`
+	ID           int64  `json:"id"`
 
-	DisassemblySnowID   *int64             `json:"-"`
+	DisassemblyID       *int64             `json:"-"`
 	DisassemblyExternal *DisassemblyOutput `json:"disassembly" gorm:"-"`
 
 	Date               *string                 `json:"date"`
@@ -76,7 +75,7 @@ type ProgressOutput struct {
 func (p *ProgressGet) Get() response.Common {
 	var result ProgressOutput
 	err := global.DB.Model(model.Progress{}).
-		Where("snow_id = ?", p.SnowID).First(&result).Error
+		Where("id = ?", p.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -93,7 +92,7 @@ func (p *ProgressGet) Get() response.Common {
 		if result.Type != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("snow_id = ?", *result.Type).
+				Where("id = ?", *result.Type).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
 				result.TypeExternal = &record
@@ -103,7 +102,7 @@ func (p *ProgressGet) Get() response.Common {
 		if result.DataSource != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("snow_id = ?", *result.DataSource).
+				Where("id = ?", *result.DataSource).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
 				result.DataSourceExternal = &record
@@ -125,9 +124,7 @@ func (p *ProgressCreate) Create() response.Common {
 		paramOut.LastModifier = &p.LastModifier
 	}
 
-	paramOut.SnowID = idgen.NextId()
-
-	paramOut.DisassemblySnowID = &p.DisassemblySnowID
+	paramOut.DisassemblyID = &p.DisassemblyID
 
 	date, err := time.Parse("2006-01-02", p.Date)
 	if err != nil {
@@ -144,7 +141,7 @@ func (p *ProgressCreate) Create() response.Common {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
-	paramOut.DataSource = &dataSource.SnowID
+	paramOut.DataSource = &dataSource.ID
 
 	if p.Remarks != "" {
 		paramOut.Remarks = &p.Remarks
@@ -156,7 +153,7 @@ func (p *ProgressCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "CreateAt", "UpdatedAt", "SnowID")
+		"Creator", "LastModifier", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -171,9 +168,9 @@ func (p *ProgressCreate) Create() response.Common {
 
 	//检查数据库是否已有相同日期、相同类型的记录
 	res := global.DB.FirstOrCreate(&paramOut, model.Progress{
-		DisassemblySnowID: &p.DisassemblySnowID,
-		Date:              &date,
-		Type:              &p.Type,
+		DisassemblyID: &p.DisassemblyID,
+		Date:          &date,
+		Type:          &p.Type,
 	})
 
 	if res.Error != nil {
@@ -186,7 +183,7 @@ func (p *ProgressCreate) Create() response.Common {
 	}
 
 	//更新所有上级的进度
-	err = util.UpdateProgressOfSuperiors(p.DisassemblySnowID, p.Type)
+	err = util.UpdateProgressOfSuperiors(p.DisassemblyID, p.Type)
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -245,7 +242,7 @@ func (p *ProgressUpdate) Update() response.Common {
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
-	paramOut["data_source"] = dataSource.SnowID
+	paramOut["data_source"] = dataSource.ID
 
 	//计算有修改值的字段数，分别进行不同处理
 	//data_source是自动添加的，也需要排除在外
@@ -258,7 +255,7 @@ func (p *ProgressUpdate) Update() response.Common {
 
 	//找到待更新的这条记录
 	var progress model.Progress
-	err = global.DB.Where("snow_id = ?", p.SnowID).First(&progress).Error
+	err = global.DB.Where("id = ?", p.ID).First(&progress).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
 	}
@@ -266,25 +263,25 @@ func (p *ProgressUpdate) Update() response.Common {
 	//如果修改了date或type，意味着可能有重复记录，需要进行判断
 	if p.Date != nil || p.Type != nil {
 		//从数据库找出相同拆解id、相同日期、相同类型的记录
-		var tempProgressSnowIDs []int64
+		var tempProgressIDs []int64
 		tempDate, err1 := time.Parse("2006-01-02", *p.Date)
 		if err1 != nil {
 			return response.Failure(util.ErrorInvalidDateFormat)
 		}
 		global.DB.Model(&model.Progress{}).Where(&model.Progress{
-			DisassemblySnowID: progress.DisassemblySnowID,
-			Date:              &tempDate,
-			Type:              p.Type,
-		}).Select("snow_id").Find(&tempProgressSnowIDs)
+			DisassemblyID: progress.DisassemblyID,
+			Date:          &tempDate,
+			Type:          p.Type,
+		}).Select("id").Find(&tempProgressIDs)
 		//如果数据库有记录、且待修改的progressID不在数据库记录的progressIDs里面，说明是新的记录
 		//则不允许修改
-		if len(tempProgressSnowIDs) > 0 && !util.IsInSlice(p.SnowID, tempProgressSnowIDs) {
+		if len(tempProgressIDs) > 0 && !util.IsInSlice(p.ID, tempProgressIDs) {
 			return response.Failure(util.ErrorDuplicateRecord)
 		}
 	}
 
 	//更新记录
-	err = global.DB.Model(&model.Progress{}).Where("snow_id = ?", p.SnowID).
+	err = global.DB.Model(&model.Progress{}).Where("id = ?", p.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -292,7 +289,7 @@ func (p *ProgressUpdate) Update() response.Common {
 	}
 
 	//更新所有上级的进度
-	if progress.DisassemblySnowID != nil {
+	if progress.DisassemblyID != nil {
 		//如果传入了type值(意味着type值可能从a改成b，同时影响a、b)，就准备更新所有的进度类型
 		if p.Type != nil {
 			//找出”进度类型“的dictionary_type值
@@ -304,20 +301,20 @@ func (p *ProgressUpdate) Update() response.Common {
 			}
 
 			//找出"进度类型"的dictionary_item值，准备遍历
-			var progressTypeSnowIDs []int64
+			var progressTypeIDs []int64
 			global.DB.Model(&model.DictionaryDetail{}).
-				Where("dictionary_type_snow_id = ?", progressTypeIDInDictionaryType.SnowID).
-				Select("snow_id").Find(&progressTypeSnowIDs)
+				Where("dictionary_type_id = ?", progressTypeIDInDictionaryType.ID).
+				Select("id").Find(&progressTypeIDs)
 
-			for _, v := range progressTypeSnowIDs {
-				err = util.UpdateProgressOfSuperiors(*progress.DisassemblySnowID, v)
+			for _, v := range progressTypeIDs {
+				err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, v)
 				if err != nil {
 					global.SugaredLogger.Errorln(err)
 					return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
 				}
 			}
 		} else { //如果没有传入type值(意味着记录的type值不变)，则只更新原来的进度类型
-			err = util.UpdateProgressOfSuperiors(*progress.DisassemblySnowID, *progress.Type)
+			err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, *progress.Type)
 			if err != nil {
 				global.SugaredLogger.Errorln(err)
 				return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
@@ -331,7 +328,7 @@ func (p *ProgressUpdate) Update() response.Common {
 func (p *ProgressDelete) Delete() response.Common {
 	//先找到记录，这样参数才能获得值、触发钩子函数，再删除记录
 	var progress model.Progress
-	err := global.DB.Where("snow_id = ?", p.SnowID).Find(&progress).Delete(&progress).Error
+	err := global.DB.Where("id = ?", p.ID).Find(&progress).Delete(&progress).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -339,8 +336,8 @@ func (p *ProgressDelete) Delete() response.Common {
 	}
 
 	//更新所有上级的进度
-	if progress.DisassemblySnowID != nil && progress.Type != nil {
-		err = util.UpdateProgressOfSuperiors(*progress.DisassemblySnowID, *progress.Type)
+	if progress.DisassemblyID != nil && progress.Type != nil {
+		err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, *progress.Type)
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
 			return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
@@ -355,7 +352,7 @@ func (p *ProgressGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	db = db.Where("disassembly_snow_id = ?", p.DisassemblySnowID)
+	db = db.Where("disassembly_id = ?", p.DisassemblyID)
 
 	if p.DateGte != "" {
 		date, err := time.Parse("2006-01-02", p.DateGte)
@@ -404,7 +401,7 @@ func (p *ProgressGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("snow_id desc")
+			db = db.Order("id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
@@ -448,10 +445,10 @@ func (p *ProgressGetList) GetList() response.List {
 	}
 
 	//查拆解信息
-	if p.DisassemblySnowID > 0 {
+	if p.DisassemblyID > 0 {
 		var record DisassemblyOutput
 		res := global.DB.Model(&model.Disassembly{}).
-			Where("snow_id = ?", p.DisassemblySnowID).Limit(1).Find(&record)
+			Where("id = ?", p.DisassemblyID).Limit(1).Find(&record)
 		if res.RowsAffected > 0 {
 			for i := range data {
 				data[i].DisassemblyExternal = &record
@@ -472,7 +469,7 @@ func (p *ProgressGetList) GetList() response.List {
 			if data[i].Type != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("snow_id = ?", *data[i].Type).Limit(1).Find(&record)
+					Where("id = ?", *data[i].Type).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].TypeExternal = &record
 				}
@@ -481,7 +478,7 @@ func (p *ProgressGetList) GetList() response.List {
 			if data[i].DataSource != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("snow_id = ?", *data[i].DataSource).Limit(1).Find(&record)
+					Where("id = ?", *data[i].DataSource).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].DataSourceExternal = &record
 				}

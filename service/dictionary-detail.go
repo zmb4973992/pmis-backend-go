@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -10,17 +9,17 @@ import (
 )
 
 type DictionaryDetailGet struct {
-	SnowID int64
+	ID int64
 }
 
 type DictionaryDetailCreate struct {
-	Creator              int64
-	LastModifier         int64
-	DictionaryTypeSnowID int64  `json:"dictionary_type_snow_id" binding:"required"` //字典类型id
-	Name                 string `json:"name" binding:"required"`                    //名称
-	Sort                 int    `json:"sort,omitempty"`                             //顺序值
-	Status               *bool  `json:"status"`                                     //是否启用
-	Remarks              string `json:"remarks,omitempty"`                          //备注
+	Creator          int64
+	LastModifier     int64
+	DictionaryTypeID int64  `json:"dictionary_type_id" binding:"required"` //字典类型id
+	Name             string `json:"name" binding:"required"`               //名称
+	Sort             int    `json:"sort,omitempty"`                        //顺序值
+	Status           *bool  `json:"status"`                                //是否启用
+	Remarks          string `json:"remarks,omitempty"`                     //备注
 }
 
 type DictionaryDetailCreateInBatches struct {
@@ -33,7 +32,7 @@ type DictionaryDetailCreateInBatches struct {
 
 type DictionaryDetailUpdate struct {
 	LastModifier int64
-	SnowID       int64
+	ID           int64
 	Name         *string `json:"name"`    //名称
 	Sort         *int    `json:"sort"`    //顺序值
 	Status       *bool   `json:"status"`  //是否启用
@@ -41,37 +40,37 @@ type DictionaryDetailUpdate struct {
 }
 
 type DictionaryDetailDelete struct {
-	SnowID int64
+	ID int64
 }
 
 type DictionaryDetailGetArray struct {
 	list.Input
-	DictionaryTypeSnowID int64  `json:"dictionary_type_snow_id,omitempty"`
-	DictionaryTypeName   string `json:"dictionary_type_name,omitempty"`
+	DictionaryTypeID   int64  `json:"dictionary_type_id,omitempty"`
+	DictionaryTypeName string `json:"dictionary_type_name,omitempty"`
 }
 
 type DictionaryDetailGetList struct {
 	list.Input
-	DictionaryTypeSnowID int64 `json:"dictionary_type_snow_id,omitempty"`
+	DictionaryTypeID int64 `json:"dictionary_type_id,omitempty"`
 }
 
 //以下为出参
 
 type DictionaryDetailOutput struct {
-	Creator              *int64  `json:"creator"`
-	LastModifier         *int64  `json:"last_modifier"`
-	SnowID               int64   `json:"snow_id"`
-	DictionaryTypeSnowID int64   `json:"dictionary_type_snow_id"` //字典类型
-	Name                 string  `json:"name"`                    //名称
-	Sort                 *int    `json:"sort"`                    //顺序值
-	Status               *bool   `json:"status"`                  //是否启用
-	Remarks              *string `json:"remarks"`                 //备注
+	Creator          *int64  `json:"creator"`
+	LastModifier     *int64  `json:"last_modifier"`
+	ID               int64   `json:"id"`
+	DictionaryTypeID int64   `json:"dictionary_type_id"` //字典类型
+	Name             string  `json:"name"`               //名称
+	Sort             *int    `json:"sort"`               //顺序值
+	Status           *bool   `json:"status"`             //是否启用
+	Remarks          *string `json:"remarks"`            //备注
 }
 
 func (d *DictionaryDetailGet) Get() response.Common {
 	var result DictionaryDetailOutput
 	err := global.DB.Model(model.DictionaryDetail{}).
-		Where("snow_id = ?", d.SnowID).First(&result).Error
+		Where("id = ?", d.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -89,9 +88,7 @@ func (d *DictionaryDetailCreate) Create() response.Common {
 		paramOut.LastModifier = &d.LastModifier
 	}
 
-	paramOut.SnowID = idgen.NextId()
-
-	paramOut.DictionaryTypeSnowID = d.DictionaryTypeSnowID
+	paramOut.DictionaryTypeID = d.DictionaryTypeID
 
 	paramOut.Name = d.Name
 
@@ -128,7 +125,7 @@ func (d *DictionaryDetailCreate) Create() response.Common {
 //			record.LastModifier = &d.Data[i].LastModifier
 //		}
 //
-//		record.DictionaryTypeSnowID = d.Data[i].DictionaryTypeSnowID
+//		record.DictionaryTypeID = d.Data[i].DictionaryTypeID
 //
 //		record.Name = d.Data[i].Name
 //
@@ -196,7 +193,7 @@ func (d *DictionaryDetailUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.DictionaryDetail{}).Where("snow_id = ?", d.SnowID).
+	err := global.DB.Model(&model.DictionaryDetail{}).Where("id = ?", d.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -209,8 +206,8 @@ func (d *DictionaryDetailUpdate) Update() response.Common {
 func (d *DictionaryDetailDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.DictionaryDetail
-	global.DB.Where("snow_id = ?", d.SnowID).Find(&record)
-	err := global.DB.Where("snow_id = ?", d.SnowID).Delete(&record).Error
+	global.DB.Where("id = ?", d.ID).Find(&record)
+	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -224,8 +221,8 @@ func (d *DictionaryDetailGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if d.DictionaryTypeSnowID != 0 {
-		db = db.Where("dictionary_type_snow_id = ?", d.DictionaryTypeSnowID)
+	if d.DictionaryTypeID != 0 {
+		db = db.Where("dictionary_type_id = ?", d.DictionaryTypeID)
 	}
 
 	// count
@@ -239,7 +236,7 @@ func (d *DictionaryDetailGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("snow_id desc")
+			db = db.Order("id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中

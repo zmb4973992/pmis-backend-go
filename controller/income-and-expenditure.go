@@ -17,7 +17,7 @@ type incomeAndExpenditure struct{}
 func (i *incomeAndExpenditure) Get(c *gin.Context) {
 	var param service.IncomeAndExpenditureGet
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("income-and-expenditure-snow-id"), 10, 64)
+	param.ID, err = strconv.ParseInt(c.Param("income-and-expenditure-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -40,10 +40,10 @@ func (i *incomeAndExpenditure) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userSnowID, exists := util.GetUserSnowID(c)
+	userID, exists := util.GetUserID(c)
 	if exists {
-		param.Creator = userSnowID
-		param.LastModifier = userSnowID
+		param.Creator = userID
+		param.LastModifier = userID
 	}
 
 	res := param.Create()
@@ -61,7 +61,7 @@ func (i *incomeAndExpenditure) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.SnowID, err = strconv.ParseInt(c.Param("income-and-expenditure-snow-id"), 10, 64)
+	param.ID, err = strconv.ParseInt(c.Param("income-and-expenditure-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -70,9 +70,9 @@ func (i *incomeAndExpenditure) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userSnowID, exists := util.GetUserSnowID(c)
+	userID, exists := util.GetUserID(c)
 	if exists {
-		param.LastModifier = userSnowID
+		param.LastModifier = userID
 	}
 
 	res := param.Update()
@@ -83,7 +83,7 @@ func (i *incomeAndExpenditure) Update(c *gin.Context) {
 func (i *incomeAndExpenditure) Delete(c *gin.Context) {
 	var param service.IncomeAndExpenditureDelete
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("income-and-expenditure-snow-id"), 10, 64)
+	param.ID, err = strconv.ParseInt(c.Param("income-and-expenditure-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -110,9 +110,9 @@ func (i *incomeAndExpenditure) GetList(c *gin.Context) {
 	}
 
 	//AuthorityInput需要userID
-	userSnowID, exists := util.GetUserSnowID(c)
+	userID, exists := util.GetUserID(c)
 	if exists {
-		param.UserSnowID = userSnowID
+		param.UserID = userID
 	}
 
 	res := param.GetList()

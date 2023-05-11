@@ -46,7 +46,7 @@ const (
 	ErrorFailToCalculateSuperiorProgress
 	ErrorFailToCalculateSelfAndSuperiorProgress
 	ErrorWrongSuperiorInformation
-	ErrorFailToGenerateSnowID
+	ErrorFailToGenerateID
 	ErrorFailToUpdateRBACGroupingPolicies
 )
 
@@ -101,7 +101,7 @@ var Message = map[int]string{
 	ErrorFailToCalculateSuperiorProgress:        "计算上级进度失败，错误详情请查看系统日志文件",
 	ErrorFailToCalculateSelfAndSuperiorProgress: "计算自身和上级进度失败，错误详情请查看系统日志文件",
 	ErrorWrongSuperiorInformation:               "上级信息错误，可能缺失项目id或层级",
-	ErrorFailToGenerateSnowID:                   "生成snowID失败",
+	ErrorFailToGenerateID:                       "生成ID失败",
 	ErrorFailToUpdateRBACGroupingPolicies:       "更新casbin RBAC分组规则失败",
 }
 

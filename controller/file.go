@@ -61,10 +61,10 @@ func (f *fileManagement) UploadMultipleFiles(c *gin.Context) {
 }
 
 func (f *fileManagement) DeleteFile(c *gin.Context) {
-	fileSnowID, _ := strconv.ParseInt(c.Param("file-snow-id"), 10, 64)
+	fileID, _ := strconv.ParseInt(c.Param("file-id"), 10, 64)
 
 	oss := upload.NewOss()
-	err := oss.Delete(fileSnowID)
+	err := oss.Delete(fileID)
 	if err != nil {
 		c.JSON(http.StatusOK, response.Failure(util.ErrorFailToDeleteFiles))
 		return

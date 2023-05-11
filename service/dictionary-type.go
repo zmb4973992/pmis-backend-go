@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -10,7 +9,7 @@ import (
 )
 
 type DictionaryTypeGet struct {
-	SnowID int64
+	ID int64
 }
 
 type DictionaryTypeCreate struct {
@@ -28,7 +27,7 @@ type DictionaryTypeCreate struct {
 
 type DictionaryTypeUpdate struct {
 	LastModifier int64
-	SnowID       int64
+	ID           int64
 	Name         *string `json:"name"`    //名称
 	Sort         *int    `json:"sort"`    //顺序值
 	Status       *bool   `json:"status"`  //是否启用
@@ -36,7 +35,7 @@ type DictionaryTypeUpdate struct {
 }
 
 type DictionaryTypeDelete struct {
-	SnowID int64
+	ID int64
 }
 
 type DictionaryTypeGetArray struct {
@@ -52,7 +51,7 @@ type DictionaryTypeGetList struct {
 type DictionaryTypeOutput struct {
 	Creator      *int64  `json:"creator"`
 	LastModifier *int64  `json:"last_modifier"`
-	SnowID       int64   `json:"snow_id"`
+	ID           int64   `json:"id"`
 	Name         string  `json:"name"`    //名称
 	Sort         *int    `json:"sort"`    //顺序值
 	Remarks      *string `json:"remarks"` //备注
@@ -61,7 +60,7 @@ type DictionaryTypeOutput struct {
 func (d *DictionaryTypeGet) Get() response.Common {
 	var result DictionaryTypeOutput
 	err := global.DB.Model(model.DictionaryType{}).
-		Where("snow_id = ?", d.SnowID).First(&result).Error
+		Where("id = ?", d.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -79,8 +78,6 @@ func (d *DictionaryTypeCreate) Create() response.Common {
 		paramOut.LastModifier = &d.LastModifier
 	}
 
-	paramOut.SnowID = idgen.NextId()
-
 	paramOut.Name = d.Name
 
 	if d.Sort != 0 {
@@ -94,8 +91,6 @@ func (d *DictionaryTypeCreate) Create() response.Common {
 	if d.Status != nil {
 		paramOut.Status = d.Status
 	}
-
-	paramOut.SnowID = idgen.NextId()
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
@@ -144,13 +139,13 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 
 	//计算有修改值的字段数，分别进行不同处理
 	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt", "SnowID")
+		"LastModifier", "CreateAt", "UpdatedAt", "ID")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.DictionaryType{}).Where("snow_id = ?", d.SnowID).
+	err := global.DB.Model(&model.DictionaryType{}).Where("id = ?", d.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -163,8 +158,8 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 func (d *DictionaryTypeDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.DictionaryType
-	global.DB.Where("snow_id = ?", d.SnowID).Find(&record)
-	err := global.DB.Where("snow_id = ?", d.SnowID).Delete(&record).Error
+	global.DB.Where("id = ?", d.ID).Find(&record)
+	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -193,7 +188,7 @@ func (d *DictionaryTypeGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("snow_id desc")
+			db = db.Order("id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中

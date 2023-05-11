@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/mojocn/base64Captcha"
-	"github.com/yitter/idgenerator-go/idgen"
 	"gorm.io/gorm"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -16,14 +15,14 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type UserLogin struct {
-	Username      string `json:"username" binding:"required"`
-	Password      string `json:"password" binding:"required"`
-	CaptchaSnowID string `json:"captcha_snow_id"`
-	Captcha       string `json:"captcha"`
+	Username  string `json:"username" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	CaptchaID string `json:"captcha_id"`
+	Captcha   string `json:"captcha"`
 }
 
 type UserGet struct {
-	SnowID int64
+	ID int64
 }
 
 type UserCreate struct {
@@ -44,7 +43,7 @@ type UserCreate struct {
 
 type UserUpdate struct {
 	LastModifier      int64
-	SnowID            int64
+	ID                int64
 	FullName          *string `json:"full_name"`           //全名
 	EmailAddress      *string `json:"email_address"`       //邮箱地址
 	IsValid           *bool   `json:"is_valid"`            //是否有效
@@ -53,22 +52,22 @@ type UserUpdate struct {
 }
 
 type UserDelete struct {
-	SnowID int64
+	ID int64
 }
 
 type UserGetList struct {
 	list.Input
 	IsValid         *bool  `json:"is_valid"`
 	UsernameInclude string `json:"username_include,omitempty"`
-	RoleSnowID      int64  `json:"role_snow_id,omitempty"`
+	RoleID          int64  `json:"role_id,omitempty"`
 }
 
 type UserUpdateRoles struct {
 	Creator      int64
 	LastModifier int64
 
-	UserSnowID  int64    `json:"-"`
-	RoleSnowIDs *[]int64 `json:"role_snow_ids"`
+	UserID  int64    `json:"-"`
+	RoleIDs *[]int64 `json:"role_ids"`
 }
 
 //以下为出参
@@ -76,7 +75,7 @@ type UserUpdateRoles struct {
 type UserOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	SnowID       int64  `json:"snow_id"`
+	ID           int64  `json:"id"`
 
 	Username          string  `json:"username"`            //用户名
 	FullName          *string `json:"full_name"`           //全名
@@ -88,7 +87,7 @@ type UserOutput struct {
 
 func (u *UserLogin) Verify() bool {
 	store := base64Captcha.DefaultMemStore
-	permitted := store.Verify(u.CaptchaSnowID, u.Captcha, true)
+	permitted := store.Verify(u.CaptchaID, u.Captcha, true)
 	return permitted
 }
 
@@ -111,7 +110,7 @@ func (u *UserLogin) Login() response.Common {
 		return response.Failure(util.ErrorInvalidUsernameOrPassword)
 	}
 
-	token, err1 := util.GenerateToken(user.SnowID)
+	token, err1 := util.GenerateToken(user.ID)
 	if err1 != nil {
 		return response.Failure(util.ErrorFailToGenerateToken)
 	}
@@ -125,7 +124,7 @@ func (u *UserLogin) Login() response.Common {
 func (u *UserGet) Get() response.Common {
 	var result UserOutput
 	err := global.DB.Model(model.User{}).
-		Where("snow_id = ?", u.SnowID).First(&result).Error
+		Where("id = ?", u.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -142,8 +141,6 @@ func (u *UserCreate) Create() response.Common {
 	if u.LastModifier > 0 {
 		paramOut.LastModifier = &u.LastModifier
 	}
-
-	paramOut.SnowID = idgen.NextId()
 
 	paramOut.Username = u.Username
 	encryptedPassword, err := util.Encrypt(u.Password)
@@ -233,7 +230,7 @@ func (u *UserUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.User{}).Where("snow_id = ?", u.SnowID).
+	err := global.DB.Model(&model.User{}).Where("id = ?", u.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -246,8 +243,8 @@ func (u *UserUpdate) Update() response.Common {
 func (u *UserDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.User
-	global.DB.Where("snow_id = ?", u.SnowID).Find(&record)
-	err := global.DB.Where("snow_id = ?", u.SnowID).Delete(&record).Error
+	global.DB.Where("id = ?", u.ID).Find(&record)
+	err := global.DB.Where("id = ?", u.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -269,11 +266,11 @@ func (u *UserGetList) GetList() response.List {
 		db = db.Where("username like ?", "%"+u.UsernameInclude+"%")
 	}
 
-	if u.RoleSnowID > 0 {
-		var userSnowIDs []int64
-		global.DB.Model(&model.UserAndRole{}).Where("role_snow_id = ?", u.RoleSnowID).
-			Select("user_snow_id").Find(&userSnowIDs)
-		db = db.Where("snow_id in ?", userSnowIDs)
+	if u.RoleID > 0 {
+		var userIDs []int64
+		global.DB.Model(&model.UserAndRole{}).Where("role_id = ?", u.RoleID).
+			Select("user_id").Find(&userIDs)
+		db = db.Where("id in ?", userIDs)
 	}
 
 	// count
@@ -287,7 +284,7 @@ func (u *UserGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("snow_id desc")
+			db = db.Order("id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
@@ -346,12 +343,12 @@ func (u *UserGetList) GetList() response.List {
 }
 
 func (u *UserUpdateRoles) Update() response.Common {
-	if u.RoleSnowIDs == nil {
+	if u.RoleIDs == nil {
 		return response.Failure(util.ErrorInvalidJSONParameters)
 	}
 
-	if len(*u.RoleSnowIDs) == 0 {
-		err := global.DB.Where("user_snow_id = ?", u.UserSnowID).Delete(&model.UserAndRole{}).Error
+	if len(*u.RoleIDs) == 0 {
+		err := global.DB.Where("user_id = ?", u.UserID).Delete(&model.UserAndRole{}).Error
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
 			return response.Failure(util.ErrorFailToDeleteRecord)
@@ -361,7 +358,7 @@ func (u *UserUpdateRoles) Update() response.Common {
 
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		//先删掉原始记录
-		err := tx.Where("user_snow_id = ?", u.UserSnowID).Delete(&model.UserAndRole{}).Error
+		err := tx.Where("user_id = ?", u.UserID).Delete(&model.UserAndRole{}).Error
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
 			return ErrorFailToDeleteRecord
@@ -369,7 +366,7 @@ func (u *UserUpdateRoles) Update() response.Common {
 
 		//再增加新的记录
 		var paramOut []model.UserAndRole
-		for _, roleID := range *u.RoleSnowIDs {
+		for _, roleID := range *u.RoleIDs {
 			var record model.UserAndRole
 			if u.Creator > 0 {
 				record.Creator = &u.Creator
@@ -378,9 +375,8 @@ func (u *UserUpdateRoles) Update() response.Common {
 				record.LastModifier = &u.LastModifier
 			}
 
-			record.UserSnowID = u.UserSnowID
-			record.RoleSnowID = roleID
-			record.SnowID = idgen.NextId()
+			record.UserID = u.UserID
+			record.RoleID = roleID
 			paramOut = append(paramOut, record)
 		}
 
@@ -391,7 +387,7 @@ func (u *UserUpdateRoles) Update() response.Common {
 				return ErrorFailToUpdateRecord
 			}
 			paramOutForCounting := util.MapCopy(tempParamOut,
-				"Creator", "LastModifier", "CreateAt", "UpdatedAt", "SnowId")
+				"Creator", "LastModifier", "CreateAt", "UpdatedAt")
 
 			if len(paramOutForCounting) == 0 {
 				return ErrorFieldsToBeCreatedNotFound
@@ -406,9 +402,9 @@ func (u *UserUpdateRoles) Update() response.Common {
 
 		//更新casbin的rbac分组规则
 		var param1 rbacUpdateGroupingPolicyByMember
-		param1.Member = strconv.FormatInt(u.UserSnowID, 10)
-		for _, roleSnowID := range *u.RoleSnowIDs {
-			param1.Groups = append(param1.Groups, strconv.FormatInt(roleSnowID, 10))
+		param1.Member = strconv.FormatInt(u.UserID, 10)
+		for _, roleID := range *u.RoleIDs {
+			param1.Groups = append(param1.Groups, strconv.FormatInt(roleID, 10))
 		}
 		err = param1.Update()
 		if err != nil {

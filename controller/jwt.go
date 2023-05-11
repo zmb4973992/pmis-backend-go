@@ -27,9 +27,9 @@ func (t *token) Validate(c *gin.Context) {
 		return
 	}
 
-	userSnowID := res.UserSnowID
+	userID := res.UserID
 	res1 := map[string]int64{
-		"user_snow_id": userSnowID,
+		"user_id": userID,
 	}
 
 	c.JSON(http.StatusOK, response.SuccessWithData(res1))

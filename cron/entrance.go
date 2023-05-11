@@ -15,7 +15,7 @@ func Init() {
 	}
 
 	//At 14:02 PM, every day
-	_, err = c.AddFunc("02 14 * * *", func() {
+	_, err = c.AddFunc("50 15 * * *", func() {
 		err = updateUsers()
 		if err != nil {
 			//这里要完善错误处理逻辑，以后再说

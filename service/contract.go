@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -14,16 +13,16 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type ContractGet struct {
-	SnowID int64
+	ID int64
 }
 
 type ContractCreate struct {
 	Creator      int64
 	LastModifier int64
 	//连接关联表的id
-	ProjectSnowID      int64 `json:"project_snow_id,omitempty"`
-	OrganizationSnowID int64 `json:"organization_snow_id,omitempty"`
-	RelatedPartySnowID int64 `json:"related_party_snow_id,omitempty"`
+	ProjectID      int64 `json:"project_id,omitempty"`
+	OrganizationID int64 `json:"organization_id,omitempty"`
+	RelatedPartyID int64 `json:"related_party_id,omitempty"`
 	//连接dictionary_item表的id
 	FundDirection int64 `json:"fund_direction,omitempty"`
 	OurSignatory  int64 `json:"our_signatory,omitempty"`
@@ -54,11 +53,11 @@ type ContractCreate struct {
 
 type ContractUpdate struct {
 	LastModifier int64
-	SnowID       int64
+	ID           int64
 	//连接关联表的id
-	ProjectSnowID      *int64 `json:"project_snow_id"`
-	OrganizationSnowID *int64 `json:"organization_snow_id"`
-	RelatedPartySnowID *int64 `json:"related_party_snow_id"`
+	ProjectID      *int64 `json:"project_id"`
+	OrganizationID *int64 `json:"organization_id"`
+	RelatedPartyID *int64 `json:"related_party_id"`
 	//连接dictionary_item表的id
 	FundDirection *int64 `json:"fund_direction"`
 	OurSignatory  *int64 `json:"our_signatory"`
@@ -84,13 +83,13 @@ type ContractUpdate struct {
 }
 
 type ContractDelete struct {
-	SnowID int64
+	ID int64
 }
 
 type ContractGetList struct {
 	list.Input
 	list.DataScopeInput
-	ProjectSnowID int64  `json:"project_snow_id,omitempty"`
+	ProjectID     int64  `json:"project_id,omitempty"`
 	FundDirection int64  `json:"fund_direction,omitempty"`
 	NameInclude   string `json:"name_include,omitempty"`
 }
@@ -100,11 +99,11 @@ type ContractGetList struct {
 type ContractOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	SnowID       int64  `json:"snow_id"`
+	ID           int64  `json:"id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
-	ProjectSnowID      *int64 `json:"-"`
-	OrganizationSnowID *int64 `json:"-"`
-	RelatedPartySnowID *int64 `json:"-"`
+	ProjectID      *int64 `json:"-"`
+	OrganizationID *int64 `json:"-"`
+	RelatedPartyID *int64 `json:"-"`
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
 	FundDirection *int64 `json:"-"`
 	OurSignatory  *int64 `json:"-"`
@@ -141,7 +140,7 @@ type ContractOutput struct {
 func (c *ContractGet) Get() response.Common {
 	var result ContractOutput
 	err := global.DB.Model(model.Contract{}).
-		Where("snow_id = ?", c.SnowID).First(&result).Error
+		Where("id = ?", c.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -149,28 +148,28 @@ func (c *ContractGet) Get() response.Common {
 	//查询关联表的详情
 	{
 		//查项目信息
-		if result.ProjectSnowID != nil {
+		if result.ProjectID != nil {
 			var record ProjectOutput
 			res := global.DB.Model(&model.Project{}).
-				Where("snow_id = ?", *result.ProjectSnowID).Limit(1).Find(&record)
+				Where("id = ?", *result.ProjectID).Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
 				result.ProjectExternal = &record
 			}
 		}
 		//查部门信息
-		if result.OrganizationSnowID != nil {
+		if result.OrganizationID != nil {
 			var record OrganizationOutput
 			res := global.DB.Model(&model.Organization{}).
-				Where("snow_id = ?", *result.OrganizationSnowID).Limit(1).Find(&record)
+				Where("id = ?", *result.OrganizationID).Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
 				result.OrganizationExternal = &record
 			}
 		}
 		//查相关方信息
-		if result.RelatedPartySnowID != nil {
+		if result.RelatedPartyID != nil {
 			var record RelatedPartyOutput
 			res := global.DB.Model(&model.RelatedParty{}).
-				Where("snow_id = ?", *result.RelatedPartySnowID).Limit(1).Find(&record)
+				Where("id = ?", *result.RelatedPartyID).Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
 				result.RelatedPartyExternal = &record
 			}
@@ -182,7 +181,7 @@ func (c *ContractGet) Get() response.Common {
 		if result.FundDirection != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("snow_id = ?", *result.FundDirection).
+				Where("id = ?", *result.FundDirection).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
 				result.FundDirectionExternal = &record
@@ -191,7 +190,7 @@ func (c *ContractGet) Get() response.Common {
 		if result.Currency != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("snow_id = ?", *result.Currency).
+				Where("id = ?", *result.Currency).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
 				result.CurrencyExternal = &record
@@ -200,7 +199,7 @@ func (c *ContractGet) Get() response.Common {
 		if result.OurSignatory != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("snow_id = ?", *result.OurSignatory).
+				Where("id = ?", *result.OurSignatory).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
 				result.OurSignatoryExternal = &record
@@ -209,7 +208,7 @@ func (c *ContractGet) Get() response.Common {
 		if result.Type != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("snow_id = ?", *result.Type).
+				Where("id = ?", *result.Type).
 				Limit(1).Find(&record)
 			if res.RowsAffected > 0 {
 				result.TypeExternal = &record
@@ -251,18 +250,16 @@ func (c *ContractCreate) Create() response.Common {
 		paramOut.LastModifier = &c.LastModifier
 	}
 
-	paramOut.SnowID = idgen.NextId()
-
 	//连接关联表的id
 	{
-		if c.ProjectSnowID > 0 {
-			paramOut.ProjectSnowID = &c.ProjectSnowID
+		if c.ProjectID > 0 {
+			paramOut.ProjectID = &c.ProjectID
 		}
-		if c.OrganizationSnowID > 0 {
-			paramOut.OrganizationSnowID = &c.OrganizationSnowID
+		if c.OrganizationID > 0 {
+			paramOut.OrganizationID = &c.OrganizationID
 		}
-		if c.RelatedPartySnowID > 0 {
-			paramOut.RelatedPartySnowID = &c.RelatedPartySnowID
+		if c.RelatedPartyID > 0 {
+			paramOut.RelatedPartyID = &c.RelatedPartyID
 		}
 	}
 
@@ -367,7 +364,7 @@ func (c *ContractCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "CreateAt", "UpdatedAt", "SnowID")
+		"Creator", "LastModifier", "CreateAt", "UpdatedAt", "ID")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -390,23 +387,23 @@ func (c *ContractUpdate) Update() response.Common {
 
 	//连接关联表的id
 	{
-		if c.ProjectSnowID != nil {
-			if *c.ProjectSnowID > 0 {
-				paramOut["project_snow_id"] = *c.ProjectSnowID
+		if c.ProjectID != nil {
+			if *c.ProjectID > 0 {
+				paramOut["project_id"] = *c.ProjectID
 			}
 		}
-		if c.OrganizationSnowID != nil {
-			if *c.OrganizationSnowID > 0 {
-				paramOut["organization_snow_id"] = c.OrganizationSnowID
-			} else if *c.OrganizationSnowID == -1 {
-				paramOut["organization_snow_id"] = nil
+		if c.OrganizationID != nil {
+			if *c.OrganizationID > 0 {
+				paramOut["organization_id"] = c.OrganizationID
+			} else if *c.OrganizationID == -1 {
+				paramOut["organization_id"] = nil
 			}
 		}
-		if c.RelatedPartySnowID != nil {
-			if *c.RelatedPartySnowID > 0 {
-				paramOut["related_party_snow_id"] = c.RelatedPartySnowID
-			} else if *c.RelatedPartySnowID == -1 {
-				paramOut["related_party_snow_id"] = nil
+		if c.RelatedPartyID != nil {
+			if *c.RelatedPartyID > 0 {
+				paramOut["related_party_id"] = c.RelatedPartyID
+			} else if *c.RelatedPartyID == -1 {
+				paramOut["related_party_id"] = nil
 			}
 		}
 	}
@@ -577,7 +574,7 @@ func (c *ContractUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.Contract{}).Where("snow_id = ?", c.SnowID).
+	err := global.DB.Model(&model.Contract{}).Where("id = ?", c.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -590,8 +587,8 @@ func (c *ContractUpdate) Update() response.Common {
 func (c *ContractDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Contract
-	global.DB.Where("snow_id = ?", c.SnowID).Find(&record)
-	err := global.DB.Where("snow_id = ?", c.SnowID).Delete(&record).Error
+	global.DB.Where("id = ?", c.ID).Find(&record)
+	err := global.DB.Where("id = ?", c.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -605,8 +602,8 @@ func (c *ContractGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if c.ProjectSnowID > 0 {
-		db = db.Where("project_snow_id = ?", c.ProjectSnowID)
+	if c.ProjectID > 0 {
+		db = db.Where("project_id = ?", c.ProjectID)
 	}
 
 	if c.FundDirection > 0 {
@@ -618,14 +615,14 @@ func (c *ContractGetList) GetList() response.List {
 	}
 
 	//用来确定数据范围
-	organizationIDsForDataScope := util.GetOrganizationSnowIDsInDataScope(c.UserSnowID)
+	organizationIDsForDataScope := util.GetOrganizationIDsInDataScope(c.UserID)
 	//先找出项目的数据范围
-	var projectSnowIDs []int64
-	global.DB.Model(&model.Project{}).Where("organization_snow_id in ?", organizationIDsForDataScope).
-		Select("snow_id").Find(&projectSnowIDs)
+	var projectIDs []int64
+	global.DB.Model(&model.Project{}).Where("organization_id in ?", organizationIDsForDataScope).
+		Select("id").Find(&projectIDs)
 	//然后再加上组织的数据范围
-	db = db.Where("organization_snow_id in ?", organizationIDsForDataScope).
-		Or("project_snow_id in ?", projectSnowIDs)
+	db = db.Where("organization_id in ?", organizationIDsForDataScope).
+		Or("project_id in ?", projectIDs)
 
 	//count
 	var count int64
@@ -638,7 +635,7 @@ func (c *ContractGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("snow_id desc")
+			db = db.Order("id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
@@ -685,28 +682,28 @@ func (c *ContractGetList) GetList() response.List {
 		//查询关联表的详情
 		{
 			//查项目信息
-			if data[i].ProjectSnowID != nil {
+			if data[i].ProjectID != nil {
 				var record ProjectOutput
 				res := global.DB.Model(&model.Project{}).
-					Where("snow_id = ?", *data[i].ProjectSnowID).Limit(1).Find(&record)
+					Where("id = ?", *data[i].ProjectID).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].ProjectExternal = &record
 				}
 			}
 			//查部门信息
-			if data[i].OrganizationSnowID != nil {
+			if data[i].OrganizationID != nil {
 				var record OrganizationOutput
 				res := global.DB.Model(&model.Organization{}).
-					Where("snow_id = ?", *data[i].OrganizationSnowID).Limit(1).Find(&record)
+					Where("id = ?", *data[i].OrganizationID).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].OrganizationExternal = &record
 				}
 			}
 			//查相关方信息
-			if data[i].RelatedPartySnowID != nil {
+			if data[i].RelatedPartyID != nil {
 				var record RelatedPartyOutput
 				res := global.DB.Model(&model.RelatedParty{}).
-					Where("snow_id = ?", *data[i].RelatedPartySnowID).Limit(1).Find(&record)
+					Where("id = ?", *data[i].RelatedPartyID).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].RelatedPartyExternal = &record
 				}
@@ -718,7 +715,7 @@ func (c *ContractGetList) GetList() response.List {
 			if data[i].FundDirection != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("snow_id = ?", *data[i].FundDirection).Limit(1).Find(&record)
+					Where("id = ?", *data[i].FundDirection).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].FundDirectionExternal = &record
 				}
@@ -726,7 +723,7 @@ func (c *ContractGetList) GetList() response.List {
 			if data[i].OurSignatory != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("snow_id = ?", *data[i].OurSignatory).Limit(1).Find(&record)
+					Where("id = ?", *data[i].OurSignatory).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].OurSignatoryExternal = &record
 				}
@@ -734,7 +731,7 @@ func (c *ContractGetList) GetList() response.List {
 			if data[i].Currency != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("snow_id = ?", *data[i].Currency).Limit(1).Find(&record)
+					Where("id = ?", *data[i].Currency).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].CurrencyExternal = &record
 				}

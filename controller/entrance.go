@@ -21,7 +21,6 @@ type controller struct {
 	progress
 	incomeAndExpenditure
 	role
-	snowID
 }
 
 var (
@@ -42,6 +41,5 @@ var (
 	FileManagement       = entrance.fileManagement
 	Progress             = entrance.progress
 	IncomeAndExpenditure = entrance.incomeAndExpenditure
-	SnowID               = entrance.snowID
 	Role                 = entrance.role
 )

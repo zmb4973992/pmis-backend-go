@@ -7,12 +7,12 @@ import (
 
 type Progress struct {
 	BasicModel
-	DisassemblySnowID *int64     //拆解情况SnowID
-	Date              *time.Time `gorm:"type:date"`
-	Type              *int64
-	Value             *float64
-	DataSource        *int64
-	Remarks           *string
+	DisassemblyID *int64     //拆解情况ID
+	Date          *time.Time `gorm:"type:date"`
+	Type          *int64
+	Value         *float64
+	DataSource    *int64
+	Remarks       *string
 
 	//PlannedProgress             *float64 //初始计划进度
 	//RemarkOfPlannedProgress     *string  //初始计划进度的备注
@@ -34,14 +34,14 @@ func (*Progress) TableName() string {
 }
 
 func (d *Progress) BeforeDelete(tx *gorm.DB) error {
-	if d.SnowID == 0 {
+	if d.ID == 0 {
 		return nil
 	}
 
 	//删除相关的子表记录
 	//先find、再delete，可以激活相关的钩子函数
 
-	//fmt.Println("进度id：", d.SnowID)
+	//fmt.Println("进度id：", d.ID)
 
 	return nil
 }

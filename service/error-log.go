@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -14,7 +13,7 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type ErrorLogGet struct {
-	SnowID int64
+	ID int64
 }
 
 type ErrorLogCreate struct {
@@ -34,7 +33,7 @@ type ErrorLogCreate struct {
 
 type ErrorLogUpdate struct {
 	LastModifier int64
-	SnowID       int64
+	ID           int64
 
 	Detail            *string `json:"detail"`
 	Date              *string `json:"date"`
@@ -44,7 +43,7 @@ type ErrorLogUpdate struct {
 }
 
 type ErrorLogDelete struct {
-	SnowID int64
+	ID int64
 }
 
 type ErrorLogGetList struct {
@@ -62,7 +61,7 @@ type ErrorLogGetList struct {
 type ErrorLogOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	SnowID       int64  `json:"snow_id"`
+	ID           int64  `json:"id"`
 
 	Detail            *string `json:"detail"`
 	Date              *string `json:"date"`
@@ -74,7 +73,7 @@ type ErrorLogOutput struct {
 func (e *ErrorLogGet) Get() response.Common {
 	var result ErrorLogOutput
 	err := global.DB.Model(model.ErrorLog{}).
-		Where("snow_id = ?", e.SnowID).First(&result).Error
+		Where("id = ?", e.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -95,8 +94,6 @@ func (e *ErrorLogCreate) Create() response.Common {
 	if e.LastModifier > 0 {
 		paramOut.LastModifier = &e.LastModifier
 	}
-
-	paramOut.SnowID = idgen.NextId()
 
 	if e.Detail != "" {
 		paramOut.Detail = &e.Detail
@@ -184,13 +181,13 @@ func (e *ErrorLogUpdate) Update() response.Common {
 	}
 	//计算有修改值的字段数，分别进行不同处理
 	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt", "SnowId")
+		"LastModifier", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.ErrorLog{}).Where("snow_id = ?", e.SnowID).
+	err := global.DB.Model(&model.ErrorLog{}).Where("id = ?", e.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -203,8 +200,8 @@ func (e *ErrorLogUpdate) Update() response.Common {
 func (e *ErrorLogDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.ErrorLog
-	global.DB.Where("snow_id = ?", e.SnowID).Find(&record)
-	err := global.DB.Where("snow_id = ?", e.SnowID).Delete(&record).Error
+	global.DB.Where("id = ?", e.ID).Find(&record)
+	err := global.DB.Where("id = ?", e.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -251,7 +248,7 @@ func (e *ErrorLogGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("snow_id desc")
+			db = db.Order("id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中

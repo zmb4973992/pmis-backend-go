@@ -37,7 +37,7 @@ func Login(c *gin.Context) {
 func (u *user) Get(c *gin.Context) {
 	var param service.UserGet
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("user-snow-id"), 10, 64)
+	param.ID, err = strconv.ParseInt(c.Param("user-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -60,10 +60,10 @@ func (u *user) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userSnowID, exists := util.GetUserSnowID(c)
+	userID, exists := util.GetUserID(c)
 	if exists {
-		param.Creator = userSnowID
-		param.LastModifier = userSnowID
+		param.Creator = userID
+		param.LastModifier = userID
 	}
 
 	res := param.Create()
@@ -81,7 +81,7 @@ func (u *user) Update(c *gin.Context) {
 		return
 	}
 
-	param.SnowID, err = strconv.ParseInt(c.Param("user-snow-id"), 10, 64)
+	param.ID, err = strconv.ParseInt(c.Param("user-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -90,9 +90,9 @@ func (u *user) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userSnowID, exists := util.GetUserSnowID(c)
+	userID, exists := util.GetUserID(c)
 	if exists {
-		param.LastModifier = userSnowID
+		param.LastModifier = userID
 	}
 
 	res := param.Update()
@@ -103,7 +103,7 @@ func (u *user) Update(c *gin.Context) {
 func (u *user) Delete(c *gin.Context) {
 	var param service.UserDelete
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("user-snow-id"), 10, 64)
+	param.ID, err = strconv.ParseInt(c.Param("user-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -136,13 +136,13 @@ func (u *user) List(c *gin.Context) {
 
 func (u *user) GetByToken(c *gin.Context) {
 	var param service.UserGet
-	userSnowID, exists := util.GetUserSnowID(c)
+	userID, exists := util.GetUserID(c)
 	if !exists {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorAccessTokenInvalid))
 		return
 	}
-	param.SnowID = userSnowID
+	param.ID = userID
 	res := param.Get()
 	c.JSON(http.StatusOK, res)
 	return
@@ -158,7 +158,7 @@ func (u *user) UpdateRoles(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.UserSnowID, err = strconv.ParseInt(c.Param("user-snow-id"), 10, 64)
+	param.UserID, err = strconv.ParseInt(c.Param("user-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -167,10 +167,10 @@ func (u *user) UpdateRoles(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userSnowID, exists := util.GetUserSnowID(c)
+	userID, exists := util.GetUserID(c)
 	if exists {
-		param.Creator = userSnowID
-		param.LastModifier = userSnowID
+		param.Creator = userID
+		param.LastModifier = userID
 	}
 
 	res := param.Update()

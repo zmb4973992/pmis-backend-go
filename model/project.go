@@ -8,8 +8,8 @@ import (
 type Project struct {
 	BasicModel
 	//连接其他表的id
-	OrganizationSnowID *int64 //见organization
-	RelatedPartySnowID *int64 //见related_party
+	OrganizationID *int64 //见organization
+	RelatedPartyID *int64 //见related_party
 	//连接dictionary_item表的id
 	Country      *int64
 	Type         *int64
@@ -41,28 +41,28 @@ func (*Project) TableName() string {
 }
 
 func (d *Project) BeforeDelete(tx *gorm.DB) error {
-	if d.SnowID == 0 {
+	if d.ID == 0 {
 		return nil
 	}
 
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var records []Disassembly
-	err = tx.Where(&Disassembly{ProjectSnowID: &d.SnowID}).
+	err = tx.Where(&Disassembly{ProjectID: &d.ID}).
 		Find(&records).Delete(&records).Error
 	if err != nil {
 		return err
 	}
 
 	var records1 []Contract
-	err = tx.Where(&Contract{ProjectSnowID: &d.SnowID}).
+	err = tx.Where(&Contract{ProjectID: &d.ID}).
 		Find(&records1).Delete(&records1).Error
 	if err != nil {
 		return err
 	}
 
 	var records2 []IncomeAndExpenditure
-	err = tx.Where(&IncomeAndExpenditure{ProjectSnowID: &d.SnowID}).
+	err = tx.Where(&IncomeAndExpenditure{ProjectID: &d.ID}).
 		Find(&records2).Delete(&records2).Error
 	if err != nil {
 		return err

@@ -5,9 +5,9 @@ import "time"
 type Contract struct {
 	BasicModel
 	//连接其他表的id
-	ProjectSnowID      *int64 //项目snowID
-	OrganizationSnowID *int64 //组织snowID
-	RelatedPartySnowID *int64 //相关方snowID
+	ProjectID      *int64 //项目ID
+	OrganizationID *int64 //组织ID
+	RelatedPartyID *int64 //相关方ID
 	//连接dictionary_item表的id
 	FundDirection *int64 //资金方向
 	OurSignatory  *int64 //我方签约主体

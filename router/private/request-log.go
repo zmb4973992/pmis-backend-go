@@ -10,7 +10,7 @@ type RequestLogRouter struct{}
 func (r *RequestLogRouter) InitRequestLogRouter(param *gin.RouterGroup) {
 	requestLogRouter := param.Group("/request-log")
 
-	requestLogRouter.GET("/:request-log-snow-id", controller.RequestLog.Get)       //获取请求日志详情
-	requestLogRouter.DELETE("/:request-log-snow-id", controller.RequestLog.Delete) //删除请求日志详情
-	requestLogRouter.POST("/list", controller.RequestLog.GetList)                  //获取请求日志列表
+	requestLogRouter.GET("/:request-log-id", controller.RequestLog.Get)       //获取请求日志详情
+	requestLogRouter.DELETE("/:request-log-id", controller.RequestLog.Delete) //删除请求日志详情
+	requestLogRouter.POST("/list", controller.RequestLog.GetList)             //获取请求日志列表
 }

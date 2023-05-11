@@ -2,7 +2,6 @@ package cron
 
 import (
 	"github.com/go-ldap/ldap/v3"
-	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"strings"
@@ -73,10 +72,6 @@ func updateUsers() error {
 
 				//添加用户信息
 				err = global.DB.Where("username = ?", user.Username).
-					Attrs(&model.User{
-						BasicModel: model.BasicModel{
-							SnowID: idgen.NextId(),
-						}}).
 					FirstOrCreate(&user).Error
 
 				if err != nil {
@@ -97,16 +92,14 @@ func updateUsers() error {
 						return err
 					}
 					record := model.OrganizationAndUser{
-						UserSnowID:         user.SnowID,
-						OrganizationSnowID: organization.SnowID,
+						UserID:         user.ID,
+						OrganizationID: organization.ID,
 					}
-					err = global.DB.Where("organization_snow_id = ?", organization.SnowID).
-						Where("user_snow_id = ?", user.SnowID).
+					err = global.DB.Where("organization_id = ?", organization.ID).
+						Where("user_id = ?", user.ID).
 						Attrs(&model.OrganizationAndUser{
 							ImportedByLDAP: model.BoolToPointer(true),
-							BasicModel: model.BasicModel{
-								SnowID: idgen.NextId(),
-							}}).
+						}).
 						FirstOrCreate(&record).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
@@ -121,16 +114,14 @@ func updateUsers() error {
 						return err
 					}
 					record := model.OrganizationAndUser{
-						UserSnowID:         user.SnowID,
-						OrganizationSnowID: organization.SnowID,
+						UserID:         user.ID,
+						OrganizationID: organization.ID,
 					}
-					err = global.DB.Where("organization_snow_id = ?", organization.SnowID).
-						Where("user_snow_id = ?", user.SnowID).
+					err = global.DB.Where("organization_id = ?", organization.ID).
+						Where("user_id = ?", user.ID).
 						Attrs(&model.OrganizationAndUser{
 							ImportedByLDAP: model.BoolToPointer(true),
-							BasicModel: model.BasicModel{
-								SnowID: idgen.NextId(),
-							}}).
+						}).
 						FirstOrCreate(&record).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
@@ -145,16 +136,14 @@ func updateUsers() error {
 						return err
 					}
 					record := model.OrganizationAndUser{
-						UserSnowID:         user.SnowID,
-						OrganizationSnowID: organization.SnowID,
+						UserID:         user.ID,
+						OrganizationID: organization.ID,
 					}
-					err = global.DB.Where("organization_snow_id = ?", organization.SnowID).
-						Where("user_snow_id = ?", user.SnowID).
+					err = global.DB.Where("organization_id = ?", organization.ID).
+						Where("user_id = ?", user.ID).
 						Attrs(&model.OrganizationAndUser{
 							ImportedByLDAP: model.BoolToPointer(true),
-							BasicModel: model.BasicModel{
-								SnowID: idgen.NextId(),
-							}}).
+						}).
 						FirstOrCreate(&record).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)

@@ -1,17 +1,16 @@
 package model
 
 import (
-	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 )
 
 type DictionaryDetail struct {
 	BasicModel
-	DictionaryTypeSnowID int64   //字典类型的SnowID
-	Name                 string  //名称
-	Sort                 *int    //用于排序的值
-	Status               *bool   //是否启用
-	Remarks              *string //备注
+	DictionaryTypeID int64   //字典类型的ID
+	Name             string  //名称
+	Sort             *int    //用于排序的值
+	Status           *bool   //是否启用
+	Remarks          *string //备注
 }
 
 // TableName 修改数据库的表名
@@ -72,8 +71,8 @@ func generateDictionaryDetail() (err error) {
 
 		for j := range initialDictionary[i].DetailNames {
 			dictionaryDetails = append(dictionaryDetails, DictionaryDetail{
-				DictionaryTypeSnowID: dictionaryTypeInfo.SnowID,
-				Name:                 initialDictionary[i].DetailNames[j],
+				DictionaryTypeID: dictionaryTypeInfo.ID,
+				Name:             initialDictionary[i].DetailNames[j],
 			})
 		}
 	}
@@ -81,9 +80,6 @@ func generateDictionaryDetail() (err error) {
 	for _, dictionaryDetail := range dictionaryDetails {
 		err = global.DB.Where("name = ?", dictionaryDetail.Name).
 			Attrs(&DictionaryDetail{
-				BasicModel: BasicModel{
-					SnowID: idgen.NextId(),
-				},
 				Status: BoolToPointer(true),
 			}).
 			FirstOrCreate(&dictionaryDetail).Error

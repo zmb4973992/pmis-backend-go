@@ -17,7 +17,7 @@ type disassembly struct{}
 func (d *disassembly) Get(c *gin.Context) {
 	var param service.DisassemblyGet
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("disassembly-snow-id"), 10, 64)
+	param.ID, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
@@ -55,10 +55,10 @@ func (d *disassembly) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userSnowID, exists := util.GetUserSnowID(c)
+	userID, exists := util.GetUserID(c)
 	if exists {
-		param.Creator = userSnowID
-		param.LastModifier = userSnowID
+		param.Creator = userID
+		param.LastModifier = userID
 	}
 
 	res := param.Create()
@@ -76,7 +76,7 @@ func (d *disassembly) Update(c *gin.Context) {
 		return
 	}
 
-	param.SnowID, err = strconv.ParseInt(c.Param("disassembly-snow-id"), 10, 64)
+	param.ID, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
@@ -84,9 +84,9 @@ func (d *disassembly) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userSnowID, exists := util.GetUserSnowID(c)
+	userID, exists := util.GetUserID(c)
 	if exists {
-		param.LastModifier = userSnowID
+		param.LastModifier = userID
 	}
 
 	res := param.Update()
@@ -97,7 +97,7 @@ func (d *disassembly) Update(c *gin.Context) {
 func (d *disassembly) Delete(c *gin.Context) {
 	var param service.DisassemblyDelete
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("disassembly-snow-id"), 10, 64)
+	param.ID, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,
@@ -113,7 +113,7 @@ func (d *disassembly) Delete(c *gin.Context) {
 func (d *disassembly) DeleteWithInferiors(c *gin.Context) {
 	var param service.DisassemblyDeleteWithInferiors
 	var err error
-	param.SnowID, err = strconv.ParseInt(c.Param("disassembly-snow-id"), 10, 64)
+	param.ID, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusOK,

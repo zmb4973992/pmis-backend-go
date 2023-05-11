@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -13,7 +12,7 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type RelatedPartyGet struct {
-	SnowID int64
+	ID int64
 }
 
 type RelatedPartyCreate struct {
@@ -33,7 +32,7 @@ type RelatedPartyCreate struct {
 
 type RelatedPartyUpdate struct {
 	LastModifier int64
-	SnowID       int64
+	ID           int64
 
 	ChineseName             *string `json:"chinese_name"`
 	EnglishName             *string `json:"english_name"`
@@ -43,7 +42,7 @@ type RelatedPartyUpdate struct {
 }
 
 type RelatedPartyDelete struct {
-	SnowID int64
+	ID int64
 }
 
 type RelatedPartyGetList struct {
@@ -58,7 +57,7 @@ type RelatedPartyGetList struct {
 type RelatedPartyOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	SnowID       int64  `json:"snow_id"`
+	ID           int64  `json:"id"`
 
 	ChineseName             *string `json:"chinese_name"`
 	EnglishName             *string `json:"english_name"`
@@ -70,7 +69,7 @@ type RelatedPartyOutput struct {
 func (r *RelatedPartyGet) Get() response.Common {
 	var result RelatedPartyOutput
 	err := global.DB.Model(&model.RelatedParty{}).
-		Where("snow_id = ?", r.SnowID).First(&result).Error
+		Where("id = ?", r.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -87,8 +86,6 @@ func (r *RelatedPartyCreate) Create() response.Common {
 	if r.LastModifier > 0 {
 		paramOut.LastModifier = &r.LastModifier
 	}
-
-	paramOut.SnowID = idgen.NextId()
 
 	if r.ChineseName != "" {
 		paramOut.ChineseName = &r.ChineseName
@@ -116,7 +113,7 @@ func (r *RelatedPartyCreate) Create() response.Common {
 		response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "CreateAt", "UpdatedAt", "SnowID")
+		"Creator", "LastModifier", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -184,7 +181,7 @@ func (r *RelatedPartyUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.RelatedParty{}).Where("snow_id = ?", r.SnowID).
+	err := global.DB.Model(&model.RelatedParty{}).Where("id = ?", r.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -197,8 +194,8 @@ func (r *RelatedPartyUpdate) Update() response.Common {
 func (r *RelatedPartyDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.RelatedParty
-	global.DB.Where("snow_id = ?", r.SnowID).Find(&record)
-	err := global.DB.Where("snow_id = ?", r.SnowID).Delete(&record).Error
+	global.DB.Where("id = ?", r.ID).Find(&record)
+	err := global.DB.Where("id = ?", r.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -231,7 +228,7 @@ func (r *RelatedPartyGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("snow_id desc")
+			db = db.Order("id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中

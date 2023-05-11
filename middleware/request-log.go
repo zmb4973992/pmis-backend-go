@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/util"
@@ -28,13 +27,11 @@ func RequestLog() gin.HandlerFunc {
 		//直接操作model更方便
 		var requestLog model.RequestLog
 
-		requestLog.SnowID = idgen.NextId()
-
 		//处理creator、lastModifier、userID字段
-		userSnowID, exists := util.GetUserSnowID(c)
+		userID, exists := util.GetUserID(c)
 		if exists {
-			requestLog.Creator = &userSnowID
-			requestLog.LastModifier = &userSnowID
+			requestLog.Creator = &userID
+			requestLog.LastModifier = &userID
 		}
 
 		//获取访问路径

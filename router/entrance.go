@@ -81,8 +81,6 @@ func InitEngine() *gin.Engine {
 	customRouterGroup.InitRequestLogRouter(privateGroup)
 	customRouterGroup.InitErrorLogRouter(privateGroup)
 
-	engine.GET("/snow-id", controller.SnowID.Get) //获取雪花id，以后可删
-
 	//引擎配置完成后，返回
 	return engine
 }

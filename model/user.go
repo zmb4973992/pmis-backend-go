@@ -20,21 +20,21 @@ func (*User) TableName() string {
 }
 
 func (u *User) BeforeDelete(tx *gorm.DB) error {
-	if u.SnowID == 0 {
+	if u.ID == 0 {
 		return nil
 	}
 
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var records []UserAndRole
-	err = tx.Where(&UserAndRole{UserSnowID: u.SnowID}).
+	err = tx.Where(&UserAndRole{UserID: u.ID}).
 		Find(&records).Delete(&records).Error
 	if err != nil {
 		return err
 	}
 
 	var records1 []OrganizationAndUser
-	err = tx.Where(&OrganizationAndUser{UserSnowID: u.SnowID}).
+	err = tx.Where(&OrganizationAndUser{UserID: u.ID}).
 		Find(&records1).Delete(&records1).Error
 	if err != nil {
 		return err

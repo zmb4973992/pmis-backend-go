@@ -17,16 +17,16 @@ import (
 //如果指针字段没传，那么数据库不会修改该字段
 
 type RequestLogGet struct {
-	SnowID int64
+	ID int64
 }
 
 type RequestLogDelete struct {
-	SnowID int64
+	ID int64
 }
 
 type RequestLogGetList struct {
 	list.Input
-	UserSnowID int64 `json:"user_snow_id,omitempty"`
+	UserID int64 `json:"user_id,omitempty"`
 }
 
 //以下为出参
@@ -34,7 +34,7 @@ type RequestLogGetList struct {
 type RequestLogOutput struct {
 	Creator      *int64     `json:"creator"`
 	LastModifier *int64     `json:"last_modifier"`
-	SnowID       int64      `json:"snow_id"`
+	ID           int64      `json:"id"`
 	IP           *string    `json:"ip"`            //IP
 	Location     *string    `json:"location"`      //所在地
 	Method       *string    `json:"method"`        //请求方式
@@ -49,7 +49,7 @@ type RequestLogOutput struct {
 func (o *RequestLogGet) Get() response.Common {
 	var result RequestLogOutput
 	err := global.DB.Model(model.RequestLog{}).
-		Where("snow_id = ?", o.SnowID).First(&result).Error
+		Where("id = ?", o.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -60,8 +60,8 @@ func (o *RequestLogGet) Get() response.Common {
 func (o *RequestLogDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.RequestLog
-	global.DB.Where("snow_id = ?", o.SnowID).Find(&record)
-	err := global.DB.Where("snow_id = ?", o.SnowID).Delete(&record).Error
+	global.DB.Where("id = ?", o.ID).Find(&record)
+	err := global.DB.Where("id = ?", o.ID).Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -75,8 +75,8 @@ func (o *RequestLogGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if o.UserSnowID > 0 {
-		db = db.Where("creator = ?", o.UserSnowID)
+	if o.UserID > 0 {
+		db = db.Where("creator = ?", o.UserID)
 	}
 
 	// count
@@ -90,7 +90,7 @@ func (o *RequestLogGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("snow_id desc")
+			db = db.Order("id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中

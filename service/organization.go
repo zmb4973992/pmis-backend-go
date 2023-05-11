@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -13,14 +12,14 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type OrganizationGet struct {
-	SnowID int64
+	ID int64
 }
 
 type OrganizationCreate struct {
-	Creator        int64
-	LastModifier   int64
-	SuperiorSnowID int64  `json:"superior_snow_id" binding:"required"` //上级机构ID
-	Name           string `json:"name" binding:"required"`             //名称
+	Creator      int64
+	LastModifier int64
+	SuperiorID   int64  `json:"superior_id" binding:"required"` //上级机构ID
+	Name         string `json:"name" binding:"required"`        //名称
 	//Sort           int    `json:"sort" binding:"required"`       //级别，如公司、事业部、部门等
 }
 
@@ -29,37 +28,37 @@ type OrganizationCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type OrganizationUpdate struct {
-	LastModifier   int64
-	SnowID         int64
-	Name           *string `json:"name"`             //名称
-	SuperiorSnowID *int64  `json:"superior_snow_id"` //上级机构ID
+	LastModifier int64
+	ID           int64
+	Name         *string `json:"name"`        //名称
+	SuperiorID   *int64  `json:"superior_id"` //上级机构ID
 }
 
 type OrganizationDelete struct {
-	SnowID int64
+	ID int64
 }
 
 type OrganizationGetList struct {
 	list.Input
-	//list.DataScopeInput
-	SuperiorSnowID int64  `json:"superior_snow_id,omitempty"`
-	Name           string `json:"name,omitempty"`
-	NameInclude    string `json:"name_include,omitempty"`
+	list.DataScopeInput
+	SuperiorID  int64  `json:"superior_id,omitempty"`
+	Name        string `json:"name,omitempty"`
+	NameInclude string `json:"name_include,omitempty"`
 }
 
 type OrganizationOutput struct {
-	Creator        *int64 `json:"creator"`
-	LastModifier   *int64 `json:"last_modifier"`
-	SnowID         int64  `json:"snow_id"`
-	Name           string `json:"name"`             //名称
-	SuperiorSnowID *int   `json:"superior_snow_id"` //上级机构id
+	Creator      *int64 `json:"creator"`
+	LastModifier *int64 `json:"last_modifier"`
+	ID           int64  `json:"id"`
+	Name         string `json:"name"`        //名称
+	SuperiorID   *int   `json:"superior_id"` //上级机构id
 }
 
 func (d *OrganizationGet) Get() response.Common {
 	var result OrganizationOutput
 
 	err := global.DB.Model(model.Organization{}).
-		Where("snow_id = ?", d.SnowID).First(&result).Error
+		Where("id = ?", d.ID).First(&result).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
@@ -79,11 +78,9 @@ func (d *OrganizationCreate) Create() response.Common {
 		paramOut.LastModifier = &d.LastModifier
 	}
 
-	paramOut.SnowID = idgen.NextId()
-
 	paramOut.Name = d.Name
 
-	paramOut.SuperiorSnowID = &d.SuperiorSnowID
+	paramOut.SuperiorID = &d.SuperiorID
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
@@ -108,11 +105,11 @@ func (d *OrganizationUpdate) Update() response.Common {
 		}
 	}
 
-	if d.SuperiorSnowID != nil {
-		if *d.SuperiorSnowID > 0 {
-			paramOut["superior_snow_id"] = d.SuperiorSnowID
-		} else if *d.SuperiorSnowID == -1 {
-			paramOut["superior_snow_id"] = nil
+	if d.SuperiorID != nil {
+		if *d.SuperiorID > 0 {
+			paramOut["superior_id"] = d.SuperiorID
+		} else if *d.SuperiorID == -1 {
+			paramOut["superior_id"] = nil
 		} else {
 			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
@@ -127,7 +124,7 @@ func (d *OrganizationUpdate) Update() response.Common {
 	}
 
 	err := global.DB.Model(&model.Organization{}).
-		Where("snow_id = ?", d.SnowID).Updates(paramOut).Error
+		Where("id = ?", d.ID).Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
@@ -139,8 +136,8 @@ func (d *OrganizationUpdate) Update() response.Common {
 func (d *OrganizationDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.Organization
-	global.DB.Where("snow_id = ?", d.SnowID).Find(&record)
-	err := global.DB.Where("snow_id = ?", d.SnowID).Delete(&record).Error
+	global.DB.Where("id = ?", d.ID).Find(&record)
+	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
@@ -153,8 +150,8 @@ func (d *OrganizationGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if d.SuperiorSnowID > 0 {
-		db = db.Where("superior_snow_id = ?", d.SuperiorSnowID)
+	if d.SuperiorID > 0 {
+		db = db.Where("superior_id = ?", d.SuperiorID)
 	}
 
 	if d.Name != "" {
@@ -176,7 +173,7 @@ func (d *OrganizationGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("snow_id desc")
+			db = db.Order("id desc")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中

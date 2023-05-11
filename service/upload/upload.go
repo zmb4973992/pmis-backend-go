@@ -11,7 +11,7 @@ import (
 type Oss interface {
 	UploadSingleFile(fileHeader *multipart.FileHeader) (fileName string, err error)
 	UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (fileNames []string, err error)
-	Delete(snowID int64) error
+	Delete(id int64) error
 }
 
 func NewOss() Oss {

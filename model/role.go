@@ -1,16 +1,15 @@
 package model
 
 import (
-	"github.com/yitter/idgenerator-go/idgen"
 	"gorm.io/gorm"
 	"pmis-backend-go/global"
 )
 
 type Role struct {
 	BasicModel
-	Name           string //角色名称
-	SuperiorSnowID *int64 //上级角色SnowID
-	DataScopeType  int    //数据范围的类型
+	Name          string //角色名称
+	SuperiorID    *int64 //上级角色ID
+	DataScopeType int    //数据范围的类型
 }
 
 // TableName 修改表名
@@ -19,14 +18,14 @@ func (*Role) TableName() string {
 }
 
 func (r *Role) BeforeDelete(tx *gorm.DB) error {
-	if r.SnowID == 0 {
+	if r.ID == 0 {
 		return nil
 	}
 
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var records []UserAndRole
-	err = tx.Where(UserAndRole{RoleSnowID: r.SnowID}).
+	err = tx.Where(UserAndRole{RoleID: r.ID}).
 		Find(&records).Delete(&records).Error
 	if err != nil {
 		return err
@@ -44,10 +43,6 @@ func generateRoles() error {
 	for _, role := range roles {
 		err = global.DB.Where("name = ?", role.Name).
 			Where("data_scope_type = ?", role.DataScopeType).
-			Attrs(Role{
-				BasicModel: BasicModel{
-					SnowID: idgen.NextId(),
-				}}).
 			FirstOrCreate(&role).Error
 		if err != nil {
 			return err

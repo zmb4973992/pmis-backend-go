@@ -2,7 +2,6 @@ package upload
 
 import (
 	"errors"
-	"github.com/yitter/idgenerator-go/idgen"
 	"gorm.io/gorm"
 	"io"
 	"mime/multipart"
@@ -18,19 +17,10 @@ func (l *Local) UploadSingleFile(fileHeader *multipart.FileHeader) (fileName str
 	if fileHeader.Size > global.Config.MaxSize {
 		return "", errors.New("文件过大")
 	}
-	// 给文件名添加snowID和时间
-	snowID := idgen.NextId()
-	fileName = strconv.FormatInt(snowID, 10) + "--" + fileHeader.Filename
+
 	storagePath := global.Config.UploadConfig.StoragePath
-	err = saveUploadedFile(fileHeader, storagePath+fileName)
-	if err != nil {
-		return "", err
-	}
 
 	file := model.File{
-		BasicModel: model.BasicModel{
-			SnowID: snowID,
-		},
 		Name: fileHeader.Filename,
 		Mode: "local",
 		Path: storagePath,
@@ -38,6 +28,13 @@ func (l *Local) UploadSingleFile(fileHeader *multipart.FileHeader) (fileName str
 	}
 
 	err = global.DB.Create(&file).Error
+	if err != nil {
+		return "", err
+	}
+
+	// 给文件名添加id和时间
+	fileName = strconv.FormatInt(file.ID, 10) + "--" + fileHeader.Filename
+	err = saveUploadedFile(fileHeader, storagePath+fileName)
 	if err != nil {
 		return "", err
 	}
@@ -55,42 +52,42 @@ func (l *Local) UploadMultipleFiles(fileHeaders []*multipart.FileHeader) (fileNa
 	storagePath := global.Config.UploadConfig.StoragePath
 
 	for i := range fileHeaders {
-		// 给文件名添加snowID和时间
-		snowID := idgen.NextId()
-		//formattedTime := time.Now().Format("2006-01-02 15-04-05")
-		fileName := strconv.FormatInt(snowID, 10) + "--" + fileHeaders[i].Filename
-		err := saveUploadedFile(fileHeaders[i], storagePath+fileName)
+		//保存记录
+		var record model.File
+		record.Name = fileHeaders[i].Filename
+		record.Path = storagePath
+		record.Mode = "local"
+		record.Size = int(fileHeaders[i].Size) >> 20 // MB
+		err = global.DB.Create(&record).Error
 		if err != nil {
 			return nil, err
 		}
 
-		//保存记录
-
-		var record model.File
-		record.SnowID = snowID
-		record.Name = fileHeaders[i].Filename
-		record.Path = storagePath
-		record.Size = int(fileHeaders[i].Size) >> 20 // MB
-		global.DB.Create(&record)
+		fileName := strconv.FormatInt(record.ID, 10) + "--" + fileHeaders[i].Filename
 		fileNames = append(fileNames, fileName)
+
+		err = saveUploadedFile(fileHeaders[i], storagePath+fileName)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return fileNames, nil
 }
 
-func (l *Local) Delete(snowID int64) error {
-	if snowID == 0 {
+func (l *Local) Delete(id int64) error {
+	if id == 0 {
 		return nil
 	}
 
 	var record model.File
-	err := global.DB.Where(&model.File{BasicModel: model.BasicModel{SnowID: snowID}}).
+	err := global.DB.Where(&model.File{BasicModel: model.BasicModel{ID: id}}).
 		First(&record).Error
 	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 
-	if record.SnowID > 0 {
-		filePath := record.Path + strconv.FormatInt(snowID, 10)
+	if record.ID > 0 {
+		filePath := record.Path + strconv.FormatInt(id, 10)
 		fileName := record.Name
 		_ = os.Remove(filePath + "--" + fileName)
 

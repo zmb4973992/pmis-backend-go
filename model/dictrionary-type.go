@@ -1,7 +1,6 @@
 package model
 
 import (
-	"github.com/yitter/idgenerator-go/idgen"
 	"gorm.io/gorm"
 	"pmis-backend-go/global"
 )
@@ -20,26 +19,20 @@ func (*DictionaryType) TableName() string {
 }
 
 func (d *DictionaryType) BeforeDelete(tx *gorm.DB) error {
-	if d.SnowID == 0 {
+	if d.ID == 0 {
 		return nil
 	}
 
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var records []DictionaryDetail
-	err = tx.Where(DictionaryDetail{DictionaryTypeSnowID: d.SnowID}).
+	err = tx.Where(DictionaryDetail{DictionaryTypeID: d.ID}).
 		Find(&records).Delete(&records).Error
 	if err != nil {
 		return err
 	}
 
 	return nil
-}
-
-type dictionaryTypeFormat struct {
-	SnowID uint64
-	Name   string
-	Sort   int
 }
 
 var dictionaryTypes = []DictionaryType{
@@ -114,9 +107,6 @@ func generateDictionaryType() (err error) {
 		err = global.DB.Where("name = ?", dictionaryTypes[i].Name).
 			Where("sort = ?", dictionaryTypes[i].Sort).
 			Attrs(DictionaryType{
-				BasicModel: BasicModel{
-					SnowID: idgen.NextId(),
-				},
 				Status: BoolToPointer(true),
 			}).
 			FirstOrCreate(&dictionaryTypes[i]).Error
