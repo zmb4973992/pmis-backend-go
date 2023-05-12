@@ -26,14 +26,14 @@ type MenuCreate struct {
 
 	//数字(允许为0、nil)
 	SuperiorID    int64  `json:"superior_id,omitempty"`
-	RoutePath     string `json:"route_path" biding:"required"`
-	Group         string `json:"group"  biding:"required"`
-	Name          string `json:"name"  biding:"required"`
-	HiddenInSider bool   `json:"hidden_in_sider" biding:"required"`
-	ComponentPath string `json:"component_path" biding:"required"`
-	Sort          int    `json:"sort" biding:"required"`
-	KeepAlive     bool   `json:"keep_alive" biding:"required"`
-	Title         string `json:"title" biding:"required"`
+	RoutePath     string `json:"route_path" binding:"required"`
+	Group         string `json:"group"  binding:"required"`
+	Name          string `json:"name"  binding:"required"`
+	HiddenInSider bool   `json:"hidden_in_sider" binding:"required"`
+	ComponentPath string `json:"component_path" binding:"required"`
+	Sort          int    `json:"sort" binding:"required"`
+	KeepAlive     bool   `json:"keep_alive" binding:"required"`
+	Title         string `json:"title" binding:"required"`
 	Icon          string `json:"icon,omitempty"`
 }
 

@@ -21,6 +21,7 @@ type controller struct {
 	progress
 	incomeAndExpenditure
 	role
+	menu
 }
 
 var (
@@ -42,4 +43,5 @@ var (
 	Progress             = entrance.progress
 	IncomeAndExpenditure = entrance.incomeAndExpenditure
 	Role                 = entrance.role
+	Menu                 = entrance.menu
 )

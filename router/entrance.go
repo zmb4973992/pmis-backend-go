@@ -33,6 +33,7 @@ type CustomRouterGroup struct {
 	private.RoleRouter
 	private.RequestLogRouter
 	private.ErrorLogRouter
+	private.MenuRouter
 }
 
 // InitEngine 初始化路由器,最终返回*gin.Engine类型，给main调用
@@ -80,6 +81,7 @@ func InitEngine() *gin.Engine {
 	customRouterGroup.InitRoleRouter(privateGroup)
 	customRouterGroup.InitRequestLogRouter(privateGroup)
 	customRouterGroup.InitErrorLogRouter(privateGroup)
+	customRouterGroup.InitMenuRouter(privateGroup)
 
 	//引擎配置完成后，返回
 	return engine
