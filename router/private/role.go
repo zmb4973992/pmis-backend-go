@@ -16,5 +16,5 @@ func (r *RoleRouter) InitRoleRouter(param *gin.RouterGroup) {
 	roleRouter.DELETE("/:role-id", controller.Role.Delete)          //删除角色
 	roleRouter.POST("/list", controller.Role.GetList)               //获取角色列表
 	roleRouter.POST("/:role-id/users", controller.Role.UpdateUsers) //调整角色的用户
-
+	roleRouter.POST("/:role-id/menus", controller.Role.UpdateMenus) //调整角色的菜单
 }

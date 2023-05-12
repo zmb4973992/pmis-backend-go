@@ -48,6 +48,8 @@ const (
 	ErrorWrongSuperiorInformation
 	ErrorFailToGenerateID
 	ErrorFailToUpdateRBACGroupingPolicies
+	ErrorFailToUpdateRBACPoliciesByRoleID
+	ErrorFailToUpdateRBACPoliciesByMenuID
 )
 
 // Message 自定义错误的message
@@ -103,6 +105,8 @@ var Message = map[int]string{
 	ErrorWrongSuperiorInformation:               "上级信息错误，可能缺失项目id或层级",
 	ErrorFailToGenerateID:                       "生成ID失败",
 	ErrorFailToUpdateRBACGroupingPolicies:       "更新casbin RBAC分组规则失败",
+	ErrorFailToUpdateRBACPoliciesByRoleID:       "根据角色id更新casbin RBAC的规则失败",
+	ErrorFailToUpdateRBACPoliciesByMenuID:       "根据菜单id更新casbin RBAC的规则失败",
 }
 
 func GetMessage(code int) string {

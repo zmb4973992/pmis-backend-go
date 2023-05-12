@@ -71,6 +71,14 @@ type RoleUpdateUsers struct {
 	UserIDs *[]int64 `json:"user_ids"`
 }
 
+type RoleUpdateMenus struct {
+	Creator      int64
+	LastModifier int64
+
+	RoleID  int64    `json:"-"`
+	MenuIDs *[]int64 `json:"menu_ids"`
+}
+
 //以下为出参
 
 type RoleOutput struct {
@@ -382,4 +390,72 @@ func (r *RoleUpdateUsers) Update() response.Common {
 	default:
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
+}
+
+func (r *RoleUpdateMenus) Update() response.Common {
+	if r.MenuIDs == nil {
+		return response.Failure(util.ErrorInvalidJSONParameters)
+	}
+
+	if len(*r.MenuIDs) == 0 {
+		err := global.DB.Where("role_id = ?", r.RoleID).Delete(&model.RoleAndMenu{}).Error
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+			return response.Failure(util.ErrorFailToDeleteRecord)
+		}
+		return response.Success()
+	}
+
+	//先删掉原始记录
+	err := global.DB.Where("role_id = ?", r.RoleID).Delete(&model.RoleAndMenu{}).Error
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return response.Failure(util.ErrorFailToDeleteRecord)
+	}
+
+	//再增加新的记录
+	var paramOut []model.RoleAndMenu
+	for _, menuID := range *r.MenuIDs {
+		var record model.RoleAndMenu
+		if r.Creator > 0 {
+			record.Creator = &r.Creator
+		}
+		if r.LastModifier > 0 {
+			record.LastModifier = &r.LastModifier
+		}
+
+		record.RoleID = r.RoleID
+		record.MenuID = menuID
+		paramOut = append(paramOut, record)
+	}
+
+	for i := range paramOut {
+		//计算有修改值的字段数，分别进行不同处理
+		tempParamOut, err1 := util.StructToMap(paramOut[i])
+		if err1 != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
+		paramOutForCounting := util.MapCopy(tempParamOut,
+			"Creator", "LastModifier", "CreateAt", "UpdatedAt")
+
+		if len(paramOutForCounting) == 0 {
+			return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
+		}
+	}
+
+	err = global.DB.Create(&paramOut).Error
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return response.Failure(util.ErrorFailToCreateRecord)
+	}
+
+	//更新casbin的rbac的策略
+	var param1 rbacUpdatePolicyByRoleID
+	param1.RoleID = r.RoleID
+	err = param1.Update()
+	if err != nil {
+		return response.Failure(util.ErrorFailToUpdateRBACPoliciesByRoleID)
+	}
+
+	return response.Success()
 }

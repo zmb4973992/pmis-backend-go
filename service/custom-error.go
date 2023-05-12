@@ -11,4 +11,5 @@ var (
 	ErrorFailToUpdateRecord               = errors.New(util.GetMessage(util.ErrorFailToUpdateRecord))
 	ErrorFieldsToBeCreatedNotFound        = errors.New(util.GetMessage(util.ErrorFieldsToBeCreatedNotFound))
 	ErrorFailToUpdateRBACGroupingPolicies = errors.New(util.GetMessage(util.ErrorFailToUpdateRBACGroupingPolicies))
+	ErrorFailToUpdateRBACPoliciesByRoleID = errors.New(util.GetMessage(util.ErrorFailToUpdateRBACPoliciesByRoleID))
 )

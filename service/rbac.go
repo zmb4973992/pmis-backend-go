@@ -47,6 +47,7 @@ func (r *rbacUpdatePolicyByRoleID) Update() error {
 	}
 
 	subject := strconv.FormatInt(r.RoleID, 10)
+
 	_, err = cachedEnforcer.RemoveFilteredPolicy(0, subject)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -71,17 +72,15 @@ func (r *rbacUpdatePolicyByRoleID) Update() error {
 		if err != nil {
 			continue
 		}
-		//如果api带param参数，那么rbac规则要带上正则，否则无法放行
-		if api.WithParam {
-			api.Path += "/*"
-		}
 		rbacRules = append(rbacRules, []string{subject, api.Path, api.Method})
 	}
 
-	_, err = cachedEnforcer.AddPolicies(rbacRules)
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return err
+	if len(rbacRules) > 0 {
+		_, err = cachedEnforcer.AddPolicies(rbacRules)
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+			return err
+		}
 	}
 
 	//修改了policy以后，因为用的是cachedEnforcer，所以要清除缓存
@@ -90,6 +89,7 @@ func (r *rbacUpdatePolicyByRoleID) Update() error {
 		global.SugaredLogger.Errorln(err)
 		return err
 	}
+
 	return nil
 }
 
