@@ -49,6 +49,7 @@ func InitEngine() *gin.Engine {
 		middleware.Logger(),
 		middleware.Cors(),
 		middleware.RequestLog(),
+		middleware.RateLimit(),
 	)
 
 	//路由不匹配时的处理
@@ -66,7 +67,7 @@ func InitEngine() *gin.Engine {
 	customRouterGroup.InitJWTRouter(publicGroup)
 
 	privateGroup := engine.Group("")
-	privateGroup.Use(middleware.RateLimit(), middleware.JWT())
+	privateGroup.Use(middleware.JWT())
 	customRouterGroup.InitUserRouter(privateGroup)
 	customRouterGroup.InitFileRouter(privateGroup)
 	customRouterGroup.InitRelatedPartyRouter(privateGroup)
