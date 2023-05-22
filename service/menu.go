@@ -15,6 +15,10 @@ type MenuGet struct {
 	ID int64
 }
 
+type MenuGetTree struct {
+	ID int64
+}
+
 type MenuCreate struct {
 	Creator      int64
 	LastModifier int64
@@ -26,11 +30,11 @@ type MenuCreate struct {
 
 	//数字(允许为0、nil)
 	SuperiorID    int64  `json:"superior_id,omitempty"`
-	RoutePath     string `json:"route_path" binding:"required"`
+	Path          string `json:"path" binding:"required"`
 	Group         string `json:"group"  binding:"required"`
 	Name          string `json:"name"  binding:"required"`
 	HiddenInSider bool   `json:"hidden_in_sider" binding:"required"`
-	ComponentPath string `json:"component_path" binding:"required"`
+	Component     string `json:"component" binding:"required"`
 	Sort          int    `json:"sort" binding:"required"`
 	KeepAlive     bool   `json:"keep_alive" binding:"required"`
 	Title         string `json:"title" binding:"required"`
@@ -56,11 +60,11 @@ type MenuUpdate struct {
 	//允许为null的字符串
 
 	SuperiorID    *int64  `json:"superior_id"`
-	RoutePath     *string `json:"route_path"`
+	Path          *string `json:"path"`
 	Group         *string `json:"group"`
 	Name          *string `json:"name"`
 	HiddenInSider *bool   `json:"hidden_in_sider"`
-	ComponentPath *string `json:"component_path"`
+	Component     *string `json:"component"`
 	Sort          *int    `json:"sort"`
 	KeepAlive     *bool   `json:"keep_alive"`
 	Title         *string `json:"title"`
@@ -73,6 +77,7 @@ type MenuDelete struct {
 
 type MenuGetList struct {
 	list.Input
+	list.DataScopeInput
 	Group string `json:"group,omitempty"`
 }
 
@@ -85,6 +90,13 @@ type MenuUpdateApis struct {
 }
 
 //以下为出参
+
+type Meta struct {
+	HiddenInSider *bool   `json:"hidden_in_sider"`
+	KeepAlive     *bool   `json:"keep_alive"`
+	Title         *string `json:"title"`
+	Icon          *string `json:"icon"`
+}
 
 type MenuOutput struct {
 	Creator      *int64 `json:"creator"`
@@ -99,16 +111,14 @@ type MenuOutput struct {
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
 
 	//其他属性
-	SuperiorID    *int64  `json:"superior_id"`
-	RoutePath     *string `json:"route_path"`
-	Group         *string `json:"group"`
-	Name          *string `json:"name"`
-	HiddenInSider *bool   `json:"hidden_in_sider"`
-	ComponentPath *string `json:"component_path"`
-	Sort          *int    `json:"sort"`
-	KeepAlive     *bool   `json:"keep_alive"`
-	Title         *string `json:"title"`
-	Icon          *string `json:"icon"`
+	SuperiorID *int64       `json:"superior_id"`
+	Path       *string      `json:"path"`
+	Group      *string      `json:"group"`
+	Name       *string      `json:"name"`
+	Component  *string      `json:"component"`
+	Sort       *int         `json:"sort"`
+	Meta       Meta         `json:"meta" gorm:"-"`
+	Children   []MenuOutput `json:"children" gorm:"-"`
 }
 
 func (m *MenuGet) Get() response.Common {
@@ -137,8 +147,8 @@ func (m *MenuCreate) Create() response.Common {
 		paramOut.SuperiorID = &m.SuperiorID
 	}
 
-	if m.RoutePath != "" {
-		paramOut.RoutePath = &m.RoutePath
+	if m.Path != "" {
+		paramOut.Path = &m.Path
 	}
 
 	if m.Group != "" {
@@ -151,8 +161,8 @@ func (m *MenuCreate) Create() response.Common {
 
 	paramOut.HiddenInSider = m.HiddenInSider
 
-	if m.ComponentPath != "" {
-		paramOut.ComponentPath = &m.ComponentPath
+	if m.Component != "" {
+		paramOut.Component = &m.Component
 	}
 
 	if m.Sort > 0 {
@@ -215,9 +225,9 @@ func (m *MenuUpdate) Update() response.Common {
 		}
 	}
 
-	if m.RoutePath != nil {
-		if *m.RoutePath != "" {
-			paramOut["route_path"] = m.RoutePath
+	if m.Path != nil {
+		if *m.Path != "" {
+			paramOut["route_path"] = m.Path
 		} else {
 			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
@@ -240,9 +250,9 @@ func (m *MenuUpdate) Update() response.Common {
 		}
 	}
 
-	if m.ComponentPath != nil {
-		if *m.ComponentPath != "" {
-			paramOut["component_path"] = m.ComponentPath
+	if m.Component != nil {
+		if *m.Component != "" {
+			paramOut["component_path"] = m.Component
 		} else {
 			return response.Failure(util.ErrorInvalidJSONParameters)
 		}
@@ -308,6 +318,10 @@ func (m *MenuDelete) Delete() response.Common {
 }
 
 func (m *MenuGetList) GetList() response.List {
+	if m.UserID == 0 {
+		return response.FailureForList(util.ErrorRecordNotFound)
+	}
+
 	db := global.DB.Model(&model.Menu{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
@@ -315,6 +329,14 @@ func (m *MenuGetList) GetList() response.List {
 	if m.Group != "" {
 		db = db.Where("group = ?", m.Group)
 	}
+
+	var roleIDs []int64
+	global.DB.Model(&model.UserAndRole{}).Where("user_id = ?", m.UserID).
+		Select("role_id").Find(&roleIDs)
+	var menuIDs []int64
+	global.DB.Model(&model.RoleAndMenu{}).Where("role_id in ?", roleIDs).
+		Select("menu_id").Find(&menuIDs)
+	db = db.Where("id in ?", menuIDs)
 
 	//count
 	var count int64
@@ -368,6 +390,10 @@ func (m *MenuGetList) GetList() response.List {
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
+	}
+
+	for i := range data {
+		data[i].Children = getMenuTree(data[i].ID)
 	}
 
 	numberOfRecords := int(count)
@@ -452,4 +478,18 @@ func (m *MenuUpdateApis) Update() response.Common {
 	}
 
 	return response.Success()
+}
+
+func getMenuTree(superiorID int64) []MenuOutput {
+	var result []MenuOutput
+	res := global.DB.Model(model.Menu{}).
+		Where("superior_id = ?", superiorID).Find(&result)
+	if res.RowsAffected == 0 {
+		return nil
+	}
+
+	for i := range result {
+		result[i].Children = getMenuTree(result[i].ID)
+	}
+	return result
 }
