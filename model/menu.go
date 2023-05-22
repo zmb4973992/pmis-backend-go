@@ -2,13 +2,12 @@ package model
 
 type Menu struct {
 	BasicModel
-	SuperiorID    *int64
-	RoutePath     *string //路由访问路径
-	Group         string
-	Name          string  //名称
-	HiddenInSider bool    //在侧边栏内是否隐藏
-	ComponentPath *string //组件路径
-	Sort          *int    //排序值
+	SuperiorID *int64
+	Path       *string //路由访问路径
+	Group      string
+	Name       string  //名称
+	Component  *string //组件路径
+	Sort       *int    //排序值
 	Meta
 	//连接其他表的id
 
@@ -26,9 +25,10 @@ type Menu struct {
 }
 
 type Meta struct {
-	KeepAlive *bool   //是否缓存
-	Title     *string //菜单名
-	Icon      *string //图标
+	HiddenInSider bool    //在侧边栏内是否隐藏
+	KeepAlive     *bool   //是否缓存
+	Title         *string //菜单名
+	Icon          *string //图标
 }
 
 // TableName 修改表名

@@ -109,6 +109,12 @@ func (m *menu) GetList(c *gin.Context) {
 		return
 	}
 
+	//AuthorityInput需要userID
+	userID, exists := util.GetUserID(c)
+	if exists {
+		param.UserID = userID
+	}
+
 	res := param.GetList()
 	c.JSON(http.StatusOK, res)
 	return

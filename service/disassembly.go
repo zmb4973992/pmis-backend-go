@@ -97,7 +97,7 @@ func (d *DisassemblyGet) Get() response.Common {
 	return response.SuccessWithData(result)
 }
 
-func treeRecursion(superiorID int64) []DisassemblyTreeOutput {
+func getDisassemblyTree(superiorID int64) []DisassemblyTreeOutput {
 	var result []DisassemblyTreeOutput
 	res := global.DB.Model(model.Disassembly{}).
 		Where("superior_id = ?", superiorID).Find(&result)
@@ -105,7 +105,7 @@ func treeRecursion(superiorID int64) []DisassemblyTreeOutput {
 		return nil
 	}
 	for i := range result {
-		result[i].Children = treeRecursion(result[i].ID)
+		result[i].Children = getDisassemblyTree(result[i].ID)
 	}
 	return result
 }
@@ -130,7 +130,7 @@ func (d *DisassemblyTree) Tree() response.Common {
 
 	//第二轮及以后的查找，查询条件为superior_id
 	for i := range result {
-		result[i].Children = treeRecursion(result[i].ID)
+		result[i].Children = getDisassemblyTree(result[i].ID)
 	}
 
 	return response.SuccessWithData(result)

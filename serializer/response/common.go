@@ -15,7 +15,7 @@ type Common struct {
 // 另外嵌套多层也会导致出参结果需要嵌套，略麻烦
 type List struct {
 	Data    any                `json:"data"`
-	Paging  *list.PagingOutput `json:"list"`
+	Paging  *list.PagingOutput `json:"paging"`
 	Code    int                `json:"code"`
 	Message string             `json:"message"`
 }
