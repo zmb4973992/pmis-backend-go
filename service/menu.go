@@ -15,10 +15,6 @@ type MenuGet struct {
 	ID int64
 }
 
-type MenuGetTree struct {
-	ID int64
-}
-
 type MenuCreate struct {
 	Creator      int64
 	LastModifier int64
@@ -33,10 +29,10 @@ type MenuCreate struct {
 	Path          string `json:"path" binding:"required"`
 	Group         string `json:"group"  binding:"required"`
 	Name          string `json:"name"  binding:"required"`
-	HiddenInSider bool   `json:"hidden_in_sider" binding:"required"`
+	HiddenInSider bool   `json:"hidden_in_sider" `
 	Component     string `json:"component" binding:"required"`
 	Sort          int    `json:"sort" binding:"required"`
-	KeepAlive     bool   `json:"keep_alive" binding:"required"`
+	KeepAlive     bool   `json:"keep_alive" `
 	Title         string `json:"title" binding:"required"`
 	Icon          string `json:"icon,omitempty"`
 }
@@ -81,6 +77,12 @@ type MenuGetList struct {
 	Group string `json:"group,omitempty"`
 }
 
+type MenuGetTree struct {
+	list.Input
+	list.DataScopeInput
+	Group string `json:"group,omitempty"`
+}
+
 type MenuUpdateApis struct {
 	Creator      int64
 	LastModifier int64
@@ -92,10 +94,10 @@ type MenuUpdateApis struct {
 //以下为出参
 
 type Meta struct {
-	HiddenInSider *bool   `json:"hidden_in_sider"`
-	KeepAlive     *bool   `json:"keep_alive"`
-	Title         *string `json:"title"`
-	Icon          *string `json:"icon"`
+	Hidden    *bool   `json:"hidden"`
+	KeepAlive *bool   `json:"keep_alive"`
+	Title     *string `json:"title"`
+	Icon      *string `json:"icon"`
 }
 
 type MenuOutput struct {
@@ -111,13 +113,13 @@ type MenuOutput struct {
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
 
 	//其他属性
-	SuperiorID *int64       `json:"superior_id"`
-	Path       *string      `json:"path"`
-	Group      *string      `json:"group"`
-	Name       *string      `json:"name"`
-	Component  *string      `json:"component"`
-	Sort       *int         `json:"sort"`
-	Meta       Meta         `json:"meta" gorm:"-"`
+	SuperiorID *int64  `json:"superior_id"`
+	Path       *string `json:"path"`
+	Group      *string `json:"group"`
+	Name       *string `json:"name"`
+	Component  *string `json:"component"`
+	Sort       *int    `json:"sort"`
+	Meta       `json:"meta"`
 	Children   []MenuOutput `json:"children" gorm:"-"`
 }
 
@@ -159,7 +161,7 @@ func (m *MenuCreate) Create() response.Common {
 		paramOut.Name = m.Name
 	}
 
-	paramOut.HiddenInSider = m.HiddenInSider
+	paramOut.Hidden = m.HiddenInSider
 
 	if m.Component != "" {
 		paramOut.Component = &m.Component
@@ -317,6 +319,74 @@ func (m *MenuDelete) Delete() response.Common {
 	return response.Success()
 }
 
+func (m *MenuUpdateApis) Update() response.Common {
+	if m.ApiIDs == nil {
+		return response.Failure(util.ErrorInvalidJSONParameters)
+	}
+
+	if len(*m.ApiIDs) == 0 {
+		err := global.DB.Where("menu_id = ?", m.MenuID).Delete(&model.Menu{}).Error
+		if err != nil {
+			global.SugaredLogger.Errorln(err)
+			return response.Failure(util.ErrorFailToDeleteRecord)
+		}
+		return response.Success()
+	}
+
+	//先删掉原始记录
+	err := global.DB.Where("menu_id = ?", m.MenuID).Delete(&model.MenuAndApi{}).Error
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return response.Failure(util.ErrorFailToDeleteRecord)
+	}
+
+	//再增加新的记录
+	var paramOut []model.MenuAndApi
+	for _, apiID := range *m.ApiIDs {
+		var record model.MenuAndApi
+		if m.Creator > 0 {
+			record.Creator = &m.Creator
+		}
+		if m.LastModifier > 0 {
+			record.LastModifier = &m.LastModifier
+		}
+
+		record.MenuID = m.MenuID
+		record.ApiID = apiID
+		paramOut = append(paramOut, record)
+	}
+
+	for i := range paramOut {
+		//计算有修改值的字段数，分别进行不同处理
+		tempParamOut, err1 := util.StructToMap(paramOut[i])
+		if err1 != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
+		paramOutForCounting := util.MapCopy(tempParamOut,
+			"Creator", "LastModifier", "CreateAt", "UpdatedAt")
+
+		if len(paramOutForCounting) == 0 {
+			return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
+		}
+	}
+
+	err = global.DB.Create(&paramOut).Error
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return response.Failure(util.ErrorFailToCreateRecord)
+	}
+
+	//更新casbin的rbac的策略
+	var param1 rbacUpdatePolicyByMenuID
+	param1.MenuID = m.MenuID
+	err = param1.Update()
+	if err != nil {
+		return response.Failure(util.ErrorFailToUpdateRBACPoliciesByMenuID)
+	}
+
+	return response.Success()
+}
+
 func (m *MenuGetList) GetList() response.List {
 	if m.UserID == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
@@ -326,6 +396,99 @@ func (m *MenuGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
+	if m.Group != "" {
+		db = db.Where("group = ?", m.Group)
+	}
+
+	var roleIDs []int64
+	global.DB.Model(&model.UserAndRole{}).Where("user_id = ?", m.UserID).
+		Select("role_id").Find(&roleIDs)
+	var menuIDs []int64
+	global.DB.Model(&model.RoleAndMenu{}).Where("role_id in ?", roleIDs).
+		Select("menu_id").Find(&menuIDs)
+	db = db.Where("id in ?", menuIDs)
+
+	//count
+	var count int64
+	db.Count(&count)
+
+	//order
+	orderBy := m.SortingInput.OrderBy
+	desc := m.SortingInput.Desc
+	//如果排序字段为空
+	if orderBy == "" {
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order("id desc")
+		}
+	} else { //如果有排序字段
+		//先看排序字段是否存在于表中
+		exists := util.FieldIsInModel(&model.Menu{}, orderBy)
+		if !exists {
+			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+		}
+		//如果要求降序排列
+		if desc == true {
+			db = db.Order(orderBy + " desc")
+		} else { //如果没有要求排序方式
+			db = db.Order(orderBy)
+		}
+	}
+
+	//limit
+	page := 1
+	if m.PagingInput.Page > 0 {
+		page = m.PagingInput.Page
+	}
+	pageSize := global.Config.DefaultPageSize
+	if m.PagingInput.PageSize != nil && *m.PagingInput.PageSize >= 0 &&
+		*m.PagingInput.PageSize <= global.Config.MaxPageSize {
+
+		pageSize = *m.PagingInput.PageSize
+	}
+	if pageSize > 0 {
+		db = db.Limit(pageSize)
+	}
+
+	//offset
+	offset := (page - 1) * pageSize
+	db = db.Offset(offset)
+
+	//data
+	var data []MenuOutput
+	db.Model(&model.Menu{}).Find(&data)
+
+	if len(data) == 0 {
+		return response.FailureForList(util.ErrorRecordNotFound)
+	}
+
+	numberOfRecords := int(count)
+	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
+
+	return response.List{
+		Data: data,
+		Paging: &list.PagingOutput{
+			Page:            page,
+			PageSize:        pageSize,
+			NumberOfPages:   numberOfPages,
+			NumberOfRecords: numberOfRecords,
+		},
+		Code:    util.Success,
+		Message: util.GetMessage(util.Success),
+	}
+}
+
+func (m *MenuGetTree) GetTree() response.List {
+	if m.UserID == 0 {
+		return response.FailureForList(util.ErrorRecordNotFound)
+	}
+
+	db := global.DB.Model(&model.Menu{})
+	// 顺序：where -> count -> Order -> limit -> offset -> data
+
+	//where
+	db = db.Where("superior_id is null")
+
 	if m.Group != "" {
 		db = db.Where("group = ?", m.Group)
 	}
@@ -410,74 +573,6 @@ func (m *MenuGetList) GetList() response.List {
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),
 	}
-}
-
-func (m *MenuUpdateApis) Update() response.Common {
-	if m.ApiIDs == nil {
-		return response.Failure(util.ErrorInvalidJSONParameters)
-	}
-
-	if len(*m.ApiIDs) == 0 {
-		err := global.DB.Where("menu_id = ?", m.MenuID).Delete(&model.Menu{}).Error
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return response.Failure(util.ErrorFailToDeleteRecord)
-		}
-		return response.Success()
-	}
-
-	//先删掉原始记录
-	err := global.DB.Where("menu_id = ?", m.MenuID).Delete(&model.MenuAndApi{}).Error
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
-	}
-
-	//再增加新的记录
-	var paramOut []model.MenuAndApi
-	for _, apiID := range *m.ApiIDs {
-		var record model.MenuAndApi
-		if m.Creator > 0 {
-			record.Creator = &m.Creator
-		}
-		if m.LastModifier > 0 {
-			record.LastModifier = &m.LastModifier
-		}
-
-		record.MenuID = m.MenuID
-		record.ApiID = apiID
-		paramOut = append(paramOut, record)
-	}
-
-	for i := range paramOut {
-		//计算有修改值的字段数，分别进行不同处理
-		tempParamOut, err1 := util.StructToMap(paramOut[i])
-		if err1 != nil {
-			return response.Failure(util.ErrorFailToUpdateRecord)
-		}
-		paramOutForCounting := util.MapCopy(tempParamOut,
-			"Creator", "LastModifier", "CreateAt", "UpdatedAt")
-
-		if len(paramOutForCounting) == 0 {
-			return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
-		}
-	}
-
-	err = global.DB.Create(&paramOut).Error
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
-	}
-
-	//更新casbin的rbac的策略
-	var param1 rbacUpdatePolicyByMenuID
-	param1.MenuID = m.MenuID
-	err = param1.Update()
-	if err != nil {
-		return response.Failure(util.ErrorFailToUpdateRBACPoliciesByMenuID)
-	}
-
-	return response.Success()
 }
 
 func getMenuTree(superiorID int64) []MenuOutput {

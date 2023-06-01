@@ -56,6 +56,18 @@ var initialDictionary = []dictionaryDetailFormat{
 		TypeName:    "数据范围",
 		DetailNames: []string{"用户所在部门", "用户所在部门和子部门", "所有部门", "自定义部门"},
 	},
+	{
+		TypeName:    "合同的资金方向",
+		DetailNames: []string{"收款合同", "付款合同", "不涉及收付款"},
+	},
+	{
+		TypeName:    "收付款的资金方向",
+		DetailNames: []string{"收款", "付款"},
+	},
+	{
+		TypeName:    "收付款的种类",
+		DetailNames: []string{"计划", "实际", "预测"},
+	},
 }
 
 func generateDictionaryDetail() (err error) {

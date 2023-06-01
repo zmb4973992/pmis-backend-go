@@ -75,9 +75,8 @@ type IncomeAndExpenditureGetList struct {
 	list.Input
 	list.DataScopeInput
 	ProjectID     int64  `json:"project_id,omitempty"`
-	Kind          int64  `json:"kind,omitempty"`
-	Type          int64  `json:"type,omitempty"`
-	FundDirection int64  `json:"fund_direction,omitempty"`
+	Kind          string `json:"kind,omitempty"`
+	FundDirection string `json:"fund_direction,omitempty"`
 	DateGte       string `json:"date_gte,omitempty"`
 	DateLte       string `json:"date_lte,omitempty"`
 }
@@ -441,16 +440,24 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 		db = db.Where("project_id = ?", i.ProjectID)
 	}
 
-	if i.Kind > 0 {
-		db = db.Where("kind = ?", i.Kind)
+	if i.Kind != "" {
+		var dictionaryDetail model.DictionaryDetail
+		err := global.DB.Model(&model.DictionaryDetail{}).
+			Where("name = ?", i.Kind).First(&dictionaryDetail).Error
+		if err != nil {
+			return response.FailureForList(util.ErrorRecordNotFound)
+		}
+		db = db.Where("kind = ?", dictionaryDetail.ID)
 	}
 
-	if i.Type > 0 {
-		db = db.Where("type = ?", i.Type)
-	}
-
-	if i.FundDirection > 0 {
-		db = db.Where("fund_direction = ?", i.FundDirection)
+	if i.FundDirection != "" {
+		var dictionaryDetail model.DictionaryDetail
+		err := global.DB.Model(&model.DictionaryDetail{}).
+			Where("name = ?", i.FundDirection).First(&dictionaryDetail).Error
+		if err != nil {
+			return response.FailureForList(util.ErrorRecordNotFound)
+		}
+		db = db.Where("fund_direction = ?", dictionaryDetail.ID)
 	}
 
 	if i.DateGte != "" {

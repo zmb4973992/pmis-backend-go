@@ -51,7 +51,7 @@ type DictionaryDetailGetArray struct {
 
 type DictionaryDetailGetList struct {
 	list.Input
-	DictionaryTypeID int64 `json:"dictionary_type_id,omitempty"`
+	DictionaryTypeName string `json:"dictionary_type_name,omitempty"`
 }
 
 //以下为出参
@@ -221,8 +221,14 @@ func (d *DictionaryDetailGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if d.DictionaryTypeID != 0 {
-		db = db.Where("dictionary_type_id = ?", d.DictionaryTypeID)
+	if d.DictionaryTypeName != "" {
+		var dictionaryType model.DictionaryType
+		err := global.DB.Where("name = ?", d.DictionaryTypeName).
+			First(&dictionaryType).Error
+		if err != nil {
+			return response.FailureForList(util.ErrorRecordNotFound)
+		}
+		db = db.Where("dictionary_type_id = ?", dictionaryType.ID)
 	}
 
 	// count

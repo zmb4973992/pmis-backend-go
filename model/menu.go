@@ -25,10 +25,10 @@ type Menu struct {
 }
 
 type Meta struct {
-	HiddenInSider bool    //在侧边栏内是否隐藏
-	KeepAlive     *bool   //是否缓存
-	Title         *string //菜单名
-	Icon          *string //图标
+	Hidden    bool    //在侧边栏内是否隐藏
+	KeepAlive *bool   //是否缓存
+	Title     *string //菜单名
+	Icon      *string //图标
 }
 
 // TableName 修改表名

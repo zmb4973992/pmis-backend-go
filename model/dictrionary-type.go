@@ -81,7 +81,7 @@ var dictionaryTypes = []DictionaryType{
 		Sort: IntToPointer(11),
 	},
 	{
-		Name: "合同资金方向",
+		Name: "合同的资金方向",
 		Sort: IntToPointer(12),
 	},
 	{
@@ -99,6 +99,14 @@ var dictionaryTypes = []DictionaryType{
 	{
 		Name: "LDAP允许的OU",
 		Sort: IntToPointer(16),
+	},
+	{
+		Name: "收付款的资金方向",
+		Sort: IntToPointer(17),
+	},
+	{
+		Name: "收付款的种类", //款项种类（计划、实际、预测）
+		Sort: IntToPointer(18),
 	},
 }
 

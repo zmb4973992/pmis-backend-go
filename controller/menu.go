@@ -120,6 +120,30 @@ func (m *menu) GetList(c *gin.Context) {
 	return
 }
 
+func (m *menu) GetTree(c *gin.Context) {
+	var param service.MenuGetTree
+	err := c.ShouldBindJSON(&param)
+
+	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
+	//如果是其他错误，就正常报错
+	if err != nil && !errors.Is(err, io.EOF) {
+		global.SugaredLogger.Errorln(err)
+		c.JSON(http.StatusBadRequest,
+			response.FailureForList(util.ErrorInvalidJSONParameters))
+		return
+	}
+
+	//AuthorityInput需要userID
+	userID, exists := util.GetUserID(c)
+	if exists {
+		param.UserID = userID
+	}
+
+	res := param.GetTree()
+	c.JSON(http.StatusOK, res)
+	return
+}
+
 func (m *menu) UpdateUsers(c *gin.Context) {
 	var param service.MenuUpdateApis
 	err := c.ShouldBindJSON(&param)
