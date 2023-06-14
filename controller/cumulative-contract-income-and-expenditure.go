@@ -11,10 +11,10 @@ import (
 	"pmis-backend-go/util"
 )
 
-type cumulativeIncomeAndExpenditure struct{}
+type cumulativeContractIncomeAndExpenditure struct{}
 
-func (cu *cumulativeIncomeAndExpenditure) Update(c *gin.Context) {
-	var param service.CumulativeIncomeAndExpenditureUpdate
+func (cu *cumulativeContractIncomeAndExpenditure) Update(c *gin.Context) {
+	var param service.CumulativeContractIncomeAndExpenditureUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -35,8 +35,8 @@ func (cu *cumulativeIncomeAndExpenditure) Update(c *gin.Context) {
 	return
 }
 
-func (cu *cumulativeIncomeAndExpenditure) GetList(c *gin.Context) {
-	var param service.CumulativeIncomeAndExpenditureGetList
+func (cu *cumulativeContractIncomeAndExpenditure) GetList(c *gin.Context) {
+	var param service.CumulativeContractIncomeAndExpenditureGetList
 	err := c.ShouldBindJSON(&param)
 
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；

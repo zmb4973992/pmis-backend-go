@@ -104,7 +104,7 @@ type ProjectOutput struct {
 	OurSignatory *int64 `json:"-"`
 	//关联表的详情，不需要gorm查询，需要在json中显示
 	OrganizationExternal *OrganizationOutput `json:"organization" gorm:"-"`
-	RelatedPartyExternal *RelatedPartyOutput `json:"related_party_external" gorm:"-"`
+	RelatedPartyExternal *RelatedPartyOutput `json:"related_party" gorm:"-"`
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
 	CountryExternal      *DictionaryDetailOutput `json:"country" gorm:"-"`
 	TypeExternal         *DictionaryDetailOutput `json:"type" gorm:"-"`
@@ -154,6 +154,16 @@ func (p *ProjectGet) Get() response.Common {
 			Where("id = ?", *result.OrganizationID).Limit(1).Find(&record)
 		if res.RowsAffected > 0 {
 			result.OrganizationExternal = &record
+		}
+	}
+
+	//查相关方信息
+	if result.RelatedPartyID != nil {
+		var record RelatedPartyOutput
+		res := global.DB.Model(&model.RelatedParty{}).
+			Where("id = ?", *result.RelatedPartyID).Limit(1).Find(&record)
+		if res.RowsAffected > 0 {
+			result.RelatedPartyExternal = &record
 		}
 	}
 
@@ -598,7 +608,7 @@ func (p *ProjectGetList) GetList() response.List {
 			//查相关方信息
 			if data[i].RelatedPartyID != nil {
 				var record RelatedPartyOutput
-				res := global.DB.Model(&model.RelatedParty{}).
+				res := global.DB.Debug().Model(&model.RelatedParty{}).
 					Where("id = ?", *data[i].RelatedPartyID).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].RelatedPartyExternal = &record

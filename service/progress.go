@@ -43,10 +43,12 @@ type ProgressDelete struct {
 type ProgressGetList struct {
 	list.Input
 
-	DisassemblyID int64    `json:"disassembly_id" binding:"required"`
+	ProjectID     int64    `json:"project_id"`
+	DisassemblyID int64    `json:"disassembly_id"`
 	DateGte       string   `json:"date_gte,omitempty"`
 	DateLte       string   `json:"date_lte,omitempty"`
 	Type          int64    `json:"type,omitempty"`
+	TypeName      string   `json:"type_name,omitempty"`
 	TypeIn        []int64  `json:"type_in"`
 	ValueGte      *float64 `json:"value_gte"`
 	ValueLte      *float64 `json:"value_lte"`
@@ -352,7 +354,20 @@ func (p *ProgressGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	db = db.Where("disassembly_id = ?", p.DisassemblyID)
+	if p.ProjectID > 0 {
+		var disassemblyID int64
+		err := global.DB.Model(&model.Disassembly{}).
+			Where("project_id = ?", p.ProjectID).
+			Where("superior_id is null").
+			Select("id").First(&disassemblyID).Error
+		if err != nil {
+			return response.FailureForList(util.ErrorRecordNotFound)
+		}
+		db = db.Where("disassembly_id = ?", disassemblyID)
+	}
+	if p.DisassemblyID > 0 {
+		db = db.Where("disassembly_id = ?", p.DisassemblyID)
+	}
 
 	if p.DateGte != "" {
 		date, err := time.Parse("2006-01-02", p.DateGte)
@@ -372,6 +387,18 @@ func (p *ProgressGetList) GetList() response.List {
 
 	if p.Type > 0 {
 		db = db.Where("type = ?", p.Type)
+	}
+
+	if p.TypeName != "" {
+		var typeID int64
+		err := global.DB.Model(&model.DictionaryDetail{}).
+			Where("name = ?", p.TypeName).Select("id").
+			First(&typeID).Error
+		if err != nil {
+			return response.FailureForList(util.ErrorRecordNotFound)
+		}
+		db = db.Where("type = ?", typeID)
+
 	}
 
 	if len(p.TypeIn) > 0 {
@@ -438,7 +465,7 @@ func (p *ProgressGetList) GetList() response.List {
 
 	//data
 	var data []ProgressOutput
-	db.Model(&model.Progress{}).Find(&data)
+	db.Model(&model.Progress{}).Debug().Find(&data)
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)

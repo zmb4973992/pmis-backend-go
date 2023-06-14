@@ -2,11 +2,10 @@ package model
 
 import "time"
 
-type CumulativeIncomeAndExpenditure struct {
+type CumulativeContractIncomeAndExpenditure struct {
 	BasicModel
 	//连接其他表的id
-	ProjectID int64 //项目ID
-	//ProjectName string //项目名称
+	ContractID int64 //合同ID
 	//连接dictionary_item表的id
 	//日期
 	Date *time.Time `gorm:"type:date"`
@@ -25,6 +24,6 @@ type CumulativeIncomeAndExpenditure struct {
 	ForecastedIncomeProgress      float64 //预测收款进度
 }
 
-func (*CumulativeIncomeAndExpenditure) TableName() string {
-	return "cumulative_income_and_expenditure"
+func (*CumulativeContractIncomeAndExpenditure) TableName() string {
+	return "cumulative_contract_income_and_expenditure"
 }

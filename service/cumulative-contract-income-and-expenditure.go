@@ -17,11 +17,11 @@ import (
 //如果指针字段为空或0，那么数据库相应字段会改为null；
 //如果指针字段没传，那么数据库不会修改该字段
 
-type CumulativeIncomeAndExpenditureUpdate struct {
+type CumulativeContractIncomeAndExpenditureUpdate struct {
 	Creator      int64
 	LastModifier int64
 	//连接关联表的id
-	ProjectID int64 `json:"project_id,omitempty"`
+	ContractID int64 `json:"contract_id,omitempty"`
 	//连接dictionary_item表的id
 
 	//日期
@@ -30,16 +30,16 @@ type CumulativeIncomeAndExpenditureUpdate struct {
 	//字符串
 }
 
-type CumulativeIncomeAndExpenditureGetList struct {
+type CumulativeContractIncomeAndExpenditureGetList struct {
 	list.Input
-	ProjectID int64  `json:"project_id,omitempty"`
-	DateGte   string `json:"date_gte,omitempty"`
-	DateLte   string `json:"date_lte,omitempty"`
+	ContractID int64  `json:"contract_id,omitempty"`
+	DateGte    string `json:"date_gte,omitempty"`
+	DateLte    string `json:"date_lte,omitempty"`
 }
 
 //以下为出参
 
-type CumulativeIncomeAndExpenditureOutput struct {
+type CumulativeContractIncomeAndExpenditureOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
 	ID           int64  `json:"id"`
@@ -71,10 +71,10 @@ type CumulativeIncomeAndExpenditureOutput struct {
 
 }
 
-func (i *CumulativeIncomeAndExpenditureUpdate) Update() response.Common {
+func (i *CumulativeContractIncomeAndExpenditureUpdate) Update() response.Common {
 	//连接关联表的id
 	{
-		if i.ProjectID > 0 {
+		if i.ContractID > 0 {
 			var planned int64
 			err := global.DB.Model(&model.DictionaryDetail{}).
 				Where("name = '计划'").Select("id").First(&planned).Error
@@ -115,114 +115,149 @@ func (i *CumulativeIncomeAndExpenditureUpdate) Update() response.Common {
 			}
 			fmt.Println("expenditure id:", expenditure)
 
-			//计算付款合同的总金额
-			var totalAmountOfExpenditureContract float64
+			//计算合同的总金额
+			var totalAmountOfContract float64
 			err = global.DB.Model(&model.Contract{}).
-				Where("project_id = ?", i.ProjectID).
-				Where("fund_direction = ?", expenditure).
-				Select("coalesce(sum(amount * exchange_rate),0)").
-				Find(&totalAmountOfExpenditureContract).Error
-			fmt.Println("付款合同总金额：", totalAmountOfExpenditureContract)
+				Where("id = ?", i.ContractID).
+				Select("coalesce(amount * exchange_rate,0)").
+				Find(&totalAmountOfContract).Error
+			fmt.Println("合同总金额：", totalAmountOfContract)
 
-			//计算收款合同的总金额
-			var totalAmountOfIncomeContract float64
-			err = global.DB.Model(&model.Contract{}).
-				Where("project_id = ?", i.ProjectID).
-				Where("fund_direction = ?", income).
-				Select("coalesce(sum(amount * exchange_rate),0)").
-				Find(&totalAmountOfIncomeContract).Error
-			fmt.Println("收款合同总金额：", totalAmountOfIncomeContract)
-			fmt.Println("*********************************")
+			global.DB.Where("contract_id = ?", i.ContractID).
+				Delete(&model.CumulativeContractIncomeAndExpenditure{})
 
-			global.DB.Where("project_id = ?", i.ProjectID).
-				Delete(&model.CumulativeIncomeAndExpenditure{})
-
-			var dates []time.Time
+			var datesForIncome []time.Time
 			global.DB.Model(&model.IncomeAndExpenditure{}).
-				Where("project_id = ?", i.ProjectID).Select("date").
-				Distinct("date").Order("date desc").Find(&dates)
+				Where("contract_id = ?", i.ContractID).
+				Where("fund_direction = ?", income).
+				Select("date").
+				Distinct("date").Order("date desc").Find(&datesForIncome)
+			fmt.Println("收款日期：", datesForIncome)
 
-			var records []model.CumulativeIncomeAndExpenditure
+			var datesForExpenditure []time.Time
+			global.DB.Model(&model.IncomeAndExpenditure{}).
+				Where("contract_id = ?", i.ContractID).
+				Where("fund_direction = ?", expenditure).
+				Select("date").
+				Distinct("date").Order("date desc").Find(&datesForExpenditure)
+			fmt.Println("付款日期：", datesForExpenditure)
 
-			for j := range dates {
-				var totalPlannedExpenditure float64
-				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Select("coalesce(sum(amount * exchange_rate),0)").Where("kind = ?", planned).
-					Where("fund_direction = ?", expenditure).
-					Where("date <= ?", dates[j]).Find(&totalPlannedExpenditure)
-				fmt.Println("计划付款总额：", totalPlannedExpenditure)
+			var records []model.CumulativeContractIncomeAndExpenditure
 
-				var totalActualExpenditure float64
-				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Select("coalesce(sum(amount * exchange_rate),0)").Where("kind = ?", actual).
-					Where("fund_direction = ?", expenditure).
-					Where("date <= ?", dates[j]).Find(&totalActualExpenditure)
-				fmt.Println("实际付款总额：", totalActualExpenditure)
-
-				var totalForecastedExpenditure float64
-				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Select("coalesce(sum(amount * exchange_rate),0)").Where("kind = ?", forecasted).
-					Where("fund_direction = ?", expenditure).
-					Where("date <= ?", dates[j]).Find(&totalForecastedExpenditure)
-				fmt.Println("预测付款总额：", totalForecastedExpenditure)
-
+			for j := range datesForIncome {
 				var totalPlannedIncome float64
 				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Select("coalesce(sum(amount * exchange_rate),0)").Where("kind = ?", planned).
+					Where("contract_id = ?", i.ContractID).
+					Where("kind = ?", planned).
 					Where("fund_direction = ?", income).
-					Where("date <= ?", dates[j]).Find(&totalPlannedIncome)
+					Where("date <= ?", datesForIncome[j]).
+					Select("coalesce(sum(amount * exchange_rate),0)").
+					Find(&totalPlannedIncome)
 				fmt.Println("计划收款总额：", totalPlannedIncome)
 
 				var totalActualIncome float64
 				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Select("coalesce(sum(amount * exchange_rate),0)").Where("kind = ?", actual).
+					Where("contract_id = ?", i.ContractID).
+					Where("kind = ?", actual).
 					Where("fund_direction = ?", income).
-					Where("date <= ?", dates[j]).Find(&totalActualIncome)
+					Where("date <= ?", datesForIncome[j]).
+					Select("coalesce(sum(amount * exchange_rate),0)").
+					Find(&totalActualIncome)
 				fmt.Println("实际收款总额：", totalActualIncome)
 
 				var totalForecastedIncome float64
 				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Select("coalesce(sum(amount * exchange_rate),0)").Where("kind = ?", forecasted).
+					Where("contract_id = ?", i.ContractID).
+					Where("kind = ?", forecasted).
 					Where("fund_direction = ?", income).
-					Where("date <= ?", dates[j]).Find(&totalForecastedIncome)
+					Where("date <= ?", datesForIncome[j]).
+					Select("coalesce(sum(amount * exchange_rate),0)").
+					Find(&totalForecastedIncome)
 				fmt.Println("预测收款总额：", totalForecastedIncome)
 
-				var record model.CumulativeIncomeAndExpenditure
+				var record model.CumulativeContractIncomeAndExpenditure
 				record.Creator = &i.Creator
 				record.LastModifier = &i.LastModifier
-				record.ProjectID = i.ProjectID
-				record.Date = &dates[j]
-				record.TotalPlannedExpenditure = totalPlannedExpenditure
-				record.TotalActualExpenditure = totalActualExpenditure
-				record.TotalForecastedExpenditure = totalForecastedExpenditure
+				record.ContractID = i.ContractID
+				record.Date = &datesForIncome[j]
+
 				record.TotalPlannedIncome = totalPlannedIncome
 				record.TotalActualIncome = totalActualIncome
 				record.TotalForecastedIncome = totalForecastedIncome
 
-				if totalAmountOfIncomeContract == 0 {
+				if totalAmountOfContract == 0 {
 					record.PlannedIncomeProgress = 0
 					record.ActualIncomeProgress = 0
 					record.ForecastedIncomeProgress = 0
 				} else {
-					record.PlannedIncomeProgress = totalPlannedIncome / totalAmountOfIncomeContract
-					record.ActualIncomeProgress = totalActualIncome / totalAmountOfIncomeContract
-					record.ForecastedIncomeProgress = totalForecastedIncome / totalAmountOfIncomeContract
+					record.PlannedIncomeProgress = totalPlannedIncome / totalAmountOfContract
+					record.ActualIncomeProgress = totalActualIncome / totalAmountOfContract
+					record.ForecastedIncomeProgress = totalForecastedIncome / totalAmountOfContract
 				}
 
-				if totalAmountOfExpenditureContract == 0 {
+				fmt.Println("------------------------")
+				records = append(records, record)
+			}
+
+			for j := range datesForExpenditure {
+				var totalPlannedExpenditure float64
+				global.DB.Model(&model.IncomeAndExpenditure{}).
+					Where("contract_id = ?", i.ContractID).
+					Where("kind = ?", planned).
+					Where("fund_direction = ?", expenditure).
+					Where("date <= ?", datesForExpenditure[j]).
+					Select("coalesce(sum(amount * exchange_rate),0)").
+					Find(&totalPlannedExpenditure)
+				fmt.Println("计划付款总额：", totalPlannedExpenditure)
+
+				var totalActualExpenditure float64
+				global.DB.Model(&model.IncomeAndExpenditure{}).
+					Where("contract_id = ?", i.ContractID).
+					Where("kind = ?", actual).
+					Where("fund_direction = ?", expenditure).
+					Where("date <= ?", datesForExpenditure[j]).
+					Select("coalesce(sum(amount * exchange_rate),0)").
+					Find(&totalActualExpenditure)
+				fmt.Println("实际付款总额：", totalActualExpenditure)
+
+				var totalForecastedExpenditure float64
+				global.DB.Model(&model.IncomeAndExpenditure{}).
+					Where("contract_id = ?", i.ContractID).
+					Where("kind = ?", forecasted).
+					Where("fund_direction = ?", expenditure).
+					Where("date <= ?", datesForExpenditure[j]).
+					Select("coalesce(sum(amount * exchange_rate),0)").
+					Find(&totalForecastedExpenditure)
+				fmt.Println("预测付款总额：", totalForecastedExpenditure)
+
+				var record model.CumulativeContractIncomeAndExpenditure
+				record.Creator = &i.Creator
+				record.LastModifier = &i.LastModifier
+				record.ContractID = i.ContractID
+				record.Date = &datesForExpenditure[j]
+
+				record.TotalPlannedExpenditure = totalPlannedExpenditure
+				record.TotalActualExpenditure = totalActualExpenditure
+				record.TotalForecastedExpenditure = totalForecastedExpenditure
+
+				if totalAmountOfContract == 0 {
 					record.PlannedExpenditureProgress = 0
 					record.ActualExpenditureProgress = 0
 					record.ForecastedExpenditureProgress = 0
 				} else {
-					record.PlannedExpenditureProgress = totalPlannedExpenditure / totalAmountOfExpenditureContract
-					record.ActualExpenditureProgress = totalActualExpenditure / totalAmountOfExpenditureContract
-					record.ForecastedExpenditureProgress = totalForecastedExpenditure / totalAmountOfExpenditureContract
+					record.PlannedExpenditureProgress = totalPlannedExpenditure / totalAmountOfContract
+					record.ActualExpenditureProgress = totalActualExpenditure / totalAmountOfContract
+					record.ForecastedExpenditureProgress = totalForecastedExpenditure / totalAmountOfContract
 				}
 
 				fmt.Println("------------------------")
-
 				records = append(records, record)
 			}
+
+			if len(records) == 0 {
+				return response.Success()
+			}
+
 			err = global.DB.Create(&records).Error
 			if err != nil {
 				return response.Failure(util.ErrorFailToCreateRecord)
@@ -233,13 +268,13 @@ func (i *CumulativeIncomeAndExpenditureUpdate) Update() response.Common {
 	return response.Success()
 }
 
-func (i *CumulativeIncomeAndExpenditureGetList) GetList() response.List {
-	db := global.DB.Model(&model.CumulativeIncomeAndExpenditure{})
+func (i *CumulativeContractIncomeAndExpenditureGetList) GetList() response.List {
+	db := global.DB.Model(&model.CumulativeContractIncomeAndExpenditure{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if i.ProjectID > 0 {
-		db = db.Where("project_id = ?", i.ProjectID)
+	if i.ContractID > 0 {
+		db = db.Where("contract_id = ?", i.ContractID)
 	}
 
 	if i.DateGte != "" {
@@ -265,7 +300,7 @@ func (i *CumulativeIncomeAndExpenditureGetList) GetList() response.List {
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(&model.CumulativeIncomeAndExpenditure{}, orderBy)
+		exists := util.FieldIsInModel(&model.CumulativeContractIncomeAndExpenditure{}, orderBy)
 		if !exists {
 			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
@@ -296,8 +331,8 @@ func (i *CumulativeIncomeAndExpenditureGetList) GetList() response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []CumulativeIncomeAndExpenditureOutput
-	db.Model(&model.CumulativeIncomeAndExpenditure{}).Find(&data)
+	var data []CumulativeContractIncomeAndExpenditureOutput
+	db.Model(&model.CumulativeContractIncomeAndExpenditure{}).Find(&data)
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
