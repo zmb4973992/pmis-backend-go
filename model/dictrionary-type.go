@@ -108,6 +108,10 @@ var dictionaryTypes = []DictionaryType{
 		Name: "收付款的种类", //款项种类（计划、实际、预测）
 		Sort: IntToPointer(18),
 	},
+	{
+		Name: "款项类型", //预付款、发货款、尾款等
+		Sort: IntToPointer(19),
+	},
 }
 
 func generateDictionaryType() (err error) {

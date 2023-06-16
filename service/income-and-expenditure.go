@@ -24,9 +24,9 @@ type IncomeAndExpenditureCreate struct {
 	ProjectID  int64 `json:"project_id,omitempty"`
 	ContractID int64 `json:"contract_id,omitempty"`
 	//连接dictionary_item表的id
-	FundDirection int64 `json:"fund_direction,omitempty"`
-	Currency      int64 `json:"currency,omitempty"`
-	Kind          int64 `json:"kind,omitempty"`
+	FundDirection string `json:"fund_direction,omitempty"`
+	Currency      int64  `json:"currency,omitempty"`
+	Kind          int64  `json:"kind,omitempty"`
 	//日期
 	Date string `json:"date,omitempty"`
 	//数字
@@ -51,9 +51,9 @@ type IncomeAndExpenditureUpdate struct {
 	ProjectID  *int64 `json:"project_id"`
 	ContractID *int64 `json:"contract_id"`
 	//连接dictionary_item表的id
-	FundDirection *int64 `json:"fund_direction"`
-	Currency      *int64 `json:"currency"`
-	Kind          *int64 `json:"kind"`
+	FundDirection *string `json:"fund_direction"`
+	Currency      *int64  `json:"currency"`
+	Kind          *int64  `json:"kind"`
 	//日期
 	Date *string `json:"date"`
 	//数字
@@ -209,8 +209,14 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 
 	//连接dictionary_item表的id
 	{
-		if i.FundDirection > 0 {
-			paramOut.FundDirection = &i.FundDirection
+		if i.FundDirection != "" {
+			var fundDirection model.DictionaryDetail
+			err := global.DB.Where("name = ?", i.FundDirection).
+				First(&fundDirection).Error
+			if err != nil {
+				return response.Failure(util.ErrorFailToCreateRecord)
+			}
+			paramOut.FundDirection = &fundDirection.ID
 		}
 		if i.Currency > 0 {
 			paramOut.Currency = &i.Currency
@@ -306,9 +312,15 @@ func (i *IncomeAndExpenditureUpdate) Update() response.Common {
 	//连接dictionary_item表的id
 	{
 		if i.FundDirection != nil {
-			if *i.FundDirection > 0 {
-				paramOut["fund_direction"] = i.FundDirection
-			} else if *i.FundDirection == -1 {
+			if *i.FundDirection != "" {
+				var fundDirection model.DictionaryDetail
+				err := global.DB.Where("name = ?", i.FundDirection).
+					First(&fundDirection).Error
+				if err != nil {
+					return response.Failure(util.ErrorFailToUpdateRecord)
+				}
+				paramOut["fund_direction"] = fundDirection.ID
+			} else if *i.FundDirection == "" {
 				paramOut["fund_direction"] = nil
 			}
 		}
@@ -482,8 +494,7 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 		Select("id").Find(&contractIDs)
 	fmt.Println("合同id：", contractIDs)
 	//汇总
-	db = db.Where("project_id in ?", projectIDs).
-		Or("contract_id in ?", contractIDs)
+	db = db.Where("project_id in ? or contract_id in ?", projectIDs, contractIDs)
 
 	//count
 	var count int64

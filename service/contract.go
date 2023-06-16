@@ -621,8 +621,8 @@ func (c *ContractGetList) GetList() response.List {
 	global.DB.Model(&model.Project{}).Where("organization_id in ?", organizationIDsForDataScope).
 		Select("id").Find(&projectIDs)
 	//然后再加上组织的数据范围
-	db = db.Where("organization_id in ?", organizationIDsForDataScope).
-		Or("project_id in ?", projectIDs)
+	db = db.Where("organization_id in ? or project_id in ?",
+		organizationIDsForDataScope, projectIDs)
 
 	//count
 	var count int64
@@ -672,7 +672,7 @@ func (c *ContractGetList) GetList() response.List {
 
 	//data
 	var data []ContractOutput
-	db.Model(&model.Contract{}).Find(&data)
+	db.Model(&model.Contract{}).Debug().Find(&data)
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)

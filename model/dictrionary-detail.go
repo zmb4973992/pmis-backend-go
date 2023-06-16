@@ -29,8 +29,9 @@ var initialDictionary = []dictionaryDetailFormat{
 		DetailNames: []string{"上海", "北京", "山东", "河南"},
 	},
 	{
-		TypeName:    "收付款方式",
-		DetailNames: []string{"现金", "汇票", "信用证"},
+		TypeName: "收付款方式",
+		DetailNames: []string{"T/T(电汇)", "L/C(信用证)", "D/P(付款交单)", "D/A(承兑交单)",
+			"D/D(票汇)", "Cash(现金)", "M/T(信汇)", "其他"},
 	},
 	{
 		TypeName:    "进度类型",
@@ -105,6 +106,10 @@ var initialDictionary = []dictionaryDetailFormat{
 		TypeName:    "我方签约主体",
 		DetailNames: []string{"中国航空技术北京有限公司"},
 	},
+	{
+		TypeName:    "款项类型",
+		DetailNames: []string{"预付款", "发货款/交付款", "进度款", "尾款", "质保款", "其他"},
+	},
 }
 
 func generateDictionaryDetail() (err error) {
@@ -127,7 +132,9 @@ func generateDictionaryDetail() (err error) {
 	}
 
 	for _, dictionaryDetail := range dictionaryDetails {
-		err = global.DB.Where("name = ?", dictionaryDetail.Name).
+		err = global.DB.
+			Where("name = ?", dictionaryDetail.Name).
+			Where("dictionary_type_id = ?", dictionaryDetail.DictionaryTypeID).
 			Attrs(&DictionaryDetail{
 				Status: BoolToPointer(true),
 			}).
