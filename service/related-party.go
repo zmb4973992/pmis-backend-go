@@ -19,11 +19,12 @@ type RelatedPartyCreate struct {
 	Creator      int64
 	LastModifier int64
 
-	ChineseName             string `json:"chinese_name,omitempty"`
+	Name                    string `json:"name,omitempty"`
 	EnglishName             string `json:"english_name,omitempty"`
 	Address                 string `json:"address,omitempty"`
 	UniformSocialCreditCode string `json:"uniform_social_credit_code,omitempty"` //统一社会信用代码
 	Telephone               string `json:"telephone,omitempty"`
+	ImportedOriginalName    string `json:"imported_original_name,omitempty"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -34,7 +35,7 @@ type RelatedPartyUpdate struct {
 	LastModifier int64
 	ID           int64
 
-	ChineseName             *string `json:"chinese_name"`
+	Name                    *string `json:"name"`
 	EnglishName             *string `json:"english_name"`
 	Address                 *string `json:"address"`
 	UniformSocialCreditCode *string `json:"uniform_social_credit_code"` //统一社会信用代码
@@ -48,7 +49,7 @@ type RelatedPartyDelete struct {
 type RelatedPartyGetList struct {
 	list.Input
 
-	ChineseNameInclude string `json:"chinese_name_include,omitempty"`
+	NameInclude        string `json:"name_include,omitempty"`
 	EnglishNameInclude string `json:"english_name_include,omitempty"`
 }
 
@@ -59,7 +60,7 @@ type RelatedPartyOutput struct {
 	LastModifier *int64 `json:"last_modifier"`
 	ID           int64  `json:"id"`
 
-	ChineseName             *string `json:"chinese_name"`
+	Name                    *string `json:"name"`
 	EnglishName             *string `json:"english_name"`
 	Address                 *string `json:"address"`
 	UniformSocialCreditCode *string `json:"uniform_social_credit_code"` //统一社会信用代码
@@ -87,8 +88,8 @@ func (r *RelatedPartyCreate) Create() response.Common {
 		paramOut.LastModifier = &r.LastModifier
 	}
 
-	if r.ChineseName != "" {
-		paramOut.ChineseName = &r.ChineseName
+	if r.Name != "" {
+		paramOut.Name = &r.Name
 	}
 
 	if r.EnglishName != "" {
@@ -105,6 +106,10 @@ func (r *RelatedPartyCreate) Create() response.Common {
 
 	if r.Telephone != "" {
 		paramOut.Telephone = &r.Telephone
+	}
+
+	if r.ImportedOriginalName != "" {
+		paramOut.ImportedOriginalName = &r.ImportedOriginalName
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
@@ -134,9 +139,9 @@ func (r *RelatedPartyUpdate) Update() response.Common {
 		paramOut["last_modifier"] = r.LastModifier
 	}
 
-	if r.ChineseName != nil {
-		if *r.ChineseName != "" {
-			paramOut["chinese_name"] = r.ChineseName
+	if r.Name != nil {
+		if *r.Name != "" {
+			paramOut["chinese_name"] = r.Name
 		} else {
 			paramOut["chinese_name"] = nil
 		}
@@ -209,8 +214,8 @@ func (r *RelatedPartyGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if r.ChineseNameInclude != "" {
-		db = db.Where("chinese_name like ?", "%"+r.ChineseNameInclude+"%")
+	if r.NameInclude != "" {
+		db = db.Where("chinese_name like ?", "%"+r.NameInclude+"%")
 	}
 
 	if r.EnglishNameInclude != "" {

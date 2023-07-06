@@ -12,6 +12,13 @@ database:
   db-username: "sa"
   db-password: "028912"
 
+database2:
+  db-host: "10.3.0.16"
+  db-port: "1433"
+  db-name: "BMSYS_JCHK"
+  db-username: "MBPro"
+  db-password: "orPBM965"
+
 jwt:
   #自定义密钥
   secret-key: "e7KF3k0dj3"

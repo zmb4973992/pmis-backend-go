@@ -10,8 +10,10 @@ import (
 
 // 需要全局使用的变量都在这里声明，方便其他包调用
 var (
-	DB     *gorm.DB
+	DB     *gorm.DB //自身主数据库
+	DB2    *gorm.DB //率敏的数据库
 	Config config
+
 	// Logger zap的标准logger，速度更快，但是输入麻烦，用于取代gin的logger
 	Logger *zap.Logger
 	// SugaredLogger zap的加糖logger，速度慢一点点，但是输入方便，自己用
@@ -31,7 +33,8 @@ const (
 // 这层只是中间的汇总层，只是包内引用、不展示，所以小写
 type config struct {
 	AppConfig
-	DBConfig
+	DBConfig  DBConfig
+	DB2Config DBConfig
 	JWTConfig
 	LogConfig
 	UploadConfig
@@ -155,6 +158,16 @@ func loadConfig() {
 	Config.DBConfig.DSN = "sqlserver://" + Config.DBConfig.DbUsername +
 		":" + Config.DBConfig.DbPassword + "@" + Config.DBConfig.DbHost +
 		":" + Config.DBConfig.DbPort + "?database=" + Config.DBConfig.DbName
+
+	Config.DB2Config.DbHost = v.GetString("database2.db-host")
+	Config.DB2Config.DbPort = v.GetString("database2.db-port")
+	Config.DB2Config.DbName = v.GetString("database2.db-name")
+	Config.DB2Config.DbUsername = v.GetString("database2.db-username")
+	Config.DB2Config.DbPassword = v.GetString("database2.db-password")
+	Config.DB2Config.DSN = "sqlserver://" + Config.DB2Config.DbUsername +
+		":" + Config.DB2Config.DbPassword + "@" + Config.DB2Config.DbHost +
+		":" + Config.DB2Config.DbPort + "?database=" + Config.DB2Config.DbName +
+		"&encrypt=disable" //老版本数据库不支持加密连接，不加这个会报错
 
 	Config.JWTConfig.SecretKey = v.GetString("jwt.secret-key")
 	Config.JWTConfig.ValidityDays = v.GetInt("jwt.validity-days")

@@ -29,6 +29,11 @@ func main() {
 	}
 	//开启定时任务
 	cron.Init()
+
+	cron.ImportRelatedParty()
+	cron.ImportProject()
+	cron.ImportContract()
+
 	//运行服务
 	err := engine.Run(":" + global.Config.AppConfig.HttpPort)
 

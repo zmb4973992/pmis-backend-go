@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-//不要软删除，因为progress涉及到大量的删除、新增，会产生大量的冗余数据
+//不要软删除，因为progress、cumulative等涉及到大量的删除、新增，会产生大量的冗余数据
 
 type BasicModel struct {
 	ID           int64     `json:"id"`

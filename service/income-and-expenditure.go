@@ -26,16 +26,15 @@ type IncomeAndExpenditureCreate struct {
 	//连接dictionary_item表的id
 	FundDirection string `json:"fund_direction,omitempty"`
 	Currency      int64  `json:"currency,omitempty"`
-	Kind          int64  `json:"kind,omitempty"`
+	Kind          string `json:"kind,omitempty"`
 	//日期
 	Date string `json:"date,omitempty"`
 	//数字
 	Amount       *float64 `json:"amount"`
 	ExchangeRate *float64 `json:"exchange_rate"`
 	//字符串
-	Type       string `json:"type,omitempty"`
-	Condition  string `json:"condition,omitempty"`
-	Term       string `json:"term,omitempty"`
+	Type       int64  `json:"type,omitempty"`
+	Term       int64  `json:"term,omitempty"`
 	Remarks    string `json:"remarks,omitempty"`
 	Attachment string `json:"attachment,omitempty"`
 }
@@ -53,16 +52,15 @@ type IncomeAndExpenditureUpdate struct {
 	//连接dictionary_item表的id
 	FundDirection *string `json:"fund_direction"`
 	Currency      *int64  `json:"currency"`
-	Kind          *int64  `json:"kind"`
+	Kind          *string `json:"kind"`
 	//日期
 	Date *string `json:"date"`
 	//数字
 	Amount       *float64 `json:"amount"`
 	ExchangeRate *float64 `json:"exchange_rate"`
 	//字符串
-	Type       *string `json:"type"`
-	Condition  *string `json:"condition"`
-	Term       *string `json:"term"`
+	Type       *int64  `json:"type"`
+	Term       *int64  `json:"term"`
 	Remarks    *string `json:"remarks"`
 	Attachment *string `json:"attachment"`
 }
@@ -94,6 +92,8 @@ type IncomeAndExpenditureOutput struct {
 	FundDirection *int64 `json:"-"`
 	Currency      *int64 `json:"-"`
 	Kind          *int64 `json:"-"`
+	Type          *int64 `json:"-"`
+
 	//关联表的详情，不需要gorm查询，需要在json中显示
 	ProjectExternal  *ProjectOutput  `json:"project" gorm:"-"`
 	ContractExternal *ContractOutput `json:"contract" gorm:"-"`
@@ -101,14 +101,14 @@ type IncomeAndExpenditureOutput struct {
 	FundDirectionExternal *DictionaryDetailOutput `json:"fund_direction" gorm:"-"`
 	CurrencyExternal      *DictionaryDetailOutput `json:"currency" gorm:"-"`
 	KindExternal          *DictionaryDetailOutput `json:"kind" gorm:"-"`
+	TypeExternal          *DictionaryDetailOutput `json:"type" gorm:"-"`
+
 	//其他属性
 	Date *string `json:"date"`
 
 	Amount       *float64 `json:"amount"`
 	ExchangeRate *float64 `json:"exchange_rate"`
 
-	Type       *string `json:"type"`
-	Condition  *string `json:"condition"`
 	Term       *string `json:"term"`
 	Remarks    *string `json:"remarks"`
 	Attachment *string `json:"attachment"`
@@ -173,6 +173,15 @@ func (i *IncomeAndExpenditureGet) Get() response.Common {
 				result.KindExternal = &record
 			}
 		}
+		if result.Type != nil {
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
+				Where("id = ?", *result.Type).
+				Limit(1).Find(&record)
+			if res.RowsAffected > 0 {
+				result.TypeExternal = &record
+			}
+		}
 	}
 
 	//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
@@ -221,8 +230,14 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 		if i.Currency > 0 {
 			paramOut.Currency = &i.Currency
 		}
-		if i.Kind > 0 {
-			paramOut.Kind = &i.Kind
+		if i.Kind != "" {
+			var kind model.DictionaryDetail
+			err := global.DB.Where("name = ?", i.Kind).
+				First(&kind).Error
+			if err != nil {
+				return response.Failure(util.ErrorFailToCreateRecord)
+			}
+			paramOut.Kind = &kind.ID
 		}
 	}
 
@@ -249,13 +264,10 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 
 	//字符串
 	{
-		if i.Type != "" {
+		if i.Type > 0 {
 			paramOut.Type = &i.Type
 		}
-		if i.Condition != "" {
-			paramOut.Condition = &i.Condition
-		}
-		if i.Term != "" {
+		if i.Term > 0 {
 			paramOut.Term = &i.Term
 		}
 		if i.Remarks != "" {
@@ -283,6 +295,13 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
+
+	//更新项目累计收付款
+	var temp1 = ProjectCumulativeExpenditureUpdate{ProjectID: i.ProjectID}
+	temp1.Update()
+	var temp2 = ProjectCumulativeIncomeUpdate{ProjectID: i.ProjectID}
+	temp2.Update()
+
 	return response.Success()
 }
 
@@ -332,9 +351,15 @@ func (i *IncomeAndExpenditureUpdate) Update() response.Common {
 			}
 		}
 		if i.Kind != nil {
-			if *i.Kind > 0 {
-				paramOut["kind"] = i.Kind
-			} else if *i.Kind == -1 {
+			if *i.Kind != "" {
+				var kind model.DictionaryDetail
+				err := global.DB.Where("name = ?", i.Kind).
+					First(&kind).Error
+				if err != nil {
+					return response.Failure(util.ErrorFailToUpdateRecord)
+				}
+				paramOut["kind"] = kind.ID
+			} else if *i.Kind == "" {
 				paramOut["kind"] = nil
 			}
 		}
@@ -376,21 +401,14 @@ func (i *IncomeAndExpenditureUpdate) Update() response.Common {
 	//字符串
 	{
 		if i.Type != nil {
-			if *i.Type != "" {
+			if *i.Type > 0 {
 				paramOut["type"] = *i.Type
 			} else {
 				paramOut["type"] = nil
 			}
 		}
-		if i.Condition != nil {
-			if *i.Condition != "" {
-				paramOut["condition"] = *i.Condition
-			} else {
-				paramOut["condition"] = nil
-			}
-		}
 		if i.Term != nil {
-			if *i.Term != "" {
+			if *i.Term > 0 {
 				paramOut["term"] = *i.Term
 			} else {
 				paramOut["term"] = nil
@@ -596,6 +614,14 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 					Where("id = ?", *data[i].Kind).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].KindExternal = &record
+				}
+			}
+			if data[i].Type != nil {
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
+					Where("id = ?", *data[i].Type).Limit(1).Find(&record)
+				if res.RowsAffected > 0 {
+					data[i].TypeExternal = &record
 				}
 			}
 		}
