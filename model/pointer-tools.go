@@ -15,3 +15,7 @@ func BoolToPointer(param bool) *bool {
 func Float64ToPointer(param float64) *float64 {
 	return &param
 }
+
+func StringToPointer(param string) *string {
+	return &param
+}

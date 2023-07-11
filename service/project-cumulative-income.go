@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -69,13 +68,19 @@ func (p *ProjectCumulativeIncomeUpdate) Update() response.Common {
 	//连接关联表的id
 	{
 		if p.ProjectID > 0 {
+			var typeOfIncomeAndExpenditure int64
+			err := global.DB.Model(&model.DictionaryType{}).
+				Where("name = '收付款的种类'").Select("id").First(&typeOfIncomeAndExpenditure).Error
+			if err != nil {
+				return response.Failure(util.ErrorFailToUpdateRecord)
+			}
+
 			var planned int64
-			err := global.DB.Model(&model.DictionaryDetail{}).
+			err = global.DB.Model(&model.DictionaryDetail{}).
 				Where("name = '计划'").Select("id").First(&planned).Error
 			if err != nil {
 				return response.Failure(util.ErrorFailToUpdateRecord)
 			}
-			fmt.Println("planned id:", planned)
 
 			var actual int64
 			err = global.DB.Model(&model.DictionaryDetail{}).
@@ -83,7 +88,6 @@ func (p *ProjectCumulativeIncomeUpdate) Update() response.Common {
 			if err != nil {
 				return response.Failure(util.ErrorFailToUpdateRecord)
 			}
-			fmt.Println("actual id:", actual)
 
 			var forecasted int64
 			err = global.DB.Model(&model.DictionaryDetail{}).
@@ -91,28 +95,48 @@ func (p *ProjectCumulativeIncomeUpdate) Update() response.Common {
 			if err != nil {
 				return response.Failure(util.ErrorFailToUpdateRecord)
 			}
-			fmt.Println("forecasted id:", forecasted)
 
-			var income int64
-			err = global.DB.Model(&model.DictionaryDetail{}).
-				Where("name = '收款'").Select("id").First(&income).Error
+			var fundDirectionOfContract int64
+			err = global.DB.Model(&model.DictionaryType{}).
+				Where("name = '合同的资金方向'").Select("id").First(&fundDirectionOfContract).Error
 			if err != nil {
 				return response.Failure(util.ErrorFailToUpdateRecord)
 			}
-			fmt.Println("income id:", income)
+
+			var incomeContract int64
+			err = global.DB.Model(&model.DictionaryDetail{}).
+				Where("name = '收款合同'").Select("id").First(&incomeContract).Error
+			if err != nil {
+				return response.Failure(util.ErrorFailToUpdateRecord)
+			}
 
 			//计算收款合同的总金额
 			var totalAmountOfIncomeContract float64
 			err = global.DB.Model(&model.Contract{}).
 				Where("project_id = ?", p.ProjectID).
-				Where("fund_direction = ?", income).
+				Where("fund_direction = ?", incomeContract).
 				Select("coalesce(sum(amount * exchange_rate),0)").
 				Find(&totalAmountOfIncomeContract).Error
-			fmt.Println("收款合同总金额：", totalAmountOfIncomeContract)
-			fmt.Println("*********************************")
+			//fmt.Println("收款合同总金额：", totalAmountOfIncomeContract)
+			//fmt.Println("*********************************")
 
 			global.DB.Where("project_id = ?", p.ProjectID).
 				Delete(&model.ProjectCumulativeIncome{})
+
+			var fundDirectionOfIncomeAndExpenditure int64
+			err = global.DB.Model(&model.DictionaryType{}).
+				Where("name = '收付款的资金方向'").Select("id").First(&fundDirectionOfIncomeAndExpenditure).Error
+			if err != nil {
+				return response.Failure(util.ErrorFailToUpdateRecord)
+			}
+
+			var income int64
+			err = global.DB.Model(&model.DictionaryDetail{}).
+				Where("dictionary_type_id = ?", fundDirectionOfIncomeAndExpenditure).
+				Where("name = '收款'").Select("id").First(&income).Error
+			if err != nil {
+				return response.Failure(util.ErrorFailToUpdateRecord)
+			}
 
 			var dates []time.Time
 			global.DB.Model(&model.IncomeAndExpenditure{}).
@@ -120,12 +144,12 @@ func (p *ProjectCumulativeIncomeUpdate) Update() response.Common {
 				Where("fund_direction = ?", income).
 				Select("date").Distinct("date").Order("date desc").
 				Find(&dates)
-			fmt.Println("日期：", dates)
+			//fmt.Println("日期：", dates)
 
 			var records []model.ProjectCumulativeIncome
 
 			for j := range dates {
-				fmt.Println("日期：", dates[j].Format("2006-01-02")[:10])
+				//fmt.Println("日期：", dates[j].Format("2006-01-02")[:10])
 				var record model.ProjectCumulativeIncome
 
 				var totalPlannedIncome float64
@@ -145,11 +169,11 @@ func (p *ProjectCumulativeIncomeUpdate) Update() response.Common {
 						Select("coalesce(sum(amount * exchange_rate),0)").
 						Find(&totalPlannedIncome)
 					record.TotalPlannedIncome = &totalPlannedIncome
-					fmt.Println("计划收款总额：", totalPlannedIncome)
+					//fmt.Println("计划收款总额：", totalPlannedIncome)
 					if totalAmountOfIncomeContract > 0 {
 						var plannedIncomeProgress = totalPlannedIncome / totalAmountOfIncomeContract
 						record.PlannedIncomeProgress = &plannedIncomeProgress
-						fmt.Println("计划收款进度：", plannedIncomeProgress)
+						//fmt.Println("计划收款进度：", plannedIncomeProgress)
 					}
 				}
 
@@ -170,11 +194,11 @@ func (p *ProjectCumulativeIncomeUpdate) Update() response.Common {
 						Select("coalesce(sum(amount * exchange_rate),0)").
 						Find(&totalActualIncome)
 					record.TotalActualIncome = &totalActualIncome
-					fmt.Println("实际收款总额：", totalActualIncome)
+					//fmt.Println("实际收款总额：", totalActualIncome)
 					if totalAmountOfIncomeContract > 0 {
 						var actualIncomeProgress = totalActualIncome / totalAmountOfIncomeContract
 						record.ActualIncomeProgress = &actualIncomeProgress
-						fmt.Println("实际收款进度：", actualIncomeProgress)
+						//fmt.Println("实际收款进度：", actualIncomeProgress)
 					}
 				}
 
@@ -195,11 +219,11 @@ func (p *ProjectCumulativeIncomeUpdate) Update() response.Common {
 						Select("coalesce(sum(amount * exchange_rate),0)").
 						Find(&totalForecastedIncome)
 					record.TotalForecastedIncome = &totalForecastedIncome
-					fmt.Println("预测收款总额：", totalForecastedIncome)
+					//fmt.Println("预测收款总额：", totalForecastedIncome)
 					if totalAmountOfIncomeContract > 0 {
 						var forecastedIncomeProgress = totalForecastedIncome / totalAmountOfIncomeContract
 						record.ForecastedIncomeProgress = &forecastedIncomeProgress
-						fmt.Println("预测收款进度：", forecastedIncomeProgress)
+						//fmt.Println("预测收款进度：", forecastedIncomeProgress)
 					}
 				}
 
@@ -208,7 +232,7 @@ func (p *ProjectCumulativeIncomeUpdate) Update() response.Common {
 				record.ProjectID = p.ProjectID
 				record.Date = &dates[j]
 
-				fmt.Println("------------------------")
+				//fmt.Println("------------------------")
 
 				records = append(records, record)
 			}
@@ -217,7 +241,7 @@ func (p *ProjectCumulativeIncomeUpdate) Update() response.Common {
 				return response.Success()
 			}
 
-			err = global.DB.Create(&records).Error
+			err = global.DB.CreateInBatches(records, 10).Error
 			if err != nil {
 				return response.Failure(util.ErrorFailToCreateRecord)
 			}

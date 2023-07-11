@@ -53,7 +53,7 @@ func InitDatabase() {
 		&MenuAndApi{},                   //菜单和api的中间表
 		&ProjectCumulativeIncome{},      //项目累计收款
 		&ProjectCumulativeExpenditure{}, //项目累计付款
-		&CumulativeContractIncomeAndExpenditure{}, //合同累计收付款
+		//&CumulativeContractIncomeAndExpenditure{}, //合同累计收付款
 
 	)
 	if err != nil {

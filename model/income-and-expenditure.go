@@ -22,6 +22,9 @@ type IncomeAndExpenditure struct {
 	//字符串
 	Remarks    *string //备注
 	Attachment *string //附件
+
+	ImportedApprovalID *string //外部导入的付款审批id
+
 }
 
 func (*IncomeAndExpenditure) TableName() string {

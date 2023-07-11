@@ -33,10 +33,11 @@ type IncomeAndExpenditureCreate struct {
 	Amount       *float64 `json:"amount"`
 	ExchangeRate *float64 `json:"exchange_rate"`
 	//字符串
-	Type       int64  `json:"type,omitempty"`
-	Term       int64  `json:"term,omitempty"`
-	Remarks    string `json:"remarks,omitempty"`
-	Attachment string `json:"attachment,omitempty"`
+	Type               int64  `json:"type,omitempty"`
+	Term               int64  `json:"term,omitempty"`
+	Remarks            string `json:"remarks,omitempty"`
+	Attachment         string `json:"attachment,omitempty"`
+	ImportedApprovalID string `json:"imported_approval_id,omitempty"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -275,6 +276,9 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 		}
 		if i.Attachment != "" {
 			paramOut.Attachment = &i.Attachment
+		}
+		if i.ImportedApprovalID != "" {
+			paramOut.ImportedApprovalID = &i.ImportedApprovalID
 		}
 	}
 

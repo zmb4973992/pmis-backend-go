@@ -57,10 +57,6 @@ var dictionaryTypes = []DictionaryType{
 		Sort: IntToPointer(5),
 	},
 	{
-		Name: "敏感词",
-		Sort: IntToPointer(6),
-	},
-	{
 		Name: "收付款方式",
 		Sort: IntToPointer(7),
 	},
@@ -81,8 +77,9 @@ var dictionaryTypes = []DictionaryType{
 		Sort: IntToPointer(11),
 	},
 	{
-		Name: "合同的资金方向",
-		Sort: IntToPointer(12),
+		Name:    "合同的资金方向",
+		Sort:    IntToPointer(12),
+		Remarks: stringToPointer("如：收款合同、付款合同"),
 	},
 	{
 		Name: "我方签约主体",
@@ -101,16 +98,19 @@ var dictionaryTypes = []DictionaryType{
 		Sort: IntToPointer(16),
 	},
 	{
-		Name: "收付款的资金方向",
-		Sort: IntToPointer(17),
+		Name:    "收付款的资金方向",
+		Sort:    IntToPointer(17),
+		Remarks: stringToPointer("如：收款、付款、不涉及收付款"),
 	},
 	{
-		Name: "收付款的种类", //款项种类（计划、实际、预测）
-		Sort: IntToPointer(18),
+		Name:    "收付款的种类",
+		Sort:    IntToPointer(18),
+		Remarks: stringToPointer("如：计划、实际、预测"),
 	},
 	{
-		Name: "款项类型", //预付款、发货款、尾款等
-		Sort: IntToPointer(19),
+		Name:    "款项类型", //预付款、发货款、尾款等
+		Sort:    IntToPointer(19),
+		Remarks: stringToPointer("如：预付款、进度款、尾款等"),
 	},
 }
 
