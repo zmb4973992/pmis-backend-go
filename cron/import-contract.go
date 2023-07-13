@@ -25,7 +25,7 @@ type tabContract struct {
 	FundDirection             string  `gorm:"column:F12338"`
 }
 
-func ImportContract() {
+func importContract() {
 	fmt.Println("★★★★★开始处理合同记录......★★★★★")
 
 	var records []tabContract

@@ -21,7 +21,7 @@ type tabOriPayPlan struct {
 	ExchangeRate       float64
 }
 
-func ImportPlannedExpenditure() {
+func importPlannedExpenditure() {
 	fmt.Println("★★★★★开始处理计划付款记录......★★★★★")
 
 	var records []tabOriPayPlan

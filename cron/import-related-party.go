@@ -10,12 +10,14 @@ import (
 	"strings"
 )
 
-func ImportRelatedParty() {
+func importRelatedParty() {
 	fmt.Println("★★★★★开始处理相关方记录......★★★★★")
-
 	importRelatedPartyFromTabSupplier()
 	importRelatedPartyFromTabContract()
 	importRelatedPartyFromTabFukuan2()
+	importRelatedPartyFromTabShouKuan()
+	importRelatedPartyFromTabShouHui()
+
 }
 
 type tabSupplier struct {
@@ -181,6 +183,114 @@ func importRelatedPartyFromTabFukuan2() {
 			param := service.RelatedPartyCreate{
 				Name:                 strings.TrimSpace(records[i].Name),
 				ImportedOriginalName: records[i].Name + "|"}
+			param.Create()
+		}
+	}
+}
+
+type tabShouKuanA struct {
+	RelatedPartyName string `gorm:"column:F10851"`
+}
+
+func importRelatedPartyFromTabShouKuan() {
+	fmt.Println("正在从tabShouKuan导入相关方数据......")
+
+	var records []tabShouKuanA
+	global.DB2.Table("tabShouKuan").Find(&records)
+
+	var existedNames []string
+
+	for i := range records {
+		if i > 0 && i%100 == 0 {
+			process, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(i)/float64(len(records))), 64)
+			fmt.Println("已处理", i, "条相关方记录，当前进度：", fmt.Sprintf("%.0f", process*100), "%")
+		}
+
+		//初筛，基本能过滤掉95%以上的重复数据
+		var tempCount int64
+		global.DB.Model(&model.RelatedParty{}).
+			Where("name = ?", strings.TrimSpace(records[i].RelatedPartyName)).
+			Count(&tempCount)
+
+		//如果通过初筛、没有重复记录，才执行细筛
+		if tempCount == 0 {
+			var relatedParties []model.RelatedParty
+			global.DB.Model(&model.RelatedParty{}).Find(&relatedParties)
+
+			for j := range relatedParties {
+				if relatedParties[j].Name != nil {
+					existedNames = append(existedNames, *relatedParties[j].Name)
+				}
+				if relatedParties[j].EnglishName != nil {
+					existedNames = append(existedNames, *relatedParties[j].EnglishName)
+				}
+				if relatedParties[j].ImportedOriginalName != nil {
+					importedOriginalNames := strings.Split(*relatedParties[j].ImportedOriginalName, "|")
+					existedNames = append(existedNames, importedOriginalNames...)
+				}
+			}
+
+			if util.SliceIncludes(existedNames, strings.TrimSpace(records[i].RelatedPartyName)) {
+				continue
+			}
+
+			param := service.RelatedPartyCreate{
+				Name:                 strings.TrimSpace(records[i].RelatedPartyName),
+				ImportedOriginalName: records[i].RelatedPartyName + "|"}
+			param.Create()
+		}
+	}
+}
+
+type tabShouHuiA struct {
+	RelatedPartyName string `gorm:"column:F14394"`
+}
+
+func importRelatedPartyFromTabShouHui() {
+	fmt.Println("正在从tabShouHui导入相关方数据......")
+
+	var records []tabShouHuiA
+	global.DB2.Table("tabShouHui").Find(&records)
+
+	var existedNames []string
+
+	for i := range records {
+		if i > 0 && i%100 == 0 {
+			process, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(i)/float64(len(records))), 64)
+			fmt.Println("已处理", i, "条相关方记录，当前进度：", fmt.Sprintf("%.0f", process*100), "%")
+		}
+
+		//初筛，基本能过滤掉95%以上的重复数据
+		var tempCount int64
+		global.DB.Model(&model.RelatedParty{}).
+			Where("name = ?", strings.TrimSpace(records[i].RelatedPartyName)).
+			Count(&tempCount)
+
+		//如果通过初筛、没有重复记录，才执行细筛
+		if tempCount == 0 {
+			var relatedParties []model.RelatedParty
+			global.DB.Model(&model.RelatedParty{}).Find(&relatedParties)
+
+			for j := range relatedParties {
+				if relatedParties[j].Name != nil {
+					existedNames = append(existedNames, *relatedParties[j].Name)
+				}
+				if relatedParties[j].EnglishName != nil {
+					existedNames = append(existedNames, *relatedParties[j].EnglishName)
+				}
+				if relatedParties[j].ImportedOriginalName != nil {
+					importedOriginalNames := strings.Split(*relatedParties[j].ImportedOriginalName, "|")
+					existedNames = append(existedNames, importedOriginalNames...)
+				}
+			}
+
+			if util.SliceIncludes(existedNames, strings.TrimSpace(records[i].RelatedPartyName)) {
+				continue
+			}
+
+			param := service.RelatedPartyCreate{
+				Name:                 strings.TrimSpace(records[i].RelatedPartyName),
+				ImportedOriginalName: records[i].RelatedPartyName + "|"}
 			param.Create()
 		}
 	}

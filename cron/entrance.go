@@ -8,26 +8,28 @@ import (
 func Init() {
 	//默认是5位格式: * * * * *
 	c := cron.New()
-	//添加每分钟执行一次的任务
-	_, err := c.AddFunc("* * * * ?", test)
+
+	//At 20 minutes past the hour, every hour, every day
+	_, err := c.AddFunc("20 * * * *", importDataFromLvmin)
 	if err != nil {
-		global.SugaredLogger.Errorln("添加定时任务失败，请检查")
+		global.SugaredLogger.Panicln("添加定时任务失败，请检查")
 	}
 
-	//At 14:02 PM, every day
-	_, err = c.AddFunc("50 15 * * *", func() {
-		err = updateUsers()
-		if err != nil {
-			//这里要完善错误处理逻辑，以后再说
-		}
-	})
+	//At 15:50, every day
+	_, err = c.AddFunc("50 15 * * *", updateUsers)
 	if err != nil {
-		global.SugaredLogger.Errorln("添加定时任务失败，请检查")
+		global.SugaredLogger.Panicln("添加定时任务失败，请检查")
 	}
 
 	c.Start()
 }
 
-func test() {
-	//fmt.Println("666")
+func importDataFromLvmin() {
+	importRelatedParty()
+	importProject()
+	importContract()
+	importActualExpenditure()
+	importForecastedExpenditure()
+	importPlannedExpenditure()
+	importActualIncome()
 }

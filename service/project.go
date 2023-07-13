@@ -328,6 +328,7 @@ func (p *ProjectCreate) Create() response.Common {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
+
 	return response.Success()
 }
 

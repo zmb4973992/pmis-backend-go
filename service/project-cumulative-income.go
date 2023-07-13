@@ -227,8 +227,12 @@ func (p *ProjectCumulativeIncomeUpdate) Update() response.Common {
 					}
 				}
 
-				record.Creator = &p.Creator
-				record.LastModifier = &p.LastModifier
+				if p.Creator > 0 {
+					record.Creator = &p.Creator
+				}
+				if p.LastModifier > 0 {
+					record.LastModifier = &p.LastModifier
+				}
 				record.ProjectID = p.ProjectID
 				record.Date = &dates[j]
 

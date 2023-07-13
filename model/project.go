@@ -40,32 +40,60 @@ func (*Project) TableName() string {
 	return "project"
 }
 
-func (d *Project) BeforeDelete(tx *gorm.DB) error {
-	if d.ID == 0 {
+func (p *Project) AfterCreate(tx *gorm.DB) error {
+	var disassembly Disassembly
+	level := 1
+	disassembly.Creator = p.Creator
+	disassembly.LastModifier = p.LastModifier
+	disassembly.ProjectID = &p.ID
+	disassembly.Name = p.Name
+	disassembly.Level = &level
+
+	err = tx.Create(&disassembly).Error
+	return err
+}
+
+func (p *Project) BeforeDelete(tx *gorm.DB) error {
+	if p.ID == 0 {
 		return nil
 	}
 
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
-	var records []Disassembly
-	err = tx.Where(&Disassembly{ProjectID: &d.ID}).
-		Find(&records).Delete(&records).Error
+	var disassemblies []Disassembly
+	err = tx.Where(&Disassembly{ProjectID: &p.ID}).
+		Find(&disassemblies).Delete(&disassemblies).Error
 	if err != nil {
 		return err
 	}
 
-	var records1 []Contract
-	err = tx.Where(&Contract{ProjectID: &d.ID}).
-		Find(&records1).Delete(&records1).Error
+	var contracts []Contract
+	err = tx.Where(&Contract{ProjectID: &p.ID}).
+		Find(&contracts).Delete(&contracts).Error
 	if err != nil {
 		return err
 	}
 
-	var records2 []IncomeAndExpenditure
-	err = tx.Where(&IncomeAndExpenditure{ProjectID: &d.ID}).
-		Find(&records2).Delete(&records2).Error
+	var incomeAndExpenditures []IncomeAndExpenditure
+	err = tx.Where(&IncomeAndExpenditure{ProjectID: &p.ID}).
+		Find(&incomeAndExpenditures).Delete(&incomeAndExpenditures).Error
 	if err != nil {
 		return err
 	}
+
+	var projectCumulativeIncomes []ProjectCumulativeIncome
+	err = tx.Where(&ProjectCumulativeIncome{ProjectID: p.ID}).
+		Find(&projectCumulativeIncomes).Delete(&projectCumulativeIncomes).Error
+	if err != nil {
+		return err
+	}
+
+	var projectCumulativeExpenditures []ProjectCumulativeExpenditure
+	err = tx.Where(&ProjectCumulativeExpenditure{ProjectID: p.ID}).
+		Find(&projectCumulativeExpenditures).Delete(&projectCumulativeExpenditures).Error
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

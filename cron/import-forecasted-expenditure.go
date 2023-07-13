@@ -21,7 +21,7 @@ type tabFukuan struct {
 	ExchangeRate       float64
 }
 
-func ImportForecastedExpenditure() {
+func importForecastedExpenditure() {
 	fmt.Println("★★★★★开始处理预测付款记录......★★★★★")
 
 	var records []tabFukuan

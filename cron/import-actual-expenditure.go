@@ -23,7 +23,7 @@ type tabFukuan2a struct {
 	ExchangeRate             float64
 }
 
-func ImportActualExpenditure() {
+func importActualExpenditure() {
 	fmt.Println("★★★★★开始处理实际付款记录......★★★★★")
 
 	var records []tabFukuan2a

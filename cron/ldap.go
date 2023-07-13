@@ -11,7 +11,7 @@ import (
 //后期需要增加用户有效性校验的函数。
 //可以把从ldap读取到的用户列表放到临时表，然后把现在的用户表和临时表进行比对
 
-func updateUsers() error {
+func updateUsers() {
 	ldapServer := global.Config.LDAPConfig.Server
 	baseDN := global.Config.LDAPConfig.BaseDN
 	filter := global.Config.LDAPConfig.Filter
@@ -25,13 +25,13 @@ func updateUsers() error {
 	defer l.Close()
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return err
+		return
 	}
 
 	err = l.Bind(account+suffix, password)
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return err
+		return
 	}
 
 	searchRequest := ldap.NewSearchRequest(
@@ -42,7 +42,7 @@ func updateUsers() error {
 	sr, err1 := l.Search(searchRequest)
 	if err1 != nil {
 		global.SugaredLogger.Errorln(err)
-		return err
+		return
 	}
 
 	//把组织-用户中间表中的ldap导入数据删除
@@ -76,7 +76,7 @@ func updateUsers() error {
 
 				if err != nil {
 					global.SugaredLogger.Errorln(err)
-					return err
+					return
 				}
 
 				//部门信息不从LDAP导入，因为LDAP不是严格按照部门进行设置的
@@ -89,7 +89,7 @@ func updateUsers() error {
 					err = global.DB.Where("name = ?", "北京公司").First(&organization).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
-						return err
+						return
 					}
 					record := model.OrganizationAndUser{
 						UserID:         user.ID,
@@ -103,7 +103,7 @@ func updateUsers() error {
 						FirstOrCreate(&record).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
-						return err
+						return
 					}
 
 				} else if permittedOU == "事业部管理委员会和水泥工程事业部" {
@@ -111,7 +111,7 @@ func updateUsers() error {
 					err = global.DB.Where("name = ?", "水泥工程事业部").First(&organization).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
-						return err
+						return
 					}
 					record := model.OrganizationAndUser{
 						UserID:         user.ID,
@@ -125,7 +125,7 @@ func updateUsers() error {
 						FirstOrCreate(&record).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
-						return err
+						return
 					}
 
 				} else {
@@ -133,7 +133,7 @@ func updateUsers() error {
 					err = global.DB.Where("name = ?", permittedOU).First(&organization).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
-						return err
+						return
 					}
 					record := model.OrganizationAndUser{
 						UserID:         user.ID,
@@ -147,11 +147,11 @@ func updateUsers() error {
 						FirstOrCreate(&record).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
-						return err
+						return
 					}
 				}
 			}
 		}
 	}
-	return nil
+	return
 }

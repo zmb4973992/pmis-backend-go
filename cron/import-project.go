@@ -19,7 +19,7 @@ type tabProject struct {
 	Currency     string  `gorm:"column:F5032"`
 }
 
-func ImportProject() {
+func importProject() {
 	fmt.Println("★★★★★开始处理项目记录......★★★★★")
 
 	var records []tabProject
