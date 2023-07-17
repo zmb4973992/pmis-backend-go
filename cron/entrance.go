@@ -9,8 +9,13 @@ func Init() {
 	//默认是5位格式: * * * * *
 	c := cron.New()
 
+	_, err := c.AddFunc("* * * * *", UpdateProjectCumulativeExpenditure)
+	if err != nil {
+		global.SugaredLogger.Panicln("添加定时任务失败，请检查")
+	}
+
 	//At 20 minutes past the hour, every hour, every day
-	_, err := c.AddFunc("20 * * * *", importDataFromLvmin)
+	_, err = c.AddFunc("20 * * * *", importDataFromLvmin)
 	if err != nil {
 		global.SugaredLogger.Panicln("添加定时任务失败，请检查")
 	}

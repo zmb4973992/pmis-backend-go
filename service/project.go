@@ -41,6 +41,7 @@ type ProjectCreate struct {
 	Code    string `json:"code,omitempty"`
 	Name    string `json:"name,omitempty"`
 	Content string `json:"content,omitempty"`
+	Sort    int    `json:"sort,omitempty"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -72,6 +73,7 @@ type ProjectUpdate struct {
 	Code    *string `json:"code"`
 	Name    *string `json:"name"`
 	Content *string `json:"content"`
+	Sort    *int    `json:"sort"`
 }
 
 type ProjectDelete struct {
@@ -124,6 +126,7 @@ type ProjectOutput struct {
 	Code    *string `json:"code"`
 	Name    *string `json:"name"`
 	Content *string `json:"content"`
+	Sort    *int    `json:"sort"`
 }
 
 func (p *ProjectGet) Get() response.Common {
@@ -309,6 +312,9 @@ func (p *ProjectCreate) Create() response.Common {
 		if p.Content != "" {
 			paramOut.Content = &p.Content
 		}
+		if p.Sort > 0 {
+			paramOut.Sort = &p.Sort
+		}
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
@@ -480,6 +486,13 @@ func (p *ProjectUpdate) Update() response.Common {
 				paramOut["content"] = p.Content
 			} else {
 				paramOut["content"] = nil
+			}
+		}
+		if p.Sort != nil {
+			if *p.Sort > 0 {
+				paramOut["sort"] = p.Sort
+			} else {
+				paramOut["sort"] = nil
 			}
 		}
 	}

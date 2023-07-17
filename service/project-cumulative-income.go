@@ -153,14 +153,14 @@ func (p *ProjectCumulativeIncomeUpdate) Update() response.Common {
 				var record model.ProjectCumulativeIncome
 
 				var totalPlannedIncome float64
-				var countOfPlannedIncome int64
+				var countForPlanned int64
 				global.DB.Model(&model.IncomeAndExpenditure{}).
 					Where("project_id = ?", p.ProjectID).
 					Where("kind = ?", planned).
 					Where("fund_direction = ?", income).
-					Where("date <= ?", dates[j]).
-					Count(&countOfPlannedIncome)
-				if countOfPlannedIncome > 0 {
+					Where("date = ?", dates[j]).
+					Count(&countForPlanned)
+				if countForPlanned > 0 {
 					global.DB.Model(&model.IncomeAndExpenditure{}).
 						Where("project_id = ?", p.ProjectID).
 						Where("kind = ?", planned).
@@ -178,14 +178,14 @@ func (p *ProjectCumulativeIncomeUpdate) Update() response.Common {
 				}
 
 				var totalActualIncome float64
-				var countOfActualIncome int64
+				var countForActual int64
 				global.DB.Model(&model.IncomeAndExpenditure{}).
 					Where("project_id = ?", p.ProjectID).
 					Where("kind = ?", actual).
 					Where("fund_direction = ?", income).
-					Where("date <= ?", dates[j]).
-					Count(&countOfActualIncome)
-				if countOfActualIncome > 0 {
+					Where("date = ?", dates[j]).
+					Count(&countForActual)
+				if countForActual > 0 {
 					global.DB.Model(&model.IncomeAndExpenditure{}).
 						Where("project_id = ?", p.ProjectID).
 						Where("kind = ?", actual).
@@ -203,14 +203,14 @@ func (p *ProjectCumulativeIncomeUpdate) Update() response.Common {
 				}
 
 				var totalForecastedIncome float64
-				var countOfForecastedIncome int64
+				var countForForecasted int64
 				global.DB.Model(&model.IncomeAndExpenditure{}).
 					Where("project_id = ?", p.ProjectID).
 					Where("kind = ?", forecasted).
 					Where("fund_direction = ?", income).
-					Where("date <= ?", dates[j]).
-					Count(&countOfForecastedIncome)
-				if countOfForecastedIncome > 0 {
+					Where("date = ?", dates[j]).
+					Count(&countForForecasted)
+				if countForForecasted > 0 {
 					global.DB.Model(&model.IncomeAndExpenditure{}).
 						Where("project_id = ?", p.ProjectID).
 						Where("kind = ?", forecasted).
@@ -326,17 +326,30 @@ func (p *ProjectCumulativeIncomeGetList) GetList() response.List {
 	}
 
 	for i := range data {
-		//查询关联表的详情
-		{
-			//查项目信息
-			//if data[p].ProjectID != nil {
-			//	var record ProjectOutput
-			//	res := global.DB.Model(&model.Project{}).
-			//		Where("id = ?", *data[p].ProjectID).Limit(1).Find(&record)
-			//	if res.RowsAffected > 0 {
-			//		data[p].ProjectExternal = &record
-			//	}
-			//}
+		//处理float64精度问题
+		if data[i].TotalPlannedIncome != nil {
+			temp := util.Round(*data[i].TotalPlannedIncome, 2)
+			data[i].TotalPlannedIncome = &temp
+		}
+		if data[i].TotalActualIncome != nil {
+			temp := util.Round(*data[i].TotalActualIncome, 2)
+			data[i].TotalActualIncome = &temp
+		}
+		if data[i].TotalForecastedIncome != nil {
+			temp := util.Round(*data[i].TotalForecastedIncome, 2)
+			data[i].TotalForecastedIncome = &temp
+		}
+		if data[i].PlannedIncomeProgress != nil {
+			temp := util.Round(*data[i].PlannedIncomeProgress, 3)
+			data[i].PlannedIncomeProgress = &temp
+		}
+		if data[i].ActualIncomeProgress != nil {
+			temp := util.Round(*data[i].ActualIncomeProgress, 3)
+			data[i].ActualIncomeProgress = &temp
+		}
+		if data[i].ForecastedIncomeProgress != nil {
+			temp := util.Round(*data[i].ForecastedIncomeProgress, 3)
+			data[i].ForecastedIncomeProgress = &temp
 		}
 
 		//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z

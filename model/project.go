@@ -33,6 +33,7 @@ type Project struct {
 	Content *string //工作内容
 	//字符串(不允许为nil，必须有值)，暂无
 
+	Sort *int
 }
 
 // TableName 将表名改为project

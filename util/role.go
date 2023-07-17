@@ -12,13 +12,13 @@ func GetOrganizationIDsInDataScope(userID int64) (organizationIDsInDataScope []i
 	global.DB.Model(&model.UserAndRole{}).Where("user_id = ?", userID).
 		Select("role_id").Find(&roleIDs)
 
-	fmt.Println("角色id：", roleIDs)
+	//fmt.Println("角色id：", roleIDs)
 
 	//获得所属角色的数据范围类型
 	var dataScopeTypes []int
 	global.DB.Model(&model.Role{}).Where("id in ?", roleIDs).
 		Select("data_scope_type").Find(&dataScopeTypes)
-	fmt.Println("数据范围：", dataScopeTypes)
+	//fmt.Println("数据范围：", dataScopeTypes)
 
 	var tempOrganizationIDs []int64
 	//判断数据范围的类型

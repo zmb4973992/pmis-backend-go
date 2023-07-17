@@ -1,7 +1,7 @@
 package service
 
 import (
-	"fmt"
+	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -502,21 +502,58 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 		db = db.Where("date <= ?", i.DateLte)
 	}
 
-	//用来确定数据范围
+	batchID := idgen.NextId()
+
+	//用来确定组织的数据范围
 	organizationIDsForDataScope := util.GetOrganizationIDsInDataScope(i.UserID)
-	//先找出项目的数据范围
+	if len(organizationIDsForDataScope) > 0 {
+		var temps []model.Temp
+		for j := range organizationIDsForDataScope {
+			var temp model.Temp
+			temp.OrganizationID = &organizationIDsForDataScope[j]
+			temp.BatchID = batchID
+			temps = append(temps, temp)
+		}
+		global.DB.CreateInBatches(&temps, 100)
+	}
+
+	//找出项目的数据范围
 	var projectIDs []int64
-	global.DB.Model(&model.Project{}).Where("organization_id in ?", organizationIDsForDataScope).
-		Select("id").Find(&projectIDs)
-	fmt.Println("项目id：", projectIDs)
+	global.DB.Model(&model.Project{}).
+		Joins("join temp on project.organization_id = temp.organization_id").
+		Where("batch_id = ?", batchID).
+		Select("project.id").Find(&projectIDs)
+	if len(projectIDs) > 0 {
+		var temps []model.Temp
+		for j := range organizationIDsForDataScope {
+			var temp model.Temp
+			temp.ProjectID = &projectIDs[j]
+			temp.BatchID = batchID
+			temps = append(temps, temp)
+		}
+		global.DB.CreateInBatches(&temps, 100)
+	}
+
 	//然后再找出合同的数据范围
 	var contractIDs []int64
-	global.DB.Model(&model.Contract{}).Where("organization_id in ?", organizationIDsForDataScope).
-		Or("project_id in ?", projectIDs).
-		Select("id").Find(&contractIDs)
-	fmt.Println("合同id：", contractIDs)
+	global.DB.Model(&model.Contract{}).
+		Joins("join temp on contract.project_id = temp.project_id").
+		Where("temp.batch_id = ?", batchID).
+		Select("contract.id").Find(&contractIDs)
+	if len(contractIDs) > 0 {
+		var temps []model.Temp
+		for j := range contractIDs {
+			var temp model.Temp
+			temp.ContractID = &contractIDs[j]
+			temp.BatchID = batchID
+			temps = append(temps, temp)
+		}
+		global.DB.CreateInBatches(&temps, 100)
+	}
+
 	//汇总
-	db = db.Where("project_id in ? or contract_id in ?", projectIDs, contractIDs)
+	db = db.Joins("join temp on income_and_expenditure.project_id = temp.project_id or income_and_expenditure.contract_id = temp.contract_id").
+		Where("temp.batch_id = ?", batchID)
 
 	//count
 	var count int64
@@ -566,6 +603,9 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 	//data
 	var data []IncomeAndExpenditureOutput
 	db.Model(&model.IncomeAndExpenditure{}).Find(&data)
+
+	//temp使用完毕，需要删除数据
+	global.DB.Where("batch_id = ?", batchID).Delete(&model.Temp{})
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
