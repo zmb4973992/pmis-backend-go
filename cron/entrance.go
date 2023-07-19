@@ -9,7 +9,12 @@ func Init() {
 	//默认是5位格式: * * * * *
 	c := cron.New()
 
-	_, err := c.AddFunc("* * * * *", UpdateProjectCumulativeExpenditure)
+	_, err := c.AddFunc("5 * * * *", UpdateProjectCumulativeIncomeAndExpenditure)
+	if err != nil {
+		global.SugaredLogger.Panicln("添加定时任务失败，请检查")
+	}
+
+	_, err = c.AddFunc("* * * * *", UpdateContractCumulativeIncomeAndExpenditure)
 	if err != nil {
 		global.SugaredLogger.Panicln("添加定时任务失败，请检查")
 	}

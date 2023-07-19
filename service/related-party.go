@@ -24,6 +24,7 @@ type RelatedPartyCreate struct {
 	Address                 string `json:"address,omitempty"`
 	UniformSocialCreditCode string `json:"uniform_social_credit_code,omitempty"` //统一社会信用代码
 	Telephone               string `json:"telephone,omitempty"`
+	Remarks                 string `json:"remarks,omitempty"`
 	ImportedOriginalName    string `json:"imported_original_name,omitempty"`
 }
 
@@ -40,6 +41,7 @@ type RelatedPartyUpdate struct {
 	Address                 *string `json:"address"`
 	UniformSocialCreditCode *string `json:"uniform_social_credit_code"` //统一社会信用代码
 	Telephone               *string `json:"telephone"`
+	Remarks                 *string `json:"remarks"`
 }
 
 type RelatedPartyDelete struct {
@@ -65,6 +67,7 @@ type RelatedPartyOutput struct {
 	Address                 *string `json:"address"`
 	UniformSocialCreditCode *string `json:"uniform_social_credit_code"` //统一社会信用代码
 	Telephone               *string `json:"telephone"`
+	Remarks                 *string `json:"remarks"`
 }
 
 func (r *RelatedPartyGet) Get() response.Common {
@@ -112,6 +115,10 @@ func (r *RelatedPartyCreate) Create() response.Common {
 		paramOut.ImportedOriginalName = &r.ImportedOriginalName
 	}
 
+	if r.Remarks != "" {
+		paramOut.Remarks = &r.Remarks
+	}
+
 	//计算有修改值的字段数，分别进行不同处理
 	tempParamOut, err := util.StructToMap(paramOut)
 	if err != nil {
@@ -141,9 +148,9 @@ func (r *RelatedPartyUpdate) Update() response.Common {
 
 	if r.Name != nil {
 		if *r.Name != "" {
-			paramOut["chinese_name"] = r.Name
+			paramOut["name"] = r.Name
 		} else {
-			paramOut["chinese_name"] = nil
+			paramOut["name"] = nil
 		}
 	}
 
@@ -176,6 +183,14 @@ func (r *RelatedPartyUpdate) Update() response.Common {
 			paramOut["telephone"] = r.Telephone
 		} else {
 			paramOut["telephone"] = nil
+		}
+	}
+
+	if r.Remarks != nil {
+		if *r.Remarks != "" {
+			paramOut["remarks"] = r.Remarks
+		} else {
+			paramOut["remarks"] = nil
 		}
 	}
 
@@ -215,7 +230,7 @@ func (r *RelatedPartyGetList) GetList() response.List {
 
 	//where
 	if r.NameInclude != "" {
-		db = db.Where("chinese_name like ?", "%"+r.NameInclude+"%")
+		db = db.Where("name like ?", "%"+r.NameInclude+"%")
 	}
 
 	if r.EnglishNameInclude != "" {

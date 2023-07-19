@@ -36,7 +36,8 @@ type CustomRouterGroup struct {
 	private.MenuRouter
 	private.ProjectCumulativeIncomeRouter
 	private.ProjectCumulativeExpenditureRouter
-	private.CumulativeContractIncomeAndExpenditureRouter
+	private.ContractCumulativeIncomeRouter
+	private.ContractCumulativeExpenditureRouter
 }
 
 // InitEngine 初始化路由器,最终返回*gin.Engine类型，给main调用
@@ -88,7 +89,8 @@ func InitEngine() *gin.Engine {
 	customRouterGroup.InitMenuRouter(privateGroup)
 	customRouterGroup.InitProjectCumulativeIncomeRouter(privateGroup)
 	customRouterGroup.InitProjectCumulativeExpenditureRouter(privateGroup)
-	customRouterGroup.InitCumulativeContractIncomeAndExpenditureRouter(privateGroup)
+	customRouterGroup.InitContractCumulativeIncomeRouter(privateGroup)
+	customRouterGroup.InitContractCumulativeExpenditureRouter(privateGroup)
 
 	//引擎配置完成后，返回
 	return engine
