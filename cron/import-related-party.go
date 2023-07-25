@@ -1,6 +1,7 @@
 package cron
 
 import (
+	"errors"
 	"fmt"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -10,14 +11,34 @@ import (
 	"strings"
 )
 
-func importRelatedParty() {
+func importRelatedParty() error {
 	fmt.Println("★★★★★开始处理相关方记录......★★★★★")
-	importRelatedPartyFromTabSupplier()
-	importRelatedPartyFromTabContract()
-	importRelatedPartyFromTabFukuan2()
-	importRelatedPartyFromTabShouKuan()
-	importRelatedPartyFromTabShouHui()
+	err := importRelatedPartyFromTabSupplier()
+	if err != nil {
+		return err
+	}
 
+	err = importRelatedPartyFromTabContract()
+	if err != nil {
+		return err
+	}
+
+	err = importRelatedPartyFromTabFukuan2()
+	if err != nil {
+		return err
+	}
+
+	err = importRelatedPartyFromTabShouKuan()
+	if err != nil {
+		return err
+	}
+
+	err = importRelatedPartyFromTabShouHui()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type tabSupplier struct {
@@ -26,7 +47,7 @@ type tabSupplier struct {
 	UniformSocialCreditCode string `gorm:"column:F10632"`
 }
 
-func importRelatedPartyFromTabSupplier() {
+func importRelatedPartyFromTabSupplier() error {
 	fmt.Println("正在从tabSupplier导入相关方数据......")
 	var records []tabSupplier
 	global.DB2.Table("tabSupplier").Find(&records)
@@ -73,17 +94,21 @@ func importRelatedPartyFromTabSupplier() {
 				UniformSocialCreditCode: records[i].UniformSocialCreditCode,
 				ImportedOriginalName:    records[i].Name + "|",
 			}
-			param.Create()
+			res := param.Create()
+			if res.Code != 0 {
+				return errors.New(res.Message)
+			}
 		}
-
 	}
+
+	return nil
 }
 
 type tabContract2 struct {
 	Name string `gorm:"column:F6102"`
 }
 
-func importRelatedPartyFromTabContract() {
+func importRelatedPartyFromTabContract() error {
 	fmt.Println("正在从tabContract导入相关方数据......")
 
 	var records []tabContract2
@@ -129,16 +154,21 @@ func importRelatedPartyFromTabContract() {
 				Name:                 strings.TrimSpace(records[i].Name),
 				ImportedOriginalName: records[i].Name + "|",
 			}
-			param.Create()
+			res := param.Create()
+			if res.Code != 0 {
+				return errors.New(res.Message)
+			}
 		}
 	}
+
+	return nil
 }
 
 type tabFukuan2 struct {
 	Name string `gorm:"column:F13591"`
 }
 
-func importRelatedPartyFromTabFukuan2() {
+func importRelatedPartyFromTabFukuan2() error {
 	fmt.Println("正在从tabFukuan2导入相关方数据......")
 
 	var records []tabFukuan2
@@ -183,16 +213,21 @@ func importRelatedPartyFromTabFukuan2() {
 			param := service.RelatedPartyCreate{
 				Name:                 strings.TrimSpace(records[i].Name),
 				ImportedOriginalName: records[i].Name + "|"}
-			param.Create()
+			res := param.Create()
+			if res.Code != 0 {
+				return errors.New(res.Message)
+			}
 		}
 	}
+
+	return nil
 }
 
 type tabShouKuanA struct {
 	RelatedPartyName string `gorm:"column:F10851"`
 }
 
-func importRelatedPartyFromTabShouKuan() {
+func importRelatedPartyFromTabShouKuan() error {
 	fmt.Println("正在从tabShouKuan导入相关方数据......")
 
 	var records []tabShouKuanA
@@ -237,16 +272,21 @@ func importRelatedPartyFromTabShouKuan() {
 			param := service.RelatedPartyCreate{
 				Name:                 strings.TrimSpace(records[i].RelatedPartyName),
 				ImportedOriginalName: records[i].RelatedPartyName + "|"}
-			param.Create()
+			res := param.Create()
+			if res.Code != 0 {
+				return errors.New(res.Message)
+			}
 		}
 	}
+
+	return nil
 }
 
 type tabShouHuiA struct {
 	RelatedPartyName string `gorm:"column:F14394"`
 }
 
-func importRelatedPartyFromTabShouHui() {
+func importRelatedPartyFromTabShouHui() error {
 	fmt.Println("正在从tabShouHui导入相关方数据......")
 
 	var records []tabShouHuiA
@@ -291,7 +331,12 @@ func importRelatedPartyFromTabShouHui() {
 			param := service.RelatedPartyCreate{
 				Name:                 strings.TrimSpace(records[i].RelatedPartyName),
 				ImportedOriginalName: records[i].RelatedPartyName + "|"}
-			param.Create()
+			res := param.Create()
+			if res.Code != 0 {
+				return errors.New(res.Message)
+			}
 		}
 	}
+
+	return nil
 }

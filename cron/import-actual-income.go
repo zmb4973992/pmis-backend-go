@@ -10,9 +10,18 @@ import (
 	"time"
 )
 
-func importActualIncome() {
-	ImportActualIncomeFromTabShouKuan()
-	ImportActualIncomeFromTabShouHui()
+func importActualIncome() error {
+	err := ImportActualIncomeFromTabShouKuan()
+	if err != nil {
+		return err
+	}
+
+	err = ImportActualIncomeFromTabShouHui()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 type tabShouKuan struct {
@@ -26,7 +35,7 @@ type tabShouKuan struct {
 	IOrd                     string  `gorm:"column:iOrd"`
 }
 
-func ImportActualIncomeFromTabShouKuan() {
+func ImportActualIncomeFromTabShouKuan() error {
 	fmt.Println("★★★★★开始处理人民币实际收款记录......★★★★★")
 
 	var records []tabShouKuan
@@ -166,6 +175,8 @@ func ImportActualIncomeFromTabShouKuan() {
 			}
 		}
 	}
+
+	return nil
 }
 
 type tabShouHui struct {
@@ -179,7 +190,7 @@ type tabShouHui struct {
 	ExchangeRate             float64
 }
 
-func ImportActualIncomeFromTabShouHui() {
+func ImportActualIncomeFromTabShouHui() error {
 	fmt.Println("★★★★★开始处理实际收汇记录......★★★★★")
 
 	var records []tabShouHui
@@ -330,4 +341,6 @@ func ImportActualIncomeFromTabShouHui() {
 			}
 		}
 	}
+
+	return nil
 }

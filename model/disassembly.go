@@ -11,6 +11,7 @@ type Disassembly struct {
 	SuperiorID *int64   //上级ID
 	Level      *int     //层级
 	Weight     *float64 //权重
+	Sort       *int     //排序值
 }
 
 // TableName 修改表名
@@ -25,12 +26,12 @@ func (d *Disassembly) BeforeDelete(tx *gorm.DB) error {
 
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
-	var records []Progress
-	err = tx.Where(Progress{DisassemblyID: &d.ID}).
-		Find(&records).Delete(&records).Error
-	if err != nil {
-		return err
-	}
+	//var records []Progress
+	//err = tx.Where(Progress{DisassemblyID: &d.ID}).
+	//	Find(&records).Delete(&records).Error
+	//if err != nil {
+	//	return err
+	//}
 
 	return nil
 }

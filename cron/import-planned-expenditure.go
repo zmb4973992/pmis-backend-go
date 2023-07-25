@@ -21,7 +21,7 @@ type tabOriPayPlan struct {
 	ExchangeRate       float64
 }
 
-func importPlannedExpenditure() {
+func importPlannedExpenditure() error {
 	fmt.Println("★★★★★开始处理计划付款记录......★★★★★")
 
 	var records []tabOriPayPlan
@@ -223,4 +223,6 @@ func importPlannedExpenditure() {
 			}
 		}
 	}
+
+	return nil
 }

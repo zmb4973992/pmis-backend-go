@@ -89,9 +89,10 @@ type ContractDelete struct {
 type ContractGetList struct {
 	list.Input
 	list.DataScopeInput
-	ProjectID     int64  `json:"project_id,omitempty"`
-	FundDirection int64  `json:"fund_direction,omitempty"`
-	NameInclude   string `json:"name_include,omitempty"`
+	ProjectID      int64  `json:"project_id,omitempty"`
+	RelatedPartyID int64  `json:"related_party_id,omitempty"`
+	FundDirection  int64  `json:"fund_direction,omitempty"`
+	NameInclude    string `json:"name_include,omitempty"`
 }
 
 //以下为出参
@@ -604,6 +605,10 @@ func (c *ContractGetList) GetList() response.List {
 	//where
 	if c.ProjectID > 0 {
 		db = db.Where("project_id = ?", c.ProjectID)
+	}
+
+	if c.RelatedPartyID > 0 {
+		db = db.Where("related_party_id = ?", c.RelatedPartyID)
 	}
 
 	if c.FundDirection > 0 {

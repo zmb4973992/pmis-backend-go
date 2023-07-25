@@ -1,6 +1,7 @@
 package cron
 
 import (
+	"errors"
 	"fmt"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -21,7 +22,7 @@ type tabFukuan struct {
 	ExchangeRate       float64
 }
 
-func importForecastedExpenditure() {
+func importForecastedExpenditure() error {
 	fmt.Println("★★★★★开始处理预测付款记录......★★★★★")
 
 	var records []tabFukuan
@@ -212,6 +213,9 @@ func importForecastedExpenditure() {
 			}
 
 			res := newRecord.Create()
+			if res.Code != 0 {
+				return errors.New(res.Message)
+			}
 
 			if res.Code != 0 {
 				param := service.ErrorLogCreate{
@@ -219,8 +223,13 @@ func importForecastedExpenditure() {
 						res.Message + "，付款审批ID为：" + records[i].ImportedApprovalID,
 					Date: time.Now().Format("2006-01-02"),
 				}
-				param.Create()
+				res = param.Create()
+				if res.Code != 0 {
+					return errors.New(res.Message)
+				}
 			}
 		}
 	}
+
+	return nil
 }

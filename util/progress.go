@@ -11,10 +11,10 @@ import (
 
 // UpdateProgressOfSuperiors 给定拆解id、进度类型，计算所有上级的进度
 func UpdateProgressOfSuperiors(disassemblyID int64, progressType int64) (err error) {
-	superiorIDs := getSuperiorIDs(disassemblyID)
+	superiorIDs := GetSuperiorIDs(disassemblyID)
 
 	for i := range superiorIDs {
-		err = UpdateSelfProgress(superiorIDs[i], progressType)
+		err = UpdateOwnProgress(superiorIDs[i], progressType)
 		if err != nil {
 			return err
 		}
@@ -22,19 +22,27 @@ func UpdateProgressOfSuperiors(disassemblyID int64, progressType int64) (err err
 	return nil
 }
 
-// UpdateSelfProgress 给定拆解id、进度类型，计算自身的进度
-func UpdateSelfProgress(disassemblyID int64, progressType int64) (err error) {
-	//找到"系统计算"的字典值
-	var dataSource int64
-	err = global.DB.Model(&model.DictionaryDetail{}).
-		Where("name = '系统计算'").Select("id").First(&dataSource).Error
+// UpdateOwnProgress 计算自身的进度(给定拆解id、进度类型)
+func UpdateOwnProgress(disassemblyID int64, progressType int64) (err error) {
+	//找到"进度的数据来源"的字典类型值
+	var dataSourceOfProgress model.DictionaryType
+	err = global.DB.Where("name = '进度的数据来源'").First(&dataSourceOfProgress).Error
+	if err != nil {
+		return err
+	}
+
+	//找到"系统计算"的字典详情值
+	var systemCalculation model.DictionaryDetail
+	err = global.DB.
+		Where("dictionary_type_id = ?", dataSourceOfProgress.ID).
+		Where("name = '系统计算'").First(&systemCalculation).Error
 	if err != nil {
 		return err
 	}
 
 	//删除相关进度,防止产生重复数据
 	global.DB.Where("disassembly_id = ?", disassemblyID).
-		Where("data_source = ?", dataSource).
+		Where("data_source = ?", systemCalculation.ID).
 		Where("type = ?", progressType).
 		Delete(&model.Progress{})
 
@@ -75,7 +83,7 @@ func UpdateSelfProgress(disassemblyID int64, progressType int64) (err error) {
 			return err1
 		}
 
-		err = updateSelfProgress1(disassemblyID, date, progressType)
+		err = updateOwnProgress1(disassemblyID, date, progressType)
 		if err != nil {
 			return err
 		}
@@ -84,7 +92,7 @@ func UpdateSelfProgress(disassemblyID int64, progressType int64) (err error) {
 }
 
 // 给定拆解id、日期、进度类型，计算自身的进度
-func updateSelfProgress1(disassemblyID int64, date time.Time, progressType int64) (err error) {
+func updateOwnProgress1(disassemblyID int64, date time.Time, progressType int64) (err error) {
 	//删除相关进度,防止产生重复数据
 	global.DB.Where("disassembly_id = ?", disassemblyID).
 		Where("date = ?", date).
@@ -133,9 +141,16 @@ func updateSelfProgress1(disassemblyID int64, date time.Time, progressType int64
 	}
 
 	//找到"系统计算"的字典值
-	var dataSource int64
-	err = global.DB.Model(&model.DictionaryDetail{}).
-		Where("name = '系统计算'").Select("id").First(&dataSource).Error
+	var dataSourceOfProgress model.DictionaryType
+	err = global.DB.Where("name = '进度的数据来源'").First(&dataSourceOfProgress).Error
+	if err != nil {
+		return err
+	}
+
+	var systemCalculation model.DictionaryDetail
+	err = global.DB.
+		Where("dictionary_type_id = ?", dataSourceOfProgress.ID).
+		Where("name = '系统计算'").First(&systemCalculation).Error
 	if err != nil {
 		return err
 	}
@@ -145,7 +160,7 @@ func updateSelfProgress1(disassemblyID int64, date time.Time, progressType int64
 		Date:          &date,
 		Type:          &progressType,
 		Value:         &sumOfProgress,
-		DataSource:    &dataSource,
+		DataSource:    &systemCalculation.ID,
 	}
 
 	err = global.DB.Create(&progress).Error

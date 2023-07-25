@@ -5,8 +5,8 @@ import (
 	"pmis-backend-go/model"
 )
 
-// 给定拆解id，找到所有上级id
-func getSuperiorIDs(disassemblyID int64) (superiorIDs []int64) {
+// GetSuperiorIDs 给定拆解id，找到所有上级id
+func GetSuperiorIDs(disassemblyID int64) (superiorIDs []int64) {
 	//superior_id可能为空，所以用指针来接收
 	var disassembly model.Disassembly
 	err := global.DB.Where("id = ?", disassemblyID).
@@ -18,7 +18,7 @@ func getSuperiorIDs(disassemblyID int64) (superiorIDs []int64) {
 	}
 
 	superiorIDs = append(superiorIDs, *disassembly.SuperiorID)
-	res := getSuperiorIDs(*disassembly.SuperiorID)
+	res := GetSuperiorIDs(*disassembly.SuperiorID)
 
 	superiorIDs = append(superiorIDs, res...)
 

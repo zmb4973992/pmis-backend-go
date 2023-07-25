@@ -1,6 +1,7 @@
 package cron
 
 import (
+	"errors"
 	"fmt"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -25,7 +26,7 @@ type tabContract struct {
 	FundDirection             string  `gorm:"column:F12338"`
 }
 
-func importContract() {
+func importContract() error {
 	fmt.Println("★★★★★开始处理合同记录......★★★★★")
 
 	var records []tabContract
@@ -296,7 +297,11 @@ func importContract() {
 				Operator:           "",
 			}
 
-			newRecord.Create()
+			res := newRecord.Create()
+			if res.Code != 0 {
+				return errors.New(res.Message)
+			}
+
 		}
 	}
 
@@ -318,44 +323,63 @@ func importContract() {
 					ID:           contracts[j].ID,
 					ExchangeRate: model.Float64ToPointer(1),
 				}
-				param.Update()
+				res := param.Update()
+				if res.Code != 0 {
+					return errors.New(res.Message)
+				}
 
 			case "美元":
 				param := service.ContractUpdate{
 					ID:           contracts[j].ID,
 					ExchangeRate: model.Float64ToPointer(7.2),
 				}
-				param.Update()
+				res := param.Update()
+				if res.Code != 0 {
+					return errors.New(res.Message)
+				}
 
 			case "欧元":
 				param := service.ContractUpdate{
 					ID:           contracts[j].ID,
 					ExchangeRate: model.Float64ToPointer(7.8),
 				}
-				param.Update()
+				res := param.Update()
+				if res.Code != 0 {
+					return errors.New(res.Message)
+				}
 
 			case "港币":
 				param := service.ContractUpdate{
 					ID:           contracts[j].ID,
 					ExchangeRate: model.Float64ToPointer(0.92),
 				}
-				param.Update()
+				res := param.Update()
+				if res.Code != 0 {
+					return errors.New(res.Message)
+				}
 
 			case "新加坡元":
 				param := service.ContractUpdate{
 					ID:           contracts[j].ID,
 					ExchangeRate: model.Float64ToPointer(5.3),
 				}
-				param.Update()
+				res := param.Update()
+				if res.Code != 0 {
+					return errors.New(res.Message)
+				}
 
 			case "马来西亚币":
 				param := service.ContractUpdate{
 					ID:           contracts[j].ID,
 					ExchangeRate: model.Float64ToPointer(1.5),
 				}
-				param.Update()
+				res := param.Update()
+				if res.Code != 0 {
+					return errors.New(res.Message)
+				}
 			}
 		}
-
 	}
+
+	return nil
 }

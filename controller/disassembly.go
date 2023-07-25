@@ -110,22 +110,6 @@ func (d *disassembly) Delete(c *gin.Context) {
 	return
 }
 
-func (d *disassembly) DeleteWithInferiors(c *gin.Context) {
-	var param service.DisassemblyDeleteWithInferiors
-	var err error
-	param.ID, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
-		return
-	}
-
-	res := param.DeleteWithInferiors()
-	c.JSON(http.StatusOK, res)
-	return
-}
-
 func (d *disassembly) GetList(c *gin.Context) {
 	var param service.DisassemblyGetList
 	err := c.ShouldBindJSON(&param)

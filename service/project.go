@@ -84,6 +84,7 @@ type ProjectGetList struct {
 	list.Input
 	list.DataScopeInput
 	NameInclude             string  `json:"name_include,omitempty"`
+	RelatedPartyID          int64   `json:"related_party_id,omitempty"`
 	OrganizationNameInclude string  `json:"organization_name_include,omitempty"`
 	OrganizationIDIn        []int64 `json:"organization_id_in"`
 }
@@ -546,6 +547,11 @@ func (p *ProjectGetList) GetList() response.List {
 		}
 	}
 
+	//将临时表的字段名改为temp，是为了防止临时表的字段和主表发生重复，影响后面的查询
+	if p.RelatedPartyID > 0 {
+		db = db.Joins("join (select distinct project_id as temp_project_id from contract where contract.related_party_id = ?) as temp on project.id = temp.temp_project_id ", p.RelatedPartyID)
+	}
+
 	if len(p.OrganizationIDIn) > 0 {
 		db = db.Where("organization_id in ?", p.OrganizationIDIn)
 	}
@@ -573,6 +579,7 @@ func (p *ProjectGetList) GetList() response.List {
 		if !exists {
 			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
+		//orderBy = "project." + orderBy
 		//如果要求降序排列
 		if desc == true {
 			db = db.Order(orderBy + " desc")
@@ -601,7 +608,7 @@ func (p *ProjectGetList) GetList() response.List {
 
 	//data
 	var data []ProjectOutput
-	db.Model(&model.Project{}).Find(&data)
+	db.Model(&model.Project{}).Debug().Find(&data)
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)

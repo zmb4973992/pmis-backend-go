@@ -33,8 +33,7 @@ const (
 // 这层只是中间的汇总层，只是包内引用、不展示，所以小写
 type config struct {
 	AppConfig
-	DBConfig  DBConfig
-	DB2Config DBConfig
+	DBConfig, DB2Config DBConfig
 	JWTConfig
 	LogConfig
 	UploadConfig
