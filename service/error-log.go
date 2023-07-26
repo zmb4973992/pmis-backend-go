@@ -20,8 +20,7 @@ type ErrorLogCreate struct {
 	Creator      int64
 	LastModifier int64
 
-	Detail            string `json:"detail,omitempty" `
-	Date              string `json:"date,omitempty"`
+	Detail            string `json:"detail,omitempty"`
 	MainCategory      string `json:"main_category,omitempty"`
 	SecondaryCategory string `json:"secondary_category,omitempty"`
 	IsResolved        bool   `json:"is_resolved,omitempty"`
@@ -99,15 +98,8 @@ func (e *ErrorLogCreate) Create() response.Common {
 		paramOut.Detail = &e.Detail
 	}
 
-	if e.Date != "" {
-		date, err := time.Parse("2006-01-02", e.Date)
-		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return response.Failure(util.ErrorInvalidJSONParameters)
-		} else {
-			paramOut.Date = &date
-		}
-	}
+	datetime := time.Now()
+	paramOut.Datetime = &datetime
 
 	if e.MainCategory != "" {
 		paramOut.MainCategory = &e.MainCategory

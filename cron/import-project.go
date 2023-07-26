@@ -7,7 +7,6 @@ import (
 	"pmis-backend-go/model"
 	"pmis-backend-go/service"
 	"strconv"
-	"time"
 )
 
 type tabProject struct {
@@ -59,7 +58,6 @@ func importProject() error {
 					param := service.ErrorLogCreate{
 						Detail: "tabProject视图的记录中发现无法匹配的部门：" +
 							records[i].Organization,
-						Date: time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Organization = ""
@@ -311,7 +309,6 @@ func importProject() error {
 					param := service.ErrorLogCreate{
 						Detail: "tabProject视图的记录中发现无法匹配的国别:" +
 							records[i].Country,
-						Date: time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Country = ""
@@ -340,7 +337,6 @@ func importProject() error {
 					param := service.ErrorLogCreate{
 						Detail: "tabProject视图的记录中发现无法匹配的项目类型：" +
 							records[i].Type,
-						Date: time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Type = ""
@@ -367,7 +363,6 @@ func importProject() error {
 					param := service.ErrorLogCreate{
 						Detail: "tabProject视图的记录中发现无法匹配的币种：" +
 							records[i].Currency,
-						Date: time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Currency = ""
@@ -393,7 +388,6 @@ func importProject() error {
 					param := service.ErrorLogCreate{
 						Detail: "tabProject视图的记录中发现无法匹配的币种：" +
 							records[i].Currency,
-						Date: time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Currency = ""

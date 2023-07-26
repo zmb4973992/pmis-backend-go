@@ -4,6 +4,7 @@ import (
 	"github.com/go-ldap/ldap/v3"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
+	"pmis-backend-go/service"
 	"strings"
 )
 
@@ -11,7 +12,7 @@ import (
 //后期需要增加用户有效性校验的函数。
 //可以把从ldap读取到的用户列表放到临时表，然后把现在的用户表和临时表进行比对
 
-func updateUsers() {
+func updateUsersByLDAP() {
 	ldapServer := global.Config.LDAPConfig.Server
 	baseDN := global.Config.LDAPConfig.BaseDN
 	filter := global.Config.LDAPConfig.Filter
@@ -21,16 +22,32 @@ func updateUsers() {
 	permittedOUs := global.Config.LDAPConfig.PermittedOUs
 	attributes := global.Config.LDAPConfig.Attributes
 
+	//fmt.Println("ldapServer:", ldapServer)
+	//fmt.Println("baseDN:", baseDN)
+	//fmt.Println("filter:", filter)
+	//fmt.Println("suffix:", suffix)
+	//fmt.Println("account:", account)
+	//fmt.Println("password:", password)
+	//fmt.Println("permittedOUs:", permittedOUs)
+	//fmt.Println("attributes:", attributes)
+
 	l, err := ldap.DialURL(ldapServer)
-	defer l.Close()
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
+		param := service.ErrorLogCreate{
+			Detail: err.Error(),
+		}
+		param.Create()
 		return
 	}
 
+	defer l.Close()
+
 	err = l.Bind(account+suffix, password)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
+		param := service.ErrorLogCreate{
+			Detail: err.Error(),
+		}
+		param.Create()
 		return
 	}
 
@@ -39,17 +56,20 @@ func updateUsers() {
 		0, 0, false, filter, attributes, nil,
 	)
 
-	sr, err1 := l.Search(searchRequest)
+	searchResult, err1 := l.Search(searchRequest)
 	if err1 != nil {
-		global.SugaredLogger.Errorln(err)
+		param := service.ErrorLogCreate{
+			Detail: err.Error(),
+		}
+		param.Create()
 		return
 	}
 
 	//把组织-用户中间表中的ldap导入数据删除
 	global.DB.Where("imported_by_ldap = ?", 1).Delete(&model.OrganizationAndUser{})
 
-	for i := range sr.Entries {
-		entry := sr.Entries[i]
+	for i := range searchResult.Entries {
+		entry := searchResult.Entries[i]
 		DN := entry.GetAttributeValue("distinguishedName")
 		for _, permittedOU := range permittedOUs {
 			if strings.Contains(DN, permittedOU) {
@@ -75,7 +95,10 @@ func updateUsers() {
 					FirstOrCreate(&user).Error
 
 				if err != nil {
-					global.SugaredLogger.Errorln(err)
+					param := service.ErrorLogCreate{
+						Detail: err.Error(),
+					}
+					param.Create()
 					return
 				}
 
@@ -88,7 +111,10 @@ func updateUsers() {
 					var organization model.Organization
 					err = global.DB.Where("name = ?", "北京公司").First(&organization).Error
 					if err != nil {
-						global.SugaredLogger.Errorln(err)
+						param := service.ErrorLogCreate{
+							Detail: err.Error(),
+						}
+						param.Create()
 						return
 					}
 					record := model.OrganizationAndUser{
@@ -102,7 +128,10 @@ func updateUsers() {
 						}).
 						FirstOrCreate(&record).Error
 					if err != nil {
-						global.SugaredLogger.Errorln(err)
+						param := service.ErrorLogCreate{
+							Detail: err.Error(),
+						}
+						param.Create()
 						return
 					}
 
@@ -110,7 +139,10 @@ func updateUsers() {
 					var organization model.Organization
 					err = global.DB.Where("name = ?", "水泥工程事业部").First(&organization).Error
 					if err != nil {
-						global.SugaredLogger.Errorln(err)
+						param := service.ErrorLogCreate{
+							Detail: err.Error(),
+						}
+						param.Create()
 						return
 					}
 					record := model.OrganizationAndUser{
@@ -124,7 +156,10 @@ func updateUsers() {
 						}).
 						FirstOrCreate(&record).Error
 					if err != nil {
-						global.SugaredLogger.Errorln(err)
+						param := service.ErrorLogCreate{
+							Detail: err.Error(),
+						}
+						param.Create()
 						return
 					}
 
@@ -153,5 +188,6 @@ func updateUsers() {
 			}
 		}
 	}
+
 	return
 }

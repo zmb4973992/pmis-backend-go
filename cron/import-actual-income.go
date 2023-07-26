@@ -7,7 +7,6 @@ import (
 	"pmis-backend-go/service"
 	"strconv"
 	"strings"
-	"time"
 )
 
 func importActualIncome() error {
@@ -62,7 +61,6 @@ func ImportActualIncomeFromTabShouKuan() error {
 				param := service.ErrorLogCreate{
 					Detail: "tabShouKuan视图的记录中发现无法匹配的币种：" +
 						records[i].Currency + "，ID为：" + records[i].ImportedID,
-					Date: time.Now().Format("2006-01-02"),
 				}
 				param.Create()
 			}
@@ -74,7 +72,6 @@ func ImportActualIncomeFromTabShouKuan() error {
 			if err != nil {
 				param := service.ErrorLogCreate{
 					Detail: "dictionaryType表中找不到”币种“这个名称",
-					Date:   time.Now().Format("2006-01-02"),
 				}
 				param.Create()
 			} else {
@@ -85,7 +82,6 @@ func ImportActualIncomeFromTabShouKuan() error {
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "dictionaryDetail表中找不到“人民币”这个名称",
-						Date:   time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 				}
@@ -100,7 +96,6 @@ func ImportActualIncomeFromTabShouKuan() error {
 					param := service.ErrorLogCreate{
 						Detail: "tabShouKuan视图的记录中发现无法匹配的合同编号：" +
 							records[i].ContractCode,
-						Date: time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].ContractCode = ""
@@ -116,7 +111,6 @@ func ImportActualIncomeFromTabShouKuan() error {
 					param := service.ErrorLogCreate{
 						Detail: "tabShouKuan视图的记录中发现无法匹配的项目编号：" +
 							records[i].ProjectCode,
-						Date: time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].ProjectCode = ""
@@ -137,7 +131,6 @@ func ImportActualIncomeFromTabShouKuan() error {
 						param := service.ErrorLogCreate{
 							Detail: "tabShouKuan视图的记录中发现无法匹配的相关方名称：" +
 								records[i].ImportedRelatedPartyName,
-							Date: time.Now().Format("2006-01-02"),
 						}
 						param.Create()
 						records[i].ImportedRelatedPartyName = ""
@@ -169,7 +162,6 @@ func ImportActualIncomeFromTabShouKuan() error {
 				param := service.ErrorLogCreate{
 					Detail: "导入tabShouKuan视图的记录时发生错误：" +
 						res.Message + "，ID为：" + records[i].ImportedID + "，iOrd为：" + records[i].IOrd,
-					Date: time.Now().Format("2006-01-02"),
 				}
 				param.Create()
 			}
@@ -238,7 +230,6 @@ func ImportActualIncomeFromTabShouHui() error {
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "dictionaryType表中找不到”币种“这个名称",
-						Date:   time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Currency = ""
@@ -250,7 +241,6 @@ func ImportActualIncomeFromTabShouHui() error {
 						param := service.ErrorLogCreate{
 							Detail: "tabShouHui视图的记录中发现无法匹配的币种：" +
 								records[i].Currency + "，银行流水号为：" + records[i].BankSerialID,
-							Date: time.Now().Format("2006-01-02"),
 						}
 						param.Create()
 						records[i].Currency = ""
@@ -267,7 +257,6 @@ func ImportActualIncomeFromTabShouHui() error {
 					param := service.ErrorLogCreate{
 						Detail: "tabShouHui视图的记录中发现无法匹配的项目编号：" +
 							records[i].ProjectCode,
-						Date: time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].ProjectCode = ""
@@ -288,7 +277,6 @@ func ImportActualIncomeFromTabShouHui() error {
 						param := service.ErrorLogCreate{
 							Detail: "tabShouHui视图的记录中发现无法匹配的相关方名称：" +
 								records[i].ImportedRelatedPartyName,
-							Date: time.Now().Format("2006-01-02"),
 						}
 						param.Create()
 						records[i].ImportedRelatedPartyName = ""
@@ -335,7 +323,6 @@ func ImportActualIncomeFromTabShouHui() error {
 				param := service.ErrorLogCreate{
 					Detail: "导入tabShouHui视图的记录时发生错误：" +
 						res.Message + "，银行流水ID为：" + records[i].BankSerialID + "，iOrd为：" + records[i].IOrd,
-					Date: time.Now().Format("2006-01-02"),
 				}
 				param.Create()
 			}

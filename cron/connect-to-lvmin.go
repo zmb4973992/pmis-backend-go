@@ -18,7 +18,6 @@ func connectToLvmin() {
 		global.SugaredLogger.Errorln(err)
 		param := service.ErrorLogCreate{
 			Detail: err.Error(),
-			Date:   time.Now().Format("2006-01-02"),
 		}
 		param.Create()
 		return
@@ -33,36 +32,50 @@ func connectToLvmin() {
 	// Set Connection Max Lifetime 设置了连接可复用的最大时间
 	sqlDB2.SetConnMaxLifetime(time.Hour)
 
-	err = UpdateProjectCumulativeIncomeAndExpenditure()
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		param := service.ErrorLogCreate{
-			Detail: err.Error(),
-			Date:   time.Now().Format("2006-01-02"),
-		}
-		param.Create()
-		return
-	}
-
-	err = UpdateContractCumulativeIncomeAndExpenditure()
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		param := service.ErrorLogCreate{
-			Detail: err.Error(),
-			Date:   time.Now().Format("2006-01-02"),
-		}
-		param.Create()
-		return
-	}
-
 	err = importDataFromLvmin()
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		param := service.ErrorLogCreate{
-			Detail: err.Error(),
-			Date:   time.Now().Format("2006-01-02"),
-		}
+		param := service.ErrorLogCreate{Detail: err.Error()}
 		param.Create()
 		return
 	}
+}
+
+func importDataFromLvmin() error {
+	err := importRelatedParty()
+	if err != nil {
+		return err
+	}
+
+	err = importProject()
+	if err != nil {
+		return err
+	}
+
+	err = importContract()
+	if err != nil {
+		return err
+	}
+
+	err = importActualExpenditure()
+	if err != nil {
+		return err
+	}
+
+	err = importForecastedExpenditure()
+	if err != nil {
+		return err
+	}
+
+	err = importPlannedExpenditure()
+	if err != nil {
+		return err
+	}
+
+	err = importActualIncome()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

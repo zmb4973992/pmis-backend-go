@@ -7,7 +7,6 @@ import (
 	"pmis-backend-go/service"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type tabFukuan2a struct {
@@ -67,7 +66,6 @@ func importActualExpenditure() error {
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "dictionaryType表中找不到”币种“这个名称",
-						Date:   time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Currency = ""
@@ -79,7 +77,6 @@ func importActualExpenditure() error {
 						param := service.ErrorLogCreate{
 							Detail: "tabFukuan2视图的记录中发现无法匹配的币种：" +
 								records[i].Currency + "，付款审批ID为：" + records[i].ImportedApprovalID,
-							Date: time.Now().Format("2006-01-02"),
 						}
 						param.Create()
 						records[i].Currency = ""
@@ -96,7 +93,6 @@ func importActualExpenditure() error {
 					param := service.ErrorLogCreate{
 						Detail: "tabFukuan2视图的记录中发现无法匹配的合同编号：" +
 							records[i].ContractCode + "，合同编码为：" + records[i].ContractCode,
-						Date: time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].ContractCode = ""
@@ -112,7 +108,6 @@ func importActualExpenditure() error {
 					param := service.ErrorLogCreate{
 						Detail: "tabFukuan2视图的记录中发现无法匹配的项目编号：" +
 							records[i].ProjectCode + "，项目编号为：" + records[i].ProjectCode,
-						Date: time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].ProjectCode = ""
@@ -133,7 +128,6 @@ func importActualExpenditure() error {
 						param := service.ErrorLogCreate{
 							Detail: "tabFukuan2视图的记录中发现无法匹配的相关方名称：" +
 								records[i].ImportedRelatedPartyName + "付款审批ID为：" + records[i].ImportedApprovalID,
-							Date: time.Now().Format("2006-01-02"),
 						}
 						param.Create()
 						records[i].ImportedRelatedPartyName = ""
@@ -183,7 +177,6 @@ func importActualExpenditure() error {
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "dictionaryType表中找不到”款项类型“这个名称",
-						Date:   time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Type = ""
@@ -195,7 +188,6 @@ func importActualExpenditure() error {
 						param := service.ErrorLogCreate{
 							Detail: "tabFukuan2视图的记录中发现无法匹配的款项类型：" +
 								records[i].Type + "，付款审批ID为：" + records[i].ImportedApprovalID,
-							Date: time.Now().Format("2006-01-02"),
 						}
 						param.Create()
 						records[i].Type = ""
@@ -242,7 +234,6 @@ func importActualExpenditure() error {
 				param := service.ErrorLogCreate{
 					Detail: "导入tabFukuan2视图的记录时发生错误：" +
 						res.Message + "，付款审批ID为：" + records[i].ImportedApprovalID,
-					Date: time.Now().Format("2006-01-02"),
 				}
 				param.Create()
 			}

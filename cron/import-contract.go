@@ -8,7 +8,6 @@ import (
 	"pmis-backend-go/service"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type tabContract struct {
@@ -69,7 +68,6 @@ func importContract() error {
 					param := service.ErrorLogCreate{
 						Detail: "tabContract视图的记录中发现无法匹配的部门：" +
 							records[i].Organization + "，合同编码为：" + records[i].Code,
-						Date: time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Organization = ""
@@ -108,7 +106,6 @@ func importContract() error {
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "dictionaryType表中找不到”合同类型“这个名称",
-						Date:   time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Type = ""
@@ -121,7 +118,6 @@ func importContract() error {
 						param := service.ErrorLogCreate{
 							Detail: "tabContract视图的记录中发现无法匹配的合同类型：" +
 								records[i].Type + "，合同编码为：" + records[i].Code,
-							Date: time.Now().Format("2006-01-02"),
 						}
 						param.Create()
 						records[i].Type = ""
@@ -150,7 +146,6 @@ func importContract() error {
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "dictionaryType表中找不到”币种“这个名称",
-						Date:   time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Currency = ""
@@ -162,7 +157,6 @@ func importContract() error {
 						param := service.ErrorLogCreate{
 							Detail: "tabContract视图的记录中发现无法匹配的币种：" +
 								records[i].Currency + "，合同编码为：" + records[i].Code,
-							Date: time.Now().Format("2006-01-02"),
 						}
 						param.Create()
 						records[i].Currency = ""
@@ -179,7 +173,6 @@ func importContract() error {
 					param := service.ErrorLogCreate{
 						Detail: "tabContract视图的记录中发现无法匹配的项目编号：" +
 							records[i].ProjectCode + "，合同编码为：" + records[i].Code,
-						Date: time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].ProjectCode = ""
@@ -200,7 +193,6 @@ func importContract() error {
 						param := service.ErrorLogCreate{
 							Detail: "tabContract视图的记录中发现无法匹配的相关方名称：" +
 								records[i].RelatedParty + "，合同编码为：" + records[i].Code,
-							Date: time.Now().Format("2006-01-02"),
 						}
 						param.Create()
 						records[i].RelatedParty = ""
@@ -224,7 +216,6 @@ func importContract() error {
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "dictionaryType表中找不到”合同的资金方向“这个名称",
-						Date:   time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Currency = ""
@@ -236,7 +227,6 @@ func importContract() error {
 						param := service.ErrorLogCreate{
 							Detail: "tabContract视图的记录中发现无法匹配的合同的资金方向：" +
 								records[i].FundDirection + "，合同编码为：" + records[i].Code,
-							Date: time.Now().Format("2006-01-02"),
 						}
 						param.Create()
 						records[i].Currency = ""
@@ -253,7 +243,6 @@ func importContract() error {
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "dictionaryType表中找不到”我方签约主体“这个名称",
-						Date:   time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Currency = ""
@@ -265,7 +254,6 @@ func importContract() error {
 						param := service.ErrorLogCreate{
 							Detail: "tabContract视图的记录中发现无法匹配的我方签约主体：" +
 								records[i].OurSignatory + "，合同编码为：" + records[i].Code,
-							Date: time.Now().Format("2006-01-02"),
 						}
 						param.Create()
 						records[i].Currency = ""

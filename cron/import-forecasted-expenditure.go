@@ -8,7 +8,6 @@ import (
 	"pmis-backend-go/service"
 	"strconv"
 	"strings"
-	"time"
 )
 
 type tabFukuan struct {
@@ -66,7 +65,6 @@ func importForecastedExpenditure() error {
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "dictionaryType表中找不到”币种“这个名称",
-						Date:   time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Currency = ""
@@ -78,7 +76,6 @@ func importForecastedExpenditure() error {
 						param := service.ErrorLogCreate{
 							Detail: "tabFukuan视图的记录中发现无法匹配的币种：" +
 								records[i].Currency + "，付款审批ID为：" + records[i].ImportedApprovalID,
-							Date: time.Now().Format("2006-01-02"),
 						}
 						param.Create()
 						records[i].Currency = ""
@@ -95,7 +92,6 @@ func importForecastedExpenditure() error {
 					param := service.ErrorLogCreate{
 						Detail: "tabFukuan视图的记录中发现无法匹配的合同编号：" +
 							records[i].ContractCode + "，付款审批id为：" + records[i].ImportedApprovalID,
-						Date: time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].ContractCode = ""
@@ -111,7 +107,6 @@ func importForecastedExpenditure() error {
 					param := service.ErrorLogCreate{
 						Detail: "tabFukuan视图的记录中发现该合同号找不到对应的项目号：" +
 							records[i].ContractCode + "，付款审批id为：" + records[i].ImportedApprovalID,
-						Date: time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 				}
@@ -159,7 +154,6 @@ func importForecastedExpenditure() error {
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "dictionaryType表中找不到”款项类型“这个名称",
-						Date:   time.Now().Format("2006-01-02"),
 					}
 					param.Create()
 					records[i].Type = ""
@@ -171,7 +165,6 @@ func importForecastedExpenditure() error {
 						param := service.ErrorLogCreate{
 							Detail: "tabFukuan视图的记录中发现无法匹配的款项类型：" +
 								records[i].Type + "，付款审批ID为：" + records[i].ImportedApprovalID,
-							Date: time.Now().Format("2006-01-02"),
 						}
 						param.Create()
 						records[i].Type = ""
@@ -221,7 +214,6 @@ func importForecastedExpenditure() error {
 				param := service.ErrorLogCreate{
 					Detail: "导入tabFukuan视图的记录时发生错误：" +
 						res.Message + "，付款审批ID为：" + records[i].ImportedApprovalID,
-					Date: time.Now().Format("2006-01-02"),
 				}
 				res = param.Create()
 				if res.Code != 0 {
