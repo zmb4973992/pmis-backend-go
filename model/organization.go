@@ -22,6 +22,7 @@ type Organization struct {
 	//字符串(不允许为nil，必须有值)
 	Name string //名称
 	//LevelName string `json:"level_name"` //层级名称，如公司、事业部、部门等
+	IsValid bool //是否有效
 }
 
 // TableName 修改表名
@@ -48,29 +49,31 @@ func (o *Organization) BeforeDelete(tx *gorm.DB) error {
 
 func generateOrganizations() error {
 	organizations := []Organization{
-		{Name: "北京公司", Sort: 1},
-		{Name: "水泥工程事业部", Sort: 2},
-		{Name: "水泥工程市场一部", Sort: 3},
-		{Name: "水泥工程市场二部", Sort: 4},
-		{Name: "技术中心", Sort: 5},
-		{Name: "项目管理部", Sort: 6},
-		{Name: "工程项目执行部", Sort: 7},
-		{Name: "水泥延伸业务部", Sort: 8},
-		{Name: "综合管理和法律部", Sort: 9},
-		{Name: "人力资源和海外机构事务部", Sort: 10},
-		{Name: "财务管理部", Sort: 11},
-		{Name: "党建和纪检审计部", Sort: 12},
-		{Name: "储运管理部", Sort: 13},
-		{Name: "进口部/航空技术部", Sort: 14},
-		{Name: "成套业务一部", Sort: 15},
-		{Name: "成套业务二部", Sort: 16},
-		{Name: "成套业务三部", Sort: 17},
-		{Name: "成套业务四部", Sort: 18},
-		{Name: "成套业务五部", Sort: 19},
-		{Name: "成套业务六部", Sort: 20},
-		{Name: "投资企业", Sort: 21},
-		{Name: "海外机构", Sort: 22},
-		{Name: "国内企业管理部", Sort: 23},
+		{Name: "北京公司", Sort: 1, IsValid: true},
+		{Name: "水泥工程事业部", Sort: 2, IsValid: true},
+		{Name: "水泥工程市场一部", Sort: 3, IsValid: true},
+		{Name: "水泥工程市场二部", Sort: 4, IsValid: true},
+		{Name: "技术中心", Sort: 5, IsValid: true},
+		{Name: "项目管理部", Sort: 6, IsValid: true},
+		{Name: "工程项目执行部", Sort: 7, IsValid: true},
+		{Name: "水泥延伸业务部", Sort: 8, IsValid: true},
+		{Name: "综合管理和法律部", Sort: 9, IsValid: true},
+		{Name: "人力资源和海外机构事务部", Sort: 10, IsValid: true},
+		{Name: "财务管理部", Sort: 11, IsValid: true},
+		{Name: "党建和纪检审计部", Sort: 12, IsValid: false},
+		{Name: "纪检审计部", Sort: 12, IsValid: true},
+		{Name: "储运管理部", Sort: 13, IsValid: true},
+		{Name: "进口部/航空技术部", Sort: 14, IsValid: true},
+		{Name: "成套业务一部", Sort: 15, IsValid: true},
+		{Name: "成套业务二部", Sort: 16, IsValid: true},
+		{Name: "成套业务三部", Sort: 17, IsValid: false},
+		{Name: "成套业务四部", Sort: 18, IsValid: true},
+		{Name: "成套业务五部", Sort: 19, IsValid: true},
+		{Name: "成套业务六部", Sort: 20, IsValid: true},
+		{Name: "投资企业", Sort: 21, IsValid: true},
+		{Name: "海外机构", Sort: 22, IsValid: true},
+		{Name: "国内企业管理部", Sort: 23, IsValid: true},
+		{Name: "党建文宣部", Sort: 24, IsValid: true},
 	}
 	for _, organization := range organizations {
 		err = global.DB.Where(&Organization{Name: organization.Name}).

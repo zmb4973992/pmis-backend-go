@@ -4,7 +4,7 @@ package util
 const (
 	Success = iota
 	Error
-	ErrorRecordNotFound
+
 	ErrorNotEnoughParameters
 	ErrorInvalidURIParameters
 	ErrorInvalidFormDataParameters
@@ -23,7 +23,6 @@ const (
 	ErrorAccessTokenInvalid
 	ErrorAccessTokenNotFound
 	ErrorRoleInfoNotFound
-	ErrorUnauthorized
 	ErrorNeedAdminPrivilege
 	ErrorFailToEncrypt
 	ErrorInvalidRequest
@@ -50,6 +49,9 @@ const (
 	ErrorFailToUpdateRBACGroupingPolicies
 	ErrorFailToUpdateRBACPoliciesByRoleID
 	ErrorFailToUpdateRBACPoliciesByMenuID
+
+	ErrorUnauthorized   = 403
+	ErrorRecordNotFound = 404
 )
 
 // Message 自定义错误的message
@@ -78,7 +80,7 @@ var Message = map[int]string{
 
 	ErrorAccessTokenInvalid:  "access_token无效",
 	ErrorAccessTokenNotFound: "缺少access_token",
-	ErrorUnauthorized:        "权限不足",
+	ErrorUnauthorized:        "您的权限不足",
 	ErrorNeedAdminPrivilege:  "权限不足，该操作需要管理员权限",
 	ErrorUserDoesNotExist:    "用户不存在",
 

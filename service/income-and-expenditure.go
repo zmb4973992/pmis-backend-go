@@ -505,7 +505,7 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 	batchID := idgen.NextId()
 
 	//用来确定组织的数据范围
-	organizationIDsForDataScope := util.GetOrganizationIDsInDataScope(i.UserID)
+	organizationIDsForDataScope := util.GetOrganizationIDs(i.UserID)
 	if len(organizationIDsForDataScope) > 0 {
 		var temps []model.Temp
 		for j := range organizationIDsForDataScope {
@@ -523,9 +523,10 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 		Joins("join temp on project.organization_id = temp.organization_id").
 		Where("batch_id = ?", batchID).
 		Select("project.id").Find(&projectIDs)
+
 	if len(projectIDs) > 0 {
 		var temps []model.Temp
-		for j := range organizationIDsForDataScope {
+		for j := range projectIDs {
 			var temp model.Temp
 			temp.ProjectID = &projectIDs[j]
 			temp.BatchID = batchID
@@ -551,9 +552,12 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 		global.DB.CreateInBatches(&temps, 100)
 	}
 
-	//汇总
-	db = db.Joins("join temp on income_and_expenditure.project_id = temp.project_id or income_and_expenditure.contract_id = temp.contract_id").
-		Where("temp.batch_id = ?", batchID)
+	//说明：
+	//1.先找到项目id存在于临时表、或者合同id存在于临时表的收付款id；
+	//2.这里找到的id肯定会有重复（因为是join），所以使用distinct，筛选出唯一的收付款id；
+	//3.找到收付款id存在于上面的表的记录，结束
+	db = db.Joins("join (select distinct t1.id as distinct_id from income_and_expenditure as t1 join temp as t2 on t1.project_id = t2.project_id or t1.contract_id = t2.contract_id where t2.batch_id = ?) as t3 on income_and_expenditure.id = t3.distinct_id", batchID).
+		Where("income_and_expenditure.id = t3.distinct_id")
 
 	//count
 	var count int64

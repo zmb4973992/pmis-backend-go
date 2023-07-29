@@ -33,6 +33,8 @@ func importPlannedExpenditure() error {
 		if i > 0 && i%100 == 0 {
 			process, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(i)/float64(len(records))), 64)
 			fmt.Println("已处理", i, "条计划付款记录，当前进度：", fmt.Sprintf("%.0f", process*100), "%")
+		} else if i == len(records)-1 {
+			fmt.Println("已处理", i, "条计划付款记录，当前进度：100 %")
 		}
 
 		var tempCount int64

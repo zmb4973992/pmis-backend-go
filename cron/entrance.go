@@ -14,7 +14,7 @@ func Init() {
 		global.SugaredLogger.Errorln("添加定时任务失败，请检查")
 	}
 
-	_, err = c.AddFunc("35 * * * *", updateUsersByLDAP)
+	_, err = c.AddFunc("* * * * *", updateUsersByLDAP)
 	if err != nil {
 		global.SugaredLogger.Errorln("添加定时任务失败，请检查")
 	}

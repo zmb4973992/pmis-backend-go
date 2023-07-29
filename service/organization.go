@@ -43,6 +43,7 @@ type OrganizationGetList struct {
 	list.DataScopeInput
 	SuperiorID  int64  `json:"superior_id,omitempty"`
 	Name        string `json:"name,omitempty"`
+	IsValid     *bool  `json:"is_valid"`
 	NameInclude string `json:"name_include,omitempty"`
 }
 
@@ -52,6 +53,7 @@ type OrganizationOutput struct {
 	ID           int64  `json:"id"`
 	Name         string `json:"name"`        //名称
 	SuperiorID   *int   `json:"superior_id"` //上级机构id
+	IsValid      *bool  `json:"is_valid"`    //是否有效
 }
 
 func (d *OrganizationGet) Get() response.Common {
@@ -145,21 +147,29 @@ func (d *OrganizationDelete) Delete() response.Common {
 	return response.Success()
 }
 
-func (d *OrganizationGetList) GetList() response.List {
+func (o *OrganizationGetList) GetList() response.List {
 	db := global.DB.Model(&model.Organization{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if d.SuperiorID > 0 {
-		db = db.Where("superior_id = ?", d.SuperiorID)
+	if o.SuperiorID > 0 {
+		db = db.Where("superior_id = ?", o.SuperiorID)
 	}
 
-	if d.Name != "" {
-		db = db.Where("name = ?", d.Name)
+	if o.Name != "" {
+		db = db.Where("name = ?", o.Name)
 	}
 
-	if d.NameInclude != "" {
-		db = db.Where("name like ?", "%"+d.NameInclude+"%")
+	if o.IsValid != nil {
+		if *o.IsValid == true {
+			db = db.Where("is_valid = ?", true)
+		} else if *o.IsValid == false {
+			db = db.Where("is_valid = ?", false)
+		}
+	}
+
+	if o.NameInclude != "" {
+		db = db.Where("name like ?", "%"+o.NameInclude+"%")
 	}
 
 	// count
@@ -167,8 +177,8 @@ func (d *OrganizationGetList) GetList() response.List {
 	db.Count(&count)
 
 	//Order
-	orderBy := d.SortingInput.OrderBy
-	desc := d.SortingInput.Desc
+	orderBy := o.SortingInput.OrderBy
+	desc := o.SortingInput.Desc
 	//如果排序字段为空
 	if orderBy == "" {
 		//如果要求降序排列
@@ -191,13 +201,13 @@ func (d *OrganizationGetList) GetList() response.List {
 
 	//limit
 	page := 1
-	if d.PagingInput.Page > 0 {
-		page = d.PagingInput.Page
+	if o.PagingInput.Page > 0 {
+		page = o.PagingInput.Page
 	}
 	pageSize := global.Config.DefaultPageSize
-	if d.PagingInput.PageSize != nil && *d.PagingInput.PageSize >= 0 &&
-		*d.PagingInput.PageSize <= global.Config.MaxPageSize {
-		pageSize = *d.PagingInput.PageSize
+	if o.PagingInput.PageSize != nil && *o.PagingInput.PageSize >= 0 &&
+		*o.PagingInput.PageSize <= global.Config.MaxPageSize {
+		pageSize = *o.PagingInput.PageSize
 	}
 	if pageSize > 0 {
 		db = db.Limit(pageSize)
@@ -230,14 +240,3 @@ func (d *OrganizationGetList) GetList() response.List {
 		Message: util.GetMessage(util.Success),
 	}
 }
-
-//func DeptList2DeptTree(deptList []model.SysDept, pCode string) []model.SysDept {
-//	var deptTree []model.SysDept
-//	for _, v := range deptList {
-//		if v.ParentCode == pCode {
-//			v.Children = DeptList2DeptTree(deptList, v.DeptCode)
-//			deptTree = append(deptTree, v)
-//		}
-//	}
-//	return deptTree
-//}

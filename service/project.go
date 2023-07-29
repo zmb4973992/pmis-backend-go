@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -13,7 +14,8 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type ProjectGet struct {
-	ID int64
+	ID     int64
+	UserID int64
 }
 
 type ProjectCreate struct {
@@ -87,6 +89,9 @@ type ProjectGetList struct {
 	RelatedPartyID          int64   `json:"related_party_id,omitempty"`
 	OrganizationNameInclude string  `json:"organization_name_include,omitempty"`
 	OrganizationIDIn        []int64 `json:"organization_id_in"`
+
+	//是否忽略数据范围的限制，用于请求数据范围外的全部数据
+	IgnoreDataScope bool `json:"ignore_data_scope"`
 }
 
 //以下为出参
@@ -128,6 +133,14 @@ type ProjectOutput struct {
 	Name    *string `json:"name"`
 	Content *string `json:"content"`
 	Sort    *int    `json:"sort"`
+
+	//用来告诉前端，该记录是否为数据范围内，用来判定是否能访问详情、是否需要做跳转等
+	Authorized bool `json:"authorized" gorm:"-"`
+}
+
+type projectAuthorize struct {
+	ID     int64
+	UserID int64
 }
 
 func (p *ProjectGet) Get() response.Common {
@@ -135,8 +148,16 @@ func (p *ProjectGet) Get() response.Common {
 	err := global.DB.Model(model.Project{}).
 		Where("id = ?", p.ID).First(&result).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
+	}
+
+	var authorize projectAuthorize
+	authorize.ID = p.ID
+	authorize.UserID = p.UserID
+	authorizationResult := authorize.authorizedOrNot()
+
+	if !authorizationResult {
+		return response.Failure(util.ErrorUnauthorized)
 	}
 
 	//默认格式为这样的string：2019-11-01T00:00:00Z，需要取年月日(前9位)
@@ -340,6 +361,22 @@ func (p *ProjectCreate) Create() response.Common {
 }
 
 func (p *ProjectUpdate) Update() response.Common {
+	var result ProjectOutput
+	err := global.DB.Model(model.Project{}).
+		Where("id = ?", p.ID).First(&result).Error
+	if err != nil {
+		return response.Failure(util.ErrorRecordNotFound)
+	}
+
+	var authorize projectAuthorize
+	authorize.ID = p.ID
+	authorize.UserID = p.LastModifier
+	authorizationResult := authorize.authorizedOrNot()
+
+	if !authorizationResult {
+		return response.Failure(util.ErrorUnauthorized)
+	}
+
 	paramOut := make(map[string]any)
 	if p.LastModifier > 0 {
 		paramOut["last_modifier"] = p.LastModifier
@@ -500,13 +537,13 @@ func (p *ProjectUpdate) Update() response.Common {
 
 	//计算有修改值的字段数，分别进行不同处理
 	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt")
+		"LastModifier", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.Project{}).Where("id = ?", p.ID).
+	err = global.DB.Model(&model.Project{}).Where("id = ?", p.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -557,8 +594,10 @@ func (p *ProjectGetList) GetList() response.List {
 	}
 
 	//用来确定数据范围
-	organizationIDsForDataScope := util.GetOrganizationIDsInDataScope(p.UserID)
-	db = db.Where("organization_id in ?", organizationIDsForDataScope)
+	if p.IgnoreDataScope == false {
+		organizationIDs := util.GetOrganizationIDs(p.UserID)
+		db = db.Where("organization_id in ?", organizationIDs)
+	}
 
 	//count
 	var count int64
@@ -608,7 +647,7 @@ func (p *ProjectGetList) GetList() response.List {
 
 	//data
 	var data []ProjectOutput
-	db.Model(&model.Project{}).Debug().Find(&data)
+	db.Model(&model.Project{}).Find(&data)
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
@@ -704,6 +743,15 @@ func (p *ProjectGetList) GetList() response.List {
 				*data[i].CommissioningDate = temp[:10]
 			}
 		}
+
+		if p.IgnoreDataScope == true {
+			var authorize projectAuthorize
+			authorize.ID = data[i].ID
+			authorize.UserID = p.UserID
+			data[i].Authorized = authorize.authorizedOrNot()
+		} else {
+			data[i].Authorized = true
+		}
 	}
 
 	numberOfRecords := int(count)
@@ -720,4 +768,55 @@ func (p *ProjectGetList) GetList() response.List {
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),
 	}
+}
+
+// 该方法一定要在确定记录存在后再调用
+func (p *projectAuthorize) authorizedOrNot() bool {
+	//用来确定数据范围内的组织id
+	organizationIDs := util.GetOrganizationIDs(p.UserID)
+	if len(organizationIDs) == 0 {
+		return false
+	}
+
+	batchID := idgen.NextId()
+
+	var temps []model.Temp
+	for i := range organizationIDs {
+		var temp model.Temp
+		temp.OrganizationID = &organizationIDs[i]
+		temp.BatchID = batchID
+		temps = append(temps, temp)
+	}
+	global.DB.CreateInBatches(&temps, 100)
+
+	//找出数据范围内的项目id
+	var projectIDs []int64
+	global.DB.Model(&model.Project{}).
+		Joins("join temp on project.organization_id = temp.organization_id").
+		Where("batch_id = ?", batchID).
+		Select("project.id").Find(&projectIDs)
+
+	if len(projectIDs) == 0 {
+		return false
+	}
+
+	for i := range projectIDs {
+		var temp model.Temp
+		temp.ProjectID = &projectIDs[i]
+		temp.BatchID = batchID
+		temps = append(temps, temp)
+	}
+	global.DB.CreateInBatches(&temps, 100)
+
+	//看看在数据范围内是否有该记录
+	var count int64
+	global.DB.Model(model.Project{}).
+		Joins("join (select distinct project_id from temp where batch_id = ?) as temp2 on project.id = temp2.project_id", batchID).
+		Where("id = ?", p.ID).
+		Count(&count)
+	if count > 0 {
+		return true
+	}
+
+	return false
 }

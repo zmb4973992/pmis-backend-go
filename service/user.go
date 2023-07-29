@@ -70,6 +70,14 @@ type UserUpdateRoles struct {
 	RoleIDs *[]int64 `json:"role_ids"`
 }
 
+type UserUpdateDataScope struct {
+	Creator      int64
+	LastModifier int64
+
+	UserID      int64 `json:"-"`
+	DataScopeID int64 `json:"data_scope_id" binding:"required"`
+}
+
 //以下为出参
 
 type UserOutput struct {
@@ -428,4 +436,31 @@ func (u *UserUpdateRoles) Update() response.Common {
 	default:
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
+}
+
+func (u *UserUpdateDataScope) Update() response.Common {
+	paramOut := make(map[string]any)
+	if u.LastModifier > 0 {
+		paramOut["last_modifier"] = u.LastModifier
+	}
+
+	paramOut["data_scope_id"] = u.DataScopeID
+
+	//计算有修改值的字段数，分别进行不同处理
+	paramOutForCounting := util.MapCopy(paramOut, "Creator",
+		"LastModifier", "CreateAt", "UpdatedAt")
+
+	if len(paramOutForCounting) == 0 {
+		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
+	}
+
+	err := global.DB.Model(&model.UserAndDataScope{}).
+		Where("user_id = ?", u.UserID).
+		Updates(paramOut).Error
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		return response.Failure(util.ErrorFailToUpdateRecord)
+	}
+
+	return response.Success()
 }

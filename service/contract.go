@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -13,7 +14,8 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type ContractGet struct {
-	ID int64
+	ID     int64
+	UserID int64
 }
 
 type ContractCreate struct {
@@ -93,6 +95,9 @@ type ContractGetList struct {
 	RelatedPartyID int64  `json:"related_party_id,omitempty"`
 	FundDirection  int64  `json:"fund_direction,omitempty"`
 	NameInclude    string `json:"name_include,omitempty"`
+
+	//是否忽略数据范围的限制，用于请求数据范围外的全部数据
+	IgnoreDataScope bool `json:"ignore_data_scope"`
 }
 
 //以下为出参
@@ -136,6 +141,14 @@ type ContractOutput struct {
 	PenaltyRule *string `json:"penalty_rule"`
 	Attachment  *string `json:"attachment"`
 	Operator    *string `json:"operator"`
+
+	//用来告诉前端，该记录是否为数据范围内，用来判定是否能访问详情、是否需要做跳转等
+	Authorized bool `json:"authorized" gorm:"-"`
+}
+
+type contractAuthorize struct {
+	ID     int64
+	UserID int64
 }
 
 func (c *ContractGet) Get() response.Common {
@@ -143,9 +156,18 @@ func (c *ContractGet) Get() response.Common {
 	err := global.DB.Model(model.Contract{}).
 		Where("id = ?", c.ID).First(&result).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
+
+	var authorize contractAuthorize
+	authorize.ID = c.ID
+	authorize.UserID = c.UserID
+	authorizationResult := authorize.authorizedOrNot()
+
+	if !authorizationResult {
+		return response.Failure(util.ErrorUnauthorized)
+	}
+
 	//查询关联表的详情
 	{
 		//查项目信息
@@ -380,6 +402,22 @@ func (c *ContractCreate) Create() response.Common {
 }
 
 func (c *ContractUpdate) Update() response.Common {
+	var result ContractOutput
+	err := global.DB.Model(model.Contract{}).
+		Where("id = ?", c.ID).First(&result).Error
+	if err != nil {
+		return response.Failure(util.ErrorRecordNotFound)
+	}
+
+	var authorize contractAuthorize
+	authorize.ID = c.ID
+	authorize.UserID = c.LastModifier
+	authorizationResult := authorize.authorizedOrNot()
+
+	if !authorizationResult {
+		return response.Failure(util.ErrorUnauthorized)
+	}
+
 	paramOut := make(map[string]any)
 
 	if c.LastModifier > 0 {
@@ -575,7 +613,7 @@ func (c *ContractUpdate) Update() response.Common {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.Contract{}).Where("id = ?", c.ID).
+	err = global.DB.Model(&model.Contract{}).Where("id = ?", c.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -620,14 +658,16 @@ func (c *ContractGetList) GetList() response.List {
 	}
 
 	//用来确定数据范围
-	organizationIDsForDataScope := util.GetOrganizationIDsInDataScope(c.UserID)
-	//先找出项目的数据范围
-	var projectIDs []int64
-	global.DB.Model(&model.Project{}).Where("organization_id in ?", organizationIDsForDataScope).
-		Select("id").Find(&projectIDs)
-	//然后再加上组织的数据范围
-	db = db.Where("organization_id in ? or project_id in ?",
-		organizationIDsForDataScope, projectIDs)
+	if c.IgnoreDataScope == false {
+		organizationIDs := util.GetOrganizationIDs(c.UserID)
+		//先找出项目的数据范围
+		var projectIDs []int64
+		global.DB.Model(&model.Project{}).Where("organization_id in ?", organizationIDs).
+			Select("id").Find(&projectIDs)
+		//然后再加上组织的数据范围
+		db = db.Where("organization_id in ? or project_id in ?",
+			organizationIDs, projectIDs)
+	}
 
 	//count
 	var count int64
@@ -763,6 +803,15 @@ func (c *ContractGetList) GetList() response.List {
 				*data[i].CompletionDate = temp[:10]
 			}
 		}
+
+		if c.IgnoreDataScope == true {
+			var authorize contractAuthorize
+			authorize.ID = data[i].ID
+			authorize.UserID = c.UserID
+			data[i].Authorized = authorize.authorizedOrNot()
+		} else {
+			data[i].Authorized = true
+		}
 	}
 
 	numberOfRecords := int(count)
@@ -779,4 +828,75 @@ func (c *ContractGetList) GetList() response.List {
 		Code:    util.Success,
 		Message: util.GetMessage(util.Success),
 	}
+}
+
+// 该方法一定要在确定记录存在后再调用
+func (p *contractAuthorize) authorizedOrNot() bool {
+	//用来确定数据范围内的组织id
+	organizationIDs := util.GetOrganizationIDs(p.UserID)
+	if len(organizationIDs) == 0 {
+		return false
+	}
+
+	batchID := idgen.NextId()
+
+	var temps []model.Temp
+	for i := range organizationIDs {
+		var temp model.Temp
+		temp.OrganizationID = &organizationIDs[i]
+		temp.BatchID = batchID
+		temps = append(temps, temp)
+	}
+	global.DB.CreateInBatches(&temps, 100)
+
+	//找出数据范围内的项目id
+	var projectIDs []int64
+	global.DB.Model(&model.Project{}).
+		Joins("join temp on project.organization_id = temp.organization_id").
+		Where("batch_id = ?", batchID).
+		Select("project.id").Find(&projectIDs)
+
+	if len(projectIDs) == 0 {
+		return false
+	}
+
+	for j := range projectIDs {
+		var temp model.Temp
+		temp.ProjectID = &projectIDs[j]
+		temp.BatchID = batchID
+		temps = append(temps, temp)
+	}
+	global.DB.CreateInBatches(&temps, 100)
+
+	//找出数据范围内的合同id
+	var contractIDs []int64
+	global.DB.Model(&model.Contract{}).
+		Joins("join temp on contract.organization_id = temp.organization_id or contract.project_id = temp.project_id").
+		Where("batch_id = ?", batchID).
+		Distinct("contract.id").
+		Find(&contractIDs)
+
+	if len(contractIDs) == 0 {
+		return false
+	}
+
+	for i := range contractIDs {
+		var temp model.Temp
+		temp.ContractID = &contractIDs[i]
+		temp.BatchID = batchID
+		temps = append(temps, temp)
+	}
+	global.DB.CreateInBatches(&temps, 100)
+
+	//看看在数据范围内是否有该记录
+	var count int64
+	global.DB.Model(model.Contract{}).
+		Joins("join (select distinct contract_id from temp where batch_id = ?) as temp2 on contract.id = temp2.contract_id", batchID).
+		Where("id = ?", p.ID).
+		Count(&count)
+	if count > 0 {
+		return true
+	}
+
+	return false
 }

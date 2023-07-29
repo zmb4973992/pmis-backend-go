@@ -56,6 +56,8 @@ func InitDatabase() {
 		&Temp{},                          //临时表
 		&ContractCumulativeIncome{},      //合同累计收款
 		&ContractCumulativeExpenditure{}, //合同累计付款
+		&DataScope{},                     //数据范围表
+		&UserAndDataScope{},              //用户和数据范围的中间表
 	)
 	if err != nil {
 		global.SugaredLogger.Panicln(err)
@@ -93,6 +95,9 @@ func generateInitialData() {
 		global.SugaredLogger.Panicln(err)
 	}
 	if err = generateCasbinRules(); err != nil {
+		global.SugaredLogger.Panicln(err)
+	}
+	if err = generateDataScopes(); err != nil {
 		global.SugaredLogger.Panicln(err)
 	}
 }

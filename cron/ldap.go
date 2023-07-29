@@ -95,27 +95,26 @@ func updateUsersByLDAP() {
 					FirstOrCreate(&user).Error
 
 				if err != nil {
-					param := service.ErrorLogCreate{
-						Detail: err.Error(),
-					}
+					global.SugaredLogger.Errorln(err)
+					param := service.ErrorLogCreate{Detail: err.Error()}
 					param.Create()
-					return
+					continue
 				}
 
 				//部门信息不从LDAP导入，因为LDAP不是严格按照部门进行设置的
 
 				//添加组织机构和用户的关联
-				if permittedOU == "公司领导" ||
-					permittedOU == "公司总监" ||
+				if permittedOU == "公司领导" || permittedOU == "公司总监" ||
 					permittedOU == "公司专务" {
 					var organization model.Organization
 					err = global.DB.Where("name = ?", "北京公司").First(&organization).Error
 					if err != nil {
+						global.SugaredLogger.Errorln(err)
 						param := service.ErrorLogCreate{
-							Detail: err.Error(),
+							Detail: "在组织机构表中找不到：北京公司",
 						}
 						param.Create()
-						return
+						continue
 					}
 					record := model.OrganizationAndUser{
 						UserID:         user.ID,
@@ -128,22 +127,24 @@ func updateUsersByLDAP() {
 						}).
 						FirstOrCreate(&record).Error
 					if err != nil {
+						global.SugaredLogger.Errorln(err)
 						param := service.ErrorLogCreate{
 							Detail: err.Error(),
 						}
 						param.Create()
-						return
+						continue
 					}
 
 				} else if permittedOU == "事业部管理委员会和水泥工程事业部" {
 					var organization model.Organization
 					err = global.DB.Where("name = ?", "水泥工程事业部").First(&organization).Error
 					if err != nil {
+						global.SugaredLogger.Errorln(err)
 						param := service.ErrorLogCreate{
-							Detail: err.Error(),
+							Detail: "在组织机构表中找不到：水泥工程事业部",
 						}
 						param.Create()
-						return
+						continue
 					}
 					record := model.OrganizationAndUser{
 						UserID:         user.ID,
@@ -156,11 +157,12 @@ func updateUsersByLDAP() {
 						}).
 						FirstOrCreate(&record).Error
 					if err != nil {
+						global.SugaredLogger.Errorln(err)
 						param := service.ErrorLogCreate{
 							Detail: err.Error(),
 						}
 						param.Create()
-						return
+						continue
 					}
 
 				} else {
@@ -168,7 +170,9 @@ func updateUsersByLDAP() {
 					err = global.DB.Where("name = ?", permittedOU).First(&organization).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
-						return
+						param := service.ErrorLogCreate{Detail: "在组织机构表中找不到：" + permittedOU}
+						param.Create()
+						continue
 					}
 					record := model.OrganizationAndUser{
 						UserID:         user.ID,
@@ -182,12 +186,50 @@ func updateUsersByLDAP() {
 						FirstOrCreate(&record).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
-						return
+						param := service.ErrorLogCreate{
+							Detail: err.Error(),
+						}
+						param.Create()
+						continue
 					}
 				}
 			}
 		}
 	}
 
+	err = updateUserAndDataScope()
+	if err != nil {
+		global.SugaredLogger.Errorln(err)
+		var param service.ErrorLogCreate
+		param.Detail = err.Error()
+		param.Create()
+	}
+
 	return
+}
+
+func updateUserAndDataScope() error {
+	//所有的用户默认的数据范围是"所属部门和子部门"
+	var users []model.User
+	global.DB.Find(&users)
+
+	var dataScope model.DataScope
+	err := global.DB.Where("name = '所属部门和子部门'").
+		First(&dataScope).Error
+	if err != nil {
+		return err
+	}
+
+	for i := range users {
+		var userAndDataScope model.UserAndDataScope
+		userAndDataScope.UserID = users[i].ID
+		userAndDataScope.DataScopeID = dataScope.ID
+		err = global.DB.Where("user_id = ?", users[i].ID).
+			FirstOrCreate(&userAndDataScope).Error
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

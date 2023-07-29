@@ -24,6 +24,13 @@ func (co *contract) Get(c *gin.Context) {
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
+
+	//处理userID字段
+	userID, exists := util.GetUserID(c)
+	if exists {
+		param.UserID = userID
+	}
+
 	res := param.Get()
 	c.JSON(http.StatusOK, res)
 	return
