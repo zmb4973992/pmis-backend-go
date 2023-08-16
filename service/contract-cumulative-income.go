@@ -17,8 +17,7 @@ import (
 //如果指针字段没传，那么数据库不会修改该字段
 
 type ContractCumulativeIncomeUpdate struct {
-	Creator      int64
-	LastModifier int64
+	UserID int64
 	//连接关联表的id
 	ContractID int64 `json:"contract_id,omitempty"`
 	//连接dictionary_item表的id
@@ -210,12 +209,7 @@ func (c *ContractCumulativeIncomeUpdate) Update() response.Common {
 					}
 				}
 
-				if c.Creator > 0 {
-					record.Creator = &c.Creator
-				}
-				if c.LastModifier > 0 {
-					record.LastModifier = &c.LastModifier
-				}
+				record.Creator = &c.UserID
 				record.ContractID = c.ContractID
 				record.Date = &dates[j]
 

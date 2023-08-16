@@ -18,8 +18,7 @@ type RoleGet struct {
 }
 
 type RoleCreate struct {
-	Creator      int64
-	LastModifier int64
+	UserID int64
 	//连接关联表的id
 
 	//连接dictionary_item表的id
@@ -27,11 +26,9 @@ type RoleCreate struct {
 	//日期
 
 	//数字(允许为0、nil)
-	SuperiorID *int64 `json:"superior_id"`
-
-	Name string `json:"name" binding:"required"`
-
-	DataScopeType int `json:"data_scope_type,omitempty"`
+	SuperiorID      *int64 `json:"superior_id"`
+	Name            string `json:"name" binding:"required"`
+	DataAuthorityID int64  `json:"data_authority_id" binding:"required"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -39,8 +36,8 @@ type RoleCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type RoleUpdate struct {
-	LastModifier int64
-	ID           int64
+	UserID int64
+	ID     int64
 	//连接关联表的id
 
 	//连接dictionary_item表的id
@@ -51,8 +48,8 @@ type RoleUpdate struct {
 	//SuperiorID *int64 `json:"superior_id"`
 
 	//允许为null的字符串
-	Name          *string `json:"name"`
-	DataScopeType *int    `json:"data_scope_type"`
+	Name            *string `json:"name"`
+	DataAuthorityID *int64  `json:"data_authority_id"`
 }
 
 type RoleDelete struct {
@@ -64,16 +61,14 @@ type RoleGetList struct {
 }
 
 type RoleUpdateUsers struct {
-	Creator      int64
-	LastModifier int64
+	UserID int64
 
 	RoleID  int64    `json:"-"`
 	UserIDs *[]int64 `json:"user_ids"`
 }
 
 type RoleUpdateMenus struct {
-	Creator      int64
-	LastModifier int64
+	UserID int64
 
 	RoleID  int64    `json:"-"`
 	MenuIDs *[]int64 `json:"menu_ids"`
@@ -113,11 +108,8 @@ func (r *RoleGet) Get() response.Common {
 func (r *RoleCreate) Create() response.Common {
 	var paramOut model.Role
 
-	if r.Creator > 0 {
-		paramOut.Creator = &r.Creator
-	}
-	if r.LastModifier > 0 {
-		paramOut.LastModifier = &r.LastModifier
+	if r.UserID > 0 {
+		paramOut.Creator = &r.UserID
 	}
 
 	//允许为0的数字
@@ -134,11 +126,7 @@ func (r *RoleCreate) Create() response.Common {
 		}
 	}
 
-	if r.DataScopeType > 0 {
-		paramOut.DataScopeType = r.DataScopeType
-	} else {
-		paramOut.DataScopeType = global.HisOrganizationAndInferiors
-	}
+	paramOut.DataAuthorityID = r.DataAuthorityID
 
 	//计算有修改值的字段数，分别进行不同处理
 	tempParamOut, err := util.StructToMap(paramOut)
@@ -146,7 +134,7 @@ func (r *RoleCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "CreateAt", "UpdatedAt")
+		"UserID", "UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -163,20 +151,9 @@ func (r *RoleCreate) Create() response.Common {
 func (r *RoleUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if r.LastModifier > 0 {
-		paramOut["last_modifier"] = r.LastModifier
+	if r.UserID > 0 {
+		paramOut["last_modifier"] = r.UserID
 	}
-
-	//允许为0的数字
-	//{
-	//	if r.SuperiorID != nil {
-	//		if *r.SuperiorID != -1 {
-	//			paramOut["superior_id"] = r.SuperiorID
-	//		} else {
-	//			paramOut["superior_id"] = nil
-	//		}
-	//	}
-	//}
 
 	//允许为null的字符串
 	{
@@ -189,17 +166,17 @@ func (r *RoleUpdate) Update() response.Common {
 		}
 	}
 
-	if r.DataScopeType != nil {
-		if *r.DataScopeType == -1 {
-			paramOut["data_scope_type"] = nil
+	if r.DataAuthorityID != nil {
+		if *r.DataAuthorityID == -1 {
+			paramOut["data_authority_id"] = nil
 		} else {
-			paramOut["data_scope_type"] = r.DataScopeType
+			paramOut["data_authority_id"] = r.DataAuthorityID
 		}
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt")
+	paramOutForCounting := util.MapCopy(paramOut, "UserID",
+		"UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
@@ -330,11 +307,9 @@ func (r *RoleUpdateUsers) Update() response.Common {
 		var paramOut []model.UserAndRole
 		for _, userID := range *r.UserIDs {
 			var record model.UserAndRole
-			if r.Creator > 0 {
-				record.Creator = &r.Creator
-			}
-			if r.LastModifier > 0 {
-				record.LastModifier = &r.LastModifier
+
+			if r.UserID > 0 {
+				record.LastModifier = &r.UserID
 			}
 
 			record.RoleID = r.RoleID
@@ -349,7 +324,7 @@ func (r *RoleUpdateUsers) Update() response.Common {
 				return ErrorFailToUpdateRecord
 			}
 			paramOutForCounting := util.MapCopy(tempParamOut,
-				"Creator", "LastModifier", "CreateAt", "UpdatedAt")
+				"UserID", "UserID", "CreateAt", "UpdatedAt")
 
 			if len(paramOutForCounting) == 0 {
 				return ErrorFieldsToBeCreatedNotFound
@@ -417,11 +392,9 @@ func (r *RoleUpdateMenus) Update() response.Common {
 	var paramOut []model.RoleAndMenu
 	for _, menuID := range *r.MenuIDs {
 		var record model.RoleAndMenu
-		if r.Creator > 0 {
-			record.Creator = &r.Creator
-		}
-		if r.LastModifier > 0 {
-			record.LastModifier = &r.LastModifier
+
+		if r.UserID > 0 {
+			record.LastModifier = &r.UserID
 		}
 
 		record.RoleID = r.RoleID
@@ -436,7 +409,7 @@ func (r *RoleUpdateMenus) Update() response.Common {
 			return response.Failure(util.ErrorFailToUpdateRecord)
 		}
 		paramOutForCounting := util.MapCopy(tempParamOut,
-			"Creator", "LastModifier", "CreateAt", "UpdatedAt")
+			"UserID", "UserID", "CreateAt", "UpdatedAt")
 
 		if len(paramOutForCounting) == 0 {
 			return response.Failure(util.ErrorFieldsToBeCreatedNotFound)

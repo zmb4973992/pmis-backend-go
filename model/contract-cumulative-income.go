@@ -18,6 +18,6 @@ type ContractCumulativeIncome struct {
 	ForecastedIncomeProgress *float64 //预测收款进度
 }
 
-func (*ContractCumulativeIncome) TableName() string {
+func (c *ContractCumulativeIncome) TableName() string {
 	return "contract_cumulative_income"
 }

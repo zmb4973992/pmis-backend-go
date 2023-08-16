@@ -6,6 +6,8 @@ import (
 	"pmis-backend-go/serializer/list"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
+	"strconv"
+	"strings"
 )
 
 //以下为入参
@@ -16,7 +18,7 @@ type RelatedPartyGet struct {
 }
 
 type RelatedPartyCreate struct {
-	Creator      int64
+	UserID       int64
 	LastModifier int64
 
 	Name                    string `json:"name,omitempty"`
@@ -25,6 +27,7 @@ type RelatedPartyCreate struct {
 	UniformSocialCreditCode string `json:"uniform_social_credit_code,omitempty"` //统一社会信用代码
 	Telephone               string `json:"telephone,omitempty"`
 	Remarks                 string `json:"remarks,omitempty"`
+	FileIDs                 string `json:"file_ids,omitempty"`
 	ImportedOriginalName    string `json:"imported_original_name,omitempty"`
 }
 
@@ -33,8 +36,8 @@ type RelatedPartyCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type RelatedPartyUpdate struct {
-	LastModifier int64
-	ID           int64
+	UserID int64
+	ID     int64
 
 	Name                    *string `json:"name"`
 	EnglishName             *string `json:"english_name"`
@@ -42,6 +45,7 @@ type RelatedPartyUpdate struct {
 	UniformSocialCreditCode *string `json:"uniform_social_credit_code"` //统一社会信用代码
 	Telephone               *string `json:"telephone"`
 	Remarks                 *string `json:"remarks"`
+	FileIDs                 *string `json:"file_ids"`
 }
 
 type RelatedPartyDelete struct {
@@ -62,12 +66,14 @@ type RelatedPartyOutput struct {
 	LastModifier *int64 `json:"last_modifier"`
 	ID           int64  `json:"id"`
 
-	Name                    *string `json:"name"`
-	EnglishName             *string `json:"english_name"`
-	Address                 *string `json:"address"`
-	UniformSocialCreditCode *string `json:"uniform_social_credit_code"` //统一社会信用代码
-	Telephone               *string `json:"telephone"`
-	Remarks                 *string `json:"remarks"`
+	Name                    *string      `json:"name"`
+	EnglishName             *string      `json:"english_name"`
+	Address                 *string      `json:"address"`
+	UniformSocialCreditCode *string      `json:"uniform_social_credit_code"` //统一社会信用代码
+	Telephone               *string      `json:"telephone"`
+	Remarks                 *string      `json:"remarks"`
+	FileIDs                 *string      `json:"-"`
+	FilesExternal           []FileOutput `json:"files" gorm:"-"`
 }
 
 func (r *RelatedPartyGet) Get() response.Common {
@@ -75,16 +81,34 @@ func (r *RelatedPartyGet) Get() response.Common {
 	err := global.DB.Model(&model.RelatedParty{}).
 		Where("id = ?", r.ID).First(&result).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
+
+	//查文件信息
+	if result.FileIDs != nil {
+		tempFileIDs := strings.Split(*result.FileIDs, ",")
+		var fileIDs []int64
+		for i := range tempFileIDs {
+			fileID, err1 := strconv.ParseInt(tempFileIDs[i], 10, 64)
+			if err1 != nil {
+				continue
+			}
+			fileIDs = append(fileIDs, fileID)
+		}
+
+		var records []FileOutput
+		global.DB.Model(&model.File{}).
+			Where("id in ?", fileIDs).Find(&records)
+		result.FilesExternal = records
+	}
+
 	return response.SuccessWithData(result)
 }
 
 func (r *RelatedPartyCreate) Create() response.Common {
 	var paramOut model.RelatedParty
-	if r.Creator > 0 {
-		paramOut.Creator = &r.Creator
+	if r.UserID > 0 {
+		paramOut.Creator = &r.UserID
 	}
 
 	if r.LastModifier > 0 {
@@ -119,13 +143,17 @@ func (r *RelatedPartyCreate) Create() response.Common {
 		paramOut.Remarks = &r.Remarks
 	}
 
+	if r.FileIDs != "" {
+		paramOut.FileIDs = &r.FileIDs
+	}
+
 	//计算有修改值的字段数，分别进行不同处理
 	tempParamOut, err := util.StructToMap(paramOut)
 	if err != nil {
 		response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "CreateAt", "UpdatedAt")
+		"UserID", "UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -142,8 +170,8 @@ func (r *RelatedPartyCreate) Create() response.Common {
 func (r *RelatedPartyUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if r.LastModifier > 0 {
-		paramOut["last_modifier"] = r.LastModifier
+	if r.UserID > 0 {
+		paramOut["last_modifier"] = r.UserID
 	}
 
 	if r.Name != nil {
@@ -191,6 +219,15 @@ func (r *RelatedPartyUpdate) Update() response.Common {
 			paramOut["remarks"] = r.Remarks
 		} else {
 			paramOut["remarks"] = nil
+		}
+	}
+
+	//查文件信息
+	if r.FileIDs != nil {
+		if *r.FileIDs != "" {
+			paramOut["file_ids"] = r.FileIDs
+		} else {
+			paramOut["file_ids"] = nil
 		}
 	}
 

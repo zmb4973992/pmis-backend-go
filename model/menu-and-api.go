@@ -8,6 +8,6 @@ type MenuAndApi struct {
 }
 
 // TableName 修改表名
-func (*MenuAndApi) TableName() string {
+func (m *MenuAndApi) TableName() string {
 	return "menu_and_api"
 }

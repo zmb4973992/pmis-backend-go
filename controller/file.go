@@ -3,74 +3,85 @@ package controller
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"os"
 	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
-	"pmis-backend-go/service/upload"
+	"pmis-backend-go/service"
 	"pmis-backend-go/util"
 	"strconv"
 )
 
-type fileManagement struct{}
+func Init() {
+	//检查上传文件的文件夹是否存在
+	exists := util.PathExistsOrNot(global.Config.StoragePath)
+	//如果不存在就创建
+	if !exists {
+		err := os.MkdirAll(global.Config.StoragePath, os.ModePerm)
+		if err != nil {
+			global.SugaredLogger.Panicln(err)
+		}
+	}
+}
 
-func (f *fileManagement) UploadSingleFile(c *gin.Context) {
+type file struct{}
+
+func (f *file) Get(c *gin.Context) {
+	var param service.FileGet
+	var err error
+	param.ID, err = strconv.ParseInt(c.Param("file-id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidURIParameters))
+		return
+	}
+
+	filePath, fileName, existed := param.Get()
+	if !existed {
+		c.JSON(http.StatusOK, response.Failure(util.ErrorFileNotFound))
+	}
+
+	c.FileAttachment(filePath, fileName)
+	return
+}
+
+func (f *file) Create(c *gin.Context) {
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorFailToUploadFiles))
-		return
-	}
-
-	oss := upload.NewOss()
-	fileName, err := oss.UploadSingleFile(fileHeader)
-	if err != nil {
 		c.JSON(http.StatusOK, response.Failure(util.ErrorFailToUploadFiles))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessWithData(gin.H{
-		"file_name": fileName,
-	}))
-	return
-}
+	var param service.FileCreate
+	param.FileHeader = fileHeader
 
-func (f *fileManagement) UploadMultipleFiles(c *gin.Context) {
-	multiPartForm, err := c.MultipartForm()
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorFailToUploadFiles))
-		return
+	userID, exists := util.GetUserID(c)
+	if exists {
+		param.UserID = userID
 	}
 
-	fileHeaders := multiPartForm.File["files"]
-
-	oss := upload.NewOss()
-	fileNames, err := oss.UploadMultipleFiles(fileHeaders)
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
+	id, err1 := param.Create()
+	if err1 != nil {
 		c.JSON(http.StatusOK, response.Failure(util.ErrorFailToUploadFiles))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessWithData(gin.H{
-		"file_names": fileNames,
-	}))
+	c.JSON(http.StatusOK, response.SuccessWithData(
+		gin.H{"id": id},
+	))
 	return
 
 }
 
-func (f *fileManagement) DeleteFile(c *gin.Context) {
-	fileID, _ := strconv.ParseInt(c.Param("file-id"), 10, 64)
-
-	oss := upload.NewOss()
-	err := oss.Delete(fileID)
+func (f *file) Delete(c *gin.Context) {
+	var param service.FileDelete
+	var err error
+	param.ID, err = strconv.ParseInt(c.Param("file-id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusOK, response.Failure(util.ErrorFailToDeleteFiles))
+		c.JSON(http.StatusOK,
+			response.Failure(util.ErrorInvalidURIParameters))
 		return
 	}
 
-	c.JSON(http.StatusOK, response.Success())
+	res := param.Delete()
+	c.JSON(http.StatusOK, res)
 	return
-
 }

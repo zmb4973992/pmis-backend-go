@@ -14,10 +14,10 @@ type CustomRouterGroup struct {
 	public.LoginRouter
 	public.StaticRouter
 	public.TestRouter
-	public.DownloadRouter
 	public.RegisterRouter
 	public.CaptchaRouter
 	public.JWTRouter
+	public.DownLoadRouter
 
 	private.UserRouter
 	private.FileRouter
@@ -34,10 +34,11 @@ type CustomRouterGroup struct {
 	private.RequestLogRouter
 	private.ErrorLogRouter
 	private.MenuRouter
-	private.ProjectCumulativeIncomeRouter
-	private.ProjectCumulativeExpenditureRouter
+	private.ProjectDailyAndCumulativeIncomeRouter
+	private.ProjectDailyAndCumulativeExpenditureRouter
 	private.ContractCumulativeIncomeRouter
 	private.ContractCumulativeExpenditureRouter
+	private.MessageRouter
 }
 
 // InitEngine 初始化路由器,最终返回*gin.Engine类型，给main调用
@@ -65,10 +66,10 @@ func InitEngine() *gin.Engine {
 	customRouterGroup.InitTestRouter(publicGroup)
 	customRouterGroup.InitLoginRouter(publicGroup)
 	customRouterGroup.InitStaticRouter(publicGroup)
-	customRouterGroup.InitDownloadRouter(publicGroup)
 	customRouterGroup.InitRegisterRouter(publicGroup)
 	customRouterGroup.InitCaptchaRouter(publicGroup)
 	customRouterGroup.InitJWTRouter(publicGroup)
+	customRouterGroup.InitDownLoadRouter(publicGroup)
 
 	privateGroup := engine.Group("")
 	privateGroup.Use(middleware.JWT())
@@ -87,10 +88,11 @@ func InitEngine() *gin.Engine {
 	customRouterGroup.InitRequestLogRouter(privateGroup)
 	customRouterGroup.InitErrorLogRouter(privateGroup)
 	customRouterGroup.InitMenuRouter(privateGroup)
-	customRouterGroup.InitProjectCumulativeIncomeRouter(privateGroup)
-	customRouterGroup.InitProjectCumulativeExpenditureRouter(privateGroup)
+	customRouterGroup.InitProjectDailyAndCumulativeIncomeRouter(privateGroup)
+	customRouterGroup.InitProjectDailyAndCumulativeExpenditureRouter(privateGroup)
 	customRouterGroup.InitContractCumulativeIncomeRouter(privateGroup)
 	customRouterGroup.InitContractCumulativeExpenditureRouter(privateGroup)
+	customRouterGroup.InitMessageRouter(privateGroup)
 
 	//引擎配置完成后，返回
 	return engine

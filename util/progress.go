@@ -10,11 +10,11 @@ import (
 )
 
 // UpdateProgressOfSuperiors 给定拆解id、进度类型，计算所有上级的进度
-func UpdateProgressOfSuperiors(disassemblyID int64, progressType int64) (err error) {
+func UpdateProgressOfSuperiors(disassemblyID int64, progressType int64, userID int64) (err error) {
 	superiorIDs := GetSuperiorIDs(disassemblyID)
 
 	for i := range superiorIDs {
-		err = UpdateOwnProgress(superiorIDs[i], progressType)
+		err = UpdateOwnProgress(superiorIDs[i], progressType, userID)
 		if err != nil {
 			return err
 		}
@@ -22,8 +22,8 @@ func UpdateProgressOfSuperiors(disassemblyID int64, progressType int64) (err err
 	return nil
 }
 
-// UpdateOwnProgress 计算自身的进度(给定拆解id、进度类型)
-func UpdateOwnProgress(disassemblyID int64, progressType int64) (err error) {
+// UpdateOwnProgress 给定拆解id、进度类型，计算自身的进度
+func UpdateOwnProgress(disassemblyID int64, progressType int64, userID int64) (err error) {
 	//找到"进度的数据来源"的字典类型值
 	var dataSourceOfProgress model.DictionaryType
 	err = global.DB.Where("name = '进度的数据来源'").First(&dataSourceOfProgress).Error
@@ -83,7 +83,7 @@ func UpdateOwnProgress(disassemblyID int64, progressType int64) (err error) {
 			return err1
 		}
 
-		err = updateOwnProgress1(disassemblyID, date, progressType)
+		err = updateOwnProgress1(disassemblyID, date, progressType, userID)
 		if err != nil {
 			return err
 		}
@@ -92,7 +92,7 @@ func UpdateOwnProgress(disassemblyID int64, progressType int64) (err error) {
 }
 
 // 给定拆解id、日期、进度类型，计算自身的进度
-func updateOwnProgress1(disassemblyID int64, date time.Time, progressType int64) (err error) {
+func updateOwnProgress1(disassemblyID int64, date time.Time, progressType int64, userID int64) (err error) {
 	//删除相关进度,防止产生重复数据
 	global.DB.Where("disassembly_id = ?", disassemblyID).
 		Where("date = ?", date).
@@ -161,6 +161,7 @@ func updateOwnProgress1(disassemblyID int64, date time.Time, progressType int64)
 		Type:          &progressType,
 		Value:         &sumOfProgress,
 		DataSource:    &systemCalculation.ID,
+		BasicModel:    model.BasicModel{Creator: &userID},
 	}
 
 	err = global.DB.Create(&progress).Error

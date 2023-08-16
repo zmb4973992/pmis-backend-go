@@ -16,22 +16,16 @@ type DisassemblyGet struct {
 }
 
 type DisassemblyTree struct {
-	Creator      int64
-	LastModifier int64
-	ProjectID    int64 `json:"project_id" binding:"required"`
+	UserID    int64
+	ProjectID int64 `json:"project_id" binding:"required"`
 }
 
 type DisassemblyCreate struct {
-	Creator      int64
-	LastModifier int64
-
-	Name       string  `json:"name" binding:"required"`        //拆解项名称
-	Weight     float64 `json:"weight" binding:"required"`      //权重
-	SuperiorID int64   `json:"superior_id" binding:"required"` //上级拆解项ID
-}
-
-type DisassemblyCreateInBatches struct {
-	Param []DisassemblyCreate `json:"param"`
+	UserID                int64   `binding:"required"`
+	Name                  string  `json:"name" binding:"required"`        //拆解项名称
+	Weight                float64 `json:"weight" binding:"required"`      //权重
+	SuperiorID            int64   `json:"superior_id" binding:"required"` //上级拆解项ID
+	ImportedIDFromOldPmis int64   `json:"imported_id_from_old_pmis,omitempty"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -39,25 +33,20 @@ type DisassemblyCreateInBatches struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type DisassemblyUpdate struct {
-	LastModifier int64
-	ID           int64
+	UserID int64
+	ID     int64
 
 	Name   *string  `json:"name"`   //拆解项名称
 	Weight *float64 `json:"weight"` //权重
 }
 
 type DisassemblyDelete struct {
-	ID int64
+	UserID int64
+	ID     int64
 }
-
-//type DisassemblyDeleteWithInferiors struct {
-//	ID int64
-//}
 
 type DisassemblyGetList struct {
 	list.Input
-	//NameInclude string `json:"name_include,omitempty"`
-
 	ProjectID  int64 `json:"project_id"`
 	SuperiorID int64 `json:"superior_id"`
 	Level      int   `json:"level"`
@@ -138,17 +127,14 @@ func (d *DisassemblyTree) Tree() response.Common {
 
 func (d *DisassemblyCreate) Create() response.Common {
 	var paramOut model.Disassembly
-	if d.Creator > 0 {
-		paramOut.Creator = &d.Creator
-	}
-
-	if d.LastModifier > 0 {
-		paramOut.LastModifier = &d.LastModifier
+	if d.UserID > 0 {
+		paramOut.Creator = &d.UserID
 	}
 
 	paramOut.Name = &d.Name
 	paramOut.Weight = &d.Weight
 	paramOut.SuperiorID = &d.SuperiorID
+	paramOut.ImportedIDFromOldPmis = &d.ImportedIDFromOldPmis
 
 	//根据上级拆解id，找到项目id和层级
 	var superiorDisassembly model.Disassembly
@@ -175,9 +161,7 @@ func (d *DisassemblyCreate) Create() response.Common {
 func (d *DisassemblyUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if d.LastModifier > 0 {
-		paramOut["last_modifier"] = d.LastModifier
-	}
+	paramOut["last_modifier"] = d.UserID
 
 	if d.Name != nil {
 		if *d.Name != "" {
@@ -196,8 +180,8 @@ func (d *DisassemblyUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt")
+	paramOutForCounting := util.MapCopy(paramOut, "UserID",
+		"UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
@@ -231,13 +215,13 @@ func (d *DisassemblyUpdate) Update() response.Common {
 			//更新自身和所有上级的进度
 			for _, v := range progressDetailIDs {
 				//更新自身进度
-				err = util.UpdateOwnProgress(d.ID, v)
+				err = util.UpdateOwnProgress(d.ID, v, d.UserID)
 				if err != nil {
 					global.SugaredLogger.Errorln(err)
 					return response.Failure(util.ErrorFailToCalculateSelfProgress)
 				}
 				//更新所有上级的进度
-				err = util.UpdateProgressOfSuperiors(d.ID, v)
+				err = util.UpdateProgressOfSuperiors(d.ID, v, d.UserID)
 				if err != nil {
 					global.SugaredLogger.Errorln(err)
 					return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
@@ -298,7 +282,7 @@ func (d *DisassemblyDelete) Delete() response.Common {
 	//更新所有上级的进度
 	for i := range allProgressTypes {
 		for j := range superiorIDs {
-			err = util.UpdateOwnProgress(superiorIDs[j], allProgressTypes[i].ID)
+			err = util.UpdateOwnProgress(superiorIDs[j], allProgressTypes[i].ID, d.UserID)
 			if err != nil {
 				return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
 			}

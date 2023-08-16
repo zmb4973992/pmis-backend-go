@@ -9,6 +9,6 @@ type OrganizationAndUser struct {
 }
 
 // TableName 修改表名
-func (*OrganizationAndUser) TableName() string {
+func (o *OrganizationAndUser) TableName() string {
 	return "organization_and_user"
 }

@@ -18,6 +18,6 @@ type ContractCumulativeExpenditure struct {
 	ForecastedExpenditureProgress *float64 //预测付款进度
 }
 
-func (*ContractCumulativeExpenditure) TableName() string {
+func (c *ContractCumulativeExpenditure) TableName() string {
 	return "contract_cumulative_expenditure"
 }

@@ -7,21 +7,35 @@ import (
 	"pmis-backend-go/service"
 )
 
-func updateCumulativeIncomeAndExpenditure() {
-	err := updateProjectCumulativeIncomeAndExpenditure()
+func UpdateCumulativeIncomeAndExpenditureForCron() {
+	var user model.User
+	err := global.DB.Where("username = 'z0030975'").First(&user).Error
 	if err != nil {
-		param := service.ErrorLogCreate{Detail: err.Error()}
-		param.Create()
+		global.SugaredLogger.Panicln(err)
 	}
 
-	err = updateContractCumulativeIncomeAndExpenditure()
+	err = UpdateCumulativeIncomeAndExpenditure(user.ID)
 	if err != nil {
 		param := service.ErrorLogCreate{Detail: err.Error()}
 		param.Create()
 	}
 }
 
-func updateProjectCumulativeIncomeAndExpenditure() error {
+func UpdateCumulativeIncomeAndExpenditure(userID int64) error {
+	err := updateProjectCumulativeIncomeAndExpenditure(userID)
+	if err != nil {
+		return err
+	}
+
+	err = updateContractCumulativeIncomeAndExpenditure(userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func updateProjectCumulativeIncomeAndExpenditure(userID int64) error {
 	var projects []model.Project
 	err := global.DB.Find(&projects).Error
 	if err != nil {
@@ -29,16 +43,17 @@ func updateProjectCumulativeIncomeAndExpenditure() error {
 	}
 
 	for i := range projects {
-		var param1 service.ProjectCumulativeIncomeUpdate
+		var param1 service.ProjectDailyAndCumulativeIncomeUpdate
+		param1.UserID = userID
 		param1.ProjectID = projects[i].ID
 		res := param1.Update()
 		if res.Code != 0 {
 			return errors.New(res.Message)
 		}
 
-		var param2 service.ProjectCumulativeExpenditureUpdate
+		var param2 service.ProjectDailyAndCumulativeExpenditureUpdate
+		param2.UserID = userID
 		param2.ProjectID = projects[i].ID
-		param2.Update()
 		res = param2.Update()
 		if res.Code != 0 {
 			return errors.New(res.Message)
@@ -48,7 +63,7 @@ func updateProjectCumulativeIncomeAndExpenditure() error {
 	return nil
 }
 
-func updateContractCumulativeIncomeAndExpenditure() error {
+func updateContractCumulativeIncomeAndExpenditure(userID int64) error {
 	var contract []model.Contract
 	err := global.DB.Find(&contract).Error
 	if err != nil {
@@ -57,6 +72,7 @@ func updateContractCumulativeIncomeAndExpenditure() error {
 
 	for i := range contract {
 		var param1 service.ContractCumulativeIncomeUpdate
+		param1.UserID = userID
 		param1.ContractID = contract[i].ID
 		res := param1.Update()
 		if res.Code != 0 {
@@ -64,8 +80,8 @@ func updateContractCumulativeIncomeAndExpenditure() error {
 		}
 
 		var param2 service.ContractCumulativeExpenditureUpdate
+		param2.UserID = userID
 		param2.ContractID = contract[i].ID
-		param2.Update()
 		res = param2.Update()
 		if res.Code != 0 {
 			return errors.New(res.Message)

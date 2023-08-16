@@ -49,7 +49,7 @@ func (p *project) Create(c *gin.Context) {
 	//处理creator、last_modifier字段
 	userID, exists := util.GetUserID(c)
 	if exists {
-		param.Creator = userID
+		param.UserID = userID
 		param.LastModifier = userID
 	}
 
@@ -79,7 +79,7 @@ func (p *project) Update(c *gin.Context) {
 	//处理last_modifier字段
 	userID, exists := util.GetUserID(c)
 	if exists {
-		param.LastModifier = userID
+		param.UserID = userID
 	}
 
 	res := param.Update()
@@ -123,6 +123,30 @@ func (p *project) GetList(c *gin.Context) {
 	}
 
 	res := param.GetList()
+	c.JSON(http.StatusOK, res)
+	return
+}
+
+func (p *project) GetSimplifiedList(c *gin.Context) {
+	var param service.ProjectGetSimplifiedList
+	err := c.ShouldBindJSON(&param)
+
+	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
+	//如果是其他错误，就正常报错
+	if err != nil && !errors.Is(err, io.EOF) {
+		global.SugaredLogger.Errorln(err)
+		c.JSON(http.StatusBadRequest,
+			response.FailureForList(util.ErrorInvalidJSONParameters))
+		return
+	}
+
+	//AuthorityInput需要userID
+	userID, exists := util.GetUserID(c)
+	if exists {
+		param.UserID = userID
+	}
+
+	res := param.GetSimplifiedList()
 	c.JSON(http.StatusOK, res)
 	return
 }

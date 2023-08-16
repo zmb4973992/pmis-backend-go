@@ -6,9 +6,9 @@ app:
   http-port: "8000"
 
 database:
-  db-host: "localhost"
-  db-port: "1433"
-  db-name: "test"
+  db-host: "10.3.0.160"
+  db-port: "14330"
+  db-name: "pmis"
   db-username: "sa"
   db-password: "028912"
 
@@ -18,6 +18,13 @@ database2:
   db-name: "BMSYS_JCHK"
   db-username: "MBPro"
   db-password: "orPBM965"
+
+database3:
+  db-host: "10.3.0.159"
+  db-port: "14330"
+  db-name: "pmis"
+  db-username: "sa"
+  db-password: "028912"
 
 jwt:
   #自定义密钥

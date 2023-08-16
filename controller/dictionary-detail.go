@@ -45,38 +45,13 @@ func (d *dictionaryDetail) Create(c *gin.Context) {
 	//处理creator、last_modifier字段
 	userID, exists := util.GetUserID(c)
 	if exists {
-		param.Creator = userID
-		param.LastModifier = userID
+		param.UserID = userID
 	}
 
 	res := param.Create()
 	c.JSON(http.StatusOK, res)
 	return
 }
-
-//func (d *dictionaryDetail) CreateInBatches(c *gin.Context) {
-//	var param service.DictionaryDetailCreateInBatches
-//	err := c.ShouldBindJSON(&param)
-//	if err != nil {
-//		global.SugaredLogger.Errorln(err)
-//		c.JSON(http.StatusBadRequest,
-//			response.Failure(util.ErrorInvalidJSONParameters))
-//		return
-//	}
-//
-//	//处理creator、last_modifier字段
-//	userID, exists := util.GetUserID(c)
-//	if exists {
-//		for i := range param.Data {
-//			param.Data[i].Creator = userID
-//			param.Data[i].LastModifier = userID
-//		}
-//	}
-//
-//	res := param.CreateInBatches()
-//	c.JSON(http.StatusOK, res)
-//	return
-//}
 
 func (d *dictionaryDetail) Update(c *gin.Context) {
 	var param service.DictionaryDetailUpdate
@@ -99,7 +74,7 @@ func (d *dictionaryDetail) Update(c *gin.Context) {
 	//处理last_modifier字段
 	userID, exists := util.GetUserID(c)
 	if exists {
-		param.LastModifier = userID
+		param.UserID = userID
 	}
 
 	res := param.Update()

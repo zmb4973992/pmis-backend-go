@@ -15,7 +15,7 @@ type User struct {
 	EmployeeNumber    *string //工号
 }
 
-func (*User) TableName() string {
+func (u *User) TableName() string {
 	return "user"
 }
 

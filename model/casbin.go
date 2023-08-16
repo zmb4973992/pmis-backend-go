@@ -21,7 +21,7 @@ type CasbinRule struct {
 	V7    *string `json:"v7" gorm:"type:nvarchar(100)"`
 }
 
-func (*CasbinRule) TableName() string {
+func (c *CasbinRule) TableName() string {
 	return "casbin_rule"
 }
 

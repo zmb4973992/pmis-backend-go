@@ -10,9 +10,10 @@ import (
 
 // 需要全局使用的变量都在这里声明，方便其他包调用
 var (
-	DB     *gorm.DB //自身主数据库
-	DB2    *gorm.DB //率敏的数据库
-	Config config
+	DB           *gorm.DB //自身主数据库
+	DBForLvmin   *gorm.DB //率敏的数据库
+	DBForOldPmis *gorm.DB //老的pmis数据库
+	Config       config
 
 	// Logger zap的标准logger，速度更快，但是输入麻烦，用于取代gin的logger
 	Logger *zap.Logger
@@ -33,7 +34,7 @@ const (
 // 这层只是中间的汇总层，只是包内引用、不展示，所以小写
 type config struct {
 	AppConfig
-	DBConfig, DB2Config DBConfig
+	DBConfig, DBConfigForLvmin, DBConfigForOldPmis DBConfig
 	JWTConfig
 	LogConfig
 	UploadConfig
@@ -158,15 +159,24 @@ func loadConfig() {
 		":" + Config.DBConfig.DbPassword + "@" + Config.DBConfig.DbHost +
 		":" + Config.DBConfig.DbPort + "?database=" + Config.DBConfig.DbName
 
-	Config.DB2Config.DbHost = v.GetString("database2.db-host")
-	Config.DB2Config.DbPort = v.GetString("database2.db-port")
-	Config.DB2Config.DbName = v.GetString("database2.db-name")
-	Config.DB2Config.DbUsername = v.GetString("database2.db-username")
-	Config.DB2Config.DbPassword = v.GetString("database2.db-password")
-	Config.DB2Config.DSN = "sqlserver://" + Config.DB2Config.DbUsername +
-		":" + Config.DB2Config.DbPassword + "@" + Config.DB2Config.DbHost +
-		":" + Config.DB2Config.DbPort + "?database=" + Config.DB2Config.DbName +
+	Config.DBConfigForLvmin.DbHost = v.GetString("database2.db-host")
+	Config.DBConfigForLvmin.DbPort = v.GetString("database2.db-port")
+	Config.DBConfigForLvmin.DbName = v.GetString("database2.db-name")
+	Config.DBConfigForLvmin.DbUsername = v.GetString("database2.db-username")
+	Config.DBConfigForLvmin.DbPassword = v.GetString("database2.db-password")
+	Config.DBConfigForLvmin.DSN = "sqlserver://" + Config.DBConfigForLvmin.DbUsername +
+		":" + Config.DBConfigForLvmin.DbPassword + "@" + Config.DBConfigForLvmin.DbHost +
+		":" + Config.DBConfigForLvmin.DbPort + "?database=" + Config.DBConfigForLvmin.DbName +
 		"&encrypt=disable" //老版本数据库不支持加密连接，不加这个会报错
+
+	Config.DBConfigForOldPmis.DbHost = v.GetString("database3.db-host")
+	Config.DBConfigForOldPmis.DbPort = v.GetString("database3.db-port")
+	Config.DBConfigForOldPmis.DbName = v.GetString("database3.db-name")
+	Config.DBConfigForOldPmis.DbUsername = v.GetString("database3.db-username")
+	Config.DBConfigForOldPmis.DbPassword = v.GetString("database3.db-password")
+	Config.DBConfigForOldPmis.DSN = "sqlserver://" + Config.DBConfigForOldPmis.DbUsername +
+		":" + Config.DBConfigForOldPmis.DbPassword + "@" + Config.DBConfigForOldPmis.DbHost +
+		":" + Config.DBConfigForOldPmis.DbPort + "?database=" + Config.DBConfigForOldPmis.DbName
 
 	Config.JWTConfig.SecretKey = v.GetString("jwt.secret-key")
 	Config.JWTConfig.ValidityDays = v.GetInt("jwt.validity-days")

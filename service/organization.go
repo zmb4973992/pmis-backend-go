@@ -16,10 +16,9 @@ type OrganizationGet struct {
 }
 
 type OrganizationCreate struct {
-	Creator      int64
-	LastModifier int64
-	SuperiorID   int64  `json:"superior_id" binding:"required"` //上级机构ID
-	Name         string `json:"name" binding:"required"`        //名称
+	UserID     int64
+	SuperiorID int64  `json:"superior_id" binding:"required"` //上级机构ID
+	Name       string `json:"name" binding:"required"`        //名称
 	//Sort           int    `json:"sort" binding:"required"`       //级别，如公司、事业部、部门等
 }
 
@@ -40,8 +39,7 @@ type OrganizationDelete struct {
 
 type OrganizationGetList struct {
 	list.Input
-	list.DataScopeInput
-	SuperiorID  int64  `json:"superior_id,omitempty"`
+	UserID      int64  `json:"-"`
 	Name        string `json:"name,omitempty"`
 	IsValid     *bool  `json:"is_valid"`
 	NameInclude string `json:"name_include,omitempty"`
@@ -72,12 +70,8 @@ func (d *OrganizationGet) Get() response.Common {
 func (d *OrganizationCreate) Create() response.Common {
 	var paramOut model.Organization
 
-	if d.Creator > 0 {
-		paramOut.Creator = &d.Creator
-	}
-
-	if d.LastModifier > 0 {
-		paramOut.LastModifier = &d.LastModifier
+	if d.UserID > 0 {
+		paramOut.Creator = &d.UserID
 	}
 
 	paramOut.Name = d.Name
@@ -118,8 +112,8 @@ func (d *OrganizationUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt")
+	paramOutForCounting := util.MapCopy(paramOut, "UserID",
+		"UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
@@ -152,9 +146,8 @@ func (o *OrganizationGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if o.SuperiorID > 0 {
-		db = db.Where("superior_id = ?", o.SuperiorID)
-	}
+	organizationIDs := util.GetOrganizationIDsForDataAuthority(o.UserID)
+	db = db.Where("id in ?", organizationIDs)
 
 	if o.Name != "" {
 		db = db.Where("name = ?", o.Name)

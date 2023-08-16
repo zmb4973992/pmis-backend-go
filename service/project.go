@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -19,7 +18,7 @@ type ProjectGet struct {
 }
 
 type ProjectCreate struct {
-	Creator      int64
+	UserID       int64
 	LastModifier int64
 	//连接其他表的id
 	OrganizationID int64 `json:"organization_id,omitempty"`
@@ -51,8 +50,8 @@ type ProjectCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type ProjectUpdate struct {
-	LastModifier int64
-	ID           int64
+	UserID int64
+	ID     int64
 	//连接其他表的id
 	OrganizationID *int64 `json:"organization_id"`
 	RelatedPartyID *int64 `json:"related_party_id"`
@@ -76,6 +75,8 @@ type ProjectUpdate struct {
 	Name    *string `json:"name"`
 	Content *string `json:"content"`
 	Sort    *int    `json:"sort"`
+
+	IgnoreDataAuthority bool `json:"-"`
 }
 
 type ProjectDelete struct {
@@ -84,14 +85,22 @@ type ProjectDelete struct {
 
 type ProjectGetList struct {
 	list.Input
-	list.DataScopeInput
+	UserID                  int64   `json:"-"`
 	NameInclude             string  `json:"name_include,omitempty"`
 	RelatedPartyID          int64   `json:"related_party_id,omitempty"`
 	OrganizationNameInclude string  `json:"organization_name_include,omitempty"`
 	OrganizationIDIn        []int64 `json:"organization_id_in"`
 
-	//是否忽略数据范围的限制，用于请求数据范围外的全部数据
-	IgnoreDataScope bool `json:"ignore_data_scope"`
+	//是否忽略数据权限的限制，用于请求数据范围外的全部数据
+	IgnoreDataAuthority bool `json:"ignore_data_authority"`
+}
+
+//获取简化的列表（），用于下拉框选项
+
+type ProjectGetSimplifiedList struct {
+	UserID int64 `json:"-"`
+	//是否忽略数据权限的限制，用于请求数据范围外的全部数据
+	IgnoreDataAuthority bool `json:"ignore_data_authority"`
 }
 
 //以下为出参
@@ -138,9 +147,14 @@ type ProjectOutput struct {
 	Authorized bool `json:"authorized" gorm:"-"`
 }
 
-type projectAuthorize struct {
-	ID     int64
-	UserID int64
+type ProjectSimplifiedOutput struct {
+	ID   int64   `json:"id"`
+	Name *string `json:"name"`
+}
+
+type ProjectCheckAuthorization struct {
+	ID     int64 `binding:"required"`
+	UserID int64 `binding:"required"`
 }
 
 func (p *ProjectGet) Get() response.Common {
@@ -151,10 +165,10 @@ func (p *ProjectGet) Get() response.Common {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 
-	var authorize projectAuthorize
+	var authorize ProjectCheckAuthorization
 	authorize.ID = p.ID
 	authorize.UserID = p.UserID
-	authorizationResult := authorize.authorizedOrNot()
+	authorizationResult := authorize.CheckAuthorization()
 
 	if !authorizationResult {
 		return response.Failure(util.ErrorUnauthorized)
@@ -250,8 +264,8 @@ func (p *ProjectGet) Get() response.Common {
 
 func (p *ProjectCreate) Create() response.Common {
 	var paramOut model.Project
-	if p.Creator > 0 {
-		paramOut.Creator = &p.Creator
+	if p.UserID > 0 {
+		paramOut.Creator = &p.UserID
 	}
 	if p.LastModifier > 0 {
 		paramOut.LastModifier = &p.LastModifier
@@ -345,7 +359,7 @@ func (p *ProjectCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "CreateAt", "UpdatedAt")
+		"UserID", "UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -368,18 +382,19 @@ func (p *ProjectUpdate) Update() response.Common {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 
-	var authorize projectAuthorize
-	authorize.ID = p.ID
-	authorize.UserID = p.LastModifier
-	authorizationResult := authorize.authorizedOrNot()
-
-	if !authorizationResult {
-		return response.Failure(util.ErrorUnauthorized)
+	if p.IgnoreDataAuthority == false {
+		var authorization contractCheckAuthorization
+		authorization.ContractID = p.ID
+		authorization.UserID = p.UserID
+		authorized := authorization.checkAuthorization()
+		if !authorized {
+			return response.Failure(util.ErrorUnauthorized)
+		}
 	}
 
 	paramOut := make(map[string]any)
-	if p.LastModifier > 0 {
-		paramOut["last_modifier"] = p.LastModifier
+	if p.UserID > 0 {
+		paramOut["last_modifier"] = p.UserID
 	}
 	//连接其他表的id
 	{
@@ -536,8 +551,8 @@ func (p *ProjectUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt")
+	paramOutForCounting := util.MapCopy(paramOut, "UserID",
+		"UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
@@ -594,8 +609,8 @@ func (p *ProjectGetList) GetList() response.List {
 	}
 
 	//用来确定数据范围
-	if p.IgnoreDataScope == false {
-		organizationIDs := util.GetOrganizationIDs(p.UserID)
+	if p.IgnoreDataAuthority == false {
+		organizationIDs := util.GetOrganizationIDsForDataAuthority(p.UserID)
 		db = db.Where("organization_id in ?", organizationIDs)
 	}
 
@@ -744,11 +759,11 @@ func (p *ProjectGetList) GetList() response.List {
 			}
 		}
 
-		if p.IgnoreDataScope == true {
-			var authorize projectAuthorize
+		if p.IgnoreDataAuthority == true {
+			var authorize ProjectCheckAuthorization
 			authorize.ID = data[i].ID
 			authorize.UserID = p.UserID
-			data[i].Authorized = authorize.authorizedOrNot()
+			data[i].Authorized = authorize.CheckAuthorization()
 		} else {
 			data[i].Authorized = true
 		}
@@ -770,50 +785,60 @@ func (p *ProjectGetList) GetList() response.List {
 	}
 }
 
-// 该方法一定要在确定记录存在后再调用
-func (p *projectAuthorize) authorizedOrNot() bool {
+func (p *ProjectGetSimplifiedList) GetSimplifiedList() response.List {
+	db := global.DB.Model(&model.Project{})
+	// 顺序：where -> count -> Order -> limit -> offset -> data
+
+	//where
+
+	//用来确定数据范围
+	if p.IgnoreDataAuthority == false {
+		organizationIDs := util.GetOrganizationIDsForDataAuthority(p.UserID)
+		db = db.Where("organization_id in ?", organizationIDs)
+	}
+
+	//count
+	var count int64
+	db.Count(&count)
+
+	//data
+	var data []ProjectSimplifiedOutput
+	db.Model(&model.Project{}).Find(&data)
+
+	if len(data) == 0 {
+		return response.FailureForList(util.ErrorRecordNotFound)
+	}
+
+	numberOfRecords := int(count)
+
+	return response.List{
+		Data: data,
+		Paging: &list.PagingOutput{
+			Page:            1,
+			PageSize:        0,
+			NumberOfPages:   1,
+			NumberOfRecords: numberOfRecords,
+		},
+		Code:    util.Success,
+		Message: util.GetMessage(util.Success),
+	}
+}
+
+// CheckAuthorization 该方法一定要在确定记录存在后再调用
+func (p *ProjectCheckAuthorization) CheckAuthorization() (authorized bool) {
 	//用来确定数据范围内的组织id
-	organizationIDs := util.GetOrganizationIDs(p.UserID)
+	organizationIDs := util.GetOrganizationIDsForDataAuthority(p.UserID)
 	if len(organizationIDs) == 0 {
 		return false
 	}
 
-	batchID := idgen.NextId()
-
-	var temps []model.Temp
-	for i := range organizationIDs {
-		var temp model.Temp
-		temp.OrganizationID = &organizationIDs[i]
-		temp.BatchID = batchID
-		temps = append(temps, temp)
-	}
-	global.DB.CreateInBatches(&temps, 100)
-
-	//找出数据范围内的项目id
-	var projectIDs []int64
-	global.DB.Model(&model.Project{}).
-		Joins("join temp on project.organization_id = temp.organization_id").
-		Where("batch_id = ?", batchID).
-		Select("project.id").Find(&projectIDs)
-
-	if len(projectIDs) == 0 {
-		return false
-	}
-
-	for i := range projectIDs {
-		var temp model.Temp
-		temp.ProjectID = &projectIDs[i]
-		temp.BatchID = batchID
-		temps = append(temps, temp)
-	}
-	global.DB.CreateInBatches(&temps, 100)
-
 	//看看在数据范围内是否有该记录
 	var count int64
 	global.DB.Model(model.Project{}).
-		Joins("join (select distinct project_id from temp where batch_id = ?) as temp2 on project.id = temp2.project_id", batchID).
+		Where("organization_id in ?", organizationIDs).
 		Where("id = ?", p.ID).
 		Count(&count)
+
 	if count > 0 {
 		return true
 	}

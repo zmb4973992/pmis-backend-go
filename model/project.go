@@ -37,7 +37,7 @@ type Project struct {
 }
 
 // TableName 将表名改为project
-func (*Project) TableName() string {
+func (p *Project) TableName() string {
 	return "project"
 }
 
@@ -82,15 +82,15 @@ func (p *Project) BeforeDelete(tx *gorm.DB) error {
 		return err
 	}
 
-	var projectCumulativeIncomes []ProjectCumulativeIncome
-	err = tx.Where(&ProjectCumulativeIncome{ProjectID: p.ID}).
+	var projectCumulativeIncomes []ProjectDailyAndCumulativeIncome
+	err = tx.Where(&ProjectDailyAndCumulativeIncome{ProjectID: p.ID}).
 		Find(&projectCumulativeIncomes).Delete(&projectCumulativeIncomes).Error
 	if err != nil {
 		return err
 	}
 
-	var projectCumulativeExpenditures []ProjectCumulativeExpenditure
-	err = tx.Where(&ProjectCumulativeExpenditure{ProjectID: p.ID}).
+	var projectCumulativeExpenditures []ProjectDailyAndCumulativeExpenditure
+	err = tx.Where(&ProjectDailyAndCumulativeExpenditure{ProjectID: p.ID}).
 		Find(&projectCumulativeExpenditures).Delete(&projectCumulativeExpenditures).Error
 	if err != nil {
 		return err

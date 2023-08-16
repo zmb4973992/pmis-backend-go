@@ -41,8 +41,7 @@ func (p *progress) Create(c *gin.Context) {
 	//处理creator、last_modifier字段
 	userID, exists := util.GetUserID(c)
 	if exists {
-		param.Creator = userID
-		param.LastModifier = userID
+		param.UserID = userID
 	}
 
 	res := param.Create()
@@ -71,7 +70,7 @@ func (p *progress) Update(c *gin.Context) {
 	//处理last_modifier字段
 	userID, exists := util.GetUserID(c)
 	if exists {
-		param.LastModifier = userID
+		param.UserID = userID
 	}
 
 	res := param.Update()
@@ -88,6 +87,12 @@ func (p *progress) Delete(c *gin.Context) {
 		c.JSON(http.StatusOK,
 			response.Failure(util.ErrorInvalidURIParameters))
 		return
+	}
+
+	//处理userID字段
+	userID, exists := util.GetUserID(c)
+	if exists {
+		param.UserID = userID
 	}
 
 	res := param.Delete()

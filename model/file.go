@@ -2,13 +2,11 @@ package model
 
 type File struct {
 	BasicModel
-	Name string
-	Mode string
-	Path string
-	Size int // 文件大小(KB)
+	Name   string
+	SizeMB float64 // 文件大小(MB)
 }
 
 // TableName 修改数据库的表名
-func (*File) TableName() string {
+func (f *File) TableName() string {
 	return "file"
 }

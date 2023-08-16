@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -18,8 +17,7 @@ type IncomeAndExpenditureGet struct {
 }
 
 type IncomeAndExpenditureCreate struct {
-	Creator      int64
-	LastModifier int64
+	UserID int64
 	//连接关联表的id
 	ProjectID  int64 `json:"project_id,omitempty"`
 	ContractID int64 `json:"contract_id,omitempty"`
@@ -33,11 +31,13 @@ type IncomeAndExpenditureCreate struct {
 	Amount       *float64 `json:"amount"`
 	ExchangeRate *float64 `json:"exchange_rate"`
 	//字符串
-	Type               int64  `json:"type,omitempty"`
-	Term               int64  `json:"term,omitempty"`
+	Type               string `json:"type,omitempty"`
+	Term               string `json:"term,omitempty"`
 	Remarks            string `json:"remarks,omitempty"`
 	Attachment         string `json:"attachment,omitempty"`
 	ImportedApprovalID string `json:"imported_approval_id,omitempty"`
+
+	IgnoreUpdatingCumulativeIncomeAndExpenditure bool `json:"-"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -45,8 +45,8 @@ type IncomeAndExpenditureCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type IncomeAndExpenditureUpdate struct {
-	LastModifier int64
-	ID           int64
+	UserID int64
+	ID     int64
 	//连接关联表的id
 	ProjectID  *int64 `json:"project_id"`
 	ContractID *int64 `json:"contract_id"`
@@ -60,8 +60,8 @@ type IncomeAndExpenditureUpdate struct {
 	Amount       *float64 `json:"amount"`
 	ExchangeRate *float64 `json:"exchange_rate"`
 	//字符串
-	Type       *int64  `json:"type"`
-	Term       *int64  `json:"term"`
+	Type       *string `json:"type"`
+	Term       *string `json:"term"`
 	Remarks    *string `json:"remarks"`
 	Attachment *string `json:"attachment"`
 }
@@ -72,7 +72,7 @@ type IncomeAndExpenditureDelete struct {
 
 type IncomeAndExpenditureGetList struct {
 	list.Input
-	list.DataScopeInput
+	UserID        int64  `json:"-"`
 	ProjectID     int64  `json:"project_id,omitempty"`
 	Kind          string `json:"kind,omitempty"`
 	FundDirection string `json:"fund_direction,omitempty"`
@@ -93,7 +93,6 @@ type IncomeAndExpenditureOutput struct {
 	FundDirection *int64 `json:"-"`
 	Currency      *int64 `json:"-"`
 	Kind          *int64 `json:"-"`
-	Type          *int64 `json:"-"`
 
 	//关联表的详情，不需要gorm查询，需要在json中显示
 	ProjectExternal  *ProjectOutput  `json:"project" gorm:"-"`
@@ -102,7 +101,6 @@ type IncomeAndExpenditureOutput struct {
 	FundDirectionExternal *DictionaryDetailOutput `json:"fund_direction" gorm:"-"`
 	CurrencyExternal      *DictionaryDetailOutput `json:"currency" gorm:"-"`
 	KindExternal          *DictionaryDetailOutput `json:"kind" gorm:"-"`
-	TypeExternal          *DictionaryDetailOutput `json:"type" gorm:"-"`
 
 	//其他属性
 	Date *string `json:"date"`
@@ -110,6 +108,7 @@ type IncomeAndExpenditureOutput struct {
 	Amount       *float64 `json:"amount"`
 	ExchangeRate *float64 `json:"exchange_rate"`
 
+	Type       *string `json:"type"`
 	Term       *string `json:"term"`
 	Remarks    *string `json:"remarks"`
 	Attachment *string `json:"attachment"`
@@ -174,15 +173,6 @@ func (i *IncomeAndExpenditureGet) Get() response.Common {
 				result.KindExternal = &record
 			}
 		}
-		if result.Type != nil {
-			var record DictionaryDetailOutput
-			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("id = ?", *result.Type).
-				Limit(1).Find(&record)
-			if res.RowsAffected > 0 {
-				result.TypeExternal = &record
-			}
-		}
 	}
 
 	//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
@@ -200,11 +190,8 @@ func (i *IncomeAndExpenditureGet) Get() response.Common {
 func (i *IncomeAndExpenditureCreate) Create() response.Common {
 	var paramOut model.IncomeAndExpenditure
 
-	if i.Creator > 0 {
-		paramOut.Creator = &i.Creator
-	}
-	if i.LastModifier > 0 {
-		paramOut.LastModifier = &i.LastModifier
+	if i.UserID > 0 {
+		paramOut.Creator = &i.UserID
 	}
 
 	//连接关联表的id
@@ -265,11 +252,11 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 
 	//字符串
 	{
-		if i.Type > 0 {
-			paramOut.Type = &i.Type
-		}
-		if i.Term > 0 {
+		if i.Term != "" {
 			paramOut.Term = &i.Term
+		}
+		if i.Type != "" {
+			paramOut.Type = &i.Type
 		}
 		if i.Remarks != "" {
 			paramOut.Remarks = &i.Remarks
@@ -288,7 +275,7 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "CreateAt", "UpdatedAt")
+		"UserID", "UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -300,11 +287,32 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 
-	//更新项目累计收付款
-	var temp1 = ProjectCumulativeExpenditureUpdate{ProjectID: i.ProjectID}
-	temp1.Update()
-	var temp2 = ProjectCumulativeIncomeUpdate{ProjectID: i.ProjectID}
-	temp2.Update()
+	if i.IgnoreUpdatingCumulativeIncomeAndExpenditure == false {
+		//更新项目的累计收付款
+		if i.ProjectID > 0 {
+			temp1 := ProjectDailyAndCumulativeExpenditureUpdate{
+				UserID:    i.UserID,
+				ProjectID: i.ProjectID,
+			}
+			temp1.Update()
+			temp2 := ProjectDailyAndCumulativeIncomeUpdate{ProjectID: i.ProjectID}
+			temp2.Update()
+		}
+
+		//更新合同的累计收付款
+		if i.ContractID > 0 {
+			temp3 := ContractCumulativeExpenditureUpdate{
+				UserID:     i.UserID,
+				ContractID: i.ContractID,
+			}
+			temp3.Update()
+			temp4 := ContractCumulativeIncomeUpdate{
+				UserID:     i.UserID,
+				ContractID: i.ContractID,
+			}
+			temp4.Update()
+		}
+	}
 
 	return response.Success()
 }
@@ -312,8 +320,8 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 func (i *IncomeAndExpenditureUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if i.LastModifier > 0 {
-		paramOut["last_modifier"] = i.LastModifier
+	if i.UserID > 0 {
+		paramOut["last_modifier"] = i.UserID
 	}
 
 	//连接关联表的id
@@ -405,14 +413,14 @@ func (i *IncomeAndExpenditureUpdate) Update() response.Common {
 	//字符串
 	{
 		if i.Type != nil {
-			if *i.Type > 0 {
+			if *i.Type != "" {
 				paramOut["type"] = *i.Type
 			} else {
 				paramOut["type"] = nil
 			}
 		}
 		if i.Term != nil {
-			if *i.Term > 0 {
+			if *i.Term != "" {
 				paramOut["term"] = *i.Term
 			} else {
 				paramOut["term"] = nil
@@ -435,18 +443,57 @@ func (i *IncomeAndExpenditureUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt")
+	paramOutForCounting := util.MapCopy(paramOut, "UserID",
+		"UserID", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.IncomeAndExpenditure{}).Where("id = ?", i.ID).
+	err := global.DB.Model(&model.IncomeAndExpenditure{}).
+		Where("id = ?", i.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
+	}
+
+	//更新项目的累计收付款
+	if i.ProjectID == nil {
+		//如果没有修改projectID,就用原纪录的projectID
+		var record model.IncomeAndExpenditure
+		err = global.DB.Where("id = ?", i.ID).
+			First(&record).Error
+		if err == nil && record.ProjectID != nil {
+			temp1 := ProjectDailyAndCumulativeExpenditureUpdate{ProjectID: *record.ProjectID}
+			temp1.Update()
+			temp2 := ProjectDailyAndCumulativeIncomeUpdate{ProjectID: *record.ProjectID}
+			temp2.Update()
+		}
+	} else {
+		temp1 := ProjectDailyAndCumulativeExpenditureUpdate{ProjectID: *i.ProjectID}
+		temp1.Update()
+		temp2 := ProjectDailyAndCumulativeIncomeUpdate{ProjectID: *i.ProjectID}
+		temp2.Update()
+	}
+
+	//更新合同的累计收付款
+	if i.ContractID == nil {
+		//如果没有修改contractID,就用原纪录的contractID
+		var record model.IncomeAndExpenditure
+		err = global.DB.Where("id = ?", i.ID).
+			First(&record).Error
+		if err == nil && record.ContractID != nil {
+			temp3 := ContractCumulativeExpenditureUpdate{ContractID: *record.ContractID}
+			temp3.Update()
+			temp4 := ContractCumulativeIncomeUpdate{ContractID: *record.ContractID}
+			temp4.Update()
+		}
+	} else {
+		temp3 := ContractCumulativeExpenditureUpdate{ContractID: *i.ContractID}
+		temp3.Update()
+		temp4 := ContractCumulativeIncomeUpdate{ContractID: *i.ContractID}
+		temp4.Update()
 	}
 
 	return response.Success()
@@ -462,6 +509,23 @@ func (i *IncomeAndExpenditureDelete) Delete() response.Common {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
+
+	//更新项目的累计收付款
+	if record.ProjectID != nil {
+		temp1 := ProjectDailyAndCumulativeExpenditureUpdate{ProjectID: *record.ProjectID}
+		temp1.Update()
+		temp2 := ProjectDailyAndCumulativeIncomeUpdate{ProjectID: *record.ProjectID}
+		temp2.Update()
+	}
+
+	//更新合同的累计收付款
+	if record.ProjectID != nil {
+		temp3 := ContractCumulativeExpenditureUpdate{ContractID: *record.ContractID}
+		temp3.Update()
+		temp4 := ContractCumulativeIncomeUpdate{ContractID: *record.ContractID}
+		temp4.Update()
+	}
+
 	return response.Success()
 }
 
@@ -502,63 +566,66 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 		db = db.Where("date <= ?", i.DateLte)
 	}
 
-	batchID := idgen.NextId()
-
 	//用来确定组织的数据范围
-	organizationIDsForDataScope := util.GetOrganizationIDs(i.UserID)
-	if len(organizationIDsForDataScope) > 0 {
-		var temps []model.Temp
-		for j := range organizationIDsForDataScope {
-			var temp model.Temp
-			temp.OrganizationID = &organizationIDsForDataScope[j]
-			temp.BatchID = batchID
-			temps = append(temps, temp)
-		}
-		global.DB.CreateInBatches(&temps, 100)
-	}
+	organizationIDs := util.GetOrganizationIDsForDataAuthority(i.UserID)
+	//if len(organizationIDs) > 0 {
+	//	var temps []model.Temp
+	//	for j := range organizationIDs {
+	//		var temp model.Temp
+	//		temp.OrganizationID = &organizationIDs[j]
+	//		temp.BatchID = batchID
+	//		temps = append(temps, temp)
+	//	}
+	//	global.DB.CreateInBatches(&temps, 100)
+	//}
 
 	//找出项目的数据范围
-	var projectIDs []int64
-	global.DB.Model(&model.Project{}).
-		Joins("join temp on project.organization_id = temp.organization_id").
-		Where("batch_id = ?", batchID).
-		Select("project.id").Find(&projectIDs)
-
-	if len(projectIDs) > 0 {
-		var temps []model.Temp
-		for j := range projectIDs {
-			var temp model.Temp
-			temp.ProjectID = &projectIDs[j]
-			temp.BatchID = batchID
-			temps = append(temps, temp)
-		}
-		global.DB.CreateInBatches(&temps, 100)
-	}
+	//var projectIDs []int64
+	//global.DB.Model(&model.Project{}).
+	//	Joins("join temp on project.organization_id = temp.organization_id").
+	//	Where("batch_id = ?", batchID).
+	//	Distinct("project.id").
+	//	Find(&projectIDs)
+	//
+	//if len(projectIDs) > 0 {
+	//	var temps []model.Temp
+	//	for j := range projectIDs {
+	//		var temp model.Temp
+	//		temp.ProjectID = &projectIDs[j]
+	//		temp.BatchID = batchID
+	//		temps = append(temps, temp)
+	//	}
+	//	global.DB.CreateInBatches(&temps, 100)
+	//}
 
 	//然后再找出合同的数据范围
-	var contractIDs []int64
-	global.DB.Model(&model.Contract{}).
-		Joins("join temp on contract.project_id = temp.project_id").
-		Where("temp.batch_id = ?", batchID).
-		Select("contract.id").Find(&contractIDs)
-	if len(contractIDs) > 0 {
-		var temps []model.Temp
-		for j := range contractIDs {
-			var temp model.Temp
-			temp.ContractID = &contractIDs[j]
-			temp.BatchID = batchID
-			temps = append(temps, temp)
-		}
-		global.DB.CreateInBatches(&temps, 100)
-	}
+	//var contractIDs []int64
+	//global.DB.Model(&model.Contract{}).
+	//	Joins("join temp on contract.project_id = temp.project_id").
+	//	Where("temp.batch_id = ?", batchID).
+	//	Distinct("contract.id").
+	//	Find(&contractIDs)
+	//
+	//if len(contractIDs) > 0 {
+	//	var temps []model.Temp
+	//	for j := range contractIDs {
+	//		var temp model.Temp
+	//		temp.ContractID = &contractIDs[j]
+	//		temp.BatchID = batchID
+	//		temps = append(temps, temp)
+	//		global.DB.Create(&temp)
+	//	}
+	//	global.DB.CreateInBatches(&temps, 100)
+	//}
 
 	//说明：
 	//1.先找到项目id存在于临时表、或者合同id存在于临时表的收付款id；
 	//2.这里找到的id肯定会有重复（因为是join），所以使用distinct，筛选出唯一的收付款id；
 	//3.找到收付款id存在于上面的表的记录，结束
-	db = db.Joins("join (select distinct t1.id as distinct_id from income_and_expenditure as t1 join temp as t2 on t1.project_id = t2.project_id or t1.contract_id = t2.contract_id where t2.batch_id = ?) as t3 on income_and_expenditure.id = t3.distinct_id", batchID).
-		Where("income_and_expenditure.id = t3.distinct_id")
+	//db = db.Joins("join (select distinct t1.id as income_and_expenditure_id from income_and_expenditure as t1 join temp as t2 on t1.project_id = t2.project_id or t1.contract_id = t2.contract_id where t2.batch_id = ?) as t3 on income_and_expenditure.id = t3.income_and_expenditure_id", batchID).
+	//	Where("income_and_expenditure.id = t3.income_and_expenditure_id")
 
+	db = db.Joins("join (select distinct income_and_expenditure.id as income_and_expenditure_id from income_and_expenditure join (select distinct contract.id as contract_id from contract join (select distinct project.id as project_id from project where organization_id in ?) as temp1 on contract.project_id = temp1.project_id) as temp2  on income_and_expenditure.contract_id = temp2.contract_id union select distinct income_and_expenditure.id as income_and_expenditure_id from income_and_expenditure join (select distinct project.id as project_id from project where organization_id in ?) as temp2 on income_and_expenditure.project_id = temp2.project_id) as temp3 on income_and_expenditure.id = temp3.income_and_expenditure_id", organizationIDs, organizationIDs)
 	//count
 	var count int64
 	db.Count(&count)
@@ -609,7 +676,7 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 	db.Model(&model.IncomeAndExpenditure{}).Find(&data)
 
 	//temp使用完毕，需要删除数据
-	global.DB.Where("batch_id = ?", batchID).Delete(&model.Temp{})
+	//global.DB.Where("batch_id = ?", batchID).Delete(&model.Temp{})
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
@@ -662,14 +729,6 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 					Where("id = ?", *data[i].Kind).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
 					data[i].KindExternal = &record
-				}
-			}
-			if data[i].Type != nil {
-				var record DictionaryDetailOutput
-				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].Type).Limit(1).Find(&record)
-				if res.RowsAffected > 0 {
-					data[i].TypeExternal = &record
 				}
 			}
 		}

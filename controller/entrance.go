@@ -17,15 +17,16 @@ type controller struct {
 	contract
 	dictionaryType
 	dictionaryDetail
-	fileManagement
+	file
 	progress
 	incomeAndExpenditure
 	role
 	menu
-	projectCumulativeIncome
-	projectCumulativeExpenditure
+	projectDailyAndCumulativeIncome
+	projectDailyAndCumulativeExpenditure
 	contractCumulativeIncome
 	contractCumulativeExpenditure
+	message
 }
 
 var (
@@ -43,13 +44,14 @@ var (
 	Contract                      = entrance.contract
 	DictionaryType                = entrance.dictionaryType
 	DictionaryDetail              = entrance.dictionaryDetail
-	FileManagement                = entrance.fileManagement
+	File                          = entrance.file
 	Progress                      = entrance.progress
 	IncomeAndExpenditure          = entrance.incomeAndExpenditure
 	Role                          = entrance.role
 	Menu                          = entrance.menu
-	ProjectCumulativeIncome       = entrance.projectCumulativeIncome
-	ProjectCumulativeExpenditure  = entrance.projectCumulativeExpenditure
+	ProjectCumulativeIncome       = entrance.projectDailyAndCumulativeIncome
+	ProjectCumulativeExpenditure  = entrance.projectDailyAndCumulativeExpenditure
 	ContractCumulativeIncome      = entrance.contractCumulativeIncome
 	ContractCumulativeExpenditure = entrance.contractCumulativeExpenditure
+	Message                       = entrance.message
 )

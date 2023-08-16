@@ -42,8 +42,7 @@ func (o *organization) Create(c *gin.Context) {
 	//处理creator、last_modifier字段
 	userID, exists := util.GetUserID(c)
 	if exists {
-		param.Creator = userID
-		param.LastModifier = userID
+		param.UserID = userID
 	}
 
 	res := param.Create()
@@ -107,11 +106,10 @@ func (o *organization) GetList(c *gin.Context) {
 		return
 	}
 
-	//AuthorityInput需要userID
-	//userID, exists := util.GetUserID(c)
-	//if exists {
-	//	param.UserID = userID
-	//}
+	userID, exists := util.GetUserID(c)
+	if exists {
+		param.UserID = userID
+	}
 
 	res := param.GetList()
 	c.JSON(http.StatusOK, res)

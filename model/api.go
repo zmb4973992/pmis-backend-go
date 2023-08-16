@@ -23,6 +23,6 @@ type Api struct {
 }
 
 // TableName 修改表名
-func (*Api) TableName() string {
+func (a *Api) TableName() string {
 	return "api"
 }

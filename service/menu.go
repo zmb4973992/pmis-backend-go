@@ -16,8 +16,7 @@ type MenuGet struct {
 }
 
 type MenuCreate struct {
-	Creator      int64
-	LastModifier int64
+	UserID int64
 	//连接关联表的id
 
 	//连接dictionary_item表的id
@@ -42,8 +41,8 @@ type MenuCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type MenuUpdate struct {
-	LastModifier int64
-	ID           int64
+	UserID int64
+	ID     int64
 	//连接关联表的id
 
 	//连接dictionary_item表的id
@@ -73,14 +72,14 @@ type MenuDelete struct {
 
 type MenuGetList struct {
 	list.Input
-	list.DataScopeInput
-	Group string `json:"group,omitempty"`
+	UserID int64  `json:"-"`
+	Group  string `json:"group,omitempty"`
 }
 
 type MenuGetTree struct {
 	list.Input
-	list.DataScopeInput
-	Group string `json:"group,omitempty"`
+	UserID int64  `json:"-"`
+	Group  string `json:"group,omitempty"`
 }
 
 type MenuUpdateApis struct {
@@ -138,11 +137,8 @@ func (m *MenuGet) Get() response.Common {
 func (m *MenuCreate) Create() response.Common {
 	var paramOut model.Menu
 
-	if m.Creator > 0 {
-		paramOut.Creator = &m.Creator
-	}
-	if m.LastModifier > 0 {
-		paramOut.LastModifier = &m.LastModifier
+	if m.UserID > 0 {
+		paramOut.Creator = &m.UserID
 	}
 
 	if m.SuperiorID > 0 {
@@ -187,7 +183,7 @@ func (m *MenuCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "CreateAt", "UpdatedAt")
+		"UserID", "UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -204,8 +200,8 @@ func (m *MenuCreate) Create() response.Common {
 func (m *MenuUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if m.LastModifier > 0 {
-		paramOut["last_modifier"] = m.LastModifier
+	if m.UserID > 0 {
+		paramOut["last_modifier"] = m.UserID
 	}
 
 	//允许为0的数字
@@ -289,8 +285,8 @@ func (m *MenuUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt")
+	paramOutForCounting := util.MapCopy(paramOut, "UserID",
+		"UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
@@ -363,7 +359,7 @@ func (m *MenuUpdateApis) Update() response.Common {
 			return response.Failure(util.ErrorFailToUpdateRecord)
 		}
 		paramOutForCounting := util.MapCopy(tempParamOut,
-			"Creator", "LastModifier", "CreateAt", "UpdatedAt")
+			"UserID", "UserID", "CreateAt", "UpdatedAt")
 
 		if len(paramOutForCounting) == 0 {
 			return response.Failure(util.ErrorFieldsToBeCreatedNotFound)

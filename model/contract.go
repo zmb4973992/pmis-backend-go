@@ -36,6 +36,6 @@ type Contract struct {
 }
 
 // TableName 修改表名
-func (*Contract) TableName() string {
+func (c *Contract) TableName() string {
 	return "contract"
 }

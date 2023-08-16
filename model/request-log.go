@@ -19,6 +19,6 @@ type RequestLog struct {
 }
 
 // TableName 修改数据库的表名
-func (*RequestLog) TableName() string {
+func (r *RequestLog) TableName() string {
 	return "request_log"
 }

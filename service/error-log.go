@@ -17,8 +17,7 @@ type ErrorLogGet struct {
 }
 
 type ErrorLogCreate struct {
-	Creator      int64
-	LastModifier int64
+	UserID int64
 
 	Detail            string `json:"detail,omitempty"`
 	MainCategory      string `json:"main_category,omitempty"`
@@ -31,8 +30,8 @@ type ErrorLogCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type ErrorLogUpdate struct {
-	LastModifier int64
-	ID           int64
+	UserID int64
+	ID     int64
 
 	Detail            *string `json:"detail"`
 	Date              *string `json:"date"`
@@ -86,12 +85,8 @@ func (e *ErrorLogGet) Get() response.Common {
 
 func (e *ErrorLogCreate) Create() response.Common {
 	var paramOut model.ErrorLog
-	if e.Creator > 0 {
-		paramOut.Creator = &e.Creator
-	}
-
-	if e.LastModifier > 0 {
-		paramOut.LastModifier = &e.LastModifier
+	if e.UserID > 0 {
+		paramOut.Creator = &e.UserID
 	}
 
 	if e.Detail != "" {
@@ -124,8 +119,8 @@ func (e *ErrorLogCreate) Create() response.Common {
 func (e *ErrorLogUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if e.LastModifier > 0 {
-		paramOut["last_modifier"] = e.LastModifier
+	if e.UserID > 0 {
+		paramOut["last_modifier"] = e.UserID
 	}
 
 	if e.Detail != nil {
@@ -172,8 +167,8 @@ func (e *ErrorLogUpdate) Update() response.Common {
 		}
 	}
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt")
+	paramOutForCounting := util.MapCopy(paramOut, "UserID",
+		"UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)

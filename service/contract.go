@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/yitter/idgenerator-go/idgen"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -19,8 +18,7 @@ type ContractGet struct {
 }
 
 type ContractCreate struct {
-	Creator      int64
-	LastModifier int64
+	UserID int64
 	//连接关联表的id
 	ProjectID      int64 `json:"project_id,omitempty"`
 	OrganizationID int64 `json:"organization_id,omitempty"`
@@ -54,8 +52,8 @@ type ContractCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type ContractUpdate struct {
-	LastModifier int64
-	ID           int64
+	UserID     int64
+	ContractID int64
 	//连接关联表的id
 	ProjectID      *int64 `json:"project_id"`
 	OrganizationID *int64 `json:"organization_id"`
@@ -82,22 +80,25 @@ type ContractUpdate struct {
 	PenaltyRule *string `json:"penalty_rule"`
 	Attachment  *string `json:"attachment"`
 	Operator    *string `json:"operator"`
+
+	IgnoreDataAuthority bool `json:"-"`
 }
 
 type ContractDelete struct {
-	ID int64
+	UserID     int64
+	ContractID int64
 }
 
 type ContractGetList struct {
 	list.Input
-	list.DataScopeInput
+	UserID         int64  `json:"-"`
 	ProjectID      int64  `json:"project_id,omitempty"`
 	RelatedPartyID int64  `json:"related_party_id,omitempty"`
 	FundDirection  int64  `json:"fund_direction,omitempty"`
 	NameInclude    string `json:"name_include,omitempty"`
 
-	//是否忽略数据范围的限制，用于请求数据范围外的全部数据
-	IgnoreDataScope bool `json:"ignore_data_scope"`
+	//是否忽略数据权限的限制，用于请求数据范围外的全部数据
+	IgnoreDataAuthority bool `json:"ignore_data_authority"`
 }
 
 //以下为出参
@@ -146,25 +147,26 @@ type ContractOutput struct {
 	Authorized bool `json:"authorized" gorm:"-"`
 }
 
-type contractAuthorize struct {
-	ID     int64
-	UserID int64
+type contractCheckAuthorization struct {
+	UserID     int64
+	ContractID int64
 }
 
 func (c *ContractGet) Get() response.Common {
 	var result ContractOutput
 	err := global.DB.Model(model.Contract{}).
-		Where("id = ?", c.ID).First(&result).Error
+		Where("id = ?", c.ID).
+		First(&result).Error
 	if err != nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 
-	var authorize contractAuthorize
-	authorize.ID = c.ID
-	authorize.UserID = c.UserID
-	authorizationResult := authorize.authorizedOrNot()
+	var authorization contractCheckAuthorization
+	authorization.ContractID = c.ID
+	authorization.UserID = c.UserID
+	authorized := authorization.checkAuthorization()
 
-	if !authorizationResult {
+	if !authorized {
 		return response.Failure(util.ErrorUnauthorized)
 	}
 
@@ -174,7 +176,9 @@ func (c *ContractGet) Get() response.Common {
 		if result.ProjectID != nil {
 			var record ProjectOutput
 			res := global.DB.Model(&model.Project{}).
-				Where("id = ?", *result.ProjectID).Limit(1).Find(&record)
+				Where("id = ?", *result.ProjectID).
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
 				result.ProjectExternal = &record
 			}
@@ -183,7 +187,9 @@ func (c *ContractGet) Get() response.Common {
 		if result.OrganizationID != nil {
 			var record OrganizationOutput
 			res := global.DB.Model(&model.Organization{}).
-				Where("id = ?", *result.OrganizationID).Limit(1).Find(&record)
+				Where("id = ?", *result.OrganizationID).
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
 				result.OrganizationExternal = &record
 			}
@@ -192,7 +198,9 @@ func (c *ContractGet) Get() response.Common {
 		if result.RelatedPartyID != nil {
 			var record RelatedPartyOutput
 			res := global.DB.Model(&model.RelatedParty{}).
-				Where("id = ?", *result.RelatedPartyID).Limit(1).Find(&record)
+				Where("id = ?", *result.RelatedPartyID).
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
 				result.RelatedPartyExternal = &record
 			}
@@ -205,7 +213,8 @@ func (c *ContractGet) Get() response.Common {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.FundDirection).
-				Limit(1).Find(&record)
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
 				result.FundDirectionExternal = &record
 			}
@@ -214,7 +223,8 @@ func (c *ContractGet) Get() response.Common {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.Currency).
-				Limit(1).Find(&record)
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
 				result.CurrencyExternal = &record
 			}
@@ -223,7 +233,8 @@ func (c *ContractGet) Get() response.Common {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.OurSignatory).
-				Limit(1).Find(&record)
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
 				result.OurSignatoryExternal = &record
 			}
@@ -232,7 +243,8 @@ func (c *ContractGet) Get() response.Common {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
 				Where("id = ?", *result.Type).
-				Limit(1).Find(&record)
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
 				result.TypeExternal = &record
 			}
@@ -266,11 +278,8 @@ func (c *ContractGet) Get() response.Common {
 func (c *ContractCreate) Create() response.Common {
 	var paramOut model.Contract
 
-	if c.Creator > 0 {
-		paramOut.Creator = &c.Creator
-	}
-	if c.LastModifier > 0 {
-		paramOut.LastModifier = &c.LastModifier
+	if c.UserID > 0 {
+		paramOut.Creator = &c.UserID
 	}
 
 	//连接关联表的id
@@ -387,7 +396,7 @@ func (c *ContractCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "CreateAt", "UpdatedAt", "ID")
+		"UserID", "UserID", "CreateAt", "UpdatedAt", "ContractID")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -404,24 +413,26 @@ func (c *ContractCreate) Create() response.Common {
 func (c *ContractUpdate) Update() response.Common {
 	var result ContractOutput
 	err := global.DB.Model(model.Contract{}).
-		Where("id = ?", c.ID).First(&result).Error
+		Where("id = ?", c.ContractID).
+		First(&result).Error
 	if err != nil {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 
-	var authorize contractAuthorize
-	authorize.ID = c.ID
-	authorize.UserID = c.LastModifier
-	authorizationResult := authorize.authorizedOrNot()
-
-	if !authorizationResult {
-		return response.Failure(util.ErrorUnauthorized)
+	if c.IgnoreDataAuthority == false {
+		var authorization contractCheckAuthorization
+		authorization.ContractID = c.ContractID
+		authorization.UserID = c.UserID
+		authorized := authorization.checkAuthorization()
+		if !authorized {
+			return response.Failure(util.ErrorUnauthorized)
+		}
 	}
 
 	paramOut := make(map[string]any)
 
-	if c.LastModifier > 0 {
-		paramOut["last_modifier"] = c.LastModifier
+	if c.UserID > 0 {
+		paramOut["last_modifier"] = c.UserID
 	}
 
 	//连接关联表的id
@@ -606,14 +617,15 @@ func (c *ContractUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt")
+	paramOutForCounting := util.MapCopy(paramOut, "UserID",
+		"UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err = global.DB.Model(&model.Contract{}).Where("id = ?", c.ID).
+	err = global.DB.Model(&model.Contract{}).
+		Where("id = ?", c.ContractID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -626,8 +638,10 @@ func (c *ContractUpdate) Update() response.Common {
 func (c *ContractDelete) Delete() response.Common {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Contract
-	global.DB.Where("id = ?", c.ID).Find(&record)
-	err := global.DB.Where("id = ?", c.ID).Delete(&record).Error
+	global.DB.Where("id = ?", c.ContractID).
+		Find(&record)
+	err := global.DB.Where("id = ?", c.ContractID).
+		Delete(&record).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -658,8 +672,8 @@ func (c *ContractGetList) GetList() response.List {
 	}
 
 	//用来确定数据范围
-	if c.IgnoreDataScope == false {
-		organizationIDs := util.GetOrganizationIDs(c.UserID)
+	if c.IgnoreDataAuthority == false {
+		organizationIDs := util.GetOrganizationIDsForDataAuthority(c.UserID)
 		//先找出项目的数据范围
 		var projectIDs []int64
 		global.DB.Model(&model.Project{}).Where("organization_id in ?", organizationIDs).
@@ -717,7 +731,7 @@ func (c *ContractGetList) GetList() response.List {
 
 	//data
 	var data []ContractOutput
-	db.Model(&model.Contract{}).Debug().Find(&data)
+	db.Model(&model.Contract{}).Find(&data)
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)
@@ -781,6 +795,14 @@ func (c *ContractGetList) GetList() response.List {
 					data[i].CurrencyExternal = &record
 				}
 			}
+			if data[i].Type != nil {
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
+					Where("id = ?", *data[i].Type).Limit(1).Find(&record)
+				if res.RowsAffected > 0 {
+					data[i].TypeExternal = &record
+				}
+			}
 		}
 
 		//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
@@ -804,11 +826,11 @@ func (c *ContractGetList) GetList() response.List {
 			}
 		}
 
-		if c.IgnoreDataScope == true {
-			var authorize contractAuthorize
-			authorize.ID = data[i].ID
+		if c.IgnoreDataAuthority == true {
+			var authorize contractCheckAuthorization
+			authorize.ContractID = data[i].ID
 			authorize.UserID = c.UserID
-			data[i].Authorized = authorize.authorizedOrNot()
+			data[i].Authorized = authorize.checkAuthorization()
 		} else {
 			data[i].Authorized = true
 		}
@@ -831,69 +853,20 @@ func (c *ContractGetList) GetList() response.List {
 }
 
 // 该方法一定要在确定记录存在后再调用
-func (p *contractAuthorize) authorizedOrNot() bool {
+func (c *contractCheckAuthorization) checkAuthorization() (authorized bool) {
 	//用来确定数据范围内的组织id
-	organizationIDs := util.GetOrganizationIDs(p.UserID)
+	organizationIDs := util.GetOrganizationIDsForDataAuthority(c.UserID)
 	if len(organizationIDs) == 0 {
 		return false
 	}
 
-	batchID := idgen.NextId()
-
-	var temps []model.Temp
-	for i := range organizationIDs {
-		var temp model.Temp
-		temp.OrganizationID = &organizationIDs[i]
-		temp.BatchID = batchID
-		temps = append(temps, temp)
-	}
-	global.DB.CreateInBatches(&temps, 100)
-
-	//找出数据范围内的项目id
-	var projectIDs []int64
-	global.DB.Model(&model.Project{}).
-		Joins("join temp on project.organization_id = temp.organization_id").
-		Where("batch_id = ?", batchID).
-		Select("project.id").Find(&projectIDs)
-
-	if len(projectIDs) == 0 {
-		return false
-	}
-
-	for j := range projectIDs {
-		var temp model.Temp
-		temp.ProjectID = &projectIDs[j]
-		temp.BatchID = batchID
-		temps = append(temps, temp)
-	}
-	global.DB.CreateInBatches(&temps, 100)
-
-	//找出数据范围内的合同id
-	var contractIDs []int64
-	global.DB.Model(&model.Contract{}).
-		Joins("join temp on contract.organization_id = temp.organization_id or contract.project_id = temp.project_id").
-		Where("batch_id = ?", batchID).
-		Distinct("contract.id").
-		Find(&contractIDs)
-
-	if len(contractIDs) == 0 {
-		return false
-	}
-
-	for i := range contractIDs {
-		var temp model.Temp
-		temp.ContractID = &contractIDs[i]
-		temp.BatchID = batchID
-		temps = append(temps, temp)
-	}
-	global.DB.CreateInBatches(&temps, 100)
-
 	//看看在数据范围内是否有该记录
 	var count int64
 	global.DB.Model(model.Contract{}).
-		Joins("join (select distinct contract_id from temp where batch_id = ?) as temp2 on contract.id = temp2.contract_id", batchID).
-		Where("id = ?", p.ID).
+		Joins("join (select id as project_id from project where organization_id in ?) as temp1 on contract.project_id = temp1.project_id", organizationIDs).
+		Where("id = ?", c.ContractID).
 		Count(&count)
+
 	if count > 0 {
 		return true
 	}

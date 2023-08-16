@@ -42,8 +42,7 @@ func (i *incomeAndExpenditure) Create(c *gin.Context) {
 	//处理creator、last_modifier字段
 	userID, exists := util.GetUserID(c)
 	if exists {
-		param.Creator = userID
-		param.LastModifier = userID
+		param.UserID = userID
 	}
 
 	res := param.Create()
@@ -72,7 +71,7 @@ func (i *incomeAndExpenditure) Update(c *gin.Context) {
 	//处理last_modifier字段
 	userID, exists := util.GetUserID(c)
 	if exists {
-		param.LastModifier = userID
+		param.UserID = userID
 	}
 
 	res := param.Update()

@@ -16,8 +16,7 @@ type ProgressGet struct {
 }
 
 type ProgressCreate struct {
-	Creator      int64
-	LastModifier int64
+	UserID int64
 
 	DisassemblyID int64    `json:"disassembly_id" binding:"required"`
 	Date          string   `json:"date" binding:"required"`
@@ -27,8 +26,8 @@ type ProgressCreate struct {
 }
 
 type ProgressUpdate struct {
-	LastModifier int64
-	ID           int64
+	UserID int64
+	ID     int64
 
 	Date    *string  `json:"date"`
 	Type    *int64   `json:"type"`
@@ -36,13 +35,18 @@ type ProgressUpdate struct {
 	Remarks *string  `json:"remarks"`
 }
 
+type ProgressUpdateByProjectID struct {
+	UserID    int64
+	ProjectID int64 `json:"project_id,omitempty"`
+}
+
 type ProgressDelete struct {
-	ID int64
+	UserID int64
+	ID     int64
 }
 
 type ProgressGetList struct {
 	list.Input
-
 	ProjectID     int64    `json:"project_id"`
 	DisassemblyID int64    `json:"disassembly_id"`
 	DateGte       string   `json:"date_gte,omitempty"`
@@ -70,7 +74,7 @@ type ProgressOutput struct {
 	TypeExternal       *DictionaryDetailOutput `json:"type" gorm:"-"`
 	Value              *float64                `json:"value"`
 	Remarks            *string                 `json:"remarks"`
-	DataSource         *string                 `json:"-"`
+	DataSource         *int64                  `json:"-"`
 	DataSourceExternal *DictionaryDetailOutput `json:"data_source" gorm:"-"`
 }
 
@@ -118,12 +122,8 @@ func (p *ProgressGet) Get() response.Common {
 func (p *ProgressCreate) Create() response.Common {
 	var paramOut model.Progress
 
-	if p.Creator > 0 {
-		paramOut.Creator = &p.Creator
-	}
-
-	if p.LastModifier > 0 {
-		paramOut.LastModifier = &p.LastModifier
+	if p.UserID > 0 {
+		paramOut.Creator = &p.UserID
 	}
 
 	paramOut.DisassemblyID = &p.DisassemblyID
@@ -155,7 +155,7 @@ func (p *ProgressCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"Creator", "LastModifier", "CreateAt", "UpdatedAt")
+		"UserID", "UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -185,7 +185,7 @@ func (p *ProgressCreate) Create() response.Common {
 	}
 
 	//更新所有上级的进度
-	err = util.UpdateProgressOfSuperiors(p.DisassemblyID, p.Type)
+	err = util.UpdateProgressOfSuperiors(p.DisassemblyID, p.Type, p.UserID)
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
@@ -198,8 +198,8 @@ func (p *ProgressCreate) Create() response.Common {
 func (p *ProgressUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if p.LastModifier > 0 {
-		paramOut["last_modifier"] = p.LastModifier
+	if p.UserID > 0 {
+		paramOut["last_modifier"] = p.UserID
 	}
 
 	if p.Date != nil {
@@ -248,8 +248,8 @@ func (p *ProgressUpdate) Update() response.Common {
 
 	//计算有修改值的字段数，分别进行不同处理
 	//data_source是自动添加的，也需要排除在外
-	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt", "DataSource")
+	paramOutForCounting := util.MapCopy(paramOut, "UserID",
+		"UserID", "CreateAt", "UpdatedAt", "DataSource")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
@@ -309,14 +309,14 @@ func (p *ProgressUpdate) Update() response.Common {
 				Select("id").Find(&progressTypeIDs)
 
 			for _, v := range progressTypeIDs {
-				err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, v)
+				err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, v, p.UserID)
 				if err != nil {
 					global.SugaredLogger.Errorln(err)
 					return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
 				}
 			}
 		} else { //如果没有传入type值(意味着记录的type值不变)，则只更新原来的进度类型
-			err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, *progress.Type)
+			err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, *progress.Type, p.UserID)
 			if err != nil {
 				global.SugaredLogger.Errorln(err)
 				return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
@@ -325,6 +325,36 @@ func (p *ProgressUpdate) Update() response.Common {
 	}
 
 	return response.Success()
+}
+
+func (p *ProgressUpdateByProjectID) UpdateByProjectID() error {
+	var progressType model.DictionaryType
+	err := global.DB.Where("name = '进度类型'").
+		First(&progressType).Error
+	if err != nil {
+		return err
+	}
+
+	var allProgressTypes []model.DictionaryDetail
+	err = global.DB.Where("dictionary_type_id = ?", progressType.ID).
+		Find(&allProgressTypes).Error
+
+	var disassemblies []model.Disassembly
+	global.DB.
+		Where("project_id = ?", p.ProjectID).
+		Order("level desc").
+		Find(&disassemblies)
+
+	for i := range allProgressTypes {
+		for j := range disassemblies {
+			err = util.UpdateOwnProgress(disassemblies[j].ID, allProgressTypes[i].ID, p.UserID)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 func (p *ProgressDelete) Delete() response.Common {
@@ -339,7 +369,7 @@ func (p *ProgressDelete) Delete() response.Common {
 
 	//更新所有上级的进度
 	if progress.DisassemblyID != nil && progress.Type != nil {
-		err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, *progress.Type)
+		err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, *progress.Type, p.UserID)
 		if err != nil {
 			global.SugaredLogger.Errorln(err)
 			return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
@@ -483,6 +513,66 @@ func (p *ProgressGetList) GetList() response.List {
 		}
 	}
 
+	//一次性查出需要用的进度类型，避免多次重复查询
+	var progressType model.DictionaryType
+	err := global.DB.Where("name = '进度类型'").
+		First(&progressType).Error
+	if err != nil {
+		return response.FailureForList(util.ErrorRecordNotFound)
+	}
+
+	var planned DictionaryDetailOutput
+	err = global.DB.Model(&model.DictionaryDetail{}).
+		Where("dictionary_type_id =?", progressType.ID).
+		Where("name = '计划进度'").
+		First(&planned).Error
+	if err != nil {
+		return response.FailureForList(util.ErrorRecordNotFound)
+	}
+
+	var forecasted DictionaryDetailOutput
+	err = global.DB.Model(&model.DictionaryDetail{}).
+		Where("dictionary_type_id =?", progressType.ID).
+		Where("name = '预测进度'").
+		First(&forecasted).Error
+	if err != nil {
+		return response.FailureForList(util.ErrorRecordNotFound)
+	}
+
+	var actual DictionaryDetailOutput
+	err = global.DB.Model(&model.DictionaryDetail{}).
+		Where("dictionary_type_id =?", progressType.ID).
+		Where("name = '实际进度'").
+		First(&actual).Error
+	if err != nil {
+		return response.FailureForList(util.ErrorRecordNotFound)
+	}
+
+	var dataSource model.DictionaryType
+	err = global.DB.Where("name = '进度的数据来源'").
+		First(&dataSource).Error
+	if err != nil {
+		return response.FailureForList(util.ErrorRecordNotFound)
+	}
+
+	var systemCalculation DictionaryDetailOutput
+	err = global.DB.Model(&model.DictionaryDetail{}).
+		Where("dictionary_type_id =?", dataSource.ID).
+		Where("name = '系统计算'").
+		First(&systemCalculation).Error
+	if err != nil {
+		return response.FailureForList(util.ErrorRecordNotFound)
+	}
+
+	var manualFilling DictionaryDetailOutput
+	err = global.DB.Model(&model.DictionaryDetail{}).
+		Where("dictionary_type_id =?", dataSource.ID).
+		Where("name = '人工填写'").
+		First(&manualFilling).Error
+	if err != nil {
+		return response.FailureForList(util.ErrorRecordNotFound)
+	}
+
 	for i := range data {
 
 		//处理日期格式
@@ -494,20 +584,36 @@ func (p *ProgressGetList) GetList() response.List {
 		//查dictionary_item表
 		{
 			if data[i].Type != nil {
-				var record DictionaryDetailOutput
-				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].Type).Limit(1).Find(&record)
-				if res.RowsAffected > 0 {
-					data[i].TypeExternal = &record
+				if *data[i].Type == planned.ID {
+					data[i].TypeExternal = &planned
+				} else if *data[i].Type == forecasted.ID {
+					data[i].TypeExternal = &forecasted
+				} else if *data[i].Type == actual.ID {
+					data[i].TypeExternal = &actual
+				} else {
+					var record DictionaryDetailOutput
+					res := global.DB.Model(&model.DictionaryDetail{}).
+						Where("id = ?", *data[i].Type).
+						Limit(1).Find(&record)
+					if res.RowsAffected > 0 {
+						data[i].TypeExternal = &record
+					}
 				}
 			}
 
 			if data[i].DataSource != nil {
-				var record DictionaryDetailOutput
-				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].DataSource).Limit(1).Find(&record)
-				if res.RowsAffected > 0 {
-					data[i].DataSourceExternal = &record
+				if *data[i].DataSource == systemCalculation.ID {
+					data[i].DataSourceExternal = &systemCalculation
+				} else if *data[i].DataSource == manualFilling.ID {
+					data[i].DataSourceExternal = &manualFilling
+				} else {
+					var record DictionaryDetailOutput
+					res := global.DB.Model(&model.DictionaryDetail{}).
+						Where("id = ?", *data[i].DataSource).
+						Limit(1).Find(&record)
+					if res.RowsAffected > 0 {
+						data[i].DataSourceExternal = &record
+					}
 				}
 			}
 		}

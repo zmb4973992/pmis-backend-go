@@ -13,8 +13,7 @@ type DictionaryDetailGet struct {
 }
 
 type DictionaryDetailCreate struct {
-	Creator          int64
-	LastModifier     int64
+	UserID           int64
 	DictionaryTypeID int64  `json:"dictionary_type_id" binding:"required"` //字典类型id
 	Name             string `json:"name" binding:"required"`               //名称
 	Sort             int    `json:"sort,omitempty"`                        //顺序值
@@ -22,21 +21,17 @@ type DictionaryDetailCreate struct {
 	Remarks          string `json:"remarks,omitempty"`                     //备注
 }
 
-type DictionaryDetailCreateInBatches struct {
-	Data []DictionaryDetailCreate `json:"data"`
-}
-
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
 //如果指针字段为空或0，那么数据库相应字段会改为null；
 //如果指针字段没传，那么数据库不会修改该字段
 
 type DictionaryDetailUpdate struct {
-	LastModifier int64
-	ID           int64
-	Name         *string `json:"name"`    //名称
-	Sort         *int    `json:"sort"`    //顺序值
-	Status       *bool   `json:"status"`  //是否启用
-	Remarks      *string `json:"remarks"` //备注
+	UserID  int64
+	ID      int64
+	Name    *string `json:"name"`    //名称
+	Sort    *int    `json:"sort"`    //顺序值
+	Status  *bool   `json:"status"`  //是否启用
+	Remarks *string `json:"remarks"` //备注
 }
 
 type DictionaryDetailDelete struct {
@@ -80,12 +75,8 @@ func (d *DictionaryDetailGet) Get() response.Common {
 
 func (d *DictionaryDetailCreate) Create() response.Common {
 	var paramOut model.DictionaryDetail
-	if d.Creator > 0 {
-		paramOut.Creator = &d.Creator
-	}
-
-	if d.LastModifier > 0 {
-		paramOut.LastModifier = &d.LastModifier
+	if d.UserID > 0 {
+		paramOut.Creator = &d.UserID
 	}
 
 	paramOut.DictionaryTypeID = d.DictionaryTypeID
@@ -112,47 +103,11 @@ func (d *DictionaryDetailCreate) Create() response.Common {
 	return response.Success()
 }
 
-//func (d *DictionaryDetailCreateInBatches) CreateInBatches() response.Common {
-//	var paramOut []model.DictionaryDetail
-//	for i := range d.Data {
-//		var record model.DictionaryDetail
-//
-//		if d.Data[i].Creator > 0 {
-//			record.Creator = &d.Data[i].Creator
-//		}
-//
-//		if d.Data[i].LastModifier > 0 {
-//			record.LastModifier = &d.Data[i].LastModifier
-//		}
-//
-//		record.DictionaryTypeID = d.Data[i].DictionaryTypeID
-//
-//		record.Name = d.Data[i].Name
-//
-//		if d.Data[i].Sort != 0 {
-//			record.Sort = &d.Data[i].Sort
-//		}
-//
-//		if d.Data[i].Remarks != "" {
-//			record.Remarks = &d.Data[i].Remarks
-//		}
-//
-//		paramOut = append(paramOut, record)
-//	}
-//
-//	err := global.DB.Create(&paramOut).Error
-//	if err != nil {
-//		global.SugaredLogger.Errorln(err)
-//		return response.Failure(util.ErrorFailToCreateRecord)
-//	}
-//	return response.Success()
-//}
-
 func (d *DictionaryDetailUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if d.LastModifier > 0 {
-		paramOut["last_modifier"] = d.LastModifier
+	if d.UserID > 0 {
+		paramOut["last_modifier"] = d.UserID
 	}
 
 	if d.Name != nil {
@@ -186,8 +141,8 @@ func (d *DictionaryDetailUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt")
+	paramOutForCounting := util.MapCopy(paramOut, "UserID",
+		"UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)

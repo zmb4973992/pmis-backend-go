@@ -13,12 +13,11 @@ type DictionaryTypeGet struct {
 }
 
 type DictionaryTypeCreate struct {
-	Creator      int64
-	LastModifier int64
-	Name         string `json:"name" binding:"required"` //名称
-	Sort         int    `json:"sort,omitempty"`          //顺序值
-	Status       *bool  `json:"status"`                  //是否启用
-	Remarks      string `json:"remarks,omitempty"`       //备注
+	UserID  int64
+	Name    string `json:"name" binding:"required"` //名称
+	Sort    int    `json:"sort,omitempty"`          //顺序值
+	Status  *bool  `json:"status"`                  //是否启用
+	Remarks string `json:"remarks,omitempty"`       //备注
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -26,21 +25,16 @@ type DictionaryTypeCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type DictionaryTypeUpdate struct {
-	LastModifier int64
-	ID           int64
-	Name         *string `json:"name"`    //名称
-	Sort         *int    `json:"sort"`    //顺序值
-	Status       *bool   `json:"status"`  //是否启用
-	Remarks      *string `json:"remarks"` //备注
+	UserID  int64
+	ID      int64
+	Name    *string `json:"name"`    //名称
+	Sort    *int    `json:"sort"`    //顺序值
+	Status  *bool   `json:"status"`  //是否启用
+	Remarks *string `json:"remarks"` //备注
 }
 
 type DictionaryTypeDelete struct {
 	ID int64
-}
-
-type DictionaryTypeGetArray struct {
-	list.Input
-	NameInclude string `json:"name_include,omitempty"`
 }
 
 type DictionaryTypeGetList struct {
@@ -70,12 +64,8 @@ func (d *DictionaryTypeGet) Get() response.Common {
 
 func (d *DictionaryTypeCreate) Create() response.Common {
 	var paramOut model.DictionaryType
-	if d.Creator > 0 {
-		paramOut.Creator = &d.Creator
-	}
-
-	if d.LastModifier > 0 {
-		paramOut.LastModifier = &d.LastModifier
+	if d.UserID > 0 {
+		paramOut.Creator = &d.UserID
 	}
 
 	paramOut.Name = d.Name
@@ -103,8 +93,8 @@ func (d *DictionaryTypeCreate) Create() response.Common {
 func (d *DictionaryTypeUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if d.LastModifier > 0 {
-		paramOut["last_modifier"] = d.LastModifier
+	if d.UserID > 0 {
+		paramOut["last_modifier"] = d.UserID
 	}
 
 	if d.Name != nil {
@@ -138,8 +128,8 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt", "ID")
+	paramOutForCounting := util.MapCopy(paramOut, "UserID",
+		"UserID", "CreateAt", "UpdatedAt", "ContractID")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)

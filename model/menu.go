@@ -32,6 +32,6 @@ type Meta struct {
 }
 
 // TableName 修改表名
-func (*Menu) TableName() string {
+func (m *Menu) TableName() string {
 	return "menu"
 }

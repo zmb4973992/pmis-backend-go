@@ -26,8 +26,7 @@ type UserGet struct {
 }
 
 type UserCreate struct {
-	Creator           int64
-	LastModifier      int64
+	UserID            int64
 	Username          string `json:"username" binding:"required"`
 	Password          string `json:"password" binding:"required"`
 	FullName          string `json:"full_name,omitempty"`           //全名
@@ -42,7 +41,7 @@ type UserCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type UserUpdate struct {
-	LastModifier      int64
+	UserID            int64
 	ID                int64
 	FullName          *string `json:"full_name"`           //全名
 	EmailAddress      *string `json:"email_address"`       //邮箱地址
@@ -63,7 +62,6 @@ type UserGetList struct {
 }
 
 type UserUpdateRoles struct {
-	Creator      int64
 	LastModifier int64
 
 	UserID  int64    `json:"-"`
@@ -71,7 +69,6 @@ type UserUpdateRoles struct {
 }
 
 type UserUpdateDataScope struct {
-	Creator      int64
 	LastModifier int64
 
 	UserID      int64 `json:"-"`
@@ -102,11 +99,7 @@ func (u *UserLogin) Verify() bool {
 func (u *UserLogin) Login() response.Common {
 	permitted, err := util.LoginByLDAP(u.Username, u.Password)
 
-	if err != nil {
-		return response.Failure(util.ErrorInvalidUsernameOrPassword)
-	}
-
-	if !permitted {
+	if err != nil || !permitted {
 		return response.Failure(util.ErrorInvalidUsernameOrPassword)
 	}
 
@@ -142,12 +135,8 @@ func (u *UserGet) Get() response.Common {
 
 func (u *UserCreate) Create() response.Common {
 	var paramOut model.User
-	if u.Creator > 0 {
-		paramOut.Creator = &u.Creator
-	}
-
-	if u.LastModifier > 0 {
-		paramOut.LastModifier = &u.LastModifier
+	if u.UserID > 0 {
+		paramOut.Creator = &u.UserID
 	}
 
 	paramOut.Username = u.Username
@@ -190,8 +179,8 @@ func (u *UserCreate) Create() response.Common {
 func (u *UserUpdate) Update() response.Common {
 	paramOut := make(map[string]any)
 
-	if u.LastModifier > 0 {
-		paramOut["last_modifier"] = u.LastModifier
+	if u.UserID > 0 {
+		paramOut["last_modifier"] = u.UserID
 	}
 
 	if u.FullName != nil {
@@ -231,8 +220,8 @@ func (u *UserUpdate) Update() response.Common {
 	}
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt")
+	paramOutForCounting := util.MapCopy(paramOut, "UserID",
+		"UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
@@ -376,9 +365,6 @@ func (u *UserUpdateRoles) Update() response.Common {
 		var paramOut []model.UserAndRole
 		for _, roleID := range *u.RoleIDs {
 			var record model.UserAndRole
-			if u.Creator > 0 {
-				record.Creator = &u.Creator
-			}
 			if u.LastModifier > 0 {
 				record.LastModifier = &u.LastModifier
 			}
@@ -395,7 +381,7 @@ func (u *UserUpdateRoles) Update() response.Common {
 				return ErrorFailToUpdateRecord
 			}
 			paramOutForCounting := util.MapCopy(tempParamOut,
-				"Creator", "LastModifier", "CreateAt", "UpdatedAt")
+				"UserID", "UserID", "CreateAt", "UpdatedAt")
 
 			if len(paramOutForCounting) == 0 {
 				return ErrorFieldsToBeCreatedNotFound
@@ -447,14 +433,14 @@ func (u *UserUpdateDataScope) Update() response.Common {
 	paramOut["data_scope_id"] = u.DataScopeID
 
 	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "Creator",
-		"LastModifier", "CreateAt", "UpdatedAt")
+	paramOutForCounting := util.MapCopy(paramOut, "UserID",
+		"UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
 	}
 
-	err := global.DB.Model(&model.UserAndDataScope{}).
+	err := global.DB.Model(&model.UserAndDataAuthority{}).
 		Where("user_id = ?", u.UserID).
 		Updates(paramOut).Error
 	if err != nil {

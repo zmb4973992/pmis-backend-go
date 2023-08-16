@@ -14,7 +14,7 @@ type DictionaryDetail struct {
 }
 
 // TableName 修改数据库的表名
-func (*DictionaryDetail) TableName() string {
+func (d *DictionaryDetail) TableName() string {
 	return "dictionary_detail"
 }
 
@@ -119,6 +119,10 @@ var initialDictionary = []dictionaryDetailFormat{
 		DetailNames: []string{"预付款", "定金", "进度款", "尾款", "质保款",
 			"发货款", "港杂费", "调试款", "杂费", "租金", "服务费", "保证金",
 			"保费", "其他"},
+	},
+	{
+		TypeName:    "tabFukuan视图中不要导入的记录",
+		DetailNames: []string{"CNC0155-001", "CNC0155-002", "CNS0419-001"},
 	},
 }
 
