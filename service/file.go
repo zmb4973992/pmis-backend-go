@@ -2,7 +2,6 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"math"
 	"mime/multipart"
@@ -37,6 +36,7 @@ type FileOutput struct {
 	LastModifier *int64  `json:"last_modifier"`
 	ID           int64   `json:"id"`
 	Name         string  `json:"name"`
+	Url          string  `json:"url" gorm:"-"`
 	SizeMB       float64 `json:"size_mb"`
 }
 
@@ -61,10 +61,9 @@ func (f *FileGet) Get() (filePath string, fileName string, existed bool) {
 	return filePath, record.Name, true
 }
 
-func (f *FileCreate) Create() (id int64, err error) {
-	fmt.Println(f.FileHeader.Size)
+func (f *FileCreate) Create() (fileID int64, url string, err error) {
 	if f.FileHeader.Size > global.Config.MaxSize {
-		return 0, errors.New("文件过大")
+		return 0, "", errors.New("文件过大")
 	}
 
 	storagePath := global.Config.UploadConfig.StoragePath
@@ -79,17 +78,19 @@ func (f *FileCreate) Create() (id int64, err error) {
 
 	err = global.DB.Create(&file).Error
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 
 	// 给文件名添加id
 	fileNameWithID := strconv.FormatInt(file.ID, 10) + "--" + f.FileHeader.Filename
 	err = saveUploadedFile(f.FileHeader, storagePath+fileNameWithID)
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 
-	return file.ID, nil
+	url = global.Config.DownloadConfig.FullPath + strconv.FormatInt(file.ID, 10)
+
+	return file.ID, url, nil
 }
 
 func (f *FileDelete) Delete() response.Common {

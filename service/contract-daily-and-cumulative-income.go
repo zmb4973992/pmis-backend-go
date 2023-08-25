@@ -16,7 +16,7 @@ import (
 //如果指针字段为空或0，那么数据库相应字段会改为null；
 //如果指针字段没传，那么数据库不会修改该字段
 
-type ContractCumulativeIncomeUpdate struct {
+type ContractDailyAndCumulativeIncomeUpdate struct {
 	UserID int64
 	//连接关联表的id
 	ContractID int64 `json:"contract_id,omitempty"`
@@ -28,7 +28,7 @@ type ContractCumulativeIncomeUpdate struct {
 	//字符串
 }
 
-type ContractCumulativeIncomeGetList struct {
+type ContractDailyAndCumulativeIncomeGetList struct {
 	list.Input
 	ContractID int64  `json:"contract_id,omitempty"`
 	DateGte    string `json:"date_gte,omitempty"`
@@ -37,7 +37,7 @@ type ContractCumulativeIncomeGetList struct {
 
 //以下为出参
 
-type ContractCumulativeIncomeOutput struct {
+type ContractDailyAndCumulativeIncomeOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
 	ID           int64  `json:"id"`
@@ -50,6 +50,7 @@ type ContractCumulativeIncomeOutput struct {
 	//关联表的详情，不需要gorm查询，需要在json中显示
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
 
+	DailyActualIncome        *float64 `json:"daily_actual_income"`        //当日实际收款金额
 	TotalPlannedIncome       *float64 `json:"total_planned_income"`       //计划收款总额
 	TotalActualIncome        *float64 `json:"total_actual_income"`        //实际收款总额
 	TotalForecastedIncome    *float64 `json:"total_forecasted_income"`    //预测收款总额
@@ -61,13 +62,15 @@ type ContractCumulativeIncomeOutput struct {
 
 }
 
-func (c *ContractCumulativeIncomeUpdate) Update() response.Common {
+func (c *ContractDailyAndCumulativeIncomeUpdate) Update() response.Common {
 	//连接关联表的id
 	{
 		if c.ContractID > 0 {
 			var typeOfIncomeAndExpenditure int64
 			err := global.DB.Model(&model.DictionaryType{}).
-				Where("name = '收付款的种类'").Select("id").First(&typeOfIncomeAndExpenditure).Error
+				Where("name = '收付款的种类'").
+				Select("id").
+				First(&typeOfIncomeAndExpenditure).Error
 			if err != nil {
 				return response.Failure(util.ErrorFailToUpdateRecord)
 			}
@@ -75,7 +78,9 @@ func (c *ContractCumulativeIncomeUpdate) Update() response.Common {
 			var planned int64
 			err = global.DB.Model(&model.DictionaryDetail{}).
 				Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
-				Where("name = '计划'").Select("id").First(&planned).Error
+				Where("name = '计划'").
+				Select("id").
+				First(&planned).Error
 			if err != nil {
 				return response.Failure(util.ErrorFailToUpdateRecord)
 			}
@@ -83,7 +88,9 @@ func (c *ContractCumulativeIncomeUpdate) Update() response.Common {
 			var actual int64
 			err = global.DB.Model(&model.DictionaryDetail{}).
 				Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
-				Where("name = '实际'").Select("id").First(&actual).Error
+				Where("name = '实际'").
+				Select("id").
+				First(&actual).Error
 			if err != nil {
 				return response.Failure(util.ErrorFailToUpdateRecord)
 			}
@@ -91,7 +98,9 @@ func (c *ContractCumulativeIncomeUpdate) Update() response.Common {
 			var forecasted int64
 			err = global.DB.Model(&model.DictionaryDetail{}).
 				Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
-				Where("name = '预测'").Select("id").First(&forecasted).Error
+				Where("name = '预测'").
+				Select("id").
+				First(&forecasted).Error
 			if err != nil {
 				return response.Failure(util.ErrorFailToUpdateRecord)
 			}
@@ -104,11 +113,13 @@ func (c *ContractCumulativeIncomeUpdate) Update() response.Common {
 			}
 
 			global.DB.Where("contract_id = ?", c.ContractID).
-				Delete(&model.ContractCumulativeIncome{})
+				Delete(&model.ContractDailyAndCumulativeIncome{})
 
 			var fundDirectionOfIncomeAndExpenditure int64
 			err = global.DB.Model(&model.DictionaryType{}).
-				Where("name = '收付款的资金方向'").Select("id").First(&fundDirectionOfIncomeAndExpenditure).Error
+				Where("name = '收付款的资金方向'").
+				Select("id").
+				First(&fundDirectionOfIncomeAndExpenditure).Error
 			if err != nil {
 				return response.Failure(util.ErrorFailToUpdateRecord)
 			}
@@ -116,7 +127,9 @@ func (c *ContractCumulativeIncomeUpdate) Update() response.Common {
 			var income int64
 			err = global.DB.Model(&model.DictionaryDetail{}).
 				Where("dictionary_type_id = ?", fundDirectionOfIncomeAndExpenditure).
-				Where("name = '收款'").Select("id").First(&income).Error
+				Where("name = '收款'").
+				Select("id").
+				First(&income).Error
 			if err != nil {
 				return response.Failure(util.ErrorFailToUpdateRecord)
 			}
@@ -125,115 +138,138 @@ func (c *ContractCumulativeIncomeUpdate) Update() response.Common {
 			global.DB.Model(&model.IncomeAndExpenditure{}).
 				Where("contract_id = ?", c.ContractID).
 				Where("fund_direction = ?", income).
-				Select("date").Distinct("date").Order("date desc").
+				Distinct("date").
+				Order("date desc").
 				Find(&dates)
 			//fmt.Println("日期：", dates)
 
-			var records []model.ContractCumulativeIncome
+			records := make(chan model.ContractDailyAndCumulativeIncome, 10)
 
-			for j := range dates {
-				var record model.ContractCumulativeIncome
+			for i := range dates {
+				j := i
+				go func() {
+					var record model.ContractDailyAndCumulativeIncome
 
-				var totalPlannedIncome float64
-				var countForPlanned int64
-				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Where("contract_id = ?", c.ContractID).
-					Where("kind = ?", planned).
-					Where("fund_direction = ?", income).
-					Where("date = ?", dates[j]).
-					Count(&countForPlanned)
-				if countForPlanned > 0 {
+					var totalPlannedIncome float64
+					var countForPlanned int64
 					global.DB.Model(&model.IncomeAndExpenditure{}).
 						Where("contract_id = ?", c.ContractID).
 						Where("kind = ?", planned).
 						Where("fund_direction = ?", income).
-						Where("date <= ?", dates[j]).
-						Select("coalesce(sum(amount * exchange_rate),0)").
-						Find(&totalPlannedIncome)
-					record.TotalPlannedIncome = &totalPlannedIncome
-					//fmt.Println("计划收款总额：", totalPlannedIncome)
-					if contract.Amount != nil && *contract.Amount > 0 {
-						var plannedIncomeProgress = totalPlannedIncome / *contract.Amount
-						record.PlannedIncomeProgress = &plannedIncomeProgress
-						//fmt.Println("计划收款进度：", plannedIncomeProgress)
+						Where("date = ?", dates[j]).
+						Count(&countForPlanned)
+					if countForPlanned > 0 {
+						global.DB.Model(&model.IncomeAndExpenditure{}).
+							Where("contract_id = ?", c.ContractID).
+							Where("kind = ?", planned).
+							Where("fund_direction = ?", income).
+							Where("date <= ?", dates[j]).
+							Select("coalesce(sum(amount * exchange_rate),0)").
+							Find(&totalPlannedIncome)
+						record.TotalPlannedIncome = &totalPlannedIncome
+						//fmt.Println("计划收款总额：", totalPlannedIncome)
+						if contract.Amount != nil && *contract.Amount > 0 {
+							var plannedIncomeProgress = totalPlannedIncome / *contract.Amount
+							record.PlannedIncomeProgress = &plannedIncomeProgress
+							//fmt.Println("计划收款进度：", plannedIncomeProgress)
+						}
 					}
-				}
 
-				var totalActualIncome float64
-				var countForActual int64
-				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Where("contract_id = ?", c.ContractID).
-					Where("kind = ?", actual).
-					Where("fund_direction = ?", income).
-					Where("date = ?", dates[j]).
-					Count(&countForActual)
-				if countForActual > 0 {
+					var totalActualIncome float64
+					var countForActual int64
 					global.DB.Model(&model.IncomeAndExpenditure{}).
 						Where("contract_id = ?", c.ContractID).
 						Where("kind = ?", actual).
 						Where("fund_direction = ?", income).
-						Where("date <= ?", dates[j]).
-						Select("coalesce(sum(amount * exchange_rate),0)").
-						Find(&totalActualIncome)
-					record.TotalActualIncome = &totalActualIncome
-					//fmt.Println("实际收款总额：", totalActualIncome)
-					if contract.Amount != nil && *contract.Amount > 0 {
-						var actualIncomeProgress = totalActualIncome / *contract.Amount
-						record.ActualIncomeProgress = &actualIncomeProgress
-						//fmt.Println("实际收款进度：", actualIncomeProgress)
+						Where("date = ?", dates[j]).
+						Count(&countForActual)
+					if countForActual > 0 {
+						global.DB.Model(&model.IncomeAndExpenditure{}).
+							Where("contract_id = ?", c.ContractID).
+							Where("kind = ?", actual).
+							Where("fund_direction = ?", income).
+							Where("date <= ?", dates[j]).
+							Select("coalesce(sum(amount * exchange_rate),0)").
+							Find(&totalActualIncome)
+						record.TotalActualIncome = &totalActualIncome
+						//fmt.Println("实际收款总额：", totalActualIncome)
+						if contract.Amount != nil && *contract.Amount > 0 {
+							var actualIncomeProgress = totalActualIncome / *contract.Amount
+							record.ActualIncomeProgress = &actualIncomeProgress
+							//fmt.Println("实际收款进度：", actualIncomeProgress)
+						}
 					}
-				}
 
-				var totalForecastedIncome float64
-				var countForForecasted int64
-				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Where("contract_id = ?", c.ContractID).
-					Where("kind = ?", forecasted).
-					Where("fund_direction = ?", income).
-					Where("date = ?", dates[j]).
-					Count(&countForForecasted)
-				if countForForecasted > 0 {
+					var totalForecastedIncome float64
+					var countForForecasted int64
 					global.DB.Model(&model.IncomeAndExpenditure{}).
 						Where("contract_id = ?", c.ContractID).
 						Where("kind = ?", forecasted).
 						Where("fund_direction = ?", income).
-						Where("date <= ?", dates[j]).
-						Select("coalesce(sum(amount * exchange_rate),0)").
-						Find(&totalForecastedIncome)
-					record.TotalForecastedIncome = &totalForecastedIncome
-					//fmt.Println("预测收款总额：", totalForecastedIncome)
-					if contract.Amount != nil && *contract.Amount > 0 {
-						var forecastedIncomeProgress = totalForecastedIncome / *contract.Amount
-						record.ForecastedIncomeProgress = &forecastedIncomeProgress
-						//fmt.Println("预测收款进度：", forecastedIncomeProgress)
+						Where("date = ?", dates[j]).
+						Count(&countForForecasted)
+					if countForForecasted > 0 {
+						global.DB.Model(&model.IncomeAndExpenditure{}).
+							Where("contract_id = ?", c.ContractID).
+							Where("kind = ?", forecasted).
+							Where("fund_direction = ?", income).
+							Where("date <= ?", dates[j]).
+							Select("coalesce(sum(amount * exchange_rate),0)").
+							Find(&totalForecastedIncome)
+						record.TotalForecastedIncome = &totalForecastedIncome
+						//fmt.Println("预测收款总额：", totalForecastedIncome)
+						if contract.Amount != nil && *contract.Amount > 0 {
+							var forecastedIncomeProgress = totalForecastedIncome / *contract.Amount
+							record.ForecastedIncomeProgress = &forecastedIncomeProgress
+							//fmt.Println("预测收款进度：", forecastedIncomeProgress)
+						}
+					}
+
+					var dailyActualIncome float64
+					var countForDailyActual int64
+					global.DB.Model(&model.IncomeAndExpenditure{}).
+						Where("contract_id = ?", c.ContractID).
+						Where("kind = ?", actual).
+						Where("fund_direction = ?", income).
+						Where("date = ?", dates[j]).
+						Count(&countForDailyActual)
+					if countForDailyActual > 0 {
+						global.DB.Model(&model.IncomeAndExpenditure{}).
+							Where("contract_id = ?", c.ContractID).
+							Where("kind = ?", actual).
+							Where("fund_direction = ?", income).
+							Where("date <= ?", dates[j]).
+							Select("coalesce(sum(amount * exchange_rate),0)").
+							Find(&dailyActualIncome)
+						record.DailyActualIncome = &dailyActualIncome
+						//fmt.Println("当日实际收款金额：", dailyActualIncome)
+					}
+
+					record.Creator = &c.UserID
+					record.ContractID = c.ContractID
+					record.Date = &dates[j]
+
+					records <- record
+					//fmt.Println("------------------------")
+				}()
+			}
+
+			go func() {
+				for {
+					select {
+					case record := <-records:
+						global.DB.Create(&record)
 					}
 				}
-
-				record.Creator = &c.UserID
-				record.ContractID = c.ContractID
-				record.Date = &dates[j]
-
-				//fmt.Println("------------------------")
-
-				records = append(records, record)
-			}
-
-			if len(records) == 0 {
-				return response.Success()
-			}
-
-			err = global.DB.CreateInBatches(records, 10).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToCreateRecord)
-			}
+			}()
 		}
 	}
 
 	return response.Success()
 }
 
-func (c *ContractCumulativeIncomeGetList) GetList() response.List {
-	db := global.DB.Model(&model.ContractCumulativeIncome{})
+func (c *ContractDailyAndCumulativeIncomeGetList) GetList() response.List {
+	db := global.DB.Model(&model.ContractDailyAndCumulativeIncome{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
@@ -260,11 +296,13 @@ func (c *ContractCumulativeIncomeGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("id desc")
+			db = db.Order("date desc")
+		} else {
+			db = db.Order("date")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(&model.ContractCumulativeIncome{}, orderBy)
+		exists := util.FieldIsInModel(&model.ContractDailyAndCumulativeIncome{}, orderBy)
 		if !exists {
 			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
@@ -295,8 +333,8 @@ func (c *ContractCumulativeIncomeGetList) GetList() response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []ContractCumulativeIncomeOutput
-	db.Model(&model.ContractCumulativeIncome{}).Find(&data)
+	var data []ContractDailyAndCumulativeIncomeOutput
+	db.Model(&model.ContractDailyAndCumulativeIncome{}).Find(&data)
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)

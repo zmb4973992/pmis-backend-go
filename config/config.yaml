@@ -53,8 +53,9 @@ upload:
   max-size: "50"
 
 download:
-  #对外暴露的文件访问路径
-  access-path: "/download"
+  #对外暴露的相对路径
+  relative-path: "/download"
+
 
 email:
   #发送邮件服务器，一般是smtp

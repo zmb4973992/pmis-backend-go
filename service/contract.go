@@ -6,6 +6,8 @@ import (
 	"pmis-backend-go/serializer/list"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -43,7 +45,7 @@ type ContractCreate struct {
 	Content     string `json:"content,omitempty"`
 	Deliverable string `json:"deliverable,omitempty"`
 	PenaltyRule string `json:"penalty_rule,omitempty"`
-	Attachment  string `json:"attachment,omitempty"`
+	FileIDs     string `json:"file_ids,omitempty"`
 	Operator    string `json:"operator,omitempty"`
 }
 
@@ -78,7 +80,7 @@ type ContractUpdate struct {
 	Content     *string `json:"content"`
 	Deliverable *string `json:"deliverable"`
 	PenaltyRule *string `json:"penalty_rule"`
-	Attachment  *string `json:"attachment"`
+	FileIDs     []int64 `json:"file_ids"`
 	Operator    *string `json:"operator"`
 
 	IgnoreDataAuthority bool `json:"-"`
@@ -135,13 +137,14 @@ type ContractOutput struct {
 	ExchangeRate       *float64 `json:"exchange_rate"`
 	ConstructionPeriod *int     `json:"construction_period"`
 
-	Name        *string `json:"name"`
-	Code        *string `json:"code"`
-	Content     *string `json:"content"`
-	Deliverable *string `json:"deliverable"`
-	PenaltyRule *string `json:"penalty_rule"`
-	Attachment  *string `json:"attachment"`
-	Operator    *string `json:"operator"`
+	Name          *string      `json:"name"`
+	Code          *string      `json:"code"`
+	Content       *string      `json:"content"`
+	Deliverable   *string      `json:"deliverable"`
+	PenaltyRule   *string      `json:"penalty_rule"`
+	Operator      *string      `json:"operator"`
+	FileIDs       *string      `json:"-"`
+	FilesExternal []FileOutput `json:"files" gorm:"-"`
 
 	//用来告诉前端，该记录是否为数据范围内，用来判定是否能访问详情、是否需要做跳转等
 	Authorized bool `json:"authorized" gorm:"-"`
@@ -204,6 +207,31 @@ func (c *ContractGet) Get() response.Common {
 			if res.RowsAffected > 0 {
 				result.RelatedPartyExternal = &record
 			}
+		}
+
+		//查文件信息
+		if result.FileIDs != nil {
+			tempFileIDs := strings.Split(*result.FileIDs, ",")
+			var fileIDs []int64
+			for i := range tempFileIDs {
+				fileID, err1 := strconv.ParseInt(tempFileIDs[i], 10, 64)
+				if err1 != nil {
+					continue
+				}
+				fileIDs = append(fileIDs, fileID)
+			}
+
+			var records []FileOutput
+			global.DB.Model(&model.File{}).
+				Where("id in ?", fileIDs).Find(&records)
+
+			ip := global.Config.DownloadConfig.LocalIP
+			port := global.Config.AppConfig.HttpPort
+			accessPath := global.Config.DownloadConfig.RelativePath
+			for i := range records {
+				records[i].Url = "http://" + ip + ":" + port + accessPath + strconv.FormatInt(records[i].ID, 10)
+			}
+			result.FilesExternal = records
 		}
 	}
 
@@ -381,8 +409,8 @@ func (c *ContractCreate) Create() response.Common {
 			paramOut.PenaltyRule = &c.PenaltyRule
 		}
 
-		if c.Attachment != "" {
-			paramOut.Attachment = &c.Attachment
+		if c.FileIDs != "" {
+			paramOut.FileIDs = &c.FileIDs
 		}
 
 		if c.Operator != "" {
@@ -600,13 +628,19 @@ func (c *ContractUpdate) Update() response.Common {
 				paramOut["penalty_rule"] = nil
 			}
 		}
-		if c.Attachment != nil {
-			if *c.Attachment != "" {
-				paramOut["attachment"] = c.Attachment
+
+		if c.FileIDs != nil {
+			if len(c.FileIDs) > 0 {
+				var fileIDs []string
+				for _, v := range c.FileIDs {
+					fileIDs = append(fileIDs, strconv.FormatInt(v, 10))
+				}
+				paramOut["file_ids"] = strings.Join(fileIDs, ",")
 			} else {
-				paramOut["attachment"] = nil
+				paramOut["file_ids"] = nil
 			}
 		}
+
 		if c.Operator != nil {
 			if *c.Operator != "" {
 				paramOut["operator"] = c.Operator
@@ -856,6 +890,7 @@ func (c *ContractGetList) GetList() response.List {
 func (c *contractCheckAuthorization) checkAuthorization() (authorized bool) {
 	//用来确定数据范围内的组织id
 	organizationIDs := util.GetOrganizationIDsForDataAuthority(c.UserID)
+
 	if len(organizationIDs) == 0 {
 		return false
 	}

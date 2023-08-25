@@ -1,11 +1,8 @@
 package model
 
-import "time"
-
 type Test struct {
-	Date1 time.Time `gorm:"type:datetime"`
-	Date2 time.Time `gorm:"type:datetime"`
-	Date3 time.Time `gorm:"type:datetime;scale:0"`
+	BasicModel
+	A int64
 }
 
 func (t *Test) TableName() string {

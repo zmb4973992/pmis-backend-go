@@ -1,11 +1,14 @@
 package global
 
 import (
+	"errors"
 	"fmt"
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
+	"net"
+	"strings"
 )
 
 // 需要全局使用的变量都在这里声明，方便其他包调用
@@ -81,7 +84,9 @@ type UploadConfig struct {
 }
 
 type DownloadConfig struct {
-	AccessPath string
+	LocalIP      string
+	RelativePath string
+	FullPath     string
 }
 
 type EmailConfig struct {
@@ -191,7 +196,14 @@ func loadConfig() {
 	Config.UploadConfig.StoragePath = v.GetString("upload.storage-path") + "/"
 	Config.UploadConfig.MaxSize = v.GetInt64("upload.max-size") << 20
 
-	Config.DownloadConfig.AccessPath = v.GetString("download.access-path") + "/"
+	Config.DownloadConfig.RelativePath = v.GetString("download.relative-path") + "/"
+	var err error
+	Config.DownloadConfig.LocalIP, err = GetLocalIP()
+	if err != nil {
+		SugaredLogger.Panicln("获取本地IP失败：", err)
+	}
+	Config.DownloadConfig.FullPath = "http://" + Config.DownloadConfig.LocalIP +
+		":" + Config.AppConfig.HttpPort + Config.DownloadConfig.RelativePath
 
 	Config.EmailConfig.OutgoingMailServer = v.GetString("email.outgoing-mail-server")
 	Config.EmailConfig.Port = v.GetInt("email.port")
@@ -238,4 +250,33 @@ func isInSlice[T typeForSliceComparing](element T, slice []T) bool {
 		}
 	}
 	return false
+}
+
+func GetLocalIP() (ip string, err error) {
+	var localIps []string
+	netInterfaces, err := net.Interfaces()
+	if err != nil {
+		return "", err
+	}
+
+	for i := 0; i < len(netInterfaces); i++ {
+		if (netInterfaces[i].Flags & net.FlagUp) != 0 {
+			Addresses, _ := netInterfaces[i].Addrs()
+			for _, address := range Addresses {
+				if IpNet, ok := address.(*net.IPNet); ok && !IpNet.IP.IsLoopback() {
+					if IpNet.IP.To4() != nil {
+						localIps = append(localIps, IpNet.IP.String())
+					}
+				}
+			}
+		}
+	}
+
+	for i := range localIps {
+		if strings.Contains(localIps[i], "10.") {
+			return localIps[i], nil
+		}
+	}
+
+	return "", errors.New("未找到本机ip，请联系网络管理员")
 }

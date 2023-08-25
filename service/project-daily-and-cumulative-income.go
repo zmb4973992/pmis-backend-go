@@ -52,13 +52,13 @@ type ProjectDailyAndCumulativeIncomeOutput struct {
 	//ProjectExternal *ProjectOutput `json:"project" gorm:"-"`
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
 
+	DailyActualIncome        *float64 `json:"daily_actual_income"`        //当日实际收款金额
 	TotalPlannedIncome       *float64 `json:"total_planned_income"`       //计划收款总额
 	TotalActualIncome        *float64 `json:"total_actual_income"`        //实际收款总额
 	TotalForecastedIncome    *float64 `json:"total_forecasted_income"`    //预测收款总额
 	PlannedIncomeProgress    *float64 `json:"planned_income_progress"`    //计划收款进度
 	ActualIncomeProgress     *float64 `json:"actual_income_progress"`     //实际收款进度
 	ForecastedIncomeProgress *float64 `json:"forecasted_income_progress"` //预测收款进度
-	DailyActualIncome        *float64 `json:"daily_actual_income"`
 	//其他属性
 
 }
@@ -146,124 +146,126 @@ func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() response.Common {
 				Find(&dates)
 			//fmt.Println("日期：", dates)
 
-			var records []model.ProjectDailyAndCumulativeIncome
+			records := make(chan model.ProjectDailyAndCumulativeIncome, 10)
 
-			for j := range dates {
-				//fmt.Println("日期：", dates[j].Format("2006-01-02")[:10])
-				var record model.ProjectDailyAndCumulativeIncome
+			for i := range dates {
+				j := i
+				go func() {
+					//fmt.Println("日期：", dates[j].Format("2006-01-02")[:10])
+					var record model.ProjectDailyAndCumulativeIncome
 
-				var totalPlannedIncome float64
-				var countForPlanned int64
-				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Where("project_id = ?", p.ProjectID).
-					Where("kind = ?", planned).
-					Where("fund_direction = ?", income).
-					Where("date = ?", dates[j]).
-					Count(&countForPlanned)
-				if countForPlanned > 0 {
+					var totalPlannedIncome float64
+					var countForPlanned int64
 					global.DB.Model(&model.IncomeAndExpenditure{}).
 						Where("project_id = ?", p.ProjectID).
 						Where("kind = ?", planned).
 						Where("fund_direction = ?", income).
-						Where("date <= ?", dates[j]).
-						Select("coalesce(sum(amount * exchange_rate),0)").
-						Find(&totalPlannedIncome)
-					record.TotalPlannedIncome = &totalPlannedIncome
-					//fmt.Println("计划收款总额：", totalPlannedIncome)
-					if totalAmountOfIncomeContract > 0 {
-						var plannedIncomeProgress = totalPlannedIncome / totalAmountOfIncomeContract
-						record.PlannedIncomeProgress = &plannedIncomeProgress
-						//fmt.Println("计划收款进度：", plannedIncomeProgress)
+						Where("date = ?", dates[j]).
+						Count(&countForPlanned)
+					if countForPlanned > 0 {
+						global.DB.Model(&model.IncomeAndExpenditure{}).
+							Where("project_id = ?", p.ProjectID).
+							Where("kind = ?", planned).
+							Where("fund_direction = ?", income).
+							Where("date <= ?", dates[j]).
+							Select("coalesce(sum(amount * exchange_rate),0)").
+							Find(&totalPlannedIncome)
+						record.TotalPlannedIncome = &totalPlannedIncome
+						//fmt.Println("计划收款总额：", totalPlannedIncome)
+						if totalAmountOfIncomeContract > 0 {
+							var plannedIncomeProgress = totalPlannedIncome / totalAmountOfIncomeContract
+							record.PlannedIncomeProgress = &plannedIncomeProgress
+							//fmt.Println("计划收款进度：", plannedIncomeProgress)
+						}
 					}
-				}
 
-				var totalActualIncome float64
-				var countForActual int64
-				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Where("project_id = ?", p.ProjectID).
-					Where("kind = ?", actual).
-					Where("fund_direction = ?", income).
-					Where("date = ?", dates[j]).
-					Count(&countForActual)
-				if countForActual > 0 {
-					global.DB.Model(&model.IncomeAndExpenditure{}).
-						Where("project_id = ?", p.ProjectID).
-						Where("kind = ?", actual).
-						Where("fund_direction = ?", income).
-						Where("date <= ?", dates[j]).
-						Select("coalesce(sum(amount * exchange_rate),0)").
-						Find(&totalActualIncome)
-					record.TotalActualIncome = &totalActualIncome
-					//fmt.Println("实际收款总额：", totalActualIncome)
-					if totalAmountOfIncomeContract > 0 {
-						var actualIncomeProgress = totalActualIncome / totalAmountOfIncomeContract
-						record.ActualIncomeProgress = &actualIncomeProgress
-						//fmt.Println("实际收款进度：", actualIncomeProgress)
-					}
-				}
-
-				var totalForecastedIncome float64
-				var countForForecasted int64
-				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Where("project_id = ?", p.ProjectID).
-					Where("kind = ?", forecasted).
-					Where("fund_direction = ?", income).
-					Where("date = ?", dates[j]).
-					Count(&countForForecasted)
-				if countForForecasted > 0 {
-					global.DB.Model(&model.IncomeAndExpenditure{}).
-						Where("project_id = ?", p.ProjectID).
-						Where("kind = ?", forecasted).
-						Where("fund_direction = ?", income).
-						Where("date <= ?", dates[j]).
-						Select("coalesce(sum(amount * exchange_rate),0)").
-						Find(&totalForecastedIncome)
-					record.TotalForecastedIncome = &totalForecastedIncome
-					//fmt.Println("预测收款总额：", totalForecastedIncome)
-					if totalAmountOfIncomeContract > 0 {
-						var forecastedIncomeProgress = totalForecastedIncome / totalAmountOfIncomeContract
-						record.ForecastedIncomeProgress = &forecastedIncomeProgress
-						//fmt.Println("预测收款进度：", forecastedIncomeProgress)
-					}
-				}
-
-				var dailyActualIncome float64
-				var countForDailyActual int64
-				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Where("project_id = ?", p.ProjectID).
-					Where("kind = ?", actual).
-					Where("fund_direction = ?", income).
-					Where("date = ?", dates[j]).
-					Count(&countForDailyActual)
-				if countForDailyActual > 0 {
+					var totalActualIncome float64
+					var countForActual int64
 					global.DB.Model(&model.IncomeAndExpenditure{}).
 						Where("project_id = ?", p.ProjectID).
 						Where("kind = ?", actual).
 						Where("fund_direction = ?", income).
 						Where("date = ?", dates[j]).
-						Select("coalesce(sum(amount * exchange_rate),0)").
-						Find(&dailyActualIncome)
-					record.DailyActualIncome = &dailyActualIncome
-					//fmt.Println("当日收款金额：", dailyActualIncome)
+						Count(&countForActual)
+					if countForActual > 0 {
+						global.DB.Model(&model.IncomeAndExpenditure{}).
+							Where("project_id = ?", p.ProjectID).
+							Where("kind = ?", actual).
+							Where("fund_direction = ?", income).
+							Where("date <= ?", dates[j]).
+							Select("coalesce(sum(amount * exchange_rate),0)").
+							Find(&totalActualIncome)
+						record.TotalActualIncome = &totalActualIncome
+						//fmt.Println("实际收款总额：", totalActualIncome)
+						if totalAmountOfIncomeContract > 0 {
+							var actualIncomeProgress = totalActualIncome / totalAmountOfIncomeContract
+							record.ActualIncomeProgress = &actualIncomeProgress
+							//fmt.Println("实际收款进度：", actualIncomeProgress)
+						}
+					}
+
+					var totalForecastedIncome float64
+					var countForForecasted int64
+					global.DB.Model(&model.IncomeAndExpenditure{}).
+						Where("project_id = ?", p.ProjectID).
+						Where("kind = ?", forecasted).
+						Where("fund_direction = ?", income).
+						Where("date = ?", dates[j]).
+						Count(&countForForecasted)
+					if countForForecasted > 0 {
+						global.DB.Model(&model.IncomeAndExpenditure{}).
+							Where("project_id = ?", p.ProjectID).
+							Where("kind = ?", forecasted).
+							Where("fund_direction = ?", income).
+							Where("date <= ?", dates[j]).
+							Select("coalesce(sum(amount * exchange_rate),0)").
+							Find(&totalForecastedIncome)
+						record.TotalForecastedIncome = &totalForecastedIncome
+						//fmt.Println("预测收款总额：", totalForecastedIncome)
+						if totalAmountOfIncomeContract > 0 {
+							var forecastedIncomeProgress = totalForecastedIncome / totalAmountOfIncomeContract
+							record.ForecastedIncomeProgress = &forecastedIncomeProgress
+							//fmt.Println("预测收款进度：", forecastedIncomeProgress)
+						}
+					}
+
+					var dailyActualIncome float64
+					var countForDailyActual int64
+					global.DB.Model(&model.IncomeAndExpenditure{}).
+						Where("project_id = ?", p.ProjectID).
+						Where("kind = ?", actual).
+						Where("fund_direction = ?", income).
+						Where("date = ?", dates[j]).
+						Count(&countForDailyActual)
+					if countForDailyActual > 0 {
+						global.DB.Model(&model.IncomeAndExpenditure{}).
+							Where("project_id = ?", p.ProjectID).
+							Where("kind = ?", actual).
+							Where("fund_direction = ?", income).
+							Where("date = ?", dates[j]).
+							Select("coalesce(sum(amount * exchange_rate),0)").
+							Find(&dailyActualIncome)
+						record.DailyActualIncome = &dailyActualIncome
+						//fmt.Println("当日收款金额：", dailyActualIncome)
+					}
+
+					record.Creator = &p.UserID
+					record.ProjectID = p.ProjectID
+					record.Date = &dates[j]
+
+					records <- record
+					//fmt.Println("------------------------")
+				}()
+			}
+
+			go func() {
+				for {
+					select {
+					case record := <-records:
+						global.DB.Create(&record)
+					}
 				}
-
-				record.Creator = &p.UserID
-				record.ProjectID = p.ProjectID
-				record.Date = &dates[j]
-
-				//fmt.Println("------------------------")
-
-				records = append(records, record)
-			}
-
-			if len(records) == 0 {
-				return response.Success()
-			}
-
-			err = global.DB.CreateInBatches(records, 10).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToCreateRecord)
-			}
+			}()
 		}
 	}
 
@@ -298,7 +300,9 @@ func (p *ProjectDailyAndCumulativeIncomeGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("id desc")
+			db = db.Order("date desc")
+		} else {
+			db = db.Order("date")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中

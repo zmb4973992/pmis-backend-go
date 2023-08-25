@@ -16,7 +16,7 @@ import (
 //如果指针字段为空或0，那么数据库相应字段会改为null；
 //如果指针字段没传，那么数据库不会修改该字段
 
-type ContractCumulativeExpenditureUpdate struct {
+type ContractDailyAndCumulativeExpenditureUpdate struct {
 	UserID int64
 	//连接关联表的id
 	ContractID int64 `json:"contract_id,omitempty"`
@@ -28,7 +28,7 @@ type ContractCumulativeExpenditureUpdate struct {
 	//字符串
 }
 
-type ContractCumulativeExpenditureGetList struct {
+type ContractDailyAndCumulativeExpenditureGetList struct {
 	list.Input
 	ContractID int64  `json:"contract_id,omitempty"`
 	DateGte    string `json:"date_gte,omitempty"`
@@ -37,7 +37,7 @@ type ContractCumulativeExpenditureGetList struct {
 
 //以下为出参
 
-type ContractCumulativeExpenditureOutput struct {
+type ContractDailyAndCumulativeExpenditureOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
 	ID           int64  `json:"id"`
@@ -50,6 +50,7 @@ type ContractCumulativeExpenditureOutput struct {
 	//关联表的详情，不需要gorm查询，需要在json中显示
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
 
+	DailyActualExpenditure        *float64 `json:"daily_actual_expenditure"`        //当日实际付款金额
 	TotalPlannedExpenditure       *float64 `json:"total_planned_expenditure"`       //计划付款总额
 	TotalActualExpenditure        *float64 `json:"total_actual_expenditure"`        //实际付款总额
 	TotalForecastedExpenditure    *float64 `json:"total_forecasted_expenditure"`    //预测付款总额
@@ -61,78 +62,92 @@ type ContractCumulativeExpenditureOutput struct {
 
 }
 
-func (c *ContractCumulativeExpenditureUpdate) Update() response.Common {
+func (c *ContractDailyAndCumulativeExpenditureUpdate) Update() response.Common {
 	//连接关联表的id
-	{
-		if c.ContractID > 0 {
-			var typeOfIncomeAndExpenditure int64
-			err := global.DB.Model(&model.DictionaryType{}).
-				Where("name = '收付款的种类'").Select("id").First(&typeOfIncomeAndExpenditure).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+	if c.ContractID > 0 {
+		var typeOfIncomeAndExpenditure int64
+		err := global.DB.Model(&model.DictionaryType{}).
+			Where("name = '收付款的种类'").
+			Select("id").
+			First(&typeOfIncomeAndExpenditure).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			var planned int64
-			err = global.DB.Model(&model.DictionaryDetail{}).
-				Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
-				Where("name = '计划'").Select("id").First(&planned).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+		var planned int64
+		err = global.DB.Model(&model.DictionaryDetail{}).
+			Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
+			Where("name = '计划'").
+			Select("id").
+			First(&planned).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			var actual int64
-			err = global.DB.Model(&model.DictionaryDetail{}).
-				Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
-				Where("name = '实际'").Select("id").First(&actual).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+		var actual int64
+		err = global.DB.Model(&model.DictionaryDetail{}).
+			Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
+			Where("name = '实际'").
+			Select("id").
+			First(&actual).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			var forecasted int64
-			err = global.DB.Model(&model.DictionaryDetail{}).
-				Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
-				Where("name = '预测'").Select("id").First(&forecasted).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+		var forecasted int64
+		err = global.DB.Model(&model.DictionaryDetail{}).
+			Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
+			Where("name = '预测'").
+			Select("id").
+			First(&forecasted).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			var contract model.Contract
-			err = global.DB.Where("id = ?", c.ContractID).
-				First(&contract).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+		var contract model.Contract
+		err = global.DB.Where("id = ?", c.ContractID).
+			First(&contract).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			global.DB.Where("contract_id = ?", c.ContractID).
-				Delete(&model.ContractCumulativeExpenditure{})
+		global.DB.Where("contract_id = ?", c.ContractID).
+			Delete(&model.ContractDailyAndCumulativeExpenditure{})
 
-			var fundDirectionOfIncomeAndExpenditure int64
-			err = global.DB.Model(&model.DictionaryType{}).
-				Where("name = '收付款的资金方向'").Select("id").First(&fundDirectionOfIncomeAndExpenditure).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+		var fundDirectionOfIncomeAndExpenditure int64
+		err = global.DB.Model(&model.DictionaryType{}).
+			Where("name = '收付款的资金方向'").
+			Select("id").
+			First(&fundDirectionOfIncomeAndExpenditure).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			var expenditure int64
-			err = global.DB.Model(&model.DictionaryDetail{}).
-				Where("dictionary_type_id = ?", fundDirectionOfIncomeAndExpenditure).
-				Where("name = '付款'").Select("id").First(&expenditure).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+		var expenditure int64
+		err = global.DB.Model(&model.DictionaryDetail{}).
+			Where("dictionary_type_id = ?", fundDirectionOfIncomeAndExpenditure).
+			Where("name = '付款'").
+			Select("id").
+			First(&expenditure).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			var dates []time.Time
-			global.DB.Model(&model.IncomeAndExpenditure{}).
-				Where("contract_id = ?", c.ContractID).
-				Where("fund_direction = ?", expenditure).
-				Select("date").Distinct("date").Order("date desc").
-				Find(&dates)
-			//fmt.Println("日期：", dates)
+		var dates []time.Time
+		global.DB.Model(&model.IncomeAndExpenditure{}).
+			Where("contract_id = ?", c.ContractID).
+			Where("fund_direction = ?", expenditure).
+			Distinct("date").
+			Order("date desc").
+			Find(&dates)
+		//fmt.Println("日期：", dates)
 
-			var records []model.ContractCumulativeExpenditure
+		records := make(chan model.ContractDailyAndCumulativeExpenditure, 10)
 
-			for j := range dates {
-				var record model.ContractCumulativeExpenditure
+		for i := range dates {
+			j := i
+			go func() {
+				var record model.ContractDailyAndCumulativeExpenditure
 
 				var totalPlannedExpenditure float64
 				var countForPlanned int64
@@ -209,31 +224,50 @@ func (c *ContractCumulativeExpenditureUpdate) Update() response.Common {
 					}
 				}
 
+				var dailyActualExpenditure float64
+				var countForDailyActual int64
+				global.DB.Model(&model.IncomeAndExpenditure{}).
+					Where("contract_id = ?", c.ContractID).
+					Where("kind = ?", actual).
+					Where("fund_direction = ?", expenditure).
+					Where("date = ?", dates[j]).
+					Count(&countForDailyActual)
+				if countForDailyActual > 0 {
+					global.DB.Model(&model.IncomeAndExpenditure{}).
+						Where("contract_id = ?", c.ContractID).
+						Where("kind = ?", actual).
+						Where("fund_direction = ?", expenditure).
+						Where("date = ?", dates[j]).
+						Select("coalesce(sum(amount * exchange_rate),0)").
+						Find(&dailyActualExpenditure)
+					record.DailyActualExpenditure = &dailyActualExpenditure
+					//fmt.Println("当日实际付款金额：", dailyActualExpenditure)
+				}
+
 				record.Creator = &c.UserID
 				record.ContractID = c.ContractID
 				record.Date = &dates[j]
 
+				records <- record
 				//fmt.Println("------------------------")
-
-				records = append(records, record)
-			}
-
-			if len(records) == 0 {
-				return response.Success()
-			}
-
-			err = global.DB.CreateInBatches(records, 10).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToCreateRecord)
-			}
+			}()
 		}
+
+		go func() {
+			for {
+				select {
+				case record := <-records:
+					global.DB.Create(&record)
+				}
+			}
+		}()
 	}
 
 	return response.Success()
 }
 
-func (c *ContractCumulativeExpenditureGetList) GetList() response.List {
-	db := global.DB.Model(&model.ContractCumulativeExpenditure{})
+func (c *ContractDailyAndCumulativeExpenditureGetList) GetList() response.List {
+	db := global.DB.Model(&model.ContractDailyAndCumulativeExpenditure{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
@@ -260,11 +294,13 @@ func (c *ContractCumulativeExpenditureGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("id desc")
+			db = db.Order("date desc")
+		} else {
+			db = db.Order("date")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中
-		exists := util.FieldIsInModel(&model.ContractCumulativeExpenditure{}, orderBy)
+		exists := util.FieldIsInModel(&model.ContractDailyAndCumulativeExpenditure{}, orderBy)
 		if !exists {
 			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
 		}
@@ -295,8 +331,8 @@ func (c *ContractCumulativeExpenditureGetList) GetList() response.List {
 	db = db.Offset(offset)
 
 	//data
-	var data []ContractCumulativeExpenditureOutput
-	db.Model(&model.ContractCumulativeExpenditure{}).Find(&data)
+	var data []ContractDailyAndCumulativeExpenditureOutput
+	db.Model(&model.ContractDailyAndCumulativeExpenditure{}).Find(&data)
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)

@@ -200,7 +200,7 @@ func importRelatedPartyFromTabFukuan2(userID int64) error {
 		//如果通过初筛、没有重复记录，才执行细筛
 		if tempCount == 0 {
 			var relatedParties []model.RelatedParty
-			global.DB.Model(&model.RelatedParty{}).Find(&relatedParties)
+			global.DB.Find(&relatedParties)
 
 			for j := range relatedParties {
 				if relatedParties[j].Name != nil {

@@ -20,7 +20,7 @@ func updateCumulativeExpenditure(userID int64, projectIDs []int64, contractIDs [
 
 	contractIDs = util.RemoveDuplication(contractIDs)
 	for i := range contractIDs {
-		var param service.ContractCumulativeExpenditureUpdate
+		var param service.ContractDailyAndCumulativeExpenditureUpdate
 		param.UserID = userID
 		param.ContractID = contractIDs[i]
 		res := param.Update()
@@ -46,7 +46,7 @@ func updateCumulativeIncome(userID int64, projectIDs []int64, contractIDs []int6
 
 	contractIDs = util.RemoveDuplication(contractIDs)
 	for i := range contractIDs {
-		var param service.ContractCumulativeIncomeUpdate
+		var param service.ContractDailyAndCumulativeIncomeUpdate
 		param.UserID = userID
 		param.ContractID = contractIDs[i]
 		res := param.Update()

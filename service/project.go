@@ -6,6 +6,7 @@ import (
 	"pmis-backend-go/serializer/list"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
+	"sync"
 	"time"
 )
 
@@ -152,9 +153,9 @@ type ProjectSimplifiedOutput struct {
 	Name *string `json:"name"`
 }
 
-type ProjectCheckAuthorization struct {
-	ID     int64 `binding:"required"`
-	UserID int64 `binding:"required"`
+type projectCheckAuthorization struct {
+	ProjectID int64
+	UserID    int64
 }
 
 func (p *ProjectGet) Get() response.Common {
@@ -165,10 +166,10 @@ func (p *ProjectGet) Get() response.Common {
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 
-	var authorize ProjectCheckAuthorization
-	authorize.ID = p.ID
+	var authorize projectCheckAuthorization
+	authorize.ProjectID = p.ID
 	authorize.UserID = p.UserID
-	authorizationResult := authorize.CheckAuthorization()
+	authorizationResult := authorize.checkAuthorization()
 
 	if !authorizationResult {
 		return response.Failure(util.ErrorUnauthorized)
@@ -383,8 +384,8 @@ func (p *ProjectUpdate) Update() response.Common {
 	}
 
 	if p.IgnoreDataAuthority == false {
-		var authorization contractCheckAuthorization
-		authorization.ContractID = p.ID
+		var authorization projectCheckAuthorization
+		authorization.ProjectID = p.ID
 		authorization.UserID = p.UserID
 		authorized := authorization.checkAuthorization()
 		if !authorized {
@@ -668,106 +669,115 @@ func (p *ProjectGetList) GetList() response.List {
 		return response.FailureForList(util.ErrorRecordNotFound)
 	}
 
-	for i := range data {
-		//查询关联表的详情
-		{
-			//查部门信息
-			if data[i].OrganizationID != nil {
-				var record OrganizationOutput
-				res := global.DB.Model(&model.Organization{}).
-					Where("id = ?", *data[i].OrganizationID).Limit(1).Find(&record)
-				if res.RowsAffected > 0 {
-					data[i].OrganizationExternal = &record
-				}
-			}
-			//查相关方信息
-			if data[i].RelatedPartyID != nil {
-				var record RelatedPartyOutput
-				res := global.DB.Debug().Model(&model.RelatedParty{}).
-					Where("id = ?", *data[i].RelatedPartyID).Limit(1).Find(&record)
-				if res.RowsAffected > 0 {
-					data[i].RelatedPartyExternal = &record
-				}
-			}
-		}
+	var wg sync.WaitGroup
 
-		//查dictionary_item表的详情
-		{
-			if data[i].Country != nil {
-				var record DictionaryDetailOutput
-				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].Country).Limit(1).Find(&record)
-				if res.RowsAffected > 0 {
-					data[i].CountryExternal = &record
+	for j := range data {
+		i := j
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			//查询关联表的详情
+			{
+				//查部门信息
+				if data[i].OrganizationID != nil {
+					var record OrganizationOutput
+					res := global.DB.Model(&model.Organization{}).
+						Where("id = ?", *data[i].OrganizationID).Limit(1).Find(&record)
+					if res.RowsAffected > 0 {
+						data[i].OrganizationExternal = &record
+					}
+				}
+				//查相关方信息
+				if data[i].RelatedPartyID != nil {
+					var record RelatedPartyOutput
+					res := global.DB.Model(&model.RelatedParty{}).
+						Where("id = ?", *data[i].RelatedPartyID).Limit(1).Find(&record)
+					if res.RowsAffected > 0 {
+						data[i].RelatedPartyExternal = &record
+					}
 				}
 			}
-			if data[i].Type != nil {
-				var record DictionaryDetailOutput
-				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].Type).Limit(1).Find(&record)
-				if res.RowsAffected > 0 {
-					data[i].TypeExternal = &record
-				}
-			}
-			if data[i].DetailedType != nil {
-				var record DictionaryDetailOutput
-				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].DetailedType).Limit(1).Find(&record)
-				if res.RowsAffected > 0 {
-					data[i].DetailedTypeExternal = &record
-				}
-			}
-			if data[i].Currency != nil {
-				var record DictionaryDetailOutput
-				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].Currency).Limit(1).Find(&record)
-				if res.RowsAffected > 0 {
-					data[i].CurrencyExternal = &record
-				}
-			}
-			if data[i].Status != nil {
-				var record DictionaryDetailOutput
-				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].Status).Limit(1).Find(&record)
-				if res.RowsAffected > 0 {
-					data[i].StatusExternal = &record
-				}
-			}
-			if data[i].OurSignatory != nil {
-				var record DictionaryDetailOutput
-				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].OurSignatory).Limit(1).Find(&record)
-				if res.RowsAffected > 0 {
-					data[i].OurSignatoryExternal = &record
-				}
-			}
-		}
-		//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
-		//需要取年月日(即前9位)
-		{
-			if data[i].SigningDate != nil {
-				temp := *data[i].SigningDate
-				*data[i].SigningDate = temp[:10]
-			}
-			if data[i].EffectiveDate != nil {
-				temp := *data[i].EffectiveDate
-				*data[i].EffectiveDate = temp[:10]
-			}
-			if data[i].CommissioningDate != nil {
-				temp := *data[i].CommissioningDate
-				*data[i].CommissioningDate = temp[:10]
-			}
-		}
 
-		if p.IgnoreDataAuthority == true {
-			var authorize ProjectCheckAuthorization
-			authorize.ID = data[i].ID
-			authorize.UserID = p.UserID
-			data[i].Authorized = authorize.CheckAuthorization()
-		} else {
-			data[i].Authorized = true
-		}
+			//查dictionary_item表的详情
+			{
+				if data[i].Country != nil {
+					var record DictionaryDetailOutput
+					res := global.DB.Model(&model.DictionaryDetail{}).
+						Where("id = ?", *data[i].Country).Limit(1).Find(&record)
+					if res.RowsAffected > 0 {
+						data[i].CountryExternal = &record
+					}
+				}
+				if data[i].Type != nil {
+					var record DictionaryDetailOutput
+					res := global.DB.Model(&model.DictionaryDetail{}).
+						Where("id = ?", *data[i].Type).Limit(1).Find(&record)
+					if res.RowsAffected > 0 {
+						data[i].TypeExternal = &record
+					}
+				}
+				if data[i].DetailedType != nil {
+					var record DictionaryDetailOutput
+					res := global.DB.Model(&model.DictionaryDetail{}).
+						Where("id = ?", *data[i].DetailedType).Limit(1).Find(&record)
+					if res.RowsAffected > 0 {
+						data[i].DetailedTypeExternal = &record
+					}
+				}
+				if data[i].Currency != nil {
+					var record DictionaryDetailOutput
+					res := global.DB.Model(&model.DictionaryDetail{}).
+						Where("id = ?", *data[i].Currency).Limit(1).Find(&record)
+					if res.RowsAffected > 0 {
+						data[i].CurrencyExternal = &record
+					}
+				}
+				if data[i].Status != nil {
+					var record DictionaryDetailOutput
+					res := global.DB.Model(&model.DictionaryDetail{}).
+						Where("id = ?", *data[i].Status).Limit(1).Find(&record)
+					if res.RowsAffected > 0 {
+						data[i].StatusExternal = &record
+					}
+				}
+				if data[i].OurSignatory != nil {
+					var record DictionaryDetailOutput
+					res := global.DB.Model(&model.DictionaryDetail{}).
+						Where("id = ?", *data[i].OurSignatory).Limit(1).Find(&record)
+					if res.RowsAffected > 0 {
+						data[i].OurSignatoryExternal = &record
+					}
+				}
+			}
+			//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
+			//需要取年月日(即前9位)
+			{
+				if data[i].SigningDate != nil {
+					temp := *data[i].SigningDate
+					*data[i].SigningDate = temp[:10]
+				}
+				if data[i].EffectiveDate != nil {
+					temp := *data[i].EffectiveDate
+					*data[i].EffectiveDate = temp[:10]
+				}
+				if data[i].CommissioningDate != nil {
+					temp := *data[i].CommissioningDate
+					*data[i].CommissioningDate = temp[:10]
+				}
+			}
+
+			if p.IgnoreDataAuthority == true {
+				var authorize projectCheckAuthorization
+				authorize.ProjectID = data[i].ID
+				authorize.UserID = p.UserID
+				data[i].Authorized = authorize.checkAuthorization()
+			} else {
+				data[i].Authorized = true
+			}
+		}()
 	}
+
+	wg.Wait()
 
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
@@ -824,8 +834,8 @@ func (p *ProjectGetSimplifiedList) GetSimplifiedList() response.List {
 	}
 }
 
-// CheckAuthorization 该方法一定要在确定记录存在后再调用
-func (p *ProjectCheckAuthorization) CheckAuthorization() (authorized bool) {
+// checkAuthorization 该方法一定要在确定记录存在后再调用
+func (p *projectCheckAuthorization) checkAuthorization() (authorized bool) {
 	//用来确定数据范围内的组织id
 	organizationIDs := util.GetOrganizationIDsForDataAuthority(p.UserID)
 	if len(organizationIDs) == 0 {
@@ -836,7 +846,7 @@ func (p *ProjectCheckAuthorization) CheckAuthorization() (authorized bool) {
 	var count int64
 	global.DB.Model(model.Project{}).
 		Where("organization_id in ?", organizationIDs).
-		Where("id = ?", p.ID).
+		Where("id = ?", p.ProjectID).
 		Count(&count)
 
 	if count > 0 {

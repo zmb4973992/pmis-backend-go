@@ -58,14 +58,17 @@ func (f *file) Create(c *gin.Context) {
 		param.UserID = userID
 	}
 
-	id, err1 := param.Create()
+	id, url, err1 := param.Create()
 	if err1 != nil {
 		c.JSON(http.StatusOK, response.Failure(util.ErrorFailToUploadFiles))
 		return
 	}
 
 	c.JSON(http.StatusOK, response.SuccessWithData(
-		gin.H{"id": id},
+		gin.H{
+			"id":  id,
+			"url": url,
+		},
 	))
 	return
 

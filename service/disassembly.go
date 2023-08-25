@@ -297,10 +297,6 @@ func (d *DisassemblyGetList) GetList() response.List {
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	//if d.NameInclude != "" {
-	//	db = db.Where("name like ?", "%"+d.NameInclude+"%")
-	//}
-
 	if d.ProjectID > 0 {
 		db = db.Where("project_id = ?", d.ProjectID)
 	}

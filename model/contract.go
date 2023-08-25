@@ -30,8 +30,9 @@ type Contract struct {
 	Content     *string //工作内容
 	Deliverable *string //交付物
 	PenaltyRule *string //罚则
-	Attachment  *string //附件
 	Operator    *string //经办人
+	FileIDs     *string //附件
+
 	//字符串(不允许为nil，必须有值)，暂无
 }
 

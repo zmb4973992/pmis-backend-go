@@ -301,12 +301,12 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 
 		//更新合同的累计收付款
 		if i.ContractID > 0 {
-			temp3 := ContractCumulativeExpenditureUpdate{
+			temp3 := ContractDailyAndCumulativeExpenditureUpdate{
 				UserID:     i.UserID,
 				ContractID: i.ContractID,
 			}
 			temp3.Update()
-			temp4 := ContractCumulativeIncomeUpdate{
+			temp4 := ContractDailyAndCumulativeIncomeUpdate{
 				UserID:     i.UserID,
 				ContractID: i.ContractID,
 			}
@@ -484,15 +484,15 @@ func (i *IncomeAndExpenditureUpdate) Update() response.Common {
 		err = global.DB.Where("id = ?", i.ID).
 			First(&record).Error
 		if err == nil && record.ContractID != nil {
-			temp3 := ContractCumulativeExpenditureUpdate{ContractID: *record.ContractID}
+			temp3 := ContractDailyAndCumulativeExpenditureUpdate{ContractID: *record.ContractID}
 			temp3.Update()
-			temp4 := ContractCumulativeIncomeUpdate{ContractID: *record.ContractID}
+			temp4 := ContractDailyAndCumulativeIncomeUpdate{ContractID: *record.ContractID}
 			temp4.Update()
 		}
 	} else {
-		temp3 := ContractCumulativeExpenditureUpdate{ContractID: *i.ContractID}
+		temp3 := ContractDailyAndCumulativeExpenditureUpdate{ContractID: *i.ContractID}
 		temp3.Update()
-		temp4 := ContractCumulativeIncomeUpdate{ContractID: *i.ContractID}
+		temp4 := ContractDailyAndCumulativeIncomeUpdate{ContractID: *i.ContractID}
 		temp4.Update()
 	}
 
@@ -520,9 +520,9 @@ func (i *IncomeAndExpenditureDelete) Delete() response.Common {
 
 	//更新合同的累计收付款
 	if record.ProjectID != nil {
-		temp3 := ContractCumulativeExpenditureUpdate{ContractID: *record.ContractID}
+		temp3 := ContractDailyAndCumulativeExpenditureUpdate{ContractID: *record.ContractID}
 		temp3.Update()
-		temp4 := ContractCumulativeIncomeUpdate{ContractID: *record.ContractID}
+		temp4 := ContractDailyAndCumulativeIncomeUpdate{ContractID: *record.ContractID}
 		temp4.Update()
 	}
 
@@ -568,62 +568,6 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 
 	//用来确定组织的数据范围
 	organizationIDs := util.GetOrganizationIDsForDataAuthority(i.UserID)
-	//if len(organizationIDs) > 0 {
-	//	var temps []model.Temp
-	//	for j := range organizationIDs {
-	//		var temp model.Temp
-	//		temp.OrganizationID = &organizationIDs[j]
-	//		temp.BatchID = batchID
-	//		temps = append(temps, temp)
-	//	}
-	//	global.DB.CreateInBatches(&temps, 100)
-	//}
-
-	//找出项目的数据范围
-	//var projectIDs []int64
-	//global.DB.Model(&model.Project{}).
-	//	Joins("join temp on project.organization_id = temp.organization_id").
-	//	Where("batch_id = ?", batchID).
-	//	Distinct("project.id").
-	//	Find(&projectIDs)
-	//
-	//if len(projectIDs) > 0 {
-	//	var temps []model.Temp
-	//	for j := range projectIDs {
-	//		var temp model.Temp
-	//		temp.ProjectID = &projectIDs[j]
-	//		temp.BatchID = batchID
-	//		temps = append(temps, temp)
-	//	}
-	//	global.DB.CreateInBatches(&temps, 100)
-	//}
-
-	//然后再找出合同的数据范围
-	//var contractIDs []int64
-	//global.DB.Model(&model.Contract{}).
-	//	Joins("join temp on contract.project_id = temp.project_id").
-	//	Where("temp.batch_id = ?", batchID).
-	//	Distinct("contract.id").
-	//	Find(&contractIDs)
-	//
-	//if len(contractIDs) > 0 {
-	//	var temps []model.Temp
-	//	for j := range contractIDs {
-	//		var temp model.Temp
-	//		temp.ContractID = &contractIDs[j]
-	//		temp.BatchID = batchID
-	//		temps = append(temps, temp)
-	//		global.DB.Create(&temp)
-	//	}
-	//	global.DB.CreateInBatches(&temps, 100)
-	//}
-
-	//说明：
-	//1.先找到项目id存在于临时表、或者合同id存在于临时表的收付款id；
-	//2.这里找到的id肯定会有重复（因为是join），所以使用distinct，筛选出唯一的收付款id；
-	//3.找到收付款id存在于上面的表的记录，结束
-	//db = db.Joins("join (select distinct t1.id as income_and_expenditure_id from income_and_expenditure as t1 join temp as t2 on t1.project_id = t2.project_id or t1.contract_id = t2.contract_id where t2.batch_id = ?) as t3 on income_and_expenditure.id = t3.income_and_expenditure_id", batchID).
-	//	Where("income_and_expenditure.id = t3.income_and_expenditure_id")
 
 	db = db.Joins("join (select distinct income_and_expenditure.id as income_and_expenditure_id from income_and_expenditure join (select distinct contract.id as contract_id from contract join (select distinct project.id as project_id from project where organization_id in ?) as temp1 on contract.project_id = temp1.project_id) as temp2  on income_and_expenditure.contract_id = temp2.contract_id union select distinct income_and_expenditure.id as income_and_expenditure_id from income_and_expenditure join (select distinct project.id as project_id from project where organization_id in ?) as temp2 on income_and_expenditure.project_id = temp2.project_id) as temp3 on income_and_expenditure.id = temp3.income_and_expenditure_id", organizationIDs, organizationIDs)
 	//count
@@ -674,9 +618,6 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 	//data
 	var data []IncomeAndExpenditureOutput
 	db.Model(&model.IncomeAndExpenditure{}).Find(&data)
-
-	//temp使用完毕，需要删除数据
-	//global.DB.Where("batch_id = ?", batchID).Delete(&model.Temp{})
 
 	if len(data) == 0 {
 		return response.FailureForList(util.ErrorRecordNotFound)

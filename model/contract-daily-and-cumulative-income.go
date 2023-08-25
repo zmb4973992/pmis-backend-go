@@ -2,7 +2,7 @@ package model
 
 import "time"
 
-type ContractCumulativeIncome struct {
+type ContractDailyAndCumulativeIncome struct {
 	BasicModel
 	//连接其他表的id
 	ContractID int64 //合同ID
@@ -10,6 +10,7 @@ type ContractCumulativeIncome struct {
 	//日期
 	Date *time.Time `gorm:"type:date"`
 	//数字
+	DailyActualIncome        *float64 //当日实际收款金额
 	TotalPlannedIncome       *float64 //计划收款总额
 	TotalActualIncome        *float64 //实际收款总额
 	TotalForecastedIncome    *float64 //预测收款总额
@@ -18,6 +19,6 @@ type ContractCumulativeIncome struct {
 	ForecastedIncomeProgress *float64 //预测收款进度
 }
 
-func (c *ContractCumulativeIncome) TableName() string {
-	return "contract_cumulative_income"
+func (c *ContractDailyAndCumulativeIncome) TableName() string {
+	return "contract_daily_and_cumulative_income"
 }

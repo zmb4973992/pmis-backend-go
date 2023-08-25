@@ -27,7 +27,7 @@ func Init() {
 		global.SugaredLogger.Errorln("添加定时任务”old_pmis.ImportDataForCron“失败，请检查")
 	}
 
-	_, err = c.AddFunc("22 * * * *", UpdateCumulativeIncomeAndExpenditureForCron)
+	_, err = c.AddFunc("* * * * *", UpdateCumulativeIncomeAndExpenditureForCron)
 	if err != nil {
 		global.SugaredLogger.Errorln("添加定时任务”UpdateCumulativeIncomeAndExpenditureForCron“失败，请检查")
 	}

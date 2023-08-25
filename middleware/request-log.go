@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var channelOfOperationLogs = make(chan model.RequestLog, 50)
+var channelForRequestLog = make(chan model.RequestLog, 50)
 
 func RequestLog() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -62,7 +62,7 @@ func RequestLog() gin.HandlerFunc {
 		requestLog.UserAgent = &tempUserAgent
 
 		//把日志放到通道中，等待保存到数据库
-		channelOfOperationLogs <- requestLog
+		channelForRequestLog <- requestLog
 
 	}
 }
@@ -70,7 +70,7 @@ func RequestLog() gin.HandlerFunc {
 func SaveOperationLog() {
 	for {
 		select {
-		case log := <-channelOfOperationLogs:
+		case log := <-channelForRequestLog:
 			global.DB.Create(&log)
 		}
 	}

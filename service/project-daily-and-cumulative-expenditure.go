@@ -52,109 +52,110 @@ type ProjectDailyAndCumulativeExpenditureOutput struct {
 	//ProjectExternal *ProjectOutput `json:"project" gorm:"-"`
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
 
+	DailyActualExpenditure        *float64 `json:"daily_actual_expenditure"`        //当日实际付款金额
 	TotalPlannedExpenditure       *float64 `json:"total_planned_expenditure"`       //计划付款总额
 	TotalActualExpenditure        *float64 `json:"total_actual_expenditure"`        //实际付款总额
 	TotalForecastedExpenditure    *float64 `json:"total_forecasted_expenditure"`    //预测付款总额
 	PlannedExpenditureProgress    *float64 `json:"planned_expenditure_progress"`    //计划付款进度
 	ActualExpenditureProgress     *float64 `json:"actual_expenditure_progress"`     //实际付款进度
 	ForecastedExpenditureProgress *float64 `json:"forecasted_expenditure_progress"` //预测付款进度
-	DailyActualExpenditure        *float64 `json:"daily_actual_expenditure"`
 	//其他属性
 
 }
 
 func (p *ProjectDailyAndCumulativeExpenditureUpdate) Update() response.Common {
 	//连接关联表的id
-	{
-		if p.ProjectID > 0 {
-			var typeOfIncomeAndExpenditure int64
-			err := global.DB.Model(&model.DictionaryType{}).
-				Where("name = '收付款的种类'").
-				Select("id").
-				First(&typeOfIncomeAndExpenditure).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+	if p.ProjectID > 0 {
+		var typeOfIncomeAndExpenditure int64
+		err := global.DB.Model(&model.DictionaryType{}).
+			Where("name = '收付款的种类'").
+			Select("id").
+			First(&typeOfIncomeAndExpenditure).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			var planned int64
-			err = global.DB.Model(&model.DictionaryDetail{}).
-				Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
-				Where("name = '计划'").Select("id").First(&planned).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+		var planned int64
+		err = global.DB.Model(&model.DictionaryDetail{}).
+			Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
+			Where("name = '计划'").Select("id").First(&planned).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			var actual int64
-			err = global.DB.Model(&model.DictionaryDetail{}).
-				Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
-				Where("name = '实际'").Select("id").First(&actual).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+		var actual int64
+		err = global.DB.Model(&model.DictionaryDetail{}).
+			Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
+			Where("name = '实际'").Select("id").First(&actual).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			var forecasted int64
-			err = global.DB.Model(&model.DictionaryDetail{}).
-				Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
-				Where("name = '预测'").Select("id").First(&forecasted).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+		var forecasted int64
+		err = global.DB.Model(&model.DictionaryDetail{}).
+			Where("dictionary_type_id = ?", typeOfIncomeAndExpenditure).
+			Where("name = '预测'").Select("id").First(&forecasted).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			var fundDirectionOfContract int64
-			err = global.DB.Model(&model.DictionaryType{}).
-				Where("name = '合同的资金方向'").Select("id").First(&fundDirectionOfContract).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+		var fundDirectionOfContract int64
+		err = global.DB.Model(&model.DictionaryType{}).
+			Where("name = '合同的资金方向'").Select("id").First(&fundDirectionOfContract).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			var expenditureContract int64
-			err = global.DB.Model(&model.DictionaryDetail{}).
-				Where("dictionary_type_id = ?", fundDirectionOfContract).
-				Where("name = '付款合同'").Select("id").First(&expenditureContract).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+		var expenditureContract int64
+		err = global.DB.Model(&model.DictionaryDetail{}).
+			Where("dictionary_type_id = ?", fundDirectionOfContract).
+			Where("name = '付款合同'").Select("id").First(&expenditureContract).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			//计算付款合同的总金额
-			var totalAmountOfExpenditureContract float64
-			err = global.DB.Model(&model.Contract{}).
-				Where("project_id = ?", p.ProjectID).
-				Where("fund_direction = ?", expenditureContract).
-				Select("coalesce(sum(amount * exchange_rate),0)").
-				Find(&totalAmountOfExpenditureContract).Error
-			//fmt.Println("付款合同总金额：", totalAmountOfExpenditureContract)
-			//fmt.Println("*********************************")
+		//计算付款合同的总金额
+		var totalAmountOfExpenditureContract float64
+		err = global.DB.Model(&model.Contract{}).
+			Where("project_id = ?", p.ProjectID).
+			Where("fund_direction = ?", expenditureContract).
+			Select("coalesce(sum(amount * exchange_rate),0)").
+			Find(&totalAmountOfExpenditureContract).Error
+		//fmt.Println("付款合同总金额：", totalAmountOfExpenditureContract)
+		//fmt.Println("*********************************")
 
-			global.DB.Where("project_id = ?", p.ProjectID).
-				Delete(&model.ProjectDailyAndCumulativeExpenditure{})
+		global.DB.Where("project_id = ?", p.ProjectID).
+			Delete(&model.ProjectDailyAndCumulativeExpenditure{})
 
-			var fundDirectionOfIncomeAndExpenditure int64
-			err = global.DB.Model(&model.DictionaryType{}).
-				Where("name = '收付款的资金方向'").Select("id").First(&fundDirectionOfIncomeAndExpenditure).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+		var fundDirectionOfIncomeAndExpenditure int64
+		err = global.DB.Model(&model.DictionaryType{}).
+			Where("name = '收付款的资金方向'").Select("id").First(&fundDirectionOfIncomeAndExpenditure).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			var expenditure int64
-			err = global.DB.Model(&model.DictionaryDetail{}).
-				Where("dictionary_type_id = ?", fundDirectionOfIncomeAndExpenditure).
-				Where("name = '付款'").Select("id").First(&expenditure).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
-			}
+		var expenditure int64
+		err = global.DB.Model(&model.DictionaryDetail{}).
+			Where("dictionary_type_id = ?", fundDirectionOfIncomeAndExpenditure).
+			Where("name = '付款'").Select("id").First(&expenditure).Error
+		if err != nil {
+			return response.Failure(util.ErrorFailToUpdateRecord)
+		}
 
-			var dates []time.Time
-			global.DB.Model(&model.IncomeAndExpenditure{}).
-				Where("project_id = ?", p.ProjectID).
-				Where("fund_direction = ?", expenditure).
-				Distinct("date").
-				Order("date desc").
-				Find(&dates)
-			//fmt.Println("日期：", dates)
+		var dates []time.Time
+		global.DB.Model(&model.IncomeAndExpenditure{}).
+			Where("project_id = ?", p.ProjectID).
+			Where("fund_direction = ?", expenditure).
+			Distinct("date").
+			Order("date desc").
+			Find(&dates)
+		//fmt.Println("日期：", dates)
 
-			var records []model.ProjectDailyAndCumulativeExpenditure
+		records := make(chan model.ProjectDailyAndCumulativeExpenditure, 10)
 
-			for j := range dates {
+		for i := range dates {
+			j := i
+			go func() {
 				//fmt.Println("日期：", dates[j].Format("2006-01-02")[:10])
 				var record model.ProjectDailyAndCumulativeExpenditure
 
@@ -257,20 +258,19 @@ func (p *ProjectDailyAndCumulativeExpenditureUpdate) Update() response.Common {
 				record.ProjectID = p.ProjectID
 				record.Date = &dates[j]
 
+				records <- record
 				//fmt.Println("------------------------")
-
-				records = append(records, record)
-			}
-
-			if len(records) == 0 {
-				return response.Success()
-			}
-
-			err = global.DB.CreateInBatches(records, 10).Error
-			if err != nil {
-				return response.Failure(util.ErrorFailToCreateRecord)
-			}
+			}()
 		}
+
+		go func() {
+			for {
+				select {
+				case record := <-records:
+					global.DB.Create(&record)
+				}
+			}
+		}()
 	}
 
 	return response.Success()
@@ -304,7 +304,9 @@ func (p *ProjectDailyAndCumulativeExpenditureGetList) GetList() response.List {
 	if orderBy == "" {
 		//如果要求降序排列
 		if desc == true {
-			db = db.Order("id desc")
+			db = db.Order("date desc")
+		} else {
+			db = db.Order("date")
 		}
 	} else { //如果有排序字段
 		//先看排序字段是否存在于表中

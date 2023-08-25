@@ -71,7 +71,7 @@ func updateContractCumulativeIncomeAndExpenditure(userID int64) error {
 	}
 
 	for i := range contract {
-		var param1 service.ContractCumulativeIncomeUpdate
+		var param1 service.ContractDailyAndCumulativeIncomeUpdate
 		param1.UserID = userID
 		param1.ContractID = contract[i].ID
 		res := param1.Update()
@@ -79,7 +79,7 @@ func updateContractCumulativeIncomeAndExpenditure(userID int64) error {
 			return errors.New(res.Message)
 		}
 
-		var param2 service.ContractCumulativeExpenditureUpdate
+		var param2 service.ContractDailyAndCumulativeExpenditureUpdate
 		param2.UserID = userID
 		param2.ContractID = contract[i].ID
 		res = param2.Update()
