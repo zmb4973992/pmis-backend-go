@@ -23,6 +23,7 @@ type tabContract struct {
 	FinancialAccountingNumber string  `gorm:"column:F8449"`
 	Content                   string  `gorm:"column:F6487"`
 	FundDirection             string  `gorm:"column:F12338"`
+	FillDate                  string  `gorm:"column:FillDate"`
 }
 
 func ImportContract(userID int64) error {
@@ -30,7 +31,9 @@ func ImportContract(userID int64) error {
 
 	var records []tabContract
 	//主合同的定义是项目
-	global.DBForLvmin.Table("tabContract").Where("F6110 != '主合同'").
+	global.DBForLvmin.Table("tabContract").
+		Where("F6110 != '主合同'").
+		Order("FillDate").
 		Find(&records)
 
 	var contractType model.DictionaryType

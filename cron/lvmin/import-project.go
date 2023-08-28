@@ -17,13 +17,16 @@ type tabProject struct {
 	Country      string  `gorm:"column:F5030"`
 	Amount       float64 `gorm:"column:F5031"`
 	Currency     string  `gorm:"column:F5032"`
+	Date         string  `gorm:"column:F6363"`
 }
 
 func ImportProject(userID int64) error {
 	fmt.Println("★★★★★开始导入项目记录......★★★★★")
 
 	var projects []tabProject
-	global.DBForLvmin.Table("tabProject").Find(&projects)
+	global.DBForLvmin.Table("tabProject").
+		Order("F6363").
+		Find(&projects)
 
 	var country model.DictionaryType
 	err := global.DB.

@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func clearUnusedFiles() {
+func clearUnlinkedFiles() {
 	var fileIDs []int64
 	global.DB.Model(&model.File{}).
 		Select("id").Find(&fileIDs)

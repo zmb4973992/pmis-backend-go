@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-var channelForRequestLog = make(chan model.RequestLog, 50)
+var channelForRequestLog = make(chan model.RequestLog, 5)
 
 func RequestLog() gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -67,11 +67,11 @@ func RequestLog() gin.HandlerFunc {
 	}
 }
 
-func SaveOperationLog() {
+func SaveRequestLog() {
 	for {
 		select {
-		case log := <-channelForRequestLog:
-			global.DB.Create(&log)
+		case requestLog := <-channelForRequestLog:
+			global.DB.Create(&requestLog)
 		}
 	}
 }

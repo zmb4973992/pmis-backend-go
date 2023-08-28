@@ -36,7 +36,7 @@ jwt:
 
 log:
   #日志文件的路径
-  log-path: "d:/test/log"
+  log-path: "d:/log"
   #在进行切割之前，日志文件的最大大小(MB)
   log-max-size: "10"
   #保留旧文件的最大个数
@@ -48,7 +48,7 @@ log:
 
 upload:
   #服务器上保存上传文件的路径
-  storage-path: "D:/test/upload-files"
+  storage-path: "D:/uploaded-files"
   #上传文件的最大尺寸(MB)，这里是50MB
   max-size: "50"
 

@@ -5,7 +5,7 @@ go 1.19
 //2023.8.23更新
 
 require (
-	github.com/casbin/casbin/v2 v2.75.1
+	github.com/casbin/casbin/v2 v2.76.0
 	github.com/casbin/gorm-adapter/v3 v3.18.1
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gin-contrib/cors v1.4.0
@@ -48,6 +48,7 @@ require (
 	github.com/golang-sql/civil v0.0.0-20220223132316-b832511892a9 // indirect
 	github.com/golang-sql/sqlexp v0.1.0 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
+	github.com/google/pprof v0.0.0-20230821062121-407c9e7a662f // indirect
 	github.com/google/uuid v1.3.1 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
@@ -91,6 +92,6 @@ require (
 	gorm.io/plugin/dbresolver v1.4.7 // indirect
 	modernc.org/libc v1.24.1 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
-	modernc.org/memory v1.7.0 // indirect
+	modernc.org/memory v1.7.1 // indirect
 	modernc.org/sqlite v1.25.0 // indirect
 )
