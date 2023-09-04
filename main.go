@@ -2,11 +2,11 @@ package main
 
 import (
 	"pmis-backend-go/controller"
-	"pmis-backend-go/cron"
 	"pmis-backend-go/global"
 	"pmis-backend-go/middleware"
 	"pmis-backend-go/model"
 	"pmis-backend-go/router"
+	"pmis-backend-go/service"
 	"pmis-backend-go/util"
 )
 
@@ -32,7 +32,15 @@ func main() {
 	//disposable.Init()
 
 	//开启定时任务
-	cron.Init()
+	//cron.Init()
+
+	var param service.OperationLogCreate
+	param.Operator = 454880052387845
+	param.Date = "2020-03-03"
+	param.OperationType = 455587328651269
+	param.Detail = "sdkfjskfjd"
+	param.ProjectID = 454882673385477
+	param.Create()
 
 	//运行服务，必须放最后
 	err := engine.Run(":" + global.Config.AppConfig.HttpPort)

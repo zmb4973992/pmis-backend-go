@@ -124,6 +124,10 @@ var initialDictionary = []dictionaryDetailFormat{
 		TypeName:    "tabFukuan视图中不要导入的记录",
 		DetailNames: []string{"CNC0155-001", "CNC0155-002", "CNS0419-001"},
 	},
+	{
+		TypeName:    "操作类型",
+		DetailNames: []string{"添加", "修改", "删除"},
+	},
 }
 
 func generateDictionaryDetail() (err error) {

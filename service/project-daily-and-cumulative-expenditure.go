@@ -401,6 +401,6 @@ func (p *ProjectDailyAndCumulativeExpenditureGetList) GetList() response.List {
 			NumberOfRecords: numberOfRecords,
 		},
 		Code:    util.Success,
-		Message: util.GetMessage(util.Success),
+		Message: util.GetErrorDescription(util.Success),
 	}
 }

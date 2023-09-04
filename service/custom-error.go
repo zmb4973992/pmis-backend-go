@@ -6,10 +6,9 @@ import (
 )
 
 var (
-	ErrorFailToDeleteRecord               = errors.New(util.GetMessage(util.ErrorFailToDeleteRecord))
-	ErrorFailToCreateRecord               = errors.New(util.GetMessage(util.ErrorFailToCreateRecord))
-	ErrorFailToUpdateRecord               = errors.New(util.GetMessage(util.ErrorFailToUpdateRecord))
-	ErrorFieldsToBeCreatedNotFound        = errors.New(util.GetMessage(util.ErrorFieldsToBeCreatedNotFound))
-	ErrorFailToUpdateRBACGroupingPolicies = errors.New(util.GetMessage(util.ErrorFailToUpdateRBACGroupingPolicies))
-	ErrorFailToUpdateRBACPoliciesByRoleID = errors.New(util.GetMessage(util.ErrorFailToUpdateRBACPoliciesByRoleID))
+	ErrorFailToDeleteRecord               = errors.New(util.GetErrorDescription(util.ErrorFailToDeleteRecord))
+	ErrorFailToCreateRecord               = errors.New(util.GetErrorDescription(util.ErrorFailToCreateRecord))
+	ErrorFailToUpdateRecord               = errors.New(util.GetErrorDescription(util.ErrorFailToUpdateRecord))
+	ErrorFieldsToBeCreatedNotFound        = errors.New(util.GetErrorDescription(util.ErrorFieldsToBeCreatedNotFound))
+	ErrorFailToUpdateRBACGroupingPolicies = errors.New(util.GetErrorDescription(util.ErrorFailToUpdateRBACGroupingPolicies))
 )

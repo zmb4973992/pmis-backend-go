@@ -470,7 +470,7 @@ func (m *MenuGetList) GetList() response.List {
 			NumberOfRecords: numberOfRecords,
 		},
 		Code:    util.Success,
-		Message: util.GetMessage(util.Success),
+		Message: util.GetErrorDescription(util.Success),
 	}
 }
 
@@ -567,7 +567,7 @@ func (m *MenuGetTree) GetTree() response.List {
 			NumberOfRecords: numberOfRecords,
 		},
 		Code:    util.Success,
-		Message: util.GetMessage(util.Success),
+		Message: util.GetErrorDescription(util.Success),
 	}
 }
 

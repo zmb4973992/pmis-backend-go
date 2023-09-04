@@ -56,6 +56,7 @@ func InitDatabase() {
 		&UserAndDataAuthority{},                  //用户和数据范围的中间表
 		&Message{},                               //消息表
 		&MessageAndUser{},                        //消息和用户的中间表
+		&OperationLog{},                          //用户操作日志
 	)
 	if err != nil {
 		global.SugaredLogger.Panicln(err)

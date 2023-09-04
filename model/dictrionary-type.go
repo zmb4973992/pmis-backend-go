@@ -116,6 +116,10 @@ var dictionaryTypes = []DictionaryType{
 		Name: "tabFukuan视图中不要导入的记录",
 		Sort: IntToPointer(20),
 	},
+	{Name: "操作类型",
+		Sort:    IntToPointer(21),
+		Remarks: stringToPointer("这是操作日志的操作类型，如：添加、修改、删除、查看、查看列表等"),
+	},
 }
 
 func generateDictionaryType() (err error) {

@@ -4,7 +4,6 @@ import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
-	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 	"time"
 )
@@ -62,7 +61,7 @@ type ContractDailyAndCumulativeIncomeOutput struct {
 
 }
 
-func (c *ContractDailyAndCumulativeIncomeUpdate) Update() response.Common {
+func (c *ContractDailyAndCumulativeIncomeUpdate) Update() (errCode int) {
 	//连接关联表的id
 	{
 		if c.ContractID > 0 {
@@ -72,7 +71,7 @@ func (c *ContractDailyAndCumulativeIncomeUpdate) Update() response.Common {
 				Select("id").
 				First(&typeOfIncomeAndExpenditure).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			var planned int64
@@ -82,7 +81,7 @@ func (c *ContractDailyAndCumulativeIncomeUpdate) Update() response.Common {
 				Select("id").
 				First(&planned).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			var actual int64
@@ -92,7 +91,7 @@ func (c *ContractDailyAndCumulativeIncomeUpdate) Update() response.Common {
 				Select("id").
 				First(&actual).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			var forecasted int64
@@ -102,14 +101,14 @@ func (c *ContractDailyAndCumulativeIncomeUpdate) Update() response.Common {
 				Select("id").
 				First(&forecasted).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			var contract model.Contract
 			err = global.DB.Where("id = ?", c.ContractID).
 				First(&contract).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			global.DB.Where("contract_id = ?", c.ContractID).
@@ -121,7 +120,7 @@ func (c *ContractDailyAndCumulativeIncomeUpdate) Update() response.Common {
 				Select("id").
 				First(&fundDirectionOfIncomeAndExpenditure).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			var income int64
@@ -131,7 +130,7 @@ func (c *ContractDailyAndCumulativeIncomeUpdate) Update() response.Common {
 				Select("id").
 				First(&income).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			var dates []time.Time
@@ -265,12 +264,14 @@ func (c *ContractDailyAndCumulativeIncomeUpdate) Update() response.Common {
 		}
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (c *ContractDailyAndCumulativeIncomeGetList) GetList() response.List {
+func (c *ContractDailyAndCumulativeIncomeGetList) GetList() (
+	outputs []ContractDailyAndCumulativeIncomeOutput,
+	errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.ContractDailyAndCumulativeIncome{})
-	// 顺序：where -> count -> Order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
 	if c.ContractID > 0 {
@@ -304,7 +305,7 @@ func (c *ContractDailyAndCumulativeIncomeGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.ContractDailyAndCumulativeIncome{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return nil, util.ErrorSortingFieldDoesNotExist, nil
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -332,47 +333,47 @@ func (c *ContractDailyAndCumulativeIncomeGetList) GetList() response.List {
 	offset := (page - 1) * pageSize
 	db = db.Offset(offset)
 
-	//data
-	var data []ContractDailyAndCumulativeIncomeOutput
-	db.Model(&model.ContractDailyAndCumulativeIncome{}).Find(&data)
+	//outputs
+	db.Model(&model.ContractDailyAndCumulativeIncome{}).
+		Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
-	for i := range data {
+	for i := range outputs {
 		//处理float64精度问题
-		if data[i].TotalPlannedIncome != nil {
-			temp := util.Round(*data[i].TotalPlannedIncome, 2)
-			data[i].TotalPlannedIncome = &temp
+		if outputs[i].TotalPlannedIncome != nil {
+			temp := util.Round(*outputs[i].TotalPlannedIncome, 2)
+			outputs[i].TotalPlannedIncome = &temp
 		}
-		if data[i].TotalActualIncome != nil {
-			temp := util.Round(*data[i].TotalActualIncome, 2)
-			data[i].TotalActualIncome = &temp
+		if outputs[i].TotalActualIncome != nil {
+			temp := util.Round(*outputs[i].TotalActualIncome, 2)
+			outputs[i].TotalActualIncome = &temp
 		}
-		if data[i].TotalForecastedIncome != nil {
-			temp := util.Round(*data[i].TotalForecastedIncome, 2)
-			data[i].TotalForecastedIncome = &temp
+		if outputs[i].TotalForecastedIncome != nil {
+			temp := util.Round(*outputs[i].TotalForecastedIncome, 2)
+			outputs[i].TotalForecastedIncome = &temp
 		}
-		if data[i].PlannedIncomeProgress != nil {
-			temp := util.Round(*data[i].PlannedIncomeProgress, 3)
-			data[i].PlannedIncomeProgress = &temp
+		if outputs[i].PlannedIncomeProgress != nil {
+			temp := util.Round(*outputs[i].PlannedIncomeProgress, 3)
+			outputs[i].PlannedIncomeProgress = &temp
 		}
-		if data[i].ActualIncomeProgress != nil {
-			temp := util.Round(*data[i].ActualIncomeProgress, 3)
-			data[i].ActualIncomeProgress = &temp
+		if outputs[i].ActualIncomeProgress != nil {
+			temp := util.Round(*outputs[i].ActualIncomeProgress, 3)
+			outputs[i].ActualIncomeProgress = &temp
 		}
-		if data[i].ForecastedIncomeProgress != nil {
-			temp := util.Round(*data[i].ForecastedIncomeProgress, 3)
-			data[i].ForecastedIncomeProgress = &temp
+		if outputs[i].ForecastedIncomeProgress != nil {
+			temp := util.Round(*outputs[i].ForecastedIncomeProgress, 3)
+			outputs[i].ForecastedIncomeProgress = &temp
 		}
 
 		//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
 		//需要取年月日(即前9位)
 		{
-			if data[i].Date != nil {
-				temp := *data[i].Date
-				*data[i].Date = temp[:10]
+			if outputs[i].Date != nil {
+				temp := *outputs[i].Date
+				*outputs[i].Date = temp[:10]
 			}
 		}
 	}
@@ -380,15 +381,12 @@ func (c *ContractDailyAndCumulativeIncomeGetList) GetList() response.List {
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetMessage(util.Success),
-	}
+		}
 }

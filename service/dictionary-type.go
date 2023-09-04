@@ -4,7 +4,6 @@ import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
-	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 )
 
@@ -51,18 +50,17 @@ type DictionaryTypeOutput struct {
 	Remarks      *string `json:"remarks"` //备注
 }
 
-func (d *DictionaryTypeGet) Get() response.Common {
-	var result DictionaryTypeOutput
+func (d *DictionaryTypeGet) Get() (output *DictionaryTypeOutput, errCode int) {
 	err := global.DB.Model(model.DictionaryType{}).
-		Where("id = ?", d.ID).First(&result).Error
+		Where("id = ?", d.ID).
+		First(&output).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return nil, util.ErrorRecordNotFound
 	}
-	return response.SuccessWithData(result)
+	return output, util.Success
 }
 
-func (d *DictionaryTypeCreate) Create() response.Common {
+func (d *DictionaryTypeCreate) Create() (errCode int) {
 	var paramOut model.DictionaryType
 	if d.UserID > 0 {
 		paramOut.Creator = &d.UserID
@@ -84,13 +82,12 @@ func (d *DictionaryTypeCreate) Create() response.Common {
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return util.ErrorFailToCreateRecord
 	}
-	return response.Success()
+	return util.Success
 }
 
-func (d *DictionaryTypeUpdate) Update() response.Common {
+func (d *DictionaryTypeUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
 	if d.UserID > 0 {
@@ -101,7 +98,7 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 		if *d.Name != "" {
 			paramOut["name"] = d.Name
 		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
+			return util.ErrorInvalidJSONParameters
 		}
 	}
 
@@ -111,7 +108,7 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 		} else if *d.Sort == 0 {
 			paramOut["sort"] = nil
 		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
+			return util.ErrorInvalidJSONParameters
 		}
 	}
 
@@ -127,38 +124,31 @@ func (d *DictionaryTypeUpdate) Update() response.Common {
 		}
 	}
 
-	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "UserID",
-		"UserID", "CreateAt", "UpdatedAt", "ContractID")
-
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
-	}
-
-	err := global.DB.Model(&model.DictionaryType{}).Where("id = ?", d.ID).
+	err := global.DB.Model(&model.DictionaryType{}).
+		Where("id = ?", d.ID).
 		Updates(paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return util.ErrorFailToUpdateRecord
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (d *DictionaryTypeDelete) Delete() response.Common {
+func (d *DictionaryTypeDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.DictionaryType
-	global.DB.Where("id = ?", d.ID).Find(&record)
-	err := global.DB.Where("id = ?", d.ID).Delete(&record).Error
+	err := global.DB.Where("id = ?", d.ID).
+		Find(&record).
+		Delete(&record).Error
 
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	}
-	return response.Success()
+	return util.Success
 }
 
-func (d *DictionaryTypeGetList) GetList() response.List {
+func (d *DictionaryTypeGetList) GetList() (
+	outputs []DictionaryTypeOutput, errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.DictionaryType{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
@@ -184,7 +174,7 @@ func (d *DictionaryTypeGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.DictionaryType{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return nil, util.ErrorSortingFieldDoesNotExist, nil
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -212,26 +202,22 @@ func (d *DictionaryTypeGetList) GetList() response.List {
 	offset := (page - 1) * pageSize
 	db = db.Offset(offset)
 
-	//data
-	var data []DictionaryTypeOutput
-	db.Model(&model.DictionaryType{}).Find(&data)
+	//outputs
+	db.Model(&model.DictionaryType{}).Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetMessage(util.Success),
-	}
+		}
 }

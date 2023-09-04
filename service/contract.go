@@ -4,7 +4,6 @@ import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
-	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 	"strconv"
 	"strings"
@@ -15,8 +14,8 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type ContractGet struct {
-	ID     int64
-	UserID int64
+	ContractID int64
+	UserID     int64
 }
 
 type ContractCreate struct {
@@ -150,68 +149,67 @@ type ContractOutput struct {
 	Authorized bool `json:"authorized" gorm:"-"`
 }
 
-type contractCheckAuthorization struct {
+type contractCheckAuth struct {
 	UserID     int64
 	ContractID int64
 }
 
-func (c *ContractGet) Get() response.Common {
-	var result ContractOutput
+func (c *ContractGet) Get() (output *ContractOutput, errCode int) {
 	err := global.DB.Model(model.Contract{}).
-		Where("id = ?", c.ID).
-		First(&result).Error
+		Where("id = ?", c.ContractID).
+		First(&output).Error
 	if err != nil {
-		return response.Failure(util.ErrorRecordNotFound)
+		return nil, util.ErrorRecordNotFound
 	}
 
-	var authorization contractCheckAuthorization
-	authorization.ContractID = c.ID
-	authorization.UserID = c.UserID
-	authorized := authorization.checkAuthorization()
+	var auth contractCheckAuth
+	auth.ContractID = c.ContractID
+	auth.UserID = c.UserID
+	authorized := auth.checkAuth()
 
 	if !authorized {
-		return response.Failure(util.ErrorUnauthorized)
+		return nil, util.ErrorUnauthorized
 	}
 
 	//查询关联表的详情
 	{
 		//查项目信息
-		if result.ProjectID != nil {
-			var record ProjectOutput
+		if output.ProjectID != nil {
+			var record *ProjectOutput
 			res := global.DB.Model(&model.Project{}).
-				Where("id = ?", *result.ProjectID).
+				Where("id = ?", output.ProjectID).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
-				result.ProjectExternal = &record
+				output.ProjectExternal = record
 			}
 		}
 		//查部门信息
-		if result.OrganizationID != nil {
-			var record OrganizationOutput
+		if output.OrganizationID != nil {
+			var record *OrganizationOutput
 			res := global.DB.Model(&model.Organization{}).
-				Where("id = ?", *result.OrganizationID).
+				Where("id = ?", output.OrganizationID).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
-				result.OrganizationExternal = &record
+				output.OrganizationExternal = record
 			}
 		}
 		//查相关方信息
-		if result.RelatedPartyID != nil {
-			var record RelatedPartyOutput
+		if output.RelatedPartyID != nil {
+			var record *RelatedPartyOutput
 			res := global.DB.Model(&model.RelatedParty{}).
-				Where("id = ?", *result.RelatedPartyID).
+				Where("id = ?", output.RelatedPartyID).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
-				result.RelatedPartyExternal = &record
+				output.RelatedPartyExternal = record
 			}
 		}
 
 		//查文件信息
-		if result.FileIDs != nil {
-			tempFileIDs := strings.Split(*result.FileIDs, ",")
+		if output.FileIDs != nil {
+			tempFileIDs := strings.Split(*output.FileIDs, ",")
 			var fileIDs []int64
 			for i := range tempFileIDs {
 				fileID, err1 := strconv.ParseInt(tempFileIDs[i], 10, 64)
@@ -223,7 +221,8 @@ func (c *ContractGet) Get() response.Common {
 
 			var records []FileOutput
 			global.DB.Model(&model.File{}).
-				Where("id in ?", fileIDs).Find(&records)
+				Where("id in ?", fileIDs).
+				Find(&records)
 
 			ip := global.Config.DownloadConfig.LocalIP
 			port := global.Config.AppConfig.HttpPort
@@ -231,50 +230,50 @@ func (c *ContractGet) Get() response.Common {
 			for i := range records {
 				records[i].Url = "http://" + ip + ":" + port + accessPath + strconv.FormatInt(records[i].ID, 10)
 			}
-			result.FilesExternal = records
+			output.FilesExternal = records
 		}
 	}
 
 	//查询dictionary_item表的详情
 	{
-		if result.FundDirection != nil {
-			var record DictionaryDetailOutput
+		if output.FundDirection != nil {
+			var record *DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("id = ?", *result.FundDirection).
+				Where("id = ?", output.FundDirection).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
-				result.FundDirectionExternal = &record
+				output.FundDirectionExternal = record
 			}
 		}
-		if result.Currency != nil {
-			var record DictionaryDetailOutput
+		if output.Currency != nil {
+			var record *DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("id = ?", *result.Currency).
+				Where("id = ?", output.Currency).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
-				result.CurrencyExternal = &record
+				output.CurrencyExternal = record
 			}
 		}
-		if result.OurSignatory != nil {
-			var record DictionaryDetailOutput
+		if output.OurSignatory != nil {
+			var record *DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("id = ?", *result.OurSignatory).
+				Where("id = ?", output.OurSignatory).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
-				result.OurSignatoryExternal = &record
+				output.OurSignatoryExternal = record
 			}
 		}
-		if result.Type != nil {
-			var record DictionaryDetailOutput
+		if output.Type != nil {
+			var record *DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("id = ?", *result.Type).
+				Where("id = ?", output.Type).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
-				result.TypeExternal = &record
+				output.TypeExternal = record
 			}
 		}
 	}
@@ -282,28 +281,32 @@ func (c *ContractGet) Get() response.Common {
 	//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
 	//需要取年月日(即前9位)
 	{
-		if result.SigningDate != nil {
-			temp := *result.SigningDate
-			*result.SigningDate = temp[:10]
+		if output.SigningDate != nil {
+			temp := *output.SigningDate
+			temp1 := temp[:10]
+			output.SigningDate = &temp1
 		}
-		if result.EffectiveDate != nil {
-			temp := *result.EffectiveDate
-			*result.EffectiveDate = temp[:10]
+		if output.EffectiveDate != nil {
+			temp := *output.EffectiveDate
+			temp1 := temp[:10]
+			output.EffectiveDate = &temp1
 		}
-		if result.CommissioningDate != nil {
-			temp := *result.CommissioningDate
-			*result.CommissioningDate = temp[:10]
+		if output.CommissioningDate != nil {
+			temp := *output.CommissioningDate
+			temp1 := temp[:10]
+			output.CommissioningDate = &temp1
 		}
-		if result.CompletionDate != nil {
-			temp := *result.CompletionDate
-			*result.CompletionDate = temp[:10]
+		if output.CompletionDate != nil {
+			temp := *output.CompletionDate
+			temp1 := temp[:10]
+			output.CompletionDate = &temp1
 		}
 	}
 
-	return response.SuccessWithData(result)
+	return output, util.Success
 }
 
-func (c *ContractCreate) Create() response.Common {
+func (c *ContractCreate) Create() (errCode int) {
 	var paramOut model.Contract
 
 	if c.UserID > 0 {
@@ -344,7 +347,7 @@ func (c *ContractCreate) Create() response.Common {
 		if c.SigningDate != "" {
 			signingDate, err := time.Parse("2006-01-02", c.SigningDate)
 			if err != nil {
-				return response.Failure(util.ErrorInvalidDateFormat)
+				return util.ErrorInvalidDateFormat
 			}
 			paramOut.SigningDate = &signingDate
 		}
@@ -352,7 +355,7 @@ func (c *ContractCreate) Create() response.Common {
 		if c.EffectiveDate != "" {
 			effectiveDate, err := time.Parse("2006-01-02", c.EffectiveDate)
 			if err != nil {
-				return response.Failure(util.ErrorInvalidDateFormat)
+				return util.ErrorInvalidDateFormat
 			}
 			paramOut.EffectiveDate = &effectiveDate
 		}
@@ -360,7 +363,7 @@ func (c *ContractCreate) Create() response.Common {
 		if c.CommissioningDate != "" {
 			commissioningDate, err := time.Parse("2006-01-02", c.CommissioningDate)
 			if err != nil {
-				return response.Failure(util.ErrorInvalidDateFormat)
+				return util.ErrorInvalidDateFormat
 			}
 			paramOut.CommissioningDate = &commissioningDate
 		}
@@ -368,7 +371,7 @@ func (c *ContractCreate) Create() response.Common {
 		if c.CompletionDate != "" {
 			completionDate, err := time.Parse("2006-01-02", c.CompletionDate)
 			if err != nil {
-				return response.Failure(util.ErrorInvalidDateFormat)
+				return util.ErrorInvalidDateFormat
 			}
 			paramOut.CompletionDate = &completionDate
 		}
@@ -418,42 +421,29 @@ func (c *ContractCreate) Create() response.Common {
 		}
 	}
 
-	//计算有修改值的字段数，分别进行不同处理
-	tempParamOut, err := util.StructToMap(paramOut)
+	err := global.DB.Create(&paramOut).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return util.ErrorFailToCreateRecord
 	}
-	paramOutForCounting := util.MapCopy(tempParamOut,
-		"UserID", "UserID", "CreateAt", "UpdatedAt", "ContractID")
-
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
-	}
-
-	err = global.DB.Create(&paramOut).Error
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
-	}
-	return response.Success()
+	return util.Success
 }
 
-func (c *ContractUpdate) Update() response.Common {
+func (c *ContractUpdate) Update() (errCode int) {
 	var result ContractOutput
 	err := global.DB.Model(model.Contract{}).
 		Where("id = ?", c.ContractID).
 		First(&result).Error
 	if err != nil {
-		return response.Failure(util.ErrorRecordNotFound)
+		return util.ErrorRecordNotFound
 	}
 
 	if c.IgnoreDataAuthority == false {
-		var authorization contractCheckAuthorization
+		var authorization contractCheckAuth
 		authorization.ContractID = c.ContractID
 		authorization.UserID = c.UserID
-		authorized := authorization.checkAuthorization()
+		authorized := authorization.checkAuth()
 		if !authorized {
-			return response.Failure(util.ErrorUnauthorized)
+			return util.ErrorUnauthorized
 		}
 	}
 
@@ -522,10 +512,10 @@ func (c *ContractUpdate) Update() response.Common {
 	{
 		if c.SigningDate != nil {
 			if *c.SigningDate != "" {
-				var err error
-				paramOut["signing_date"], err = time.Parse("2006-01-02", *c.SigningDate)
-				if err != nil {
-					return response.Failure(util.ErrorInvalidJSONParameters)
+				var err1 error
+				paramOut["signing_date"], err1 = time.Parse("2006-01-02", *c.SigningDate)
+				if err1 != nil {
+					return util.ErrorInvalidJSONParameters
 				}
 			} else {
 				paramOut["signing_date"] = nil
@@ -533,10 +523,10 @@ func (c *ContractUpdate) Update() response.Common {
 		}
 		if c.EffectiveDate != nil {
 			if *c.EffectiveDate != "" {
-				var err error
-				paramOut["effective_date"], err = time.Parse("2006-01-02", *c.EffectiveDate)
-				if err != nil {
-					return response.Failure(util.ErrorInvalidJSONParameters)
+				var err1 error
+				paramOut["effective_date"], err1 = time.Parse("2006-01-02", *c.EffectiveDate)
+				if err1 != nil {
+					return util.ErrorInvalidJSONParameters
 				}
 			} else {
 				paramOut["effective_date"] = nil
@@ -544,10 +534,10 @@ func (c *ContractUpdate) Update() response.Common {
 		}
 		if c.CommissioningDate != nil {
 			if *c.CommissioningDate != "" {
-				var err error
-				paramOut["commissioning_date"], err = time.Parse("2006-01-02", *c.CommissioningDate)
-				if err != nil {
-					return response.Failure(util.ErrorInvalidJSONParameters)
+				var err1 error
+				paramOut["commissioning_date"], err1 = time.Parse("2006-01-02", *c.CommissioningDate)
+				if err1 != nil {
+					return util.ErrorInvalidJSONParameters
 				}
 			} else {
 				paramOut["commissioning_date"] = nil
@@ -555,10 +545,10 @@ func (c *ContractUpdate) Update() response.Common {
 		}
 		if c.CompletionDate != nil {
 			if *c.CompletionDate != "" {
-				var err error
-				paramOut["completion_date"], err = time.Parse("2006-01-02", *c.CompletionDate)
-				if err != nil {
-					return response.Failure(util.ErrorInvalidJSONParameters)
+				var err1 error
+				paramOut["completion_date"], err1 = time.Parse("2006-01-02", *c.CompletionDate)
+				if err1 != nil {
+					return util.ErrorInvalidJSONParameters
 				}
 			} else {
 				paramOut["completion_date"] = nil
@@ -650,41 +640,33 @@ func (c *ContractUpdate) Update() response.Common {
 		}
 	}
 
-	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "UserID",
-		"UserID", "CreateAt", "UpdatedAt")
-
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
-	}
-
 	err = global.DB.Model(&model.Contract{}).
 		Where("id = ?", c.ContractID).
 		Updates(paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return util.ErrorFailToUpdateRecord
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (c *ContractDelete) Delete() response.Common {
+func (c *ContractDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Contract
-	global.DB.Where("id = ?", c.ContractID).
-		Find(&record)
+
 	err := global.DB.Where("id = ?", c.ContractID).
+		Find(&record).
 		Delete(&record).Error
 
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	}
-	return response.Success()
+
+	return util.Success
 }
 
-func (c *ContractGetList) GetList() response.List {
+func (c *ContractGetList) GetList() (outputs []ContractOutput,
+	errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.Contract{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
@@ -734,7 +716,7 @@ func (c *ContractGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.Contract{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return nil, util.ErrorSortingFieldDoesNotExist, nil
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -763,78 +745,77 @@ func (c *ContractGetList) GetList() response.List {
 	offset := (page - 1) * pageSize
 	db = db.Offset(offset)
 
-	//data
-	var data []ContractOutput
-	db.Model(&model.Contract{}).Find(&data)
+	//outputs
+	db.Model(&model.Contract{}).Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
-	for i := range data {
+	for i := range outputs {
 		//查询关联表的详情
 		{
 			//查项目信息
-			if data[i].ProjectID != nil {
+			if outputs[i].ProjectID != nil {
 				var record ProjectOutput
 				res := global.DB.Model(&model.Project{}).
-					Where("id = ?", *data[i].ProjectID).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].ProjectID).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
-					data[i].ProjectExternal = &record
+					outputs[i].ProjectExternal = &record
 				}
 			}
 			//查部门信息
-			if data[i].OrganizationID != nil {
+			if outputs[i].OrganizationID != nil {
 				var record OrganizationOutput
 				res := global.DB.Model(&model.Organization{}).
-					Where("id = ?", *data[i].OrganizationID).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].OrganizationID).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
-					data[i].OrganizationExternal = &record
+					outputs[i].OrganizationExternal = &record
 				}
 			}
 			//查相关方信息
-			if data[i].RelatedPartyID != nil {
+			if outputs[i].RelatedPartyID != nil {
 				var record RelatedPartyOutput
 				res := global.DB.Model(&model.RelatedParty{}).
-					Where("id = ?", *data[i].RelatedPartyID).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].RelatedPartyID).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
-					data[i].RelatedPartyExternal = &record
+					outputs[i].RelatedPartyExternal = &record
 				}
 			}
 		}
 
 		//查dictionary_item表的详情
 		{
-			if data[i].FundDirection != nil {
+			if outputs[i].FundDirection != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].FundDirection).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].FundDirection).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
-					data[i].FundDirectionExternal = &record
+					outputs[i].FundDirectionExternal = &record
 				}
 			}
-			if data[i].OurSignatory != nil {
+			if outputs[i].OurSignatory != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].OurSignatory).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].OurSignatory).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
-					data[i].OurSignatoryExternal = &record
+					outputs[i].OurSignatoryExternal = &record
 				}
 			}
-			if data[i].Currency != nil {
+			if outputs[i].Currency != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].Currency).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].Currency).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
-					data[i].CurrencyExternal = &record
+					outputs[i].CurrencyExternal = &record
 				}
 			}
-			if data[i].Type != nil {
+			if outputs[i].Type != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].Type).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].Type).Limit(1).Find(&record)
 				if res.RowsAffected > 0 {
-					data[i].TypeExternal = &record
+					outputs[i].TypeExternal = &record
 				}
 			}
 		}
@@ -842,52 +823,49 @@ func (c *ContractGetList) GetList() response.List {
 		//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
 		//需要取年月日(即前9位)
 		{
-			if data[i].SigningDate != nil {
-				temp := *data[i].SigningDate
-				*data[i].SigningDate = temp[:10]
+			if outputs[i].SigningDate != nil {
+				temp := *outputs[i].SigningDate
+				*outputs[i].SigningDate = temp[:10]
 			}
-			if data[i].EffectiveDate != nil {
-				temp := *data[i].EffectiveDate
-				*data[i].EffectiveDate = temp[:10]
+			if outputs[i].EffectiveDate != nil {
+				temp := *outputs[i].EffectiveDate
+				*outputs[i].EffectiveDate = temp[:10]
 			}
-			if data[i].CommissioningDate != nil {
-				temp := *data[i].CommissioningDate
-				*data[i].CommissioningDate = temp[:10]
+			if outputs[i].CommissioningDate != nil {
+				temp := *outputs[i].CommissioningDate
+				*outputs[i].CommissioningDate = temp[:10]
 			}
-			if data[i].CompletionDate != nil {
-				temp := *data[i].CompletionDate
-				*data[i].CompletionDate = temp[:10]
+			if outputs[i].CompletionDate != nil {
+				temp := *outputs[i].CompletionDate
+				*outputs[i].CompletionDate = temp[:10]
 			}
 		}
 
 		if c.IgnoreDataAuthority == true {
-			var authorize contractCheckAuthorization
-			authorize.ContractID = data[i].ID
+			var authorize contractCheckAuth
+			authorize.ContractID = outputs[i].ID
 			authorize.UserID = c.UserID
-			data[i].Authorized = authorize.checkAuthorization()
+			outputs[i].Authorized = authorize.checkAuth()
 		} else {
-			data[i].Authorized = true
+			outputs[i].Authorized = true
 		}
 	}
 
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetMessage(util.Success),
-	}
+		}
 }
 
 // 该方法一定要在确定记录存在后再调用
-func (c *contractCheckAuthorization) checkAuthorization() (authorized bool) {
+func (c *contractCheckAuth) checkAuth() (authorized bool) {
 	//用来确定数据范围内的组织id
 	organizationIDs := util.GetOrganizationIDsForDataAuthority(c.UserID)
 

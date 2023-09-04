@@ -1,11 +1,11 @@
 package lvmin
 
 import (
-	"errors"
 	"fmt"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/service"
+	"pmis-backend-go/util"
 	"strconv"
 	"strings"
 )
@@ -287,9 +287,9 @@ func ImportContract(userID int64) error {
 				Content:        records[i].Content,
 			}
 
-			res := newRecord.Create()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+			errCode := newRecord.Create()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 		}
 	}
@@ -330,9 +330,9 @@ func UpdateExchangeRageOfContract(userID int64) error {
 				ContractID:          contracts[i].ID,
 				ExchangeRate:        model.Float64ToPointer(1),
 			}
-			res := param.Update()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+			errCode := param.Update()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 
 		case "美元":
@@ -342,9 +342,9 @@ func UpdateExchangeRageOfContract(userID int64) error {
 				ContractID:          contracts[i].ID,
 				ExchangeRate:        model.Float64ToPointer(7.2),
 			}
-			res := param.Update()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+			errCode := param.Update()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 
 		case "欧元":
@@ -354,9 +354,9 @@ func UpdateExchangeRageOfContract(userID int64) error {
 				ContractID:          contracts[i].ID,
 				ExchangeRate:        model.Float64ToPointer(7.8),
 			}
-			res := param.Update()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+			errCode := param.Update()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 
 		case "港币":
@@ -366,9 +366,9 @@ func UpdateExchangeRageOfContract(userID int64) error {
 				ContractID:          contracts[i].ID,
 				ExchangeRate:        model.Float64ToPointer(0.92),
 			}
-			res := param.Update()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+			errCode := param.Update()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 
 		case "新加坡元":
@@ -378,9 +378,9 @@ func UpdateExchangeRageOfContract(userID int64) error {
 				ContractID:          contracts[i].ID,
 				ExchangeRate:        model.Float64ToPointer(5.3),
 			}
-			res := param.Update()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+			errCode := param.Update()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 
 		case "马来西亚币":
@@ -390,9 +390,9 @@ func UpdateExchangeRageOfContract(userID int64) error {
 				ContractID:          contracts[i].ID,
 				ExchangeRate:        model.Float64ToPointer(1.5),
 			}
-			res := param.Update()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+			errCode := param.Update()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 		}
 	}

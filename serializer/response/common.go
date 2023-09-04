@@ -24,7 +24,7 @@ func Success() Common {
 	return Common{
 		Data:    nil,
 		Code:    util.Success,
-		Message: util.GetMessage(util.Success),
+		Message: util.GetErrorDescription(util.Success),
 	}
 }
 
@@ -32,7 +32,7 @@ func SuccessWithData(data any) Common {
 	return Common{
 		Data:    data,
 		Code:    util.Success,
-		Message: util.GetMessage(util.Success),
+		Message: util.GetErrorDescription(util.Success),
 	}
 }
 
@@ -40,7 +40,7 @@ func Failure(errCode int) Common {
 	return Common{
 		Data:    nil,
 		Code:    errCode,
-		Message: util.GetMessage(errCode),
+		Message: util.GetErrorDescription(errCode),
 	}
 }
 
@@ -49,6 +49,23 @@ func FailureForList(errCode int) List {
 		Data:    nil,
 		Paging:  nil,
 		Code:    errCode,
-		Message: util.GetMessage(errCode),
+		Message: util.GetErrorDescription(errCode),
+	}
+}
+
+func GenerateCommon(data any, errCode int) Common {
+	return Common{
+		Data:    data,
+		Code:    errCode,
+		Message: util.GetErrorDescription(errCode),
+	}
+}
+
+func GenerateList(dataList any, errCode int, paging *list.PagingOutput) List {
+	return List{
+		Data:    dataList,
+		Paging:  paging,
+		Code:    errCode,
+		Message: util.GetErrorDescription(errCode),
 	}
 }

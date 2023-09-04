@@ -138,7 +138,8 @@ func (p *ProgressCreate) Create() response.Common {
 
 	//找到"人工填写"的dictionary_item值
 	var dataSource model.DictionaryDetail
-	err = global.DB.Where("name = '人工填写'").First(&dataSource).Error
+	err = global.DB.Where("name = '人工填写'").
+		First(&dataSource).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
@@ -155,7 +156,7 @@ func (p *ProgressCreate) Create() response.Common {
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	paramOutForCounting := util.MapCopy(tempParamOut,
-		"UserID", "UserID", "CreateAt", "UpdatedAt")
+		"UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
 		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
@@ -183,6 +184,36 @@ func (p *ProgressCreate) Create() response.Common {
 	if res.RowsAffected == 0 {
 		return response.Failure(util.ErrorDuplicateRecord)
 	}
+
+	var disassembly model.Disassembly
+	err = global.DB.Where("id = ?", p.DisassemblyID).
+		First(&disassembly).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToCreateRecord)
+	}
+
+	var operationType model.DictionaryType
+	err = global.DB.Where("name = ?", "操作类型").
+		First(&operationType).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToCreateRecord)
+	}
+
+	var create model.DictionaryDetail
+	err = global.DB.Where("name = ?", "添加").
+		First(&create).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToCreateRecord)
+	}
+
+	var param OperationLogCreate
+	param.Creator = p.UserID
+	param.Operator = p.UserID
+	param.ProjectID = *disassembly.ProjectID
+	param.Date = time.Now().Format("2006-01-02")
+	param.OperationType = create.ID
+	param.Detail = "添加了" + *disassembly.Name + "的进度"
+	param.Create()
 
 	//更新所有上级的进度
 	err = util.UpdateProgressOfSuperiors(p.DisassemblyID, p.Type, p.UserID)
@@ -240,7 +271,8 @@ func (p *ProgressUpdate) Update() response.Common {
 
 	//找到“人工填写”在字典详情表的id
 	var dataSource model.DictionaryDetail
-	err := global.DB.Where("name = '人工填写'").First(&dataSource).Error
+	err := global.DB.Where("name = '人工填写'").
+		First(&dataSource).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
@@ -248,7 +280,7 @@ func (p *ProgressUpdate) Update() response.Common {
 
 	//计算有修改值的字段数，分别进行不同处理
 	//data_source是自动添加的，也需要排除在外
-	paramOutForCounting := util.MapCopy(paramOut, "UserID",
+	paramOutForCounting := util.MapCopy(paramOut,
 		"UserID", "CreateAt", "UpdatedAt", "DataSource")
 
 	if len(paramOutForCounting) == 0 {
@@ -257,7 +289,8 @@ func (p *ProgressUpdate) Update() response.Common {
 
 	//找到待更新的这条记录
 	var progress model.Progress
-	err = global.DB.Where("id = ?", p.ID).First(&progress).Error
+	err = global.DB.Where("id = ?", p.ID).
+		First(&progress).Error
 	if err != nil {
 		return response.Failure(util.ErrorFailToCalculateSuperiorProgress)
 	}
@@ -283,12 +316,45 @@ func (p *ProgressUpdate) Update() response.Common {
 	}
 
 	//更新记录
-	err = global.DB.Model(&model.Progress{}).Where("id = ?", p.ID).
+	err = global.DB.Model(&model.Progress{}).
+		Where("id = ?", p.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
+
+	var disassembly model.Disassembly
+	err = global.DB.Where("id = ?", progress.DisassemblyID).
+		First(&disassembly).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToUpdateRecord)
+	}
+
+	var operationType model.DictionaryType
+	err = global.DB.Where("name = ?", "操作类型").
+		First(&operationType).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToUpdateRecord)
+	}
+
+	var update model.DictionaryDetail
+	err = global.DB.Where("name = ?", "修改").
+		First(&update).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToUpdateRecord)
+	}
+
+	var param OperationLogCreate
+	param.Creator = p.UserID
+	param.Operator = p.UserID
+	if disassembly.ProjectID != nil {
+		param.ProjectID = *disassembly.ProjectID
+	}
+	param.Date = time.Now().Format("2006-01-02")
+	param.OperationType = update.ID
+	param.Detail = "修改了" + *disassembly.Name + "的进度"
+	param.Create()
 
 	//更新所有上级的进度
 	if progress.DisassemblyID != nil {
@@ -360,12 +426,43 @@ func (p *ProgressUpdateByProjectID) UpdateByProjectID() error {
 func (p *ProgressDelete) Delete() response.Common {
 	//先找到记录，这样参数才能获得值、触发钩子函数，再删除记录
 	var progress model.Progress
-	err := global.DB.Where("id = ?", p.ID).Find(&progress).Delete(&progress).Error
+	err := global.DB.Where("id = ?", p.ID).
+		First(&progress).Delete(&progress).Error
 
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
+
+	var disassembly model.Disassembly
+	err = global.DB.Where("id = ?", progress.DisassemblyID).
+		First(&disassembly).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToDeleteRecord)
+	}
+
+	var operationType model.DictionaryType
+	err = global.DB.Where("name = ?", "操作类型").
+		First(&operationType).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToDeleteRecord)
+	}
+
+	var deleting model.DictionaryDetail
+	err = global.DB.Where("name = ?", "删除").
+		First(&deleting).Error
+	if err != nil {
+		return response.Failure(util.ErrorFailToDeleteRecord)
+	}
+
+	var param OperationLogCreate
+	param.Creator = p.UserID
+	param.Operator = p.UserID
+	param.ProjectID = *disassembly.ProjectID
+	param.Date = time.Now().Format("2006-01-02")
+	param.OperationType = deleting.ID
+	param.Detail = "删除了" + *disassembly.Name + "的进度"
+	param.Create()
 
 	//更新所有上级的进度
 	if progress.DisassemblyID != nil && progress.Type != nil {
@@ -631,6 +728,6 @@ func (p *ProgressGetList) GetList() response.List {
 			NumberOfRecords: numberOfRecords,
 		},
 		Code:    util.Success,
-		Message: util.GetMessage(util.Success),
+		Message: util.GetErrorDescription(util.Success),
 	}
 }

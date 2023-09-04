@@ -27,6 +27,7 @@ type controller struct {
 	contractDailyAndCumulativeIncome
 	contractDailyAndCumulativeExpenditure
 	message
+	operationLog
 }
 
 var (
@@ -54,4 +55,5 @@ var (
 	ContractDailyAndCumulativeIncome      = entrance.contractDailyAndCumulativeIncome
 	ContractDailyAndCumulativeExpenditure = entrance.contractDailyAndCumulativeExpenditure
 	Message                               = entrance.message
+	OperationLog                          = entrance.operationLog
 )

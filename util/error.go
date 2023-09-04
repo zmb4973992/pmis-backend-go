@@ -1,11 +1,14 @@
 package util
 
-// 自定义错误的code
-const (
-	Success = iota
-	Error
+import (
+	"errors"
+	"strconv"
+)
 
-	ErrorNotEnoughParameters
+// 自定义的错误代码
+const (
+	Success                  = iota
+	ErrorNotEnoughParameters = iota + 1000
 	ErrorInvalidURIParameters
 	ErrorInvalidFormDataParameters
 	ErrorInvalidJSONParameters
@@ -57,7 +60,6 @@ const (
 // Message 自定义错误的message
 var Message = map[int]string{
 	Success: "成功",
-	Error:   "错误",
 
 	ErrorRecordNotFound:                   "未找到指定记录",
 	ErrorNotEnoughParameters:              "没有足够的参数",
@@ -111,11 +113,16 @@ var Message = map[int]string{
 	ErrorFailToUpdateRBACPoliciesByMenuID:       "根据菜单id更新casbin RBAC的规则失败",
 }
 
-func GetMessage(code int) string {
+func GetErrorDescription(code int) string {
 	message, ok := Message[code]
 	if !ok {
-		return "由于错误代码未定义返回信息，导致获取错误信息失败，" +
-			"建议检查utils/code-and-message相关设置"
+		return "当前错误代码为：" + strconv.Itoa(code) +
+			"。由于错误代码未定义返回信息，导致获取错误信息失败，" +
+			"请检查后端的util/error相关设置。"
 	}
 	return message
+}
+
+func GenerateCustomError(code int) error {
+	return errors.New(GetErrorDescription(code))
 }
