@@ -1,7 +1,6 @@
 package lvmin
 
 import (
-	"errors"
 	"pmis-backend-go/service"
 	"pmis-backend-go/util"
 )
@@ -12,9 +11,10 @@ func updateCumulativeExpenditure(userID int64, projectIDs []int64, contractIDs [
 		var param service.ProjectDailyAndCumulativeExpenditureUpdate
 		param.UserID = userID
 		param.ProjectID = projectIDs[i]
-		res := param.Update()
-		if res.Code != 0 {
-			return errors.New(res.Message)
+
+		errCode := param.Update()
+		if errCode != util.Success {
+			return util.GenerateCustomError(errCode)
 		}
 	}
 
@@ -23,9 +23,10 @@ func updateCumulativeExpenditure(userID int64, projectIDs []int64, contractIDs [
 		var param service.ContractDailyAndCumulativeExpenditureUpdate
 		param.UserID = userID
 		param.ContractID = contractIDs[i]
-		res := param.Update()
-		if res.Code != 0 {
-			return errors.New(res.Message)
+
+		errCode := param.Update()
+		if errCode != util.Success {
+			return util.GenerateCustomError(errCode)
 		}
 	}
 
@@ -38,9 +39,10 @@ func updateCumulativeIncome(userID int64, projectIDs []int64, contractIDs []int6
 		var param service.ProjectDailyAndCumulativeIncomeUpdate
 		param.UserID = userID
 		param.ProjectID = projectIDs[i]
-		res := param.Update()
-		if res.Code != 0 {
-			return errors.New(res.Message)
+
+		errCode := param.Update()
+		if errCode != util.Success {
+			return util.GenerateCustomError(errCode)
 		}
 	}
 
@@ -49,9 +51,10 @@ func updateCumulativeIncome(userID int64, projectIDs []int64, contractIDs []int6
 		var param service.ContractDailyAndCumulativeIncomeUpdate
 		param.UserID = userID
 		param.ContractID = contractIDs[i]
-		res := param.Update()
-		if res.Code != 0 {
-			return errors.New(res.Message)
+
+		errCode := param.Update()
+		if errCode != util.Success {
+			return util.GenerateCustomError(errCode)
 		}
 	}
 

@@ -1,10 +1,10 @@
 package cron
 
 import (
-	"errors"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/service"
+	"pmis-backend-go/util"
 )
 
 func UpdateCumulativeIncomeAndExpenditureForCron() {
@@ -46,17 +46,19 @@ func updateProjectCumulativeIncomeAndExpenditure(userID int64) error {
 		var param1 service.ProjectDailyAndCumulativeIncomeUpdate
 		param1.UserID = userID
 		param1.ProjectID = projects[i].ID
-		res := param1.Update()
-		if res.Code != 0 {
-			return errors.New(res.Message)
+
+		errCode := param1.Update()
+		if errCode != util.Success {
+			return util.GenerateCustomError(errCode)
 		}
 
 		var param2 service.ProjectDailyAndCumulativeExpenditureUpdate
 		param2.UserID = userID
 		param2.ProjectID = projects[i].ID
-		res = param2.Update()
-		if res.Code != 0 {
-			return errors.New(res.Message)
+
+		errCode = param2.Update()
+		if errCode != util.Success {
+			return util.GenerateCustomError(errCode)
 		}
 	}
 
@@ -74,17 +76,19 @@ func updateContractCumulativeIncomeAndExpenditure(userID int64) error {
 		var param1 service.ContractDailyAndCumulativeIncomeUpdate
 		param1.UserID = userID
 		param1.ContractID = contract[i].ID
-		res := param1.Update()
-		if res.Code != 0 {
-			return errors.New(res.Message)
+
+		errCode := param1.Update()
+		if errCode != util.Success {
+			return util.GenerateCustomError(errCode)
 		}
 
 		var param2 service.ContractDailyAndCumulativeExpenditureUpdate
 		param2.UserID = userID
 		param2.ContractID = contract[i].ID
-		res = param2.Update()
-		if res.Code != 0 {
-			return errors.New(res.Message)
+
+		errCode = param2.Update()
+		if errCode != util.Success {
+			return util.GenerateCustomError(errCode)
 		}
 	}
 

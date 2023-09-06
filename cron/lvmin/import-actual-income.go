@@ -5,6 +5,7 @@ import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/service"
+	"pmis-backend-go/util"
 	"strconv"
 	"strings"
 )
@@ -225,12 +226,13 @@ func ImportActualIncomeFromTabShouKuan(userID int64) error {
 			ImportedApprovalID: records[i].ImportedID + records[i].IOrd,
 		}
 
-		res := newRecord.Create()
+		errCode := newRecord.Create()
 
-		if res.Code != 0 {
+		if errCode != util.Success {
 			param := service.ErrorLogCreate{
 				Detail: "导入tabShouKuan视图的记录时发生错误：" +
-					res.Message + "，ID为：" + records[i].ImportedID + "，iOrd为：" + records[i].IOrd,
+					util.GetErrorDescription(errCode) + "，ID为：" +
+					records[i].ImportedID + "，iOrd为：" + records[i].IOrd,
 			}
 			param.Create()
 		}
@@ -446,12 +448,13 @@ func ImportActualIncomeFromTabShouHui(userID int64) error {
 			newRecord.ExchangeRate = model.Float64ToPointer(1)
 		}
 
-		res := newRecord.Create()
+		errCode := newRecord.Create()
 
-		if res.Code != 0 {
+		if errCode != util.Success {
 			param := service.ErrorLogCreate{
 				Detail: "导入tabShouHui视图的记录时发生错误：" +
-					res.Message + "，银行流水ID为：" + records[i].BankSerialID + "，iOrd为：" + records[i].IOrd,
+					util.GetErrorDescription(errCode) + "，银行流水ID为：" +
+					records[i].BankSerialID + "，iOrd为：" + records[i].IOrd,
 			}
 			param.Create()
 		}

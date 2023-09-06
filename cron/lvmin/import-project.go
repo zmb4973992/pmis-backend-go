@@ -1,11 +1,11 @@
 package lvmin
 
 import (
-	"errors"
 	"fmt"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/service"
+	"pmis-backend-go/util"
 	"strconv"
 )
 
@@ -600,9 +600,9 @@ func ImportProject(userID int64) error {
 				Where("code = ?", projects[i].Code).
 				Count(&count)
 			if count == 0 {
-				res := newRecord.Create()
-				if res.Code != 0 {
-					return errors.New(res.Message)
+				errCode := newRecord.Create()
+				if errCode != util.Success {
+					return util.GenerateCustomError(errCode)
 				}
 			}
 		}
@@ -644,9 +644,10 @@ func UpdateExchangeRageOfProject(userID int64) error {
 				ID:                  projects[i].ID,
 				ExchangeRate:        model.Float64ToPointer(1),
 			}
-			res := param.Update()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+
+			errCode := param.Update()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 
 		case "美元":
@@ -656,9 +657,10 @@ func UpdateExchangeRageOfProject(userID int64) error {
 				ID:                  projects[i].ID,
 				ExchangeRate:        model.Float64ToPointer(7.2),
 			}
-			res := param.Update()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+
+			errCode := param.Update()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 
 		case "欧元":
@@ -668,9 +670,10 @@ func UpdateExchangeRageOfProject(userID int64) error {
 				ID:                  projects[i].ID,
 				ExchangeRate:        model.Float64ToPointer(7.8),
 			}
-			res := param.Update()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+
+			errCode := param.Update()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 
 		case "港币":
@@ -680,9 +683,10 @@ func UpdateExchangeRageOfProject(userID int64) error {
 				ID:                  projects[i].ID,
 				ExchangeRate:        model.Float64ToPointer(0.92),
 			}
-			res := param.Update()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+
+			errCode := param.Update()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 
 		case "新加坡元":
@@ -692,9 +696,10 @@ func UpdateExchangeRageOfProject(userID int64) error {
 				ID:                  projects[i].ID,
 				ExchangeRate:        model.Float64ToPointer(5.3),
 			}
-			res := param.Update()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+
+			errCode := param.Update()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 		}
 	}

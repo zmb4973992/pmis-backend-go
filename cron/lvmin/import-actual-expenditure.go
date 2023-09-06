@@ -5,6 +5,7 @@ import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/service"
+	"pmis-backend-go/util"
 	"strconv"
 	"strings"
 )
@@ -228,12 +229,13 @@ func ImportActualExpenditure(userID int64) error {
 			newRecord.ExchangeRate = model.Float64ToPointer(1)
 		}
 
-		res := newRecord.Create()
+		errCode := newRecord.Create()
 
-		if res.Code != 0 {
+		if errCode != util.Success {
 			param := service.ErrorLogCreate{
 				Detail: "导入tabFukuan2视图的记录时发生错误：" +
-					res.Message + "，付款审批ID为：" + records[i].ImportedApprovalID,
+					util.GetErrorDescription(errCode) +
+					"，付款审批ID为：" + records[i].ImportedApprovalID,
 			}
 			param.Create()
 		}

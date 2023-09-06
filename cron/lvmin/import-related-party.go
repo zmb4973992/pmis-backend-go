@@ -1,7 +1,6 @@
 package lvmin
 
 import (
-	"errors"
 	"fmt"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
@@ -98,9 +97,9 @@ func importRelatedPartyFromTabSupplier(userID int64) error {
 				UniformSocialCreditCode: records[i].UniformSocialCreditCode,
 				ImportedOriginalName:    records[i].Name + "|",
 			}
-			res := param.Create()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+			errCode := param.Create()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 		}
 	}
@@ -161,9 +160,10 @@ func importRelatedPartyFromTabContract(userID int64) error {
 				Name:                 strings.TrimSpace(records[i].Name),
 				ImportedOriginalName: records[i].Name + "|",
 			}
-			res := param.Create()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+
+			errCode := param.Create()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 		}
 	}
@@ -223,9 +223,10 @@ func importRelatedPartyFromTabFukuan2(userID int64) error {
 				UserID:               userID,
 				Name:                 strings.TrimSpace(records[i].Name),
 				ImportedOriginalName: records[i].Name + "|"}
-			res := param.Create()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+
+			errCode := param.Create()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 		}
 	}
@@ -286,9 +287,10 @@ func importRelatedPartyFromTabShouKuan(userID int64) error {
 				UserID:               userID,
 				Name:                 strings.TrimSpace(records[i].RelatedPartyName),
 				ImportedOriginalName: records[i].RelatedPartyName + "|"}
-			res := param.Create()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+
+			errCode := param.Create()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 		}
 	}
@@ -350,9 +352,10 @@ func importRelatedPartyFromTabShouHui(userID int64) error {
 				UserID:               userID,
 				Name:                 strings.TrimSpace(records[i].RelatedPartyName),
 				ImportedOriginalName: records[i].RelatedPartyName + "|"}
-			res := param.Create()
-			if res.Code != 0 {
-				return errors.New(res.Message)
+
+			errCode := param.Create()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
 			}
 		}
 	}
