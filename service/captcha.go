@@ -23,7 +23,6 @@ func (c *CaptchaGet) Get() response.Common {
 	captcha := base64Captcha.NewCaptcha(driver, store)
 	id, base64String, err := captcha.Generate()
 	if err != nil {
-		global.SugaredLogger.Errorln("生成验证码失败")
 		response.Failure(util.ErrorFailToGenerateCaptcha)
 	}
 

@@ -30,13 +30,19 @@ func (f *file) Get(c *gin.Context) {
 	var err error
 	param.ID, err = strconv.ParseInt(c.Param("file-id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusOK, response.Failure(util.ErrorInvalidURIParameters))
+		c.JSON(
+			http.StatusOK,
+			response.GenerateCommon(nil, util.ErrorInvalidURIParameters),
+		)
 		return
 	}
 
 	filePath, fileName, existed := param.Get()
 	if !existed {
-		c.JSON(http.StatusOK, response.Failure(util.ErrorFileNotFound))
+		c.JSON(
+			http.StatusOK,
+			response.GenerateCommon(nil, util.ErrorFileNotFound),
+		)
 	}
 
 	c.FileAttachment(filePath, fileName)
@@ -46,7 +52,10 @@ func (f *file) Get(c *gin.Context) {
 func (f *file) Create(c *gin.Context) {
 	fileHeader, err := c.FormFile("file")
 	if err != nil {
-		c.JSON(http.StatusOK, response.Failure(util.ErrorFailToUploadFiles))
+		c.JSON(
+			http.StatusOK,
+			response.GenerateCommon(nil, util.ErrorFailToUploadFiles),
+		)
 		return
 	}
 
@@ -60,18 +69,23 @@ func (f *file) Create(c *gin.Context) {
 
 	id, url, err1 := param.Create()
 	if err1 != nil {
-		c.JSON(http.StatusOK, response.Failure(util.ErrorFailToUploadFiles))
+		c.JSON(
+			http.StatusOK,
+			response.GenerateCommon(nil, util.ErrorFailToUploadFiles),
+		)
 		return
 	}
 
-	c.JSON(http.StatusOK, response.SuccessWithData(
-		gin.H{
-			"id":  id,
-			"url": url,
-		},
-	))
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(
+			gin.H{
+				"id":  id,
+				"url": url,
+			},
+			util.Success,
+		))
 	return
-
 }
 
 func (f *file) Delete(c *gin.Context) {
@@ -79,12 +93,17 @@ func (f *file) Delete(c *gin.Context) {
 	var err error
 	param.ID, err = strconv.ParseInt(c.Param("file-id"), 10, 64)
 	if err != nil {
-		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+		c.JSON(
+			http.StatusOK,
+			response.GenerateCommon(nil, util.ErrorInvalidURIParameters),
+		)
 		return
 	}
 
-	res := param.Delete()
-	c.JSON(http.StatusOK, res)
+	errCode := param.Delete()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(nil, errCode),
+	)
 	return
 }

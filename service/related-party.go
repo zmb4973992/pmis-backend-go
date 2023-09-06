@@ -4,7 +4,6 @@ import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
-	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 	"strconv"
 	"strings"
@@ -76,17 +75,17 @@ type RelatedPartyOutput struct {
 	FilesExternal           []FileOutput `json:"files" gorm:"-"`
 }
 
-func (r *RelatedPartyGet) Get() response.Common {
-	var result RelatedPartyOutput
+func (r *RelatedPartyGet) Get() (output *RelatedPartyOutput, errCode int) {
 	err := global.DB.Model(&model.RelatedParty{}).
-		Where("id = ?", r.ID).First(&result).Error
+		Where("id = ?", r.ID).
+		First(&output).Error
 	if err != nil {
-		return response.Failure(util.ErrorRecordNotFound)
+		return nil, util.ErrorRecordNotFound
 	}
 
 	//查文件信息
-	if result.FileIDs != nil {
-		tempFileIDs := strings.Split(*result.FileIDs, ",")
+	if output.FileIDs != nil {
+		tempFileIDs := strings.Split(*output.FileIDs, ",")
 		var fileIDs []int64
 		for i := range tempFileIDs {
 			fileID, err1 := strconv.ParseInt(tempFileIDs[i], 10, 64)
@@ -98,14 +97,15 @@ func (r *RelatedPartyGet) Get() response.Common {
 
 		var records []FileOutput
 		global.DB.Model(&model.File{}).
-			Where("id in ?", fileIDs).Find(&records)
-		result.FilesExternal = records
+			Where("id in ?", fileIDs).
+			Find(&records)
+		output.FilesExternal = records
 	}
 
-	return response.SuccessWithData(result)
+	return output, util.Success
 }
 
-func (r *RelatedPartyCreate) Create() response.Common {
+func (r *RelatedPartyCreate) Create() (errCode int) {
 	var paramOut model.RelatedParty
 	if r.UserID > 0 {
 		paramOut.Creator = &r.UserID
@@ -147,27 +147,14 @@ func (r *RelatedPartyCreate) Create() response.Common {
 		paramOut.FileIDs = &r.FileIDs
 	}
 
-	//计算有修改值的字段数，分别进行不同处理
-	tempParamOut, err := util.StructToMap(paramOut)
+	err := global.DB.Create(&paramOut).Error
 	if err != nil {
-		response.Failure(util.ErrorFailToCreateRecord)
+		return util.ErrorFailToCreateRecord
 	}
-	paramOutForCounting := util.MapCopy(tempParamOut,
-		"UserID", "UserID", "CreateAt", "UpdatedAt")
-
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
-	}
-
-	err = global.DB.Create(&paramOut).Error
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
-	}
-	return response.Success()
+	return util.Success
 }
 
-func (r *RelatedPartyUpdate) Update() response.Common {
+func (r *RelatedPartyUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
 	if r.UserID > 0 {
@@ -231,39 +218,34 @@ func (r *RelatedPartyUpdate) Update() response.Common {
 		}
 	}
 
-	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "last_modifier")
-
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
-	}
-
-	err := global.DB.Model(&model.RelatedParty{}).Where("id = ?", r.ID).
+	err := global.DB.Model(&model.RelatedParty{}).
+		Where("id = ?", r.ID).
 		Updates(paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return util.ErrorFailToUpdateRecord
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (r *RelatedPartyDelete) Delete() response.Common {
+func (r *RelatedPartyDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.RelatedParty
-	global.DB.Where("id = ?", r.ID).Find(&record)
-	err := global.DB.Where("id = ?", r.ID).Delete(&record).Error
+	err := global.DB.Where("id = ?", r.ID).
+		Find(&record).
+		Delete(&record).Error
 
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	}
-	return response.Success()
+
+	return util.Success
 }
 
-func (r *RelatedPartyGetList) GetList() response.List {
+func (r *RelatedPartyGetList) GetList() (outputs []RelatedPartyOutput,
+	errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.RelatedParty{})
-	// 顺序：where -> count -> Order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
 	if r.NameInclude != "" {
@@ -291,7 +273,7 @@ func (r *RelatedPartyGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.RelatedParty{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return nil, util.ErrorSortingFieldDoesNotExist, nil
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -319,26 +301,22 @@ func (r *RelatedPartyGetList) GetList() response.List {
 	offset := (page - 1) * pageSize
 	db = db.Offset(offset)
 
-	//data
-	var data []RelatedPartyOutput
-	db.Model(&model.RelatedParty{}).Find(&data)
+	//outputs
+	db.Model(&model.RelatedParty{}).Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetErrorDescription(util.Success),
-	}
+		}
 }

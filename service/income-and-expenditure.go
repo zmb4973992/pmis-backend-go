@@ -4,7 +4,6 @@ import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
-	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 	"time"
 )
@@ -114,63 +113,69 @@ type IncomeAndExpenditureOutput struct {
 	Attachment *string `json:"attachment"`
 }
 
-func (i *IncomeAndExpenditureGet) Get() response.Common {
-	var result IncomeAndExpenditureOutput
+func (i *IncomeAndExpenditureGet) Get() (output *IncomeAndExpenditureOutput, errCode int) {
 	err := global.DB.Model(model.IncomeAndExpenditure{}).
-		Where("id = ?", i.ID).First(&result).Error
+		Where("id = ?", i.ID).
+		First(&output).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return nil, util.ErrorRecordNotFound
 	}
 	//查询关联表的详情
 	{
 		//查项目信息
-		if result.ProjectID != nil {
+		if output.ProjectID != nil {
 			var record ProjectOutput
 			res := global.DB.Model(&model.Project{}).
-				Where("id = ?", *result.ProjectID).Limit(1).Find(&record)
+				Where("id = ?", *output.ProjectID).
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
-				result.ProjectExternal = &record
+				output.ProjectExternal = &record
 			}
 		}
 		//查合同信息
-		if result.ContractID != nil {
+		if output.ContractID != nil {
 			var record ContractOutput
 			res := global.DB.Model(&model.Contract{}).
-				Where("id = ?", *result.ContractID).Limit(1).Find(&record)
+				Where("id = ?", *output.ContractID).
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
-				result.ContractExternal = &record
+				output.ContractExternal = &record
 			}
 		}
 	}
 
 	//查询dictionary_item表的详情
 	{
-		if result.FundDirection != nil {
+		if output.FundDirection != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("id = ?", *result.FundDirection).
-				Limit(1).Find(&record)
+				Where("id = ?", *output.FundDirection).
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
-				result.FundDirectionExternal = &record
+				output.FundDirectionExternal = &record
 			}
 		}
-		if result.Currency != nil {
+		if output.Currency != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("id = ?", *result.Currency).
-				Limit(1).Find(&record)
+				Where("id = ?", *output.Currency).
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
-				result.CurrencyExternal = &record
+				output.CurrencyExternal = &record
 			}
 		}
-		if result.Kind != nil {
+		if output.Kind != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("id = ?", *result.Kind).
-				Limit(1).Find(&record)
+				Where("id = ?", *output.Kind).
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
-				result.KindExternal = &record
+				output.KindExternal = &record
 			}
 		}
 	}
@@ -178,16 +183,16 @@ func (i *IncomeAndExpenditureGet) Get() response.Common {
 	//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
 	//需要取年月日(即前9位)
 	{
-		if result.Date != nil {
-			temp := *result.Date
-			*result.Date = temp[:10]
+		if output.Date != nil {
+			temp := *output.Date
+			*output.Date = temp[:10]
 		}
 	}
 
-	return response.SuccessWithData(result)
+	return output, util.Success
 }
 
-func (i *IncomeAndExpenditureCreate) Create() response.Common {
+func (i *IncomeAndExpenditureCreate) Create() (errCode int) {
 	var paramOut model.IncomeAndExpenditure
 
 	if i.UserID > 0 {
@@ -211,7 +216,7 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 			err := global.DB.Where("name = ?", i.FundDirection).
 				First(&fundDirection).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToCreateRecord)
+				return util.ErrorFailToCreateRecord
 			}
 			paramOut.FundDirection = &fundDirection.ID
 		}
@@ -223,7 +228,7 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 			err := global.DB.Where("name = ?", i.Kind).
 				First(&kind).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToCreateRecord)
+				return util.ErrorFailToCreateRecord
 			}
 			paramOut.Kind = &kind.ID
 		}
@@ -234,7 +239,7 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 		if i.Date != "" {
 			date, err := time.Parse("2006-01-02", i.Date)
 			if err != nil {
-				return response.Failure(util.ErrorInvalidDateFormat)
+				return util.ErrorInvalidDateFormat
 			}
 			paramOut.Date = &date
 		}
@@ -269,22 +274,9 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 		}
 	}
 
-	//计算有修改值的字段数，分别进行不同处理
-	tempParamOut, err := util.StructToMap(paramOut)
+	err := global.DB.Create(&paramOut).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToCreateRecord)
-	}
-	paramOutForCounting := util.MapCopy(tempParamOut,
-		"UserID", "UserID", "CreateAt", "UpdatedAt")
-
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
-	}
-
-	err = global.DB.Create(&paramOut).Error
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return util.ErrorFailToCreateRecord
 	}
 
 	if i.IgnoreUpdatingCumulativeIncomeAndExpenditure == false {
@@ -314,10 +306,10 @@ func (i *IncomeAndExpenditureCreate) Create() response.Common {
 		}
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (i *IncomeAndExpenditureUpdate) Update() response.Common {
+func (i *IncomeAndExpenditureUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
 	if i.UserID > 0 {
@@ -348,7 +340,7 @@ func (i *IncomeAndExpenditureUpdate) Update() response.Common {
 				err := global.DB.Where("name = ?", i.FundDirection).
 					First(&fundDirection).Error
 				if err != nil {
-					return response.Failure(util.ErrorFailToUpdateRecord)
+					return util.ErrorFailToUpdateRecord
 				}
 				paramOut["fund_direction"] = fundDirection.ID
 			} else if *i.FundDirection == "" {
@@ -368,7 +360,7 @@ func (i *IncomeAndExpenditureUpdate) Update() response.Common {
 				err := global.DB.Where("name = ?", i.Kind).
 					First(&kind).Error
 				if err != nil {
-					return response.Failure(util.ErrorFailToUpdateRecord)
+					return util.ErrorFailToUpdateRecord
 				}
 				paramOut["kind"] = kind.ID
 			} else if *i.Kind == "" {
@@ -384,7 +376,7 @@ func (i *IncomeAndExpenditureUpdate) Update() response.Common {
 				var err error
 				paramOut["date"], err = time.Parse("2006-01-02", *i.Date)
 				if err != nil {
-					return response.Failure(util.ErrorInvalidJSONParameters)
+					return util.ErrorInvalidJSONParameters
 				}
 			} else {
 				paramOut["date"] = nil
@@ -447,7 +439,7 @@ func (i *IncomeAndExpenditureUpdate) Update() response.Common {
 		"UserID", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt")
 
 	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
+		return util.ErrorFieldsToBeUpdatedNotFound
 	}
 
 	err := global.DB.Model(&model.IncomeAndExpenditure{}).
@@ -455,7 +447,7 @@ func (i *IncomeAndExpenditureUpdate) Update() response.Common {
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return util.ErrorFailToUpdateRecord
 	}
 
 	//更新项目的累计收付款
@@ -496,18 +488,18 @@ func (i *IncomeAndExpenditureUpdate) Update() response.Common {
 		temp4.Update()
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (i *IncomeAndExpenditureDelete) Delete() response.Common {
+func (i *IncomeAndExpenditureDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.IncomeAndExpenditure
-	global.DB.Where("id = ?", i.ID).Find(&record)
-	err := global.DB.Where("id = ?", i.ID).Delete(&record).Error
+	err := global.DB.Where("id = ?", i.ID).
+		Find(&record).
+		Delete(&record).Error
 
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	}
 
 	//更新项目的累计收付款
@@ -526,12 +518,13 @@ func (i *IncomeAndExpenditureDelete) Delete() response.Common {
 		temp4.Update()
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (i *IncomeAndExpenditureGetList) GetList() response.List {
+func (i *IncomeAndExpenditureGetList) GetList() (
+	outputs []IncomeAndExpenditureOutput, errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.IncomeAndExpenditure{})
-	// 顺序：where -> count -> Order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
 	if i.ProjectID > 0 {
@@ -541,9 +534,10 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 	if i.Kind != "" {
 		var dictionaryDetail model.DictionaryDetail
 		err := global.DB.Model(&model.DictionaryDetail{}).
-			Where("name = ?", i.Kind).First(&dictionaryDetail).Error
+			Where("name = ?", i.Kind).
+			First(&dictionaryDetail).Error
 		if err != nil {
-			return response.FailureForList(util.ErrorRecordNotFound)
+			return nil, util.ErrorRecordNotFound, nil
 		}
 		db = db.Where("kind = ?", dictionaryDetail.ID)
 	}
@@ -551,9 +545,10 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 	if i.FundDirection != "" {
 		var dictionaryDetail model.DictionaryDetail
 		err := global.DB.Model(&model.DictionaryDetail{}).
-			Where("name = ?", i.FundDirection).First(&dictionaryDetail).Error
+			Where("name = ?", i.FundDirection).
+			First(&dictionaryDetail).Error
 		if err != nil {
-			return response.FailureForList(util.ErrorRecordNotFound)
+			return nil, util.ErrorRecordNotFound, nil
 		}
 		db = db.Where("fund_direction = ?", dictionaryDetail.ID)
 	}
@@ -587,7 +582,7 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.IncomeAndExpenditure{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return nil, util.ErrorSortingFieldDoesNotExist, nil
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -615,61 +610,70 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 	offset := (page - 1) * pageSize
 	db = db.Offset(offset)
 
-	//data
-	var data []IncomeAndExpenditureOutput
-	db.Model(&model.IncomeAndExpenditure{}).Find(&data)
+	//outputs
+	db.Model(&model.IncomeAndExpenditure{}).Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
-	for i := range data {
+	for i := range outputs {
 		//查询关联表的详情
 		{
 			//查项目信息
-			if data[i].ProjectID != nil {
+			if outputs[i].ProjectID != nil {
 				var record ProjectOutput
 				res := global.DB.Model(&model.Project{}).
-					Where("id = ?", *data[i].ProjectID).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].ProjectID).
+					Limit(1).
+					Find(&record)
 				if res.RowsAffected > 0 {
-					data[i].ProjectExternal = &record
+					outputs[i].ProjectExternal = &record
 				}
 			}
 			//查合同信息
-			if data[i].ContractID != nil {
+			if outputs[i].ContractID != nil {
 				var record ContractOutput
 				res := global.DB.Model(&model.Contract{}).
-					Where("id = ?", *data[i].ContractID).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].ContractID).
+					Limit(1).
+					Find(&record)
 				if res.RowsAffected > 0 {
-					data[i].ContractExternal = &record
+					outputs[i].ContractExternal = &record
 				}
 			}
 		}
 
 		//查dictionary_item表的详情
 		{
-			if data[i].FundDirection != nil {
+			if outputs[i].FundDirection != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].FundDirection).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].FundDirection).
+					Limit(1).
+					Find(&record)
 				if res.RowsAffected > 0 {
-					data[i].FundDirectionExternal = &record
+					outputs[i].FundDirectionExternal = &record
 				}
 			}
-			if data[i].Currency != nil {
+			if outputs[i].Currency != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].Currency).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].Currency).
+					Limit(1).
+					Find(&record)
 				if res.RowsAffected > 0 {
-					data[i].CurrencyExternal = &record
+					outputs[i].CurrencyExternal = &record
 				}
 			}
-			if data[i].Kind != nil {
+			if outputs[i].Kind != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *data[i].Kind).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].Kind).
+					Limit(1).
+					Find(&record)
 				if res.RowsAffected > 0 {
-					data[i].KindExternal = &record
+					outputs[i].KindExternal = &record
 				}
 			}
 		}
@@ -677,9 +681,9 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 		//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
 		//需要取年月日(即前9位)
 		{
-			if data[i].Date != nil {
-				temp := *data[i].Date
-				*data[i].Date = temp[:10]
+			if outputs[i].Date != nil {
+				temp := *outputs[i].Date
+				*outputs[i].Date = temp[:10]
 			}
 		}
 	}
@@ -687,15 +691,12 @@ func (i *IncomeAndExpenditureGetList) GetList() response.List {
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetErrorDescription(util.Success),
-	}
+		}
 }

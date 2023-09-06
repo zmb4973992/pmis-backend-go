@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service"
 	"pmis-backend-go/util"
@@ -19,7 +18,6 @@ func (co *contract) Get(c *gin.Context) {
 	var err error
 	param.ContractID, err = strconv.ParseInt(c.Param("contract-id"), 10, 64)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		c.JSON(
 			http.StatusBadRequest,
 			response.GenerateCommon(nil, util.ErrorInvalidURIParameters),
@@ -112,8 +110,11 @@ func (co *contract) Delete(c *gin.Context) {
 		return
 	}
 
-	res := param.Delete()
-	c.JSON(http.StatusOK, res)
+	errCode := param.Delete()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(nil, errCode),
+	)
 	return
 }
 
@@ -124,8 +125,10 @@ func (co *contract) GetList(c *gin.Context) {
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
 	//如果是其他错误，就正常报错
 	if err != nil && !errors.Is(err, io.EOF) {
-		c.JSON(http.StatusBadRequest,
-			response.GenerateList(nil, util.ErrorInvalidJSONParameters, nil))
+		c.JSON(
+			http.StatusBadRequest,
+			response.GenerateList(nil, util.ErrorInvalidJSONParameters, nil),
+		)
 		return
 	}
 
@@ -136,6 +139,9 @@ func (co *contract) GetList(c *gin.Context) {
 	}
 
 	outputs, errCode, paging := param.GetList()
-	c.JSON(http.StatusOK, response.GenerateList(outputs, errCode, paging))
+	c.JSON(
+		http.StatusOK,
+		response.GenerateList(outputs, errCode, paging),
+	)
 	return
 }

@@ -4,7 +4,6 @@ import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
-	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 	"time"
 )
@@ -52,21 +51,20 @@ type MessageOutput struct {
 	Datetime     string `json:"datetime"`
 }
 
-func (m *MessageGet) Get() response.Common {
-	var record MessageOutput
-
+func (m *MessageGet) Get() (output *MessageOutput, errCode int) {
 	err := global.DB.Model(model.Message{}).
-		Where("id = ?", m.ID).First(&record).Error
+		Where("id = ?", m.ID).
+		First(&output).Error
 	if err != nil {
-		return response.Failure(util.ErrorRecordNotFound)
+		return nil, util.ErrorRecordNotFound
 	}
 
-	record.Datetime = record.Datetime[:10] + " " + record.Datetime[11:19]
+	output.Datetime = output.Datetime[:10] + " " + output.Datetime[11:19]
 
-	return response.SuccessWithData(record)
+	return output, util.Success
 }
 
-func (m *MessageCreate) Create() response.Common {
+func (m *MessageCreate) Create() (errCode int) {
 	var message model.Message
 
 	message.Creator = &m.UserID
@@ -76,7 +74,7 @@ func (m *MessageCreate) Create() response.Common {
 
 	err := global.DB.Create(&message).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return util.ErrorFailToCreateRecord
 	}
 
 	m.Recipients = util.RemoveDuplication(m.Recipients)
@@ -91,47 +89,37 @@ func (m *MessageCreate) Create() response.Common {
 
 	global.DB.CreateInBatches(messageAndUsers, 100)
 
-	return response.Success()
+	return util.Success
 }
 
-func (m *MessageUpdate) Update() response.Common {
+func (m *MessageUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
 	paramOut["last_modifier"] = m.UserID
 
 	paramOut["is_read"] = true
 
-	//以后如果有其他字段的修改，需要调整这里的逻辑
-	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "UserID",
-		"UserID", "CreateAt", "UpdatedAt")
-	//
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
-	}
-
 	err := global.DB.Model(&model.MessageAndUser{}).
 		Where("message_id = ?", m.ID).
 		Where("user_id = ?", m.UserID).
 		Updates(paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return util.ErrorFailToUpdateRecord
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (m *MessageDelete) Delete() response.Common {
-	global.DB.
-		Where("message_id = ?", m.ID).
+func (m *MessageDelete) Delete() (errCode int) {
+	global.DB.Where("message_id = ?", m.ID).
 		Where("user_id = ?", m.UserID).
 		Delete(&model.MessageAndUser{})
 
-	return response.Success()
+	return util.Success
 }
 
-func (m *MessageGetList) GetList() response.List {
+func (m *MessageGetList) GetList() (
+	outputs []MessageOutput, errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.Message{}).
 		Joins("join (select distinct message_id,user_id,is_read from message_and_user where user_id = ?) as temp1 on message.id = temp1.message_id", m.UserID)
 
@@ -141,7 +129,7 @@ func (m *MessageGetList) GetList() response.List {
 		db = db.Where("is_read = ?", false)
 	}
 
-	// 顺序：where -> count -> Order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	// count
 	var count int64
@@ -160,7 +148,7 @@ func (m *MessageGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.Message{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return nil, util.ErrorSortingFieldDoesNotExist, nil
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -188,30 +176,26 @@ func (m *MessageGetList) GetList() response.List {
 	offset := (page - 1) * pageSize
 	db = db.Offset(offset)
 
-	//data
-	var data []MessageOutput
-	db.Debug().Find(&data)
+	//outputs
+	db.Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
-	for i := range data {
-		data[i].Datetime = data[i].Datetime[:10] + " " + data[i].Datetime[11:19]
+	for i := range outputs {
+		outputs[i].Datetime = outputs[i].Datetime[:10] + " " + outputs[i].Datetime[11:19]
 	}
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetErrorDescription(util.Success),
-	}
+		}
 }

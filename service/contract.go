@@ -653,7 +653,6 @@ func (c *ContractUpdate) Update() (errCode int) {
 func (c *ContractDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Contract
-
 	err := global.DB.Where("id = ?", c.ContractID).
 		Find(&record).
 		Delete(&record).Error

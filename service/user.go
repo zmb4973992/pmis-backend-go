@@ -1,12 +1,12 @@
 package service
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/mojocn/base64Captcha"
 	"gorm.io/gorm"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
-	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 	"strconv"
 )
@@ -68,11 +68,11 @@ type UserUpdateRoles struct {
 	RoleIDs *[]int64 `json:"role_ids"`
 }
 
-type UserUpdateDataScope struct {
+type UserUpdateDataAuthority struct {
 	LastModifier int64
 
-	UserID      int64 `json:"-"`
-	DataScopeID int64 `json:"data_scope_id" binding:"required"`
+	UserID          int64 `json:"-"`
+	DataAuthorityID int64 `json:"data_authority_id" binding:"required"`
 }
 
 //以下为出参
@@ -96,44 +96,42 @@ func (u *UserLogin) Verify() bool {
 	return permitted
 }
 
-func (u *UserLogin) Login() response.Common {
+func (u *UserLogin) Login() (output any, errCode int) {
 	permitted, err := util.LoginByLDAP(u.Username, u.Password)
 
 	if err != nil || !permitted {
-		return response.Failure(util.ErrorInvalidUsernameOrPassword)
+		return nil, util.ErrorInvalidUsernameOrPassword
 	}
 
 	var user UserOutput
 	err = global.DB.Model(model.User{}).
-		Where("username = ?", u.Username).First(&user).Error
+		Where("username = ?", u.Username).
+		First(&user).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorInvalidUsernameOrPassword)
+		return nil, util.ErrorInvalidUsernameOrPassword
 	}
 
 	token, err1 := util.GenerateToken(user.ID)
 	if err1 != nil {
-		return response.Failure(util.ErrorFailToGenerateToken)
+		return nil, util.ErrorFailToGenerateToken
 	}
 
-	return response.SuccessWithData(
-		map[string]any{
-			"access_token": token,
-		})
+	return gin.H{"access_token": token},
+		util.Success
 }
 
-func (u *UserGet) Get() response.Common {
-	var result UserOutput
+func (u *UserGet) Get() (output *UserOutput, errCode int) {
 	err := global.DB.Model(model.User{}).
-		Where("id = ?", u.ID).First(&result).Error
+		Where("id = ?", u.ID).
+		First(&output).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return nil, util.ErrorRecordNotFound
 	}
-	return response.SuccessWithData(result)
+
+	return output, util.Success
 }
 
-func (u *UserCreate) Create() response.Common {
+func (u *UserCreate) Create() (errCode int) {
 	var paramOut model.User
 	if u.UserID > 0 {
 		paramOut.Creator = &u.UserID
@@ -142,8 +140,7 @@ func (u *UserCreate) Create() response.Common {
 	paramOut.Username = u.Username
 	encryptedPassword, err := util.Encrypt(u.Password)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToEncrypt)
+		return util.ErrorFailToEncrypt
 	}
 
 	paramOut.Password = &encryptedPassword
@@ -170,13 +167,12 @@ func (u *UserCreate) Create() response.Common {
 	err = global.DB.Create(&paramOut).Error
 
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return util.ErrorFailToCreateRecord
 	}
-	return response.Success()
+	return util.Success
 }
 
-func (u *UserUpdate) Update() response.Common {
+func (u *UserUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
 	if u.UserID > 0 {
@@ -187,7 +183,7 @@ func (u *UserUpdate) Update() response.Common {
 		if *u.FullName != "" {
 			paramOut["full_name"] = u.FullName
 		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
+			return util.ErrorInvalidJSONParameters
 		}
 	}
 
@@ -224,35 +220,37 @@ func (u *UserUpdate) Update() response.Common {
 		"UserID", "CreateAt", "UpdatedAt")
 
 	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
+		return util.ErrorFieldsToBeUpdatedNotFound
 	}
 
 	err := global.DB.Model(&model.User{}).Where("id = ?", u.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return util.ErrorFailToUpdateRecord
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (u *UserDelete) Delete() response.Common {
+func (u *UserDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.User
-	global.DB.Where("id = ?", u.ID).Find(&record)
-	err := global.DB.Where("id = ?", u.ID).Delete(&record).Error
+	err := global.DB.Where("id = ?", u.ID).
+		Find(&record).
+		Delete(&record).Error
 
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	}
-	return response.Success()
+
+	return util.Success
 }
 
-func (u *UserGetList) GetList() response.List {
+func (u *UserGetList) GetList() (outputs []UserOutput,
+	errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.User{})
-	// 顺序：where -> count -> Order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
 	if u.IsValid != nil {
@@ -265,8 +263,10 @@ func (u *UserGetList) GetList() response.List {
 
 	if u.RoleID > 0 {
 		var userIDs []int64
-		global.DB.Model(&model.UserAndRole{}).Where("role_id = ?", u.RoleID).
-			Select("user_id").Find(&userIDs)
+		global.DB.Model(&model.UserAndRole{}).
+			Where("role_id = ?", u.RoleID).
+			Select("user_id").
+			Find(&userIDs)
 		db = db.Where("id in ?", userIDs)
 	}
 
@@ -287,7 +287,7 @@ func (u *UserGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.User{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return nil, util.ErrorSortingFieldDoesNotExist, nil
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -315,49 +315,43 @@ func (u *UserGetList) GetList() response.List {
 	offset := (page - 1) * pageSize
 	db = db.Offset(offset)
 
-	//data
-	var data []UserOutput
-	db.Model(&model.User{}).Find(&data)
+	//outputs
+	db.Model(&model.User{}).Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetErrorDescription(util.Success),
-	}
+		}
 }
 
-func (u *UserUpdateRoles) Update() response.Common {
+func (u *UserUpdateRoles) Update() (errCode int) {
 	if u.RoleIDs == nil {
-		return response.Failure(util.ErrorInvalidJSONParameters)
+		return util.ErrorInvalidJSONParameters
 	}
 
 	if len(*u.RoleIDs) == 0 {
 		err := global.DB.Where("user_id = ?", u.UserID).Delete(&model.UserAndRole{}).Error
 		if err != nil {
-			global.SugaredLogger.Errorln(err)
-			return response.Failure(util.ErrorFailToDeleteRecord)
+			return util.ErrorFailToDeleteRecord
 		}
-		return response.Success()
+		return util.Success
 	}
 
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		//先删掉原始记录
 		err := tx.Where("user_id = ?", u.UserID).Delete(&model.UserAndRole{}).Error
 		if err != nil {
-			global.SugaredLogger.Errorln(err)
 			return ErrorFailToDeleteRecord
 		}
 
@@ -374,23 +368,8 @@ func (u *UserUpdateRoles) Update() response.Common {
 			paramOut = append(paramOut, record)
 		}
 
-		for i := range paramOut {
-			//计算有修改值的字段数，分别进行不同处理
-			tempParamOut, err := util.StructToMap(paramOut[i])
-			if err != nil {
-				return ErrorFailToUpdateRecord
-			}
-			paramOutForCounting := util.MapCopy(tempParamOut,
-				"UserID", "UserID", "CreateAt", "UpdatedAt")
-
-			if len(paramOutForCounting) == 0 {
-				return ErrorFieldsToBeCreatedNotFound
-			}
-		}
-
 		err = global.DB.Create(&paramOut).Error
 		if err != nil {
-			global.SugaredLogger.Errorln(err)
 			return ErrorFailToCreateRecord
 		}
 
@@ -410,43 +389,34 @@ func (u *UserUpdateRoles) Update() response.Common {
 
 	switch err {
 	case nil:
-		return response.Success()
+		return util.Success
 	case ErrorFailToCreateRecord:
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return util.ErrorFailToCreateRecord
 	case ErrorFailToDeleteRecord:
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	case ErrorFieldsToBeCreatedNotFound:
-		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
+		return util.ErrorFieldsToBeCreatedNotFound
 	case ErrorFailToUpdateRBACGroupingPolicies:
-		return response.Failure(util.ErrorFailToUpdateRBACGroupingPolicies)
+		return util.ErrorFailToUpdateRBACGroupingPolicies
 	default:
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return util.ErrorFailToUpdateRecord
 	}
 }
 
-func (u *UserUpdateDataScope) Update() response.Common {
+func (u *UserUpdateDataAuthority) Update() (errCode int) {
 	paramOut := make(map[string]any)
 	if u.LastModifier > 0 {
 		paramOut["last_modifier"] = u.LastModifier
 	}
 
-	paramOut["data_scope_id"] = u.DataScopeID
-
-	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "UserID",
-		"UserID", "CreateAt", "UpdatedAt")
-
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
-	}
+	paramOut["data_authority_id"] = u.DataAuthorityID
 
 	err := global.DB.Model(&model.UserAndDataAuthority{}).
 		Where("user_id = ?", u.UserID).
 		Updates(paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return util.ErrorFailToUpdateRecord
 	}
 
-	return response.Success()
+	return util.Success
 }

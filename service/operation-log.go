@@ -61,10 +61,10 @@ type OperationLogOutput struct {
 	Detail *string `json:"detail"`
 }
 
-func (o *OperationLogGet) Get() (result *OperationLogOutput, errCode int) {
+func (o *OperationLogGet) Get() (output *OperationLogOutput, errCode int) {
 	err := global.DB.Model(model.OperationLog{}).
 		Where("id = ?", o.ID).
-		First(&result).Error
+		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
 	}
@@ -72,25 +72,25 @@ func (o *OperationLogGet) Get() (result *OperationLogOutput, errCode int) {
 	//查询关联表的详情
 	{
 		//查项目信息
-		if result.ProjectID != nil {
+		if output.ProjectID != nil {
 			var record ProjectOutput
 			res := global.DB.Model(&model.Project{}).
-				Where("id = ?", *result.ProjectID).
+				Where("id = ?", *output.ProjectID).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
-				result.ProjectExternal = &record
+				output.ProjectExternal = &record
 			}
 		}
 		//查用户信息
-		if result.Operator != nil {
+		if output.Operator != nil {
 			var record UserOutput
 			res := global.DB.Model(&model.User{}).
-				Where("id = ?", *result.Operator).
+				Where("id = ?", *output.Operator).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
-				result.OperatorExternal = &record
+				output.OperatorExternal = &record
 			}
 		}
 
@@ -98,14 +98,14 @@ func (o *OperationLogGet) Get() (result *OperationLogOutput, errCode int) {
 
 	//查询dictionary_item表的详情
 	{
-		if result.OperationType != nil {
+		if output.OperationType != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("id = ?", *result.OperationType).
+				Where("id = ?", *output.OperationType).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
-				result.OperationTypeExternal = &record
+				output.OperationTypeExternal = &record
 			}
 		}
 	}
@@ -113,13 +113,13 @@ func (o *OperationLogGet) Get() (result *OperationLogOutput, errCode int) {
 	//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
 	//需要取年月日(即前9位)
 	{
-		if result.Date != nil {
-			temp := *result.Date
-			*result.Date = temp[:10]
+		if output.Date != nil {
+			temp := *output.Date
+			*output.Date = temp[:10]
 		}
 	}
 
-	return result, util.Success
+	return output, util.Success
 }
 
 func (o *OperationLogCreate) Create() (errCode int) {
@@ -163,21 +163,8 @@ func (o *OperationLogCreate) Create() (errCode int) {
 		paramOut.Detail = &o.Detail
 	}
 
-	//计算有修改值的字段数，分别进行不同处理
-	tempParamOut, err := util.StructToMap(paramOut)
+	err := global.DB.Create(&paramOut).Error
 	if err != nil {
-		return util.ErrorFailToCreateRecord
-	}
-	paramOutForCounting := util.MapCopy(tempParamOut,
-		"UserID", "CreateAt", "UpdatedAt")
-
-	if len(paramOutForCounting) == 0 {
-		return util.ErrorFieldsToBeCreatedNotFound
-	}
-
-	err = global.DB.Create(&paramOut).Error
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return util.ErrorFailToCreateRecord
 	}
 
@@ -187,20 +174,19 @@ func (o *OperationLogCreate) Create() (errCode int) {
 func (o *OperationLogDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.OperationLog
-	global.DB.Where("id = ?", o.OperationLogID).
-		Find(&record)
 	err := global.DB.Where("id = ?", o.OperationLogID).
+		Find(&record).
 		Delete(&record).Error
 
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return util.ErrorFailToDeleteRecord
 	}
 
 	return util.Success
 }
 
-func (c *OperationLogGetList) GetList() (outputs []OperationLogOutput, errCode int, paging *list.PagingOutput) {
+func (c *OperationLogGetList) GetList() (
+	outputs []OperationLogOutput, errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.OperationLog{})
 	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
@@ -257,7 +243,7 @@ func (c *OperationLogGetList) GetList() (outputs []OperationLogOutput, errCode i
 	db = db.Offset(offset)
 
 	//outputs
-	db.Model(&model.OperationLog{}).Debug().Find(&outputs)
+	db.Model(&model.OperationLog{}).Find(&outputs)
 
 	if len(outputs) == 0 {
 		return nil, util.ErrorRecordNotFound, nil

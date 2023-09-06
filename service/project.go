@@ -4,7 +4,6 @@ import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
-	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 	"sync"
 	"time"
@@ -158,12 +157,12 @@ type projectCheckAuthorization struct {
 	UserID    int64
 }
 
-func (p *ProjectGet) Get() response.Common {
-	var result ProjectOutput
+func (p *ProjectGet) Get() (output *ProjectOutput, errCode int) {
 	err := global.DB.Model(model.Project{}).
-		Where("id = ?", p.ID).First(&result).Error
+		Where("id = ?", p.ID).
+		First(&output).Error
 	if err != nil {
-		return response.Failure(util.ErrorRecordNotFound)
+		return nil, util.ErrorRecordNotFound
 	}
 
 	var authorize projectCheckAuthorization
@@ -172,98 +171,107 @@ func (p *ProjectGet) Get() response.Common {
 	authorizationResult := authorize.checkAuthorization()
 
 	if !authorizationResult {
-		return response.Failure(util.ErrorUnauthorized)
+		return nil, util.ErrorUnauthorized
 	}
 
 	//默认格式为这样的string：2019-11-01T00:00:00Z，需要取年月日(前9位)
-	if result.SigningDate != nil {
-		temp := *result.SigningDate
-		*result.SigningDate = temp[:10]
+	if output.SigningDate != nil {
+		temp := *output.SigningDate
+		*output.SigningDate = temp[:10]
 	}
 
 	//默认格式为这样的string：2019-11-01T00:00:00Z，需要取年月日(前9位)
-	if result.EffectiveDate != nil {
-		temp := *result.EffectiveDate
-		*result.EffectiveDate = temp[:10]
+	if output.EffectiveDate != nil {
+		temp := *output.EffectiveDate
+		*output.EffectiveDate = temp[:10]
 	}
 
 	//查部门信息
-	if result.OrganizationID != nil {
+	if output.OrganizationID != nil {
 		var record OrganizationOutput
 		res := global.DB.Model(&model.Organization{}).
-			Where("id = ?", *result.OrganizationID).Limit(1).Find(&record)
+			Where("id = ?", *output.OrganizationID).
+			Limit(1).
+			Find(&record)
 		if res.RowsAffected > 0 {
-			result.OrganizationExternal = &record
+			output.OrganizationExternal = &record
 		}
 	}
 
 	//查相关方信息
-	if result.RelatedPartyID != nil {
+	if output.RelatedPartyID != nil {
 		var record RelatedPartyOutput
 		res := global.DB.Model(&model.RelatedParty{}).
-			Where("id = ?", *result.RelatedPartyID).Limit(1).Find(&record)
+			Where("id = ?", *output.RelatedPartyID).
+			Limit(1).
+			Find(&record)
 		if res.RowsAffected > 0 {
-			result.RelatedPartyExternal = &record
+			output.RelatedPartyExternal = &record
 		}
 	}
 
 	//查dictionary_item表
 	{
-		if result.Country != nil {
+		if output.Country != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("id = ?", *result.Country).
-				Limit(1).Find(&record)
+				Where("id = ?", *output.Country).
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
-				result.CountryExternal = &record
+				output.CountryExternal = &record
 			}
 		}
 
-		if result.Type != nil {
+		if output.Type != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("id = ?", *result.Type).
-				Limit(1).Find(&record)
+				Where("id = ?", *output.Type).
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
-				result.TypeExternal = &record
+				output.TypeExternal = &record
 			}
 		}
 
-		if result.Currency != nil {
+		if output.Currency != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("id = ?", *result.Currency).
-				Limit(1).Find(&record)
+				Where("id = ?", *output.Currency).
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
-				result.CurrencyExternal = &record
+				output.CurrencyExternal = &record
 			}
 		}
 
-		if result.Status != nil {
+		if output.Status != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("id = ?", *result.Status).
-				Limit(1).Find(&record)
+				Where("id = ?", *output.Status).
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
-				result.StatusExternal = &record
+				output.StatusExternal = &record
 			}
 		}
 
-		if result.OurSignatory != nil {
+		if output.OurSignatory != nil {
 			var record DictionaryDetailOutput
 			res := global.DB.Model(&model.DictionaryDetail{}).
-				Where("id = ?", *result.OurSignatory).
-				Limit(1).Find(&record)
+				Where("id = ?", *output.OurSignatory).
+				Limit(1).
+				Find(&record)
 			if res.RowsAffected > 0 {
-				result.OurSignatoryExternal = &record
+				output.OurSignatoryExternal = &record
 			}
 		}
 	}
 
-	return response.SuccessWithData(result)
+	return output, util.Success
 }
 
-func (p *ProjectCreate) Create() response.Common {
+func (p *ProjectCreate) Create() (errCode int) {
 	var paramOut model.Project
 	if p.UserID > 0 {
 		paramOut.Creator = &p.UserID
@@ -307,21 +315,21 @@ func (p *ProjectCreate) Create() response.Common {
 		if p.SigningDate != "" {
 			signingDate, err := time.Parse("2006-01-02", p.SigningDate)
 			if err != nil {
-				return response.Failure(util.ErrorInvalidDateFormat)
+				return util.ErrorInvalidDateFormat
 			}
 			paramOut.SigningDate = &signingDate
 		}
 		if p.EffectiveDate != "" {
 			effectiveDate, err := time.Parse("2006-01-02", p.EffectiveDate)
 			if err != nil {
-				return response.Failure(util.ErrorInvalidDateFormat)
+				return util.ErrorInvalidDateFormat
 			}
 			paramOut.EffectiveDate = &effectiveDate
 		}
 		if p.CommissioningDate != "" {
 			commissioningDate, err := time.Parse("2006-01-02", p.CommissioningDate)
 			if err != nil {
-				return response.Failure(util.ErrorInvalidDateFormat)
+				return util.ErrorInvalidDateFormat
 			}
 			paramOut.CommissioningDate = &commissioningDate
 		}
@@ -354,33 +362,21 @@ func (p *ProjectCreate) Create() response.Common {
 		}
 	}
 
-	//计算有修改值的字段数，分别进行不同处理
-	tempParamOut, err := util.StructToMap(paramOut)
+	err := global.DB.Create(&paramOut).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToCreateRecord)
-	}
-	paramOutForCounting := util.MapCopy(tempParamOut,
-		"UserID", "UserID", "CreateAt", "UpdatedAt")
-
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
+		return util.ErrorFailToCreateRecord
 	}
 
-	err = global.DB.Create(&paramOut).Error
-	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
-	}
-
-	return response.Success()
+	return util.Success
 }
 
-func (p *ProjectUpdate) Update() response.Common {
+func (p *ProjectUpdate) Update() (errCode int) {
 	var result ProjectOutput
 	err := global.DB.Model(model.Project{}).
-		Where("id = ?", p.ID).First(&result).Error
+		Where("id = ?", p.ID).
+		First(&result).Error
 	if err != nil {
-		return response.Failure(util.ErrorRecordNotFound)
+		return util.ErrorRecordNotFound
 	}
 
 	if p.IgnoreDataAuthority == false {
@@ -389,7 +385,7 @@ func (p *ProjectUpdate) Update() response.Common {
 		authorization.UserID = p.UserID
 		authorized := authorization.checkAuthorization()
 		if !authorized {
-			return response.Failure(util.ErrorUnauthorized)
+			return util.ErrorUnauthorized
 		}
 	}
 
@@ -463,10 +459,9 @@ func (p *ProjectUpdate) Update() response.Common {
 	{
 		if p.SigningDate != nil {
 			if *p.SigningDate != "" {
-				var err error
 				paramOut["signing_date"], err = time.Parse("2006-01-02", *p.SigningDate)
 				if err != nil {
-					return response.Failure(util.ErrorInvalidJSONParameters)
+					return util.ErrorInvalidJSONParameters
 				}
 			} else {
 				paramOut["signing_date"] = nil
@@ -474,10 +469,9 @@ func (p *ProjectUpdate) Update() response.Common {
 		}
 		if p.EffectiveDate != nil {
 			if *p.EffectiveDate != "" {
-				var err error
 				paramOut["effective_date"], err = time.Parse("2006-01-02", *p.EffectiveDate)
 				if err != nil {
-					return response.Failure(util.ErrorInvalidJSONParameters)
+					return util.ErrorInvalidJSONParameters
 				}
 			} else {
 				paramOut["effective_date"] = nil
@@ -485,10 +479,9 @@ func (p *ProjectUpdate) Update() response.Common {
 		}
 		if p.CommissioningDate != nil {
 			if *p.CommissioningDate != "" {
-				var err error
 				paramOut["commissioning_date"], err = time.Parse("2006-01-02", *p.CommissioningDate)
 				if err != nil {
-					return response.Failure(util.ErrorInvalidJSONParameters)
+					return util.ErrorInvalidJSONParameters
 				}
 			} else {
 				paramOut["commissioning_date"] = nil
@@ -551,40 +544,33 @@ func (p *ProjectUpdate) Update() response.Common {
 		}
 	}
 
-	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "UserID",
-		"UserID", "CreateAt", "UpdatedAt")
-
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
-	}
-
-	err = global.DB.Model(&model.Project{}).Where("id = ?", p.ID).
+	err = global.DB.Model(&model.Project{}).
+		Where("id = ?", p.ID).
 		Updates(paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return util.ErrorFailToUpdateRecord
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (p *ProjectDelete) Delete() response.Common {
+func (p *ProjectDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Project
-	global.DB.Where("id = ?", p.ID).Find(&record)
-	err := global.DB.Where("id = ?", p.ID).Delete(&record).Error
+	err := global.DB.Where("id = ?", p.ID).
+		Find(&record).
+		Delete(&record).Error
 
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	}
-	return response.Success()
+	return util.Success
 }
 
-func (p *ProjectGetList) GetList() response.List {
+func (p *ProjectGetList) GetList() (
+	outputs []ProjectOutput, errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.Project{})
-	// 顺序：where -> count -> Order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
 	if p.NameInclude != "" {
@@ -593,8 +579,10 @@ func (p *ProjectGetList) GetList() response.List {
 
 	if p.OrganizationNameInclude != "" {
 		var organizationIDs []int64
-		global.DB.Model(&model.Organization{}).Where("name like ?", "%"+p.OrganizationNameInclude+"%").
-			Select("id").Find(&organizationIDs)
+		global.DB.Model(&model.Organization{}).
+			Where("name like ?", "%"+p.OrganizationNameInclude+"%").
+			Select("id").
+			Find(&organizationIDs)
 		if len(organizationIDs) > 0 {
 			db = db.Where("organization_id in ?", organizationIDs)
 		}
@@ -632,7 +620,7 @@ func (p *ProjectGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.Project{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return nil, util.ErrorSortingFieldDoesNotExist, nil
 		}
 		//orderBy = "project." + orderBy
 		//如果要求降序排列
@@ -661,17 +649,16 @@ func (p *ProjectGetList) GetList() response.List {
 	offset := (page - 1) * pageSize
 	db = db.Offset(offset)
 
-	//data
-	var data []ProjectOutput
-	db.Model(&model.Project{}).Find(&data)
+	//outputs
+	db.Model(&model.Project{}).Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
 	var wg sync.WaitGroup
 
-	for j := range data {
+	for j := range outputs {
 		i := j
 		wg.Add(1)
 		go func() {
@@ -679,100 +666,100 @@ func (p *ProjectGetList) GetList() response.List {
 			//查询关联表的详情
 			{
 				//查部门信息
-				if data[i].OrganizationID != nil {
+				if outputs[i].OrganizationID != nil {
 					var record OrganizationOutput
 					res := global.DB.Model(&model.Organization{}).
-						Where("id = ?", *data[i].OrganizationID).Limit(1).Find(&record)
+						Where("id = ?", *outputs[i].OrganizationID).Limit(1).Find(&record)
 					if res.RowsAffected > 0 {
-						data[i].OrganizationExternal = &record
+						outputs[i].OrganizationExternal = &record
 					}
 				}
 				//查相关方信息
-				if data[i].RelatedPartyID != nil {
+				if outputs[i].RelatedPartyID != nil {
 					var record RelatedPartyOutput
 					res := global.DB.Model(&model.RelatedParty{}).
-						Where("id = ?", *data[i].RelatedPartyID).Limit(1).Find(&record)
+						Where("id = ?", *outputs[i].RelatedPartyID).Limit(1).Find(&record)
 					if res.RowsAffected > 0 {
-						data[i].RelatedPartyExternal = &record
+						outputs[i].RelatedPartyExternal = &record
 					}
 				}
 			}
 
 			//查dictionary_item表的详情
 			{
-				if data[i].Country != nil {
+				if outputs[i].Country != nil {
 					var record DictionaryDetailOutput
 					res := global.DB.Model(&model.DictionaryDetail{}).
-						Where("id = ?", *data[i].Country).Limit(1).Find(&record)
+						Where("id = ?", *outputs[i].Country).Limit(1).Find(&record)
 					if res.RowsAffected > 0 {
-						data[i].CountryExternal = &record
+						outputs[i].CountryExternal = &record
 					}
 				}
-				if data[i].Type != nil {
+				if outputs[i].Type != nil {
 					var record DictionaryDetailOutput
 					res := global.DB.Model(&model.DictionaryDetail{}).
-						Where("id = ?", *data[i].Type).Limit(1).Find(&record)
+						Where("id = ?", *outputs[i].Type).Limit(1).Find(&record)
 					if res.RowsAffected > 0 {
-						data[i].TypeExternal = &record
+						outputs[i].TypeExternal = &record
 					}
 				}
-				if data[i].DetailedType != nil {
+				if outputs[i].DetailedType != nil {
 					var record DictionaryDetailOutput
 					res := global.DB.Model(&model.DictionaryDetail{}).
-						Where("id = ?", *data[i].DetailedType).Limit(1).Find(&record)
+						Where("id = ?", *outputs[i].DetailedType).Limit(1).Find(&record)
 					if res.RowsAffected > 0 {
-						data[i].DetailedTypeExternal = &record
+						outputs[i].DetailedTypeExternal = &record
 					}
 				}
-				if data[i].Currency != nil {
+				if outputs[i].Currency != nil {
 					var record DictionaryDetailOutput
 					res := global.DB.Model(&model.DictionaryDetail{}).
-						Where("id = ?", *data[i].Currency).Limit(1).Find(&record)
+						Where("id = ?", *outputs[i].Currency).Limit(1).Find(&record)
 					if res.RowsAffected > 0 {
-						data[i].CurrencyExternal = &record
+						outputs[i].CurrencyExternal = &record
 					}
 				}
-				if data[i].Status != nil {
+				if outputs[i].Status != nil {
 					var record DictionaryDetailOutput
 					res := global.DB.Model(&model.DictionaryDetail{}).
-						Where("id = ?", *data[i].Status).Limit(1).Find(&record)
+						Where("id = ?", *outputs[i].Status).Limit(1).Find(&record)
 					if res.RowsAffected > 0 {
-						data[i].StatusExternal = &record
+						outputs[i].StatusExternal = &record
 					}
 				}
-				if data[i].OurSignatory != nil {
+				if outputs[i].OurSignatory != nil {
 					var record DictionaryDetailOutput
 					res := global.DB.Model(&model.DictionaryDetail{}).
-						Where("id = ?", *data[i].OurSignatory).Limit(1).Find(&record)
+						Where("id = ?", *outputs[i].OurSignatory).Limit(1).Find(&record)
 					if res.RowsAffected > 0 {
-						data[i].OurSignatoryExternal = &record
+						outputs[i].OurSignatoryExternal = &record
 					}
 				}
 			}
 			//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
 			//需要取年月日(即前9位)
 			{
-				if data[i].SigningDate != nil {
-					temp := *data[i].SigningDate
-					*data[i].SigningDate = temp[:10]
+				if outputs[i].SigningDate != nil {
+					temp := *outputs[i].SigningDate
+					*outputs[i].SigningDate = temp[:10]
 				}
-				if data[i].EffectiveDate != nil {
-					temp := *data[i].EffectiveDate
-					*data[i].EffectiveDate = temp[:10]
+				if outputs[i].EffectiveDate != nil {
+					temp := *outputs[i].EffectiveDate
+					*outputs[i].EffectiveDate = temp[:10]
 				}
-				if data[i].CommissioningDate != nil {
-					temp := *data[i].CommissioningDate
-					*data[i].CommissioningDate = temp[:10]
+				if outputs[i].CommissioningDate != nil {
+					temp := *outputs[i].CommissioningDate
+					*outputs[i].CommissioningDate = temp[:10]
 				}
 			}
 
 			if p.IgnoreDataAuthority == true {
 				var authorize projectCheckAuthorization
-				authorize.ProjectID = data[i].ID
+				authorize.ProjectID = outputs[i].ID
 				authorize.UserID = p.UserID
-				data[i].Authorized = authorize.checkAuthorization()
+				outputs[i].Authorized = authorize.checkAuthorization()
 			} else {
-				data[i].Authorized = true
+				outputs[i].Authorized = true
 			}
 		}()
 	}
@@ -782,22 +769,20 @@ func (p *ProjectGetList) GetList() response.List {
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetErrorDescription(util.Success),
-	}
+		}
 }
 
-func (p *ProjectGetSimplifiedList) GetSimplifiedList() response.List {
+func (p *ProjectGetSimplifiedList) GetSimplifiedList() (
+	outputs []ProjectSimplifiedOutput, errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.Project{})
-	// 顺序：where -> count -> Order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
 
@@ -811,27 +796,23 @@ func (p *ProjectGetSimplifiedList) GetSimplifiedList() response.List {
 	var count int64
 	db.Count(&count)
 
-	//data
-	var data []ProjectSimplifiedOutput
-	db.Model(&model.Project{}).Find(&data)
+	//outputs
+	db.Model(&model.Project{}).Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
 	numberOfRecords := int(count)
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            1,
 			PageSize:        0,
 			NumberOfPages:   1,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetErrorDescription(util.Success),
-	}
+		}
 }
 
 // checkAuthorization 该方法一定要在确定记录存在后再调用

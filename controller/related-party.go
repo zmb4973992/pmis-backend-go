@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service"
 	"pmis-backend-go/util"
@@ -19,13 +18,18 @@ func (r *relatedParty) Get(c *gin.Context) {
 	var err error
 	param.ID, err = strconv.ParseInt(c.Param("related-party-id"), 10, 64)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidURIParameters))
+		c.JSON(
+			http.StatusBadRequest,
+			response.GenerateCommon(nil, util.ErrorInvalidURIParameters),
+		)
 		return
 	}
-	res := param.Get()
-	c.JSON(http.StatusOK, res)
+
+	output, errCode := param.Get()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(output, errCode),
+	)
 	return
 }
 
@@ -33,9 +37,10 @@ func (r *relatedParty) Create(c *gin.Context) {
 	var param service.RelatedPartyCreate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidURIParameters))
+		c.JSON(
+			http.StatusBadRequest,
+			response.GenerateCommon(nil, util.ErrorInvalidJSONParameters),
+		)
 		return
 	}
 
@@ -46,8 +51,11 @@ func (r *relatedParty) Create(c *gin.Context) {
 		param.LastModifier = userID
 	}
 
-	res := param.Create()
-	c.JSON(http.StatusOK, res)
+	errCode := param.Create()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(nil, errCode),
+	)
 	return
 }
 
@@ -55,17 +63,19 @@ func (r *relatedParty) Update(c *gin.Context) {
 	var param service.RelatedPartyUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidJSONParameters))
+		c.JSON(
+			http.StatusOK,
+			response.GenerateCommon(nil, util.ErrorInvalidJSONParameters),
+		)
 		return
 	}
 
 	param.ID, err = strconv.ParseInt(c.Param("related-party-id"), 10, 64)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+		c.JSON(
+			http.StatusOK,
+			response.GenerateCommon(nil, util.ErrorInvalidURIParameters),
+		)
 		return
 	}
 
@@ -75,8 +85,11 @@ func (r *relatedParty) Update(c *gin.Context) {
 		param.UserID = userID
 	}
 
-	res := param.Update()
-	c.JSON(http.StatusOK, res)
+	errCode := param.Update()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(nil, errCode),
+	)
 	return
 }
 
@@ -85,14 +98,18 @@ func (r *relatedParty) Delete(c *gin.Context) {
 	var err error
 	param.ID, err = strconv.ParseInt(c.Param("related-party-id"), 10, 64)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters))
+		c.JSON(
+			http.StatusOK,
+			response.GenerateCommon(nil, util.ErrorInvalidURIParameters),
+		)
 		return
 	}
 
-	res := param.Delete()
-	c.JSON(http.StatusOK, res)
+	errCode := param.Delete()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(nil, errCode),
+	)
 	return
 }
 
@@ -103,13 +120,12 @@ func (r *relatedParty) GetList(c *gin.Context) {
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
 	//如果是其他错误，就正常报错
 	if err != nil && !errors.Is(err, io.EOF) {
-		global.SugaredLogger.Errorln(err)
 		c.JSON(http.StatusBadRequest,
-			response.FailureForList(util.ErrorInvalidJSONParameters))
+			response.GenerateList(nil, util.ErrorInvalidJSONParameters, nil))
 		return
 	}
 
-	res := param.GetList()
-	c.JSON(http.StatusOK, res)
+	outputs, errCode, paging := param.GetList()
+	c.JSON(http.StatusOK, response.GenerateList(outputs, errCode, paging))
 	return
 }

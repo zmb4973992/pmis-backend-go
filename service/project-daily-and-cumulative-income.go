@@ -4,7 +4,6 @@ import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
-	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 	"time"
 )
@@ -63,7 +62,7 @@ type ProjectDailyAndCumulativeIncomeOutput struct {
 
 }
 
-func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() response.Common {
+func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() (errCode int) {
 	//连接关联表的id
 	{
 		if p.ProjectID > 0 {
@@ -71,42 +70,42 @@ func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() response.Common {
 			err := global.DB.Model(&model.DictionaryType{}).
 				Where("name = '收付款的种类'").Select("id").First(&typeOfIncomeAndExpenditure).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			var planned int64
 			err = global.DB.Model(&model.DictionaryDetail{}).
 				Where("name = '计划'").Select("id").First(&planned).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			var actual int64
 			err = global.DB.Model(&model.DictionaryDetail{}).
 				Where("name = '实际'").Select("id").First(&actual).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			var forecasted int64
 			err = global.DB.Model(&model.DictionaryDetail{}).
 				Where("name = '预测'").Select("id").First(&forecasted).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			var fundDirectionOfContract int64
 			err = global.DB.Model(&model.DictionaryType{}).
 				Where("name = '合同的资金方向'").Select("id").First(&fundDirectionOfContract).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			var incomeContract int64
 			err = global.DB.Model(&model.DictionaryDetail{}).
 				Where("name = '收款合同'").Select("id").First(&incomeContract).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			//计算收款合同的总金额
@@ -126,7 +125,7 @@ func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() response.Common {
 			err = global.DB.Model(&model.DictionaryType{}).
 				Where("name = '收付款的资金方向'").Select("id").First(&fundDirectionOfIncomeAndExpenditure).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			var income int64
@@ -134,7 +133,7 @@ func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() response.Common {
 				Where("dictionary_type_id = ?", fundDirectionOfIncomeAndExpenditure).
 				Where("name = '收款'").Select("id").First(&income).Error
 			if err != nil {
-				return response.Failure(util.ErrorFailToUpdateRecord)
+				return util.ErrorFailToUpdateRecord
 			}
 
 			var dates []time.Time
@@ -269,12 +268,14 @@ func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() response.Common {
 		}
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (p *ProjectDailyAndCumulativeIncomeGetList) GetList() response.List {
+func (p *ProjectDailyAndCumulativeIncomeGetList) GetList() (
+	outputs []ProjectDailyAndCumulativeIncomeOutput,
+	errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.ProjectDailyAndCumulativeIncome{})
-	// 顺序：where -> count -> Order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
 	if p.ProjectID > 0 {
@@ -308,7 +309,7 @@ func (p *ProjectDailyAndCumulativeIncomeGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.ProjectDailyAndCumulativeIncome{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return nil, util.ErrorSortingFieldDoesNotExist, nil
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -336,51 +337,51 @@ func (p *ProjectDailyAndCumulativeIncomeGetList) GetList() response.List {
 	offset := (page - 1) * pageSize
 	db = db.Offset(offset)
 
-	//data
-	var data []ProjectDailyAndCumulativeIncomeOutput
-	db.Model(&model.ProjectDailyAndCumulativeIncome{}).Find(&data)
+	//outputs
+	db.Model(&model.ProjectDailyAndCumulativeIncome{}).
+		Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
-	for i := range data {
+	for i := range outputs {
 		//处理float64精度问题
-		if data[i].TotalPlannedIncome != nil {
-			temp := util.Round(*data[i].TotalPlannedIncome, 2)
-			data[i].TotalPlannedIncome = &temp
+		if outputs[i].TotalPlannedIncome != nil {
+			temp := util.Round(*outputs[i].TotalPlannedIncome, 2)
+			outputs[i].TotalPlannedIncome = &temp
 		}
-		if data[i].TotalActualIncome != nil {
-			temp := util.Round(*data[i].TotalActualIncome, 2)
-			data[i].TotalActualIncome = &temp
+		if outputs[i].TotalActualIncome != nil {
+			temp := util.Round(*outputs[i].TotalActualIncome, 2)
+			outputs[i].TotalActualIncome = &temp
 		}
-		if data[i].TotalForecastedIncome != nil {
-			temp := util.Round(*data[i].TotalForecastedIncome, 2)
-			data[i].TotalForecastedIncome = &temp
+		if outputs[i].TotalForecastedIncome != nil {
+			temp := util.Round(*outputs[i].TotalForecastedIncome, 2)
+			outputs[i].TotalForecastedIncome = &temp
 		}
-		if data[i].PlannedIncomeProgress != nil {
-			temp := util.Round(*data[i].PlannedIncomeProgress, 3)
-			data[i].PlannedIncomeProgress = &temp
+		if outputs[i].PlannedIncomeProgress != nil {
+			temp := util.Round(*outputs[i].PlannedIncomeProgress, 3)
+			outputs[i].PlannedIncomeProgress = &temp
 		}
-		if data[i].ActualIncomeProgress != nil {
-			temp := util.Round(*data[i].ActualIncomeProgress, 3)
-			data[i].ActualIncomeProgress = &temp
+		if outputs[i].ActualIncomeProgress != nil {
+			temp := util.Round(*outputs[i].ActualIncomeProgress, 3)
+			outputs[i].ActualIncomeProgress = &temp
 		}
-		if data[i].ForecastedIncomeProgress != nil {
-			temp := util.Round(*data[i].ForecastedIncomeProgress, 3)
-			data[i].ForecastedIncomeProgress = &temp
+		if outputs[i].ForecastedIncomeProgress != nil {
+			temp := util.Round(*outputs[i].ForecastedIncomeProgress, 3)
+			outputs[i].ForecastedIncomeProgress = &temp
 		}
-		if data[i].DailyActualIncome != nil {
-			temp := util.Round(*data[i].DailyActualIncome, 2)
-			data[i].DailyActualIncome = &temp
+		if outputs[i].DailyActualIncome != nil {
+			temp := util.Round(*outputs[i].DailyActualIncome, 2)
+			outputs[i].DailyActualIncome = &temp
 		}
 
 		//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
 		//需要取年月日(即前9位)
 		{
-			if data[i].Date != nil {
-				temp := *data[i].Date
-				*data[i].Date = temp[:10]
+			if outputs[i].Date != nil {
+				temp := *outputs[i].Date
+				*outputs[i].Date = temp[:10]
 			}
 		}
 	}
@@ -388,15 +389,12 @@ func (p *ProjectDailyAndCumulativeIncomeGetList) GetList() response.List {
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetErrorDescription(util.Success),
-	}
+		}
 }

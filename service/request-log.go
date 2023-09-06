@@ -4,7 +4,6 @@ import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
-	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 	"time"
 )
@@ -46,33 +45,34 @@ type RequestLogOutput struct {
 	UserAgent    *string    `json:"user_agent"`    //浏览器标识
 }
 
-func (o *RequestLogGet) Get() response.Common {
-	var result RequestLogOutput
+func (o *RequestLogGet) Get() (output *RequestLogOutput, errCode int) {
 	err := global.DB.Model(model.RequestLog{}).
-		Where("id = ?", o.ID).First(&result).Error
+		Where("id = ?", o.ID).
+		First(&output).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return nil, util.ErrorRecordNotFound
 	}
-	return response.SuccessWithData(result)
+
+	return output, util.Success
 }
 
-func (o *RequestLogDelete) Delete() response.Common {
+func (o *RequestLogDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.RequestLog
-	global.DB.Where("id = ?", o.ID).Find(&record)
-	err := global.DB.Where("id = ?", o.ID).Delete(&record).Error
+	err := global.DB.Where("id = ?", o.ID).
+		Find(&record).
+		Delete(&record).Error
 
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	}
-	return response.Success()
+	return util.Success
 }
 
-func (o *RequestLogGetList) GetList() response.List {
+func (o *RequestLogGetList) GetList() (outputs []RequestLogOutput,
+	errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.RequestLog{})
-	// 顺序：where -> count -> Order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
 	if o.UserID > 0 {
@@ -96,7 +96,7 @@ func (o *RequestLogGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.RequestLog{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return nil, util.ErrorSortingFieldDoesNotExist, nil
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -124,26 +124,22 @@ func (o *RequestLogGetList) GetList() response.List {
 	offset := (page - 1) * pageSize
 	db = db.Offset(offset)
 
-	//data
-	var data []RequestLogOutput
-	db.Model(&model.RequestLog{}).Find(&data)
+	//outputs
+	db.Model(&model.RequestLog{}).Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetErrorDescription(util.Success),
-	}
+		}
 }

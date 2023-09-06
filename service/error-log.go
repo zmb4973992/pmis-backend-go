@@ -4,9 +4,7 @@ import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
-	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
-	"time"
 )
 
 //以下为入参
@@ -34,7 +32,6 @@ type ErrorLogUpdate struct {
 	ID     int64
 
 	Detail            *string `json:"detail"`
-	Date              *string `json:"date"`
 	MainCategory      *string `json:"main_category"`
 	SecondaryCategory *string `json:"secondary_category"`
 	IsResolved        *bool   `json:"is_resolved"`
@@ -48,7 +45,6 @@ type ErrorLogGetList struct {
 	list.Input
 
 	DetailInclude     string `json:"detail_include,omitempty" `
-	Date              string `json:"date,omitempty"`
 	MainCategory      string `json:"main_category,omitempty"`
 	SecondaryCategory string `json:"secondary_category,omitempty"`
 	IsResolved        bool   `json:"is_resolved,omitempty"`
@@ -68,22 +64,18 @@ type ErrorLogOutput struct {
 	IsResolved        *bool   `json:"is_resolved"`
 }
 
-func (e *ErrorLogGet) Get() response.Common {
-	var result ErrorLogOutput
+func (e *ErrorLogGet) Get() (output *ErrorLogOutput, errCode int) {
 	err := global.DB.Model(model.ErrorLog{}).
-		Where("id = ?", e.ID).First(&result).Error
+		Where("id = ?", e.ID).
+		First(&output).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorRecordNotFound)
+		return nil, util.ErrorRecordNotFound
 	}
-	if result.Date != nil {
-		date := *result.Date
-		*result.Date = date[:10]
-	}
-	return response.SuccessWithData(result)
+
+	return output, util.Success
 }
 
-func (e *ErrorLogCreate) Create() response.Common {
+func (e *ErrorLogCreate) Create() (errCode int) {
 	var paramOut model.ErrorLog
 	if e.UserID > 0 {
 		paramOut.Creator = &e.UserID
@@ -92,9 +84,6 @@ func (e *ErrorLogCreate) Create() response.Common {
 	if e.Detail != "" {
 		paramOut.Detail = &e.Detail
 	}
-
-	datetime := time.Now()
-	paramOut.Datetime = &datetime
 
 	if e.MainCategory != "" {
 		paramOut.MainCategory = &e.MainCategory
@@ -110,13 +99,13 @@ func (e *ErrorLogCreate) Create() response.Common {
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return util.ErrorFailToCreateRecord
 	}
-	return response.Success()
+
+	return util.Success
 }
 
-func (e *ErrorLogUpdate) Update() response.Common {
+func (e *ErrorLogUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
 	if e.UserID > 0 {
@@ -128,18 +117,6 @@ func (e *ErrorLogUpdate) Update() response.Common {
 			paramOut["detail"] = e.Detail
 		} else {
 			paramOut["detail"] = nil
-		}
-	}
-
-	if e.Date != nil {
-		if *e.Date != "" {
-			date, err := time.Parse("2006-01-02", *e.Date)
-			if err != nil {
-				return response.Failure(util.ErrorInvalidJSONParameters)
-			}
-			paramOut["date"] = date
-		} else {
-			paramOut["date"] = nil
 		}
 	}
 
@@ -166,50 +143,38 @@ func (e *ErrorLogUpdate) Update() response.Common {
 			paramOut["is_resolved"] = nil
 		}
 	}
-	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "UserID",
-		"UserID", "CreateAt", "UpdatedAt")
 
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
-	}
-
-	err := global.DB.Model(&model.ErrorLog{}).Where("id = ?", e.ID).
+	err := global.DB.Model(&model.ErrorLog{}).
+		Where("id = ?", e.ID).
 		Updates(paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return util.ErrorFailToUpdateRecord
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (e *ErrorLogDelete) Delete() response.Common {
+func (e *ErrorLogDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.ErrorLog
-	global.DB.Where("id = ?", e.ID).Find(&record)
-	err := global.DB.Where("id = ?", e.ID).Delete(&record).Error
+	err := global.DB.Where("id = ?", e.ID).
+		Find(&record).
+		Delete(&record).Error
 
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	}
-	return response.Success()
+	return util.Success
 }
 
-// GetList date待修改
-func (e *ErrorLogGetList) GetList() response.List {
+func (e *ErrorLogGetList) GetList() (
+	outputs []model.ErrorLog, errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.ErrorLog{})
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
 	if e.DetailInclude != "" {
 		db = db.Where("detail like ?", "%"+e.DetailInclude+"%")
-	}
-
-	//待完成
-	if e.Date != "" {
-
 	}
 
 	if e.MainCategory != "" {
@@ -241,7 +206,7 @@ func (e *ErrorLogGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.ErrorLog{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return nil, util.ErrorSortingFieldDoesNotExist, nil
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -269,26 +234,22 @@ func (e *ErrorLogGetList) GetList() response.List {
 	offset := (page - 1) * pageSize
 	db = db.Offset(offset)
 
-	//data
-	var data []ErrorLogOutput
-	db.Model(&model.ErrorLog{}).Find(&data)
+	//outputs
+	db.Model(&model.ErrorLog{}).Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetErrorDescription(util.Success),
-	}
+		}
 }

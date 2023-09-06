@@ -8,7 +8,6 @@ import (
 	"os"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
-	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 	"strconv"
 )
@@ -93,12 +92,12 @@ func (f *FileCreate) Create() (fileID int64, url string, err error) {
 	return file.ID, url, nil
 }
 
-func (f *FileDelete) Delete() response.Common {
+func (f *FileDelete) Delete() (errCode int) {
 	var record model.File
 	err := global.DB.Where("id = ?", f.ID).
 		First(&record).Error
 	if err != nil {
-		return response.Success()
+		return util.Success
 	}
 
 	storagePath := global.Config.UploadConfig.StoragePath
@@ -107,15 +106,15 @@ func (f *FileDelete) Delete() response.Common {
 	err = os.Remove(filePath)
 
 	if err != nil {
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	}
 
 	err = global.DB.Where("id = ?", f.ID).Delete(&record).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	}
 
-	return response.Success()
+	return util.Success
 }
 
 // 仿照gin c.SaveUploadedFile的写法
