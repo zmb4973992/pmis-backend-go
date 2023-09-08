@@ -15,7 +15,7 @@ type dictionaryType struct {
 }
 
 func (d *dictionaryType) Get(c *gin.Context) {
-	var param = service.DictionaryTypeGet{}
+	var param service.DictionaryTypeGet
 	var err error
 	param.ID, err = strconv.ParseInt(c.Param("dictionary-type-id"), 10, 64)
 	if err != nil {

@@ -90,6 +90,7 @@ type ProjectGetList struct {
 	RelatedPartyID          int64   `json:"related_party_id,omitempty"`
 	OrganizationNameInclude string  `json:"organization_name_include,omitempty"`
 	OrganizationIDIn        []int64 `json:"organization_id_in"`
+	Country                 int64   `json:"country,omitempty"`
 
 	//是否忽略数据权限的限制，用于请求数据范围外的全部数据
 	IgnoreDataAuthority bool `json:"ignore_data_authority"`
@@ -597,6 +598,10 @@ func (p *ProjectGetList) GetList() (
 		db = db.Where("organization_id in ?", p.OrganizationIDIn)
 	}
 
+	if p.Country > 0 {
+		db = db.Where("country = ?", p.Country)
+	}
+
 	//用来确定数据范围
 	if p.IgnoreDataAuthority == false {
 		organizationIDs := util.GetOrganizationIDsForDataAuthority(p.UserID)
@@ -815,7 +820,6 @@ func (p *ProjectGetSimplifiedList) GetSimplifiedList() (
 		}
 }
 
-// checkAuthorization 该方法一定要在确定记录存在后再调用
 func (p *projectCheckAuthorization) checkAuthorization() (authorized bool) {
 	//用来确定数据范围内的组织id
 	organizationIDs := util.GetOrganizationIDsForDataAuthority(p.UserID)

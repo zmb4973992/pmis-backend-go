@@ -223,6 +223,13 @@ func (c *ContractGet) Get() (output *ContractOutput, errCode int) {
 			global.DB.Model(&model.File{}).
 				Where("id in ?", fileIDs).
 				Find(&records)
+			for i := range records {
+				if records[i].CreatedAt != nil {
+					temp1 := *records[i].CreatedAt
+					temp2 := temp1[:10] + " " + temp1[11:19]
+					records[i].CreatedAt = &temp2
+				}
+			}
 
 			ip := global.Config.DownloadConfig.LocalIP
 			port := global.Config.AppConfig.HttpPort
@@ -863,7 +870,6 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 		}
 }
 
-// 该方法一定要在确定记录存在后再调用
 func (c *contractCheckAuth) checkAuth() (authorized bool) {
 	//用来确定数据范围内的组织id
 	organizationIDs := util.GetOrganizationIDsForDataAuthority(c.UserID)

@@ -5,6 +5,7 @@ app:
   app-mode: "debug"
   http-port: "8000"
 
+#主数据库
 database:
   db-host: "10.3.0.160"
   db-port: "14330"
@@ -12,6 +13,7 @@ database:
   db-username: "sa"
   db-password: "028912"
 
+#率敏的数据库
 database2:
   db-host: "10.3.0.16"
   db-port: "1433"
@@ -19,6 +21,7 @@ database2:
   db-username: "MBPro"
   db-password: "orPBM965"
 
+#老PMIS的数据库
 database3:
   db-host: "10.3.0.159"
   db-port: "14330"
@@ -114,7 +117,8 @@ ldap:
                    "财务管理部","储运管理部","事业部管理委员会和水泥工程事业部","纪检审计部",
                    "技术中心", "水泥工程市场一部", "水泥工程市场二部", "项目管理部", "工程项目执行部",
                    "水泥延伸业务部", "进口部/航空技术部", "成套业务一部", "成套业务二部",
-                   "成套业务四部", "成套业务五部", "成套业务六部","国内企业管理部","党建文宣部" ]
+                   "成套业务四部", "成套业务五部", "成套业务六部","国内企业管理部","党建文宣部",
+                   "凯昌公司", ]
   attributes: [
     "cn",                #Common Name, 中文名，如：张三
     "distinguishedName", #DN, 区分名，如：[CN=张三, OU=综合管理和法律部, OU=中航国际北京公司, DC=avicbj, DC=ad]
@@ -122,3 +126,17 @@ ldap:
     "userPrincipalName", #UPN, 用户主体名称，如：x0020888@avicbj.ad
     "mail",              #邮箱，如：zhangsan@intl-bj.avic.com
   ]
+
+#最新汇率，1外币 = XX人民币，精确到小数点后4位
+#2023.9.8更新
+exchange-rate:
+  #美元
+  USD: "7.3460"
+  #欧元
+  EUR: "7.8720"
+  #港币
+  HKD: "0.9371"
+  #新加坡元
+  SGD: "5.3845"
+  #马来西亚币
+  MYR: "1.5713"

@@ -21,7 +21,8 @@ func LoginByLDAP(username, password string) (permitted bool, err error) {
 	{
 		if username == "a" && password == "a" {
 			var user model.User
-			err = global.DB.Model(&model.User{}).Where(model.User{Username: "a"}).
+			err = global.DB.Model(&model.User{}).
+				Where(model.User{Username: "a"}).
 				First(&user).Error
 			if err != nil {
 				global.SugaredLogger.Errorln(err)

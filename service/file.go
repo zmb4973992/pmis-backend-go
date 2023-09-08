@@ -37,6 +37,7 @@ type FileOutput struct {
 	Name         string  `json:"name"`
 	Url          string  `json:"url" gorm:"-"`
 	SizeMB       float64 `json:"size_mb"`
+	CreatedAt    *string `json:"created_at"`
 }
 
 func (f *FileGet) Get() (filePath string, fileName string, existed bool) {
@@ -122,7 +123,6 @@ func saveUploadedFile(fileHeader *multipart.FileHeader, destination string) erro
 	//打开、读取文件
 	openedFile, err := fileHeader.Open()
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return err
 	}
 	defer openedFile.Close()
@@ -130,7 +130,6 @@ func saveUploadedFile(fileHeader *multipart.FileHeader, destination string) erro
 	//创建空的新文件
 	createdFile, err := os.Create(destination)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return err
 	}
 	defer createdFile.Close()
@@ -138,7 +137,6 @@ func saveUploadedFile(fileHeader *multipart.FileHeader, destination string) erro
 	//把打开的文件内容复制到新文件中
 	_, err = io.Copy(createdFile, openedFile)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return err
 	}
 

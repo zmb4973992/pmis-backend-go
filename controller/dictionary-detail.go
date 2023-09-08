@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service"
 	"pmis-backend-go/util"
@@ -19,12 +18,10 @@ func (d *dictionaryDetail) Get(c *gin.Context) {
 	var err error
 	param.ID, err = strconv.ParseInt(c.Param("dictionary-detail-id"), 10, 64)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusBadRequest, response.Common{
-			Data:    nil,
-			Code:    util.ErrorInvalidURIParameters,
-			Message: util.GetErrorDescription(util.ErrorInvalidURIParameters),
-		})
+		c.JSON(
+			http.StatusBadRequest,
+			response.GenerateCommon(nil, util.ErrorInvalidURIParameters),
+		)
 		return
 	}
 	output, errCode := param.Get()
@@ -73,7 +70,6 @@ func (d *dictionaryDetail) Update(c *gin.Context) {
 	//把uri上的id参数传递给结构体形式的入参
 	param.ID, err = strconv.ParseInt(c.Param("dictionary-detail-id"), 10, 64)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		c.JSON(
 			http.StatusOK,
 			response.GenerateCommon(nil, util.ErrorInvalidURIParameters),

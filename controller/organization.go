@@ -14,7 +14,7 @@ import (
 type organization struct{}
 
 func (o *organization) Get(c *gin.Context) {
-	param := service.OrganizationGet{}
+	var param service.OrganizationGet
 	var err error
 	param.ID, err = strconv.ParseInt(c.Param("organization-id"), 10, 64)
 	if err != nil {

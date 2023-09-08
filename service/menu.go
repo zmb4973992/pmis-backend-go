@@ -127,7 +127,6 @@ func (m *MenuGet) Get() response.Common {
 	err := global.DB.Model(model.Menu{}).
 		Where("id = ?", m.ID).First(&result).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 
@@ -191,7 +190,6 @@ func (m *MenuCreate) Create() response.Common {
 
 	err = global.DB.Create(&paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
@@ -295,7 +293,6 @@ func (m *MenuUpdate) Update() response.Common {
 	err := global.DB.Model(&model.Menu{}).Where("id = ?", m.ID).
 		Updates(paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 
@@ -309,7 +306,6 @@ func (m *MenuDelete) Delete() response.Common {
 	err := global.DB.Where("id = ?", m.ID).Delete(&record).Error
 
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()
@@ -323,7 +319,6 @@ func (m *MenuUpdateApis) Update() response.Common {
 	if len(*m.ApiIDs) == 0 {
 		err := global.DB.Where("menu_id = ?", m.MenuID).Delete(&model.Menu{}).Error
 		if err != nil {
-			global.SugaredLogger.Errorln(err)
 			return response.Failure(util.ErrorFailToDeleteRecord)
 		}
 		return response.Success()
@@ -332,7 +327,6 @@ func (m *MenuUpdateApis) Update() response.Common {
 	//先删掉原始记录
 	err := global.DB.Where("menu_id = ?", m.MenuID).Delete(&model.MenuAndApi{}).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 
@@ -368,7 +362,6 @@ func (m *MenuUpdateApis) Update() response.Common {
 
 	err = global.DB.Create(&paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 

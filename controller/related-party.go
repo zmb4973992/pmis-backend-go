@@ -126,6 +126,9 @@ func (r *relatedParty) GetList(c *gin.Context) {
 	}
 
 	outputs, errCode, paging := param.GetList()
-	c.JSON(http.StatusOK, response.GenerateList(outputs, errCode, paging))
+	c.JSON(
+		http.StatusOK,
+		response.GenerateList(outputs, errCode, paging),
+	)
 	return
 }

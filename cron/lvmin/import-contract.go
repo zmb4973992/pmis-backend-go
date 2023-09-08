@@ -340,7 +340,7 @@ func UpdateExchangeRageOfContract(userID int64) error {
 				IgnoreDataAuthority: true,
 				UserID:              userID,
 				ContractID:          contracts[i].ID,
-				ExchangeRate:        model.Float64ToPointer(7.2),
+				ExchangeRate:        &global.Config.ExchangeRateConfig.USD,
 			}
 			errCode := param.Update()
 			if errCode != util.Success {
@@ -352,7 +352,7 @@ func UpdateExchangeRageOfContract(userID int64) error {
 				IgnoreDataAuthority: true,
 				UserID:              userID,
 				ContractID:          contracts[i].ID,
-				ExchangeRate:        model.Float64ToPointer(7.8),
+				ExchangeRate:        &global.Config.ExchangeRateConfig.EUR,
 			}
 			errCode := param.Update()
 			if errCode != util.Success {
@@ -364,7 +364,7 @@ func UpdateExchangeRageOfContract(userID int64) error {
 				IgnoreDataAuthority: true,
 				UserID:              userID,
 				ContractID:          contracts[i].ID,
-				ExchangeRate:        model.Float64ToPointer(0.92),
+				ExchangeRate:        &global.Config.ExchangeRateConfig.HKD,
 			}
 			errCode := param.Update()
 			if errCode != util.Success {
@@ -376,7 +376,7 @@ func UpdateExchangeRageOfContract(userID int64) error {
 				IgnoreDataAuthority: true,
 				UserID:              userID,
 				ContractID:          contracts[i].ID,
-				ExchangeRate:        model.Float64ToPointer(5.3),
+				ExchangeRate:        &global.Config.ExchangeRateConfig.SGD,
 			}
 			errCode := param.Update()
 			if errCode != util.Success {
@@ -388,7 +388,7 @@ func UpdateExchangeRageOfContract(userID int64) error {
 				IgnoreDataAuthority: true,
 				UserID:              userID,
 				ContractID:          contracts[i].ID,
-				ExchangeRate:        model.Float64ToPointer(1.5),
+				ExchangeRate:        &global.Config.ExchangeRateConfig.MLR,
 			}
 			errCode := param.Update()
 			if errCode != util.Success {

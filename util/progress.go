@@ -26,7 +26,8 @@ func UpdateProgressOfSuperiors(disassemblyID int64, progressType int64, userID i
 func UpdateOwnProgress(disassemblyID int64, progressType int64, userID int64) (err error) {
 	//找到"进度的数据来源"的字典类型值
 	var dataSourceOfProgress model.DictionaryType
-	err = global.DB.Where("name = '进度的数据来源'").First(&dataSourceOfProgress).Error
+	err = global.DB.Where("name = '进度的数据来源'").
+		First(&dataSourceOfProgress).Error
 	if err != nil {
 		return err
 	}
@@ -35,7 +36,8 @@ func UpdateOwnProgress(disassemblyID int64, progressType int64, userID int64) (e
 	var systemCalculation model.DictionaryDetail
 	err = global.DB.
 		Where("dictionary_type_id = ?", dataSourceOfProgress.ID).
-		Where("name = '系统计算'").First(&systemCalculation).Error
+		Where("name = '系统计算'").
+		First(&systemCalculation).Error
 	if err != nil {
 		return err
 	}
@@ -142,7 +144,8 @@ func updateOwnProgress1(disassemblyID int64, date time.Time, progressType int64,
 
 	//找到"系统计算"的字典值
 	var dataSourceOfProgress model.DictionaryType
-	err = global.DB.Where("name = '进度的数据来源'").First(&dataSourceOfProgress).Error
+	err = global.DB.Where("name = '进度的数据来源'").
+		First(&dataSourceOfProgress).Error
 	if err != nil {
 		return err
 	}
@@ -150,7 +153,8 @@ func updateOwnProgress1(disassemblyID int64, date time.Time, progressType int64,
 	var systemCalculation model.DictionaryDetail
 	err = global.DB.
 		Where("dictionary_type_id = ?", dataSourceOfProgress.ID).
-		Where("name = '系统计算'").First(&systemCalculation).Error
+		Where("name = '系统计算'").
+		First(&systemCalculation).Error
 	if err != nil {
 		return err
 	}

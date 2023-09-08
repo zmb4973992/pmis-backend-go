@@ -55,10 +55,13 @@ func UpdateUsersByLDAP() error {
 	}
 
 	//把组织-用户中间表中的ldap导入数据删除
-	global.DB.Where("imported_by_ldap = ?", 1).Delete(&model.OrganizationAndUser{})
+	global.DB.Where("imported_by_ldap = ?", 1).
+		Delete(&model.OrganizationAndUser{})
 
 	for i := range searchResult.Entries {
 		entry := searchResult.Entries[i]
+		//fmt.Println(entry)
+
 		DN := entry.GetAttributeValue("distinguishedName")
 		for _, permittedOU := range permittedOUs {
 			if strings.Contains(DN, permittedOU) {

@@ -72,7 +72,8 @@ func generateOrganizations() error {
 		{Name: "成套业务六部", Sort: 21, IsValid: true},
 		{Name: "投资企业", Sort: 22, IsValid: true},
 		{Name: "海外机构", Sort: 23, IsValid: true},
-		{Name: "国内企业管理部", Sort: 24, IsValid: true},
+		{Name: "国内企业管理部", Sort: 24, IsValid: false},
+		{Name: "凯昌公司", Sort: 25, IsValid: true},
 	}
 	for _, organization := range organizations {
 		err = global.DB.Where(&Organization{Name: organization.Name}).

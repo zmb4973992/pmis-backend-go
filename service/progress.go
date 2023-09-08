@@ -204,7 +204,6 @@ func (p *ProgressCreate) Create() (errCode int) {
 	err = util.UpdateProgressOfSuperiors(p.DisassemblyID, p.Type, p.UserID)
 
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return util.ErrorFailToCalculateSuperiorProgress
 	}
 
@@ -299,7 +298,6 @@ func (p *ProgressUpdate) Update() (errCode int) {
 		Where("id = ?", p.ID).
 		Updates(paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return util.ErrorFailToUpdateRecord
 	}
 

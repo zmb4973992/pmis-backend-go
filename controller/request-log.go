@@ -60,8 +60,10 @@ func (o *requestLog) GetList(c *gin.Context) {
 	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
 	//如果是其他错误，就正常报错
 	if err != nil && !errors.Is(err, io.EOF) {
-		c.JSON(http.StatusBadRequest,
-			response.GenerateList(nil, util.ErrorInvalidJSONParameters, nil))
+		c.JSON(
+			http.StatusBadRequest,
+			response.GenerateList(nil, util.ErrorInvalidJSONParameters, nil),
+		)
 		return
 	}
 

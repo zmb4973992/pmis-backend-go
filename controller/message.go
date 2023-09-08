@@ -5,7 +5,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/service"
 	"pmis-backend-go/util"
@@ -15,13 +14,14 @@ import (
 type message struct{}
 
 func (m *message) Get(c *gin.Context) {
-	param := service.MessageGet{}
+	var param service.MessageGet
 	var err error
 	param.ID, err = strconv.ParseInt(c.Param("message-id"), 10, 64)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
-		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidURIParameters))
+		c.JSON(
+			http.StatusBadRequest,
+			response.GenerateCommon(nil, util.ErrorInvalidURIParameters),
+		)
 		return
 	}
 	output, errCode := param.Get()
@@ -61,7 +61,6 @@ func (m *message) Update(c *gin.Context) {
 	var param service.MessageUpdate
 	err := c.ShouldBindJSON(&param)
 	if err != nil && !errors.Is(err, io.EOF) {
-		global.SugaredLogger.Errorln(err)
 		c.JSON(
 			http.StatusOK,
 			response.GenerateCommon(nil, util.ErrorInvalidJSONParameters),

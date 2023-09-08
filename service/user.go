@@ -226,7 +226,6 @@ func (u *UserUpdate) Update() (errCode int) {
 	err := global.DB.Model(&model.User{}).Where("id = ?", u.ID).
 		Updates(paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return util.ErrorFailToUpdateRecord
 	}
 

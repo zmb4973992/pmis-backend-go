@@ -13,8 +13,10 @@ type token struct{}
 func (t *token) Validate(c *gin.Context) {
 	accessToken := c.Param("access-token")
 	if accessToken == "" {
-		c.JSON(http.StatusBadRequest,
-			response.Failure(util.ErrorInvalidURIParameters))
+		c.JSON(
+			http.StatusBadRequest,
+			response.GenerateCommon(nil, util.ErrorInvalidURIParameters),
+		)
 		return
 	}
 
@@ -22,16 +24,21 @@ func (t *token) Validate(c *gin.Context) {
 	res, err := util.ParseToken(accessToken)
 	//如果存在错误或token已过期
 	if err != nil || res.ExpiresAt.Unix() < time.Now().Unix() {
-		c.JSON(http.StatusOK, response.Failure(util.ErrorAccessTokenInvalid))
+		c.JSON(
+			http.StatusOK,
+			response.GenerateCommon(nil, util.ErrorAccessTokenInvalid),
+		)
 		c.Abort()
 		return
 	}
 
 	userID := res.UserID
-	res1 := map[string]int64{
-		"user_id": userID,
-	}
 
-	c.JSON(http.StatusOK, response.SuccessWithData(res1))
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(
+			gin.H{"user_id": userID},
+			util.Success),
+	)
 	return
 }

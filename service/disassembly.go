@@ -269,13 +269,11 @@ func (d *DisassemblyUpdate) Update() (errCode int) {
 				//更新自身进度
 				err = util.UpdateOwnProgress(d.ID, v, d.UserID)
 				if err != nil {
-					global.SugaredLogger.Errorln(err)
 					return util.ErrorFailToCalculateSelfProgress
 				}
 				//更新所有上级的进度
 				err = util.UpdateProgressOfSuperiors(d.ID, v, d.UserID)
 				if err != nil {
-					global.SugaredLogger.Errorln(err)
 					return util.ErrorFailToCalculateSuperiorProgress
 				}
 			}
@@ -354,7 +352,6 @@ func (d *DisassemblyDelete) Delete() (errCode int) {
 		err = global.DB.Where("disassembly_id = ?", v).
 			Delete(&model.Progress{}).Error
 		if err != nil {
-			global.SugaredLogger.Errorln(err)
 			return util.ErrorFailToDeleteRecord
 		}
 	}

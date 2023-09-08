@@ -26,14 +26,6 @@ var (
 	v             = viper.New()
 )
 
-// 用于确定角色的数据范围
-const (
-	HisOrganization = iota + 1
-	HisOrganizationAndInferiors
-	AllOrganization
-	CustomOrganization
-)
-
 // 这层只是中间的汇总层，只是包内引用、不展示，所以小写
 type config struct {
 	AppConfig
@@ -48,6 +40,7 @@ type config struct {
 	CaptchaConfig
 	OssConfig
 	LDAPConfig
+	ExchangeRateConfig
 }
 
 type AppConfig struct {
@@ -127,6 +120,14 @@ type LDAPConfig struct {
 	Password     string
 	PermittedOUs []string
 	Attributes   []string
+}
+
+type ExchangeRateConfig struct {
+	USD float64
+	EUR float64
+	HKD float64
+	SGD float64
+	MLR float64
 }
 
 func InitConfig() {
@@ -232,6 +233,13 @@ func loadConfig() {
 	Config.LDAPConfig.Password = v.GetString("ldap.password")
 	Config.LDAPConfig.PermittedOUs = v.GetStringSlice("ldap.permitted-OUs")
 	Config.LDAPConfig.Attributes = v.GetStringSlice("ldap.attributes")
+
+	Config.ExchangeRateConfig.USD = v.GetFloat64("exchange-rate.USD")
+	Config.ExchangeRateConfig.EUR = v.GetFloat64("exchange-rate.EUR")
+	Config.ExchangeRateConfig.HKD = v.GetFloat64("exchange-rate.HKD")
+	Config.ExchangeRateConfig.SGD = v.GetFloat64("exchange-rate.SGD")
+	Config.ExchangeRateConfig.MLR = v.GetFloat64("exchange-rate.MLR")
+
 }
 
 // byte 是 uint8 的别名,rune 是 int32 的别名

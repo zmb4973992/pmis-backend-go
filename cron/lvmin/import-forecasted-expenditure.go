@@ -242,15 +242,15 @@ func ImportForecastedExpenditure(userID int64) error {
 		case "人民币":
 			newRecord.ExchangeRate = model.Float64ToPointer(1)
 		case "美元":
-			newRecord.ExchangeRate = model.Float64ToPointer(7.2)
+			newRecord.ExchangeRate = &global.Config.ExchangeRateConfig.USD
 		case "欧元":
-			newRecord.ExchangeRate = model.Float64ToPointer(7.8)
+			newRecord.ExchangeRate = &global.Config.ExchangeRateConfig.EUR
 		case "港币":
-			newRecord.ExchangeRate = model.Float64ToPointer(0.9)
+			newRecord.ExchangeRate = &global.Config.ExchangeRateConfig.HKD
 		case "新加坡元":
-			newRecord.ExchangeRate = model.Float64ToPointer(5.2)
+			newRecord.ExchangeRate = &global.Config.ExchangeRateConfig.SGD
 		case "马来西亚币":
-			newRecord.ExchangeRate = model.Float64ToPointer(1.5)
+			newRecord.ExchangeRate = &global.Config.ExchangeRateConfig.MLR
 		default:
 			newRecord.ExchangeRate = model.Float64ToPointer(1)
 		}

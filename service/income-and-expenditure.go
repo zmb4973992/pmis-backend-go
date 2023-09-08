@@ -434,19 +434,10 @@ func (i *IncomeAndExpenditureUpdate) Update() (errCode int) {
 		}
 	}
 
-	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "UserID",
-		"UserID", "Deleter", "CreateAt", "UpdatedAt", "DeletedAt")
-
-	if len(paramOutForCounting) == 0 {
-		return util.ErrorFieldsToBeUpdatedNotFound
-	}
-
 	err := global.DB.Model(&model.IncomeAndExpenditure{}).
 		Where("id = ?", i.ID).
 		Updates(paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return util.ErrorFailToUpdateRecord
 	}
 

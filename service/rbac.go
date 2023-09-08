@@ -42,7 +42,6 @@ func (r *rbacUpdatePolicyByRoleID) Update() error {
 
 	cachedEnforcer, err := util.NewCachedEnforcer()
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return err
 	}
 
@@ -50,7 +49,6 @@ func (r *rbacUpdatePolicyByRoleID) Update() error {
 
 	_, err = cachedEnforcer.RemoveFilteredPolicy(0, subject)
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return err
 	}
 
@@ -78,7 +76,6 @@ func (r *rbacUpdatePolicyByRoleID) Update() error {
 	if len(rbacRules) > 0 {
 		_, err = cachedEnforcer.AddPolicies(rbacRules)
 		if err != nil {
-			global.SugaredLogger.Errorln(err)
 			return err
 		}
 	}
@@ -86,7 +83,6 @@ func (r *rbacUpdatePolicyByRoleID) Update() error {
 	//修改了policy以后，因为用的是cachedEnforcer，所以要清除缓存
 	err = cachedEnforcer.InvalidateCache()
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return err
 	}
 
@@ -141,7 +137,6 @@ func (u *rbacUpdateGroupingPolicyByGroup) Update() error {
 
 	cachedEnforcer, err := util.NewCachedEnforcer()
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return err
 	}
 
@@ -167,7 +162,6 @@ func (u *rbacUpdateGroupingPolicyByMember) Update() error {
 
 	cachedEnforcer, err := util.NewCachedEnforcer()
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return err
 	}
 

@@ -98,7 +98,6 @@ func (r *RoleGet) Get() response.Common {
 	err := global.DB.Model(model.Role{}).
 		Where("id = ?", r.ID).First(&result).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorRecordNotFound)
 	}
 
@@ -142,7 +141,6 @@ func (r *RoleCreate) Create() response.Common {
 
 	err = global.DB.Create(&paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 	return response.Success()
@@ -185,7 +183,6 @@ func (r *RoleUpdate) Update() response.Common {
 	err := global.DB.Model(&model.Role{}).Where("id = ?", r.ID).
 		Updates(paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToUpdateRecord)
 	}
 
@@ -199,7 +196,6 @@ func (r *RoleDelete) Delete() response.Common {
 	err := global.DB.Where("id = ?", r.ID).Delete(&record).Error
 
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 	return response.Success()
@@ -289,7 +285,6 @@ func (r *RoleUpdateUsers) Update() response.Common {
 	if len(*r.UserIDs) == 0 {
 		err := global.DB.Where("role_id = ?", r.RoleID).Delete(&model.UserAndRole{}).Error
 		if err != nil {
-			global.SugaredLogger.Errorln(err)
 			return response.Failure(util.ErrorFailToDeleteRecord)
 		}
 		return response.Success()
@@ -299,7 +294,6 @@ func (r *RoleUpdateUsers) Update() response.Common {
 		//先删掉原始记录
 		err := tx.Where("role_id = ?", r.RoleID).Delete(&model.UserAndRole{}).Error
 		if err != nil {
-			global.SugaredLogger.Errorln(err)
 			return ErrorFailToDeleteRecord
 		}
 
@@ -333,7 +327,6 @@ func (r *RoleUpdateUsers) Update() response.Common {
 
 		err = global.DB.Create(&paramOut).Error
 		if err != nil {
-			global.SugaredLogger.Errorln(err)
 			return ErrorFailToCreateRecord
 		}
 
@@ -375,7 +368,6 @@ func (r *RoleUpdateMenus) Update() response.Common {
 	if len(*r.MenuIDs) == 0 {
 		err := global.DB.Where("role_id = ?", r.RoleID).Delete(&model.RoleAndMenu{}).Error
 		if err != nil {
-			global.SugaredLogger.Errorln(err)
 			return response.Failure(util.ErrorFailToDeleteRecord)
 		}
 		return response.Success()
@@ -384,7 +376,6 @@ func (r *RoleUpdateMenus) Update() response.Common {
 	//先删掉原始记录
 	err := global.DB.Where("role_id = ?", r.RoleID).Delete(&model.RoleAndMenu{}).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToDeleteRecord)
 	}
 
@@ -418,7 +409,6 @@ func (r *RoleUpdateMenus) Update() response.Common {
 
 	err = global.DB.Create(&paramOut).Error
 	if err != nil {
-		global.SugaredLogger.Errorln(err)
 		return response.Failure(util.ErrorFailToCreateRecord)
 	}
 
