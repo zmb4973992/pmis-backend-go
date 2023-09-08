@@ -215,15 +215,8 @@ func (u *UserUpdate) Update() (errCode int) {
 		}
 	}
 
-	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "UserID",
-		"UserID", "CreateAt", "UpdatedAt")
-
-	if len(paramOutForCounting) == 0 {
-		return util.ErrorFieldsToBeUpdatedNotFound
-	}
-
-	err := global.DB.Model(&model.User{}).Where("id = ?", u.ID).
+	err := global.DB.Model(&model.User{}).
+		Where("id = ?", u.ID).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
@@ -340,7 +333,8 @@ func (u *UserUpdateRoles) Update() (errCode int) {
 	}
 
 	if len(*u.RoleIDs) == 0 {
-		err := global.DB.Where("user_id = ?", u.UserID).Delete(&model.UserAndRole{}).Error
+		err := global.DB.Where("user_id = ?", u.UserID).
+			Delete(&model.UserAndRole{}).Error
 		if err != nil {
 			return util.ErrorFailToDeleteRecord
 		}
@@ -349,7 +343,8 @@ func (u *UserUpdateRoles) Update() (errCode int) {
 
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		//先删掉原始记录
-		err := tx.Where("user_id = ?", u.UserID).Delete(&model.UserAndRole{}).Error
+		err := tx.Where("user_id = ?", u.UserID).
+			Delete(&model.UserAndRole{}).Error
 		if err != nil {
 			return ErrorFailToDeleteRecord
 		}

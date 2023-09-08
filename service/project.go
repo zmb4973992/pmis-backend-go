@@ -153,7 +153,7 @@ type ProjectSimplifiedOutput struct {
 	Name *string `json:"name"`
 }
 
-type projectCheckAuthorization struct {
+type projectCheckAuth struct {
 	ProjectID int64
 	UserID    int64
 }
@@ -166,12 +166,12 @@ func (p *ProjectGet) Get() (output *ProjectOutput, errCode int) {
 		return nil, util.ErrorRecordNotFound
 	}
 
-	var authorize projectCheckAuthorization
+	var authorize projectCheckAuth
 	authorize.ProjectID = p.ID
 	authorize.UserID = p.UserID
-	authorizationResult := authorize.checkAuthorization()
+	authorized := authorize.checkAuth()
 
-	if !authorizationResult {
+	if !authorized {
 		return nil, util.ErrorUnauthorized
 	}
 
@@ -381,10 +381,10 @@ func (p *ProjectUpdate) Update() (errCode int) {
 	}
 
 	if p.IgnoreDataAuthority == false {
-		var authorization projectCheckAuthorization
+		var authorization projectCheckAuth
 		authorization.ProjectID = p.ID
 		authorization.UserID = p.UserID
-		authorized := authorization.checkAuthorization()
+		authorized := authorization.checkAuth()
 		if !authorized {
 			return util.ErrorUnauthorized
 		}
@@ -759,10 +759,10 @@ func (p *ProjectGetList) GetList() (
 			}
 
 			if p.IgnoreDataAuthority == true {
-				var authorize projectCheckAuthorization
+				var authorize projectCheckAuth
 				authorize.ProjectID = outputs[i].ID
 				authorize.UserID = p.UserID
-				outputs[i].Authorized = authorize.checkAuthorization()
+				outputs[i].Authorized = authorize.checkAuth()
 			} else {
 				outputs[i].Authorized = true
 			}
@@ -821,7 +821,7 @@ func (p *ProjectGetSimplifiedList) GetSimplifiedList() (
 		}
 }
 
-func (p *projectCheckAuthorization) checkAuthorization() (authorized bool) {
+func (p *projectCheckAuth) checkAuth() (authorized bool) {
 	//用来确定数据范围内的组织id
 	organizationIDs := util.GetOrganizationIDsForDataAuthority(p.UserID)
 	if len(organizationIDs) == 0 {

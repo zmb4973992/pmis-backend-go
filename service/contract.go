@@ -235,7 +235,8 @@ func (c *ContractGet) Get() (output *ContractOutput, errCode int) {
 			port := global.Config.AppConfig.HttpPort
 			accessPath := global.Config.DownloadConfig.RelativePath
 			for i := range records {
-				records[i].Url = "http://" + ip + ":" + port + accessPath + strconv.FormatInt(records[i].ID, 10)
+				records[i].Url = "http://" + ip + ":" + port + accessPath +
+					strconv.FormatInt(records[i].ID, 10)
 			}
 			output.FilesExternal = records
 		}
@@ -698,8 +699,10 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 		organizationIDs := util.GetOrganizationIDsForDataAuthority(c.UserID)
 		//先找出项目的数据范围
 		var projectIDs []int64
-		global.DB.Model(&model.Project{}).Where("organization_id in ?", organizationIDs).
-			Select("id").Find(&projectIDs)
+		global.DB.Model(&model.Project{}).
+			Where("organization_id in ?", organizationIDs).
+			Select("id").
+			Find(&projectIDs)
 		//然后再加上组织的数据范围
 		db = db.Where("organization_id in ? or project_id in ?",
 			organizationIDs, projectIDs)
@@ -765,7 +768,9 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 			if outputs[i].ProjectID != nil {
 				var record ProjectOutput
 				res := global.DB.Model(&model.Project{}).
-					Where("id = ?", *outputs[i].ProjectID).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].ProjectID).
+					Limit(1).
+					Find(&record)
 				if res.RowsAffected > 0 {
 					outputs[i].ProjectExternal = &record
 				}
@@ -774,7 +779,9 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 			if outputs[i].OrganizationID != nil {
 				var record OrganizationOutput
 				res := global.DB.Model(&model.Organization{}).
-					Where("id = ?", *outputs[i].OrganizationID).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].OrganizationID).
+					Limit(1).
+					Find(&record)
 				if res.RowsAffected > 0 {
 					outputs[i].OrganizationExternal = &record
 				}
@@ -783,7 +790,9 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 			if outputs[i].RelatedPartyID != nil {
 				var record RelatedPartyOutput
 				res := global.DB.Model(&model.RelatedParty{}).
-					Where("id = ?", *outputs[i].RelatedPartyID).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].RelatedPartyID).
+					Limit(1).
+					Find(&record)
 				if res.RowsAffected > 0 {
 					outputs[i].RelatedPartyExternal = &record
 				}
@@ -795,7 +804,9 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 			if outputs[i].FundDirection != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *outputs[i].FundDirection).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].FundDirection).
+					Limit(1).
+					Find(&record)
 				if res.RowsAffected > 0 {
 					outputs[i].FundDirectionExternal = &record
 				}
@@ -803,7 +814,9 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 			if outputs[i].OurSignatory != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *outputs[i].OurSignatory).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].OurSignatory).
+					Limit(1).
+					Find(&record)
 				if res.RowsAffected > 0 {
 					outputs[i].OurSignatoryExternal = &record
 				}
@@ -811,7 +824,9 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 			if outputs[i].Currency != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *outputs[i].Currency).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].Currency).
+					Limit(1).
+					Find(&record)
 				if res.RowsAffected > 0 {
 					outputs[i].CurrencyExternal = &record
 				}
@@ -819,7 +834,9 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 			if outputs[i].Type != nil {
 				var record DictionaryDetailOutput
 				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *outputs[i].Type).Limit(1).Find(&record)
+					Where("id = ?", *outputs[i].Type).
+					Limit(1).
+					Find(&record)
 				if res.RowsAffected > 0 {
 					outputs[i].TypeExternal = &record
 				}

@@ -88,8 +88,10 @@ func (d *DisassemblyGet) Get() (output *DisassemblyOutput, errCode int) {
 func (d *DisassemblyTree) Tree() (outputs []DisassemblyTreeOutput, errCode int) {
 	//根据project_id获取disassembly_id
 	var disassemblyID int64
-	res := global.DB.Model(model.Disassembly{}).Select("id").
-		Where("project_id = ?", d.ProjectID).Where("level = 1").
+	res := global.DB.Model(model.Disassembly{}).
+		Where("project_id = ?", d.ProjectID).
+		Where("level = 1").
+		Select("id").
 		Find(&disassemblyID)
 	if res.RowsAffected == 0 {
 		return nil, util.ErrorRecordNotFound
@@ -114,7 +116,8 @@ func (d *DisassemblyTree) Tree() (outputs []DisassemblyTreeOutput, errCode int) 
 func getDisassemblyTree(superiorID int64) []DisassemblyTreeOutput {
 	var result []DisassemblyTreeOutput
 	res := global.DB.Model(model.Disassembly{}).
-		Where("superior_id = ?", superiorID).Find(&result)
+		Where("superior_id = ?", superiorID).
+		Find(&result)
 	if res.RowsAffected == 0 {
 		return nil
 	}
