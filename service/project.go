@@ -802,7 +802,8 @@ func (p *ProjectGetSimplifiedList) GetSimplifiedList() (
 	db.Count(&count)
 
 	//outputs
-	db.Model(&model.Project{}).Find(&outputs)
+	db.Model(&model.Project{}).
+		Find(&outputs)
 
 	if len(outputs) == 0 {
 		return nil, util.ErrorRecordNotFound, nil
