@@ -4,7 +4,6 @@ import (
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
-	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 )
 
@@ -122,18 +121,19 @@ type MenuOutput struct {
 	Children   []MenuOutput `json:"children" gorm:"-"`
 }
 
-func (m *MenuGet) Get() response.Common {
+func (m *MenuGet) Get() (output *MenuOutput, errCode int) {
 	var result MenuOutput
 	err := global.DB.Model(model.Menu{}).
-		Where("id = ?", m.ID).First(&result).Error
+		Where("id = ?", m.ID).
+		First(&result).Error
 	if err != nil {
-		return response.Failure(util.ErrorRecordNotFound)
+		return nil, util.ErrorRecordNotFound
 	}
 
-	return response.SuccessWithData(result)
+	return output, util.Success
 }
 
-func (m *MenuCreate) Create() response.Common {
+func (m *MenuCreate) Create() (errCode int) {
 	var paramOut model.Menu
 
 	if m.UserID > 0 {
@@ -176,42 +176,19 @@ func (m *MenuCreate) Create() response.Common {
 		paramOut.Icon = &m.Icon
 	}
 
-	//计算有修改值的字段数，分别进行不同处理
-	tempParamOut, err := util.StructToMap(paramOut)
+	err := global.DB.Create(&paramOut).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return util.ErrorFailToCreateRecord
 	}
-	paramOutForCounting := util.MapCopy(tempParamOut,
-		"UserID", "UserID", "CreateAt", "UpdatedAt")
-
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
-	}
-
-	err = global.DB.Create(&paramOut).Error
-	if err != nil {
-		return response.Failure(util.ErrorFailToCreateRecord)
-	}
-	return response.Success()
+	return util.Success
 }
 
-func (m *MenuUpdate) Update() response.Common {
+func (m *MenuUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
 	if m.UserID > 0 {
 		paramOut["last_modifier"] = m.UserID
 	}
-
-	//允许为0的数字
-	//{
-	//	if m.SuperiorID != nil {
-	//		if *m.SuperiorID != -1 {
-	//			paramOut["superior_id"] = m.SuperiorID
-	//		} else {
-	//			paramOut["superior_id"] = nil
-	//		}
-	//	}
-	//}
 
 	if m.SuperiorID != nil {
 		if *m.SuperiorID == -1 {
@@ -225,7 +202,7 @@ func (m *MenuUpdate) Update() response.Common {
 		if *m.Path != "" {
 			paramOut["route_path"] = m.Path
 		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
+			return util.ErrorInvalidJSONParameters
 		}
 	}
 
@@ -233,7 +210,7 @@ func (m *MenuUpdate) Update() response.Common {
 		if *m.Group != "" {
 			paramOut["group"] = m.Group
 		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
+			return util.ErrorInvalidJSONParameters
 		}
 	}
 
@@ -242,7 +219,7 @@ func (m *MenuUpdate) Update() response.Common {
 		if *m.Name != "" {
 			paramOut["name"] = m.Name
 		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
+			return util.ErrorInvalidJSONParameters
 		}
 	}
 
@@ -250,7 +227,7 @@ func (m *MenuUpdate) Update() response.Common {
 		if *m.Component != "" {
 			paramOut["component_path"] = m.Component
 		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
+			return util.ErrorInvalidJSONParameters
 		}
 	}
 
@@ -270,7 +247,7 @@ func (m *MenuUpdate) Update() response.Common {
 		if *m.Title != "" {
 			paramOut["title"] = m.Title
 		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
+			return util.ErrorInvalidJSONParameters
 		}
 	}
 
@@ -278,56 +255,54 @@ func (m *MenuUpdate) Update() response.Common {
 		if *m.Icon != "" {
 			paramOut["icon"] = m.Icon
 		} else {
-			return response.Failure(util.ErrorInvalidJSONParameters)
+			return util.ErrorInvalidJSONParameters
 		}
 	}
 
-	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "UserID",
-		"UserID", "CreateAt", "UpdatedAt")
-
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
-	}
-
-	err := global.DB.Model(&model.Menu{}).Where("id = ?", m.ID).
+	err := global.DB.Model(&model.Menu{}).
+		Where("id = ?", m.ID).
 		Updates(paramOut).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return util.ErrorFailToUpdateRecord
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (m *MenuDelete) Delete() response.Common {
+func (m *MenuDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Menu
-	global.DB.Where("id = ?", m.ID).Find(&record)
-	err := global.DB.Where("id = ?", m.ID).Delete(&record).Error
+	err := global.DB.Where("id = ?", m.ID).
+		Find(&record).
+		Delete(&record).Error
 
 	if err != nil {
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	}
-	return response.Success()
+	return util.Success
 }
 
-func (m *MenuUpdateApis) Update() response.Common {
+func (m *MenuUpdateApis) Update() (errCode int) {
 	if m.ApiIDs == nil {
-		return response.Failure(util.ErrorInvalidJSONParameters)
+		return util.ErrorInvalidJSONParameters
 	}
 
 	if len(*m.ApiIDs) == 0 {
-		err := global.DB.Where("menu_id = ?", m.MenuID).Delete(&model.Menu{}).Error
+		err := global.DB.
+			Where("menu_id = ?", m.MenuID).
+			Delete(&model.Menu{}).Error
 		if err != nil {
-			return response.Failure(util.ErrorFailToDeleteRecord)
+			return util.ErrorFailToDeleteRecord
 		}
-		return response.Success()
+		return util.Success
 	}
 
 	//先删掉原始记录
-	err := global.DB.Where("menu_id = ?", m.MenuID).Delete(&model.MenuAndApi{}).Error
+	err := global.DB.
+		Where("menu_id = ?", m.MenuID).
+		Delete(&model.MenuAndApi{}).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	}
 
 	//再增加新的记录
@@ -346,23 +321,9 @@ func (m *MenuUpdateApis) Update() response.Common {
 		paramOut = append(paramOut, record)
 	}
 
-	for i := range paramOut {
-		//计算有修改值的字段数，分别进行不同处理
-		tempParamOut, err1 := util.StructToMap(paramOut[i])
-		if err1 != nil {
-			return response.Failure(util.ErrorFailToUpdateRecord)
-		}
-		paramOutForCounting := util.MapCopy(tempParamOut,
-			"UserID", "UserID", "CreateAt", "UpdatedAt")
-
-		if len(paramOutForCounting) == 0 {
-			return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
-		}
-	}
-
 	err = global.DB.Create(&paramOut).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return util.ErrorFailToCreateRecord
 	}
 
 	//更新casbin的rbac的策略
@@ -370,19 +331,20 @@ func (m *MenuUpdateApis) Update() response.Common {
 	param1.MenuID = m.MenuID
 	err = param1.Update()
 	if err != nil {
-		return response.Failure(util.ErrorFailToUpdateRBACPoliciesByMenuID)
+		return util.ErrorFailToUpdateRBACPoliciesByMenuID
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (m *MenuGetList) GetList() response.List {
+func (m *MenuGetList) GetList() (outputs []MenuOutput,
+	errCode int, paging *list.PagingOutput) {
 	if m.UserID == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
 	db := global.DB.Model(&model.Menu{})
-	// 顺序：where -> count -> Order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
 	if m.Group != "" {
@@ -390,11 +352,15 @@ func (m *MenuGetList) GetList() response.List {
 	}
 
 	var roleIDs []int64
-	global.DB.Model(&model.UserAndRole{}).Where("user_id = ?", m.UserID).
-		Select("role_id").Find(&roleIDs)
+	global.DB.Model(&model.UserAndRole{}).
+		Where("user_id = ?", m.UserID).
+		Select("role_id").
+		Find(&roleIDs)
 	var menuIDs []int64
-	global.DB.Model(&model.RoleAndMenu{}).Where("role_id in ?", roleIDs).
-		Select("menu_id").Find(&menuIDs)
+	global.DB.Model(&model.RoleAndMenu{}).
+		Where("role_id in ?", roleIDs).
+		Select("menu_id").
+		Find(&menuIDs)
 	db = db.Where("id in ?", menuIDs)
 
 	//count
@@ -414,7 +380,7 @@ func (m *MenuGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.Menu{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return nil, util.ErrorSortingFieldDoesNotExist, nil
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -443,37 +409,34 @@ func (m *MenuGetList) GetList() response.List {
 	offset := (page - 1) * pageSize
 	db = db.Offset(offset)
 
-	//data
-	var data []MenuOutput
-	db.Model(&model.Menu{}).Find(&data)
+	//outputs
+	db.Model(&model.Menu{}).Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetErrorDescription(util.Success),
-	}
+		}
 }
 
-func (m *MenuGetTree) GetTree() response.List {
+func (m *MenuGetTree) GetTree() (outputs []MenuOutput,
+	errCode int, paging *list.PagingOutput) {
 	if m.UserID == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
 	db := global.DB.Model(&model.Menu{})
-	// 顺序：where -> count -> Order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
 	db = db.Where("superior_id is null")
@@ -483,11 +446,15 @@ func (m *MenuGetTree) GetTree() response.List {
 	}
 
 	var roleIDs []int64
-	global.DB.Model(&model.UserAndRole{}).Where("user_id = ?", m.UserID).
-		Select("role_id").Find(&roleIDs)
+	global.DB.Model(&model.UserAndRole{}).
+		Where("user_id = ?", m.UserID).
+		Select("role_id").
+		Find(&roleIDs)
 	var menuIDs []int64
-	global.DB.Model(&model.RoleAndMenu{}).Where("role_id in ?", roleIDs).
-		Select("menu_id").Find(&menuIDs)
+	global.DB.Model(&model.RoleAndMenu{}).
+		Where("role_id in ?", roleIDs).
+		Select("menu_id").
+		Find(&menuIDs)
 	db = db.Where("id in ?", menuIDs)
 
 	//count
@@ -507,7 +474,7 @@ func (m *MenuGetTree) GetTree() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.Menu{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return nil, util.ErrorSortingFieldDoesNotExist, nil
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -536,38 +503,35 @@ func (m *MenuGetTree) GetTree() response.List {
 	offset := (page - 1) * pageSize
 	db = db.Offset(offset)
 
-	//data
-	var data []MenuOutput
-	db.Model(&model.Menu{}).Find(&data)
+	//outputs
+	db.Model(&model.Menu{}).Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
-	for i := range data {
-		data[i].Children = getMenuTree(data[i].ID)
+	for i := range outputs {
+		outputs[i].Children = getMenuTree(outputs[i].ID)
 	}
 
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetErrorDescription(util.Success),
-	}
+		}
 }
 
 func getMenuTree(superiorID int64) []MenuOutput {
 	var result []MenuOutput
 	res := global.DB.Model(model.Menu{}).
-		Where("superior_id = ?", superiorID).Find(&result)
+		Where("superior_id = ?", superiorID).
+		Find(&result)
 	if res.RowsAffected == 0 {
 		return nil
 	}

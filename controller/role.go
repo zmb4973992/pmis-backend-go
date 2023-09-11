@@ -24,8 +24,12 @@ func (r *role) Get(c *gin.Context) {
 		)
 		return
 	}
-	res := param.Get()
-	c.JSON(http.StatusOK, res)
+
+	output, errCode := param.Get()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(output, errCode),
+	)
 	return
 }
 
@@ -46,8 +50,11 @@ func (r *role) Create(c *gin.Context) {
 		param.UserID = userID
 	}
 
-	res := param.Create()
-	c.JSON(http.StatusOK, res)
+	errCode := param.Create()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(nil, errCode),
+	)
 	return
 }
 
@@ -77,8 +84,11 @@ func (r *role) Update(c *gin.Context) {
 		param.UserID = userID
 	}
 
-	res := param.Update()
-	c.JSON(http.StatusOK, res)
+	errCode := param.Update()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(nil, errCode),
+	)
 	return
 }
 
@@ -94,8 +104,11 @@ func (r *role) Delete(c *gin.Context) {
 		return
 	}
 
-	res := param.Delete()
-	c.JSON(http.StatusOK, res)
+	errCode := param.Delete()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(nil, errCode),
+	)
 	return
 }
 
@@ -108,12 +121,16 @@ func (r *role) GetList(c *gin.Context) {
 	if err != nil && !errors.Is(err, io.EOF) {
 		c.JSON(
 			http.StatusBadRequest,
-			response.FailureForList(util.ErrorInvalidJSONParameters))
+			response.GenerateList(nil, util.ErrorInvalidJSONParameters, nil),
+		)
 		return
 	}
 
-	res := param.GetList()
-	c.JSON(http.StatusOK, res)
+	outputs, errCode, paging := param.GetList()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateList(outputs, errCode, paging),
+	)
 	return
 }
 
@@ -123,7 +140,7 @@ func (r *role) UpdateUsers(c *gin.Context) {
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
-			response.Failure(util.ErrorInvalidJSONParameters),
+			response.GenerateCommon(nil, util.ErrorInvalidJSONParameters),
 		)
 		return
 	}
@@ -132,7 +149,7 @@ func (r *role) UpdateUsers(c *gin.Context) {
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters),
+			response.GenerateCommon(nil, util.ErrorInvalidURIParameters),
 		)
 		return
 	}
@@ -143,8 +160,11 @@ func (r *role) UpdateUsers(c *gin.Context) {
 		param.UserID = userID
 	}
 
-	res := param.Update()
-	c.JSON(http.StatusOK, res)
+	errCode := param.Update()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(nil, errCode),
+	)
 	return
 }
 
@@ -154,7 +174,7 @@ func (r *role) UpdateMenus(c *gin.Context) {
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
-			response.Failure(util.ErrorInvalidJSONParameters),
+			response.GenerateCommon(nil, util.ErrorInvalidJSONParameters),
 		)
 		return
 	}
@@ -163,7 +183,7 @@ func (r *role) UpdateMenus(c *gin.Context) {
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
-			response.Failure(util.ErrorInvalidURIParameters),
+			response.GenerateCommon(nil, util.ErrorInvalidURIParameters),
 		)
 		return
 	}
@@ -174,7 +194,10 @@ func (r *role) UpdateMenus(c *gin.Context) {
 		param.UserID = userID
 	}
 
-	res := param.Update()
-	c.JSON(http.StatusOK, res)
+	errCode := param.Update()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(nil, errCode),
+	)
 	return
 }

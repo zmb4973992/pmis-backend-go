@@ -1,14 +1,13 @@
 package service
 
 import (
-	"errors"
 	"pmis-backend-go/util"
 )
 
 var (
-	ErrorFailToDeleteRecord               = errors.New(util.GetErrorDescription(util.ErrorFailToDeleteRecord))
-	ErrorFailToCreateRecord               = errors.New(util.GetErrorDescription(util.ErrorFailToCreateRecord))
-	ErrorFailToUpdateRecord               = errors.New(util.GetErrorDescription(util.ErrorFailToUpdateRecord))
-	ErrorFieldsToBeCreatedNotFound        = errors.New(util.GetErrorDescription(util.ErrorFieldsToBeCreatedNotFound))
-	ErrorFailToUpdateRBACGroupingPolicies = errors.New(util.GetErrorDescription(util.ErrorFailToUpdateRBACGroupingPolicies))
+	ErrorFailToDeleteRecord               = util.GenerateCustomError(util.ErrorFailToDeleteRecord)
+	ErrorFailToCreateRecord               = util.GenerateCustomError(util.ErrorFailToCreateRecord)
+	ErrorFailToUpdateRecord               = util.GenerateCustomError(util.ErrorFailToUpdateRecord)
+	ErrorFieldsToBeCreatedNotFound        = util.GenerateCustomError(util.ErrorFieldsToBeCreatedNotFound)
+	ErrorFailToUpdateRBACGroupingPolicies = util.GenerateCustomError(util.ErrorFailToUpdateRBACGroupingPolicies)
 )

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/gin-gonic/gin"
 	"github.com/mojocn/base64Captcha"
 	"pmis-backend-go/global"
 	"pmis-backend-go/serializer/response"
@@ -11,7 +10,12 @@ import (
 type CaptchaGet struct {
 }
 
-func (c *CaptchaGet) Get() response.Common {
+type CaptchaOutput struct {
+	ID           string `json:"id"`
+	Base64String string `json:"base64_string"`
+}
+
+func (c *CaptchaGet) Get() (output *CaptchaOutput, errCode int) {
 	height := global.Config.CaptchaConfig.ImageHeight
 	width := global.Config.CaptchaConfig.ImageWidth
 	length := global.Config.CaptchaConfig.DigitLength
@@ -23,12 +27,11 @@ func (c *CaptchaGet) Get() response.Common {
 	captcha := base64Captcha.NewCaptcha(driver, store)
 	id, base64String, err := captcha.Generate()
 	if err != nil {
-		response.Failure(util.ErrorFailToGenerateCaptcha)
+		response.GenerateCommon(nil, util.ErrorFailToGenerateCaptcha)
 	}
 
-	return response.SuccessWithData(
-		gin.H{
-			"id":            id,
-			"base64_string": base64String,
-		})
+	output.ID = id
+	output.Base64String = base64String
+
+	return output, util.Success
 }

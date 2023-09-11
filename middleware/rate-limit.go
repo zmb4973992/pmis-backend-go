@@ -17,8 +17,10 @@ func RateLimit() gin.HandlerFunc {
 			c.Next()
 			return
 		} else {
-			global.SugaredLogger.Errorln("访问频率过快，已拒绝服务")
-			c.JSON(http.StatusOK, response.Failure(util.ErrorRequestFrequencyTooHigh))
+			c.JSON(
+				http.StatusOK,
+				response.GenerateCommon(nil, util.ErrorRequestFrequencyTooHigh),
+			)
 			c.Abort()
 			return
 		}

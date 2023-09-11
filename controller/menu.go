@@ -24,8 +24,12 @@ func (m *menu) Get(c *gin.Context) {
 		)
 		return
 	}
-	res := param.Get()
-	c.JSON(http.StatusOK, res)
+
+	output, errCode := param.Get()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(output, errCode),
+	)
 	return
 }
 
@@ -46,8 +50,11 @@ func (m *menu) Create(c *gin.Context) {
 		param.UserID = userID
 	}
 
-	res := param.Create()
-	c.JSON(http.StatusOK, res)
+	errCode := param.Create()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(nil, errCode),
+	)
 	return
 }
 
@@ -77,8 +84,11 @@ func (m *menu) Update(c *gin.Context) {
 		param.UserID = userID
 	}
 
-	res := param.Update()
-	c.JSON(http.StatusOK, res)
+	errCode := param.Update()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(nil, errCode),
+	)
 	return
 }
 
@@ -94,8 +104,11 @@ func (m *menu) Delete(c *gin.Context) {
 		return
 	}
 
-	res := param.Delete()
-	c.JSON(http.StatusOK, res)
+	errCode := param.Delete()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(nil, errCode),
+	)
 	return
 }
 
@@ -119,8 +132,11 @@ func (m *menu) GetList(c *gin.Context) {
 		param.UserID = userID
 	}
 
-	res := param.GetList()
-	c.JSON(http.StatusOK, res)
+	outputs, errCode, paging := param.GetList()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateList(outputs, errCode, paging),
+	)
 	return
 }
 
@@ -144,8 +160,11 @@ func (m *menu) GetTree(c *gin.Context) {
 		param.UserID = userID
 	}
 
-	res := param.GetTree()
-	c.JSON(http.StatusOK, res)
+	outputs, errCode, paging := param.GetTree()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateList(outputs, errCode, paging),
+	)
 	return
 }
 
@@ -176,7 +195,10 @@ func (m *menu) UpdateUsers(c *gin.Context) {
 		param.LastModifier = userID
 	}
 
-	res := param.Update()
-	c.JSON(http.StatusOK, res)
+	errCode := param.Update()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(nil, errCode),
+	)
 	return
 }

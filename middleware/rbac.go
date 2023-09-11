@@ -14,7 +14,10 @@ func RBAC() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		userID, exists := util.GetUserID(c)
 		if !exists {
-			c.AbortWithStatusJSON(http.StatusOK, response.Failure(util.ErrorUserDoesNotExist))
+			c.AbortWithStatusJSON(
+				http.StatusOK,
+				response.GenerateCommon(nil, util.ErrorUserDoesNotExist),
+			)
 			return
 		}
 
@@ -30,7 +33,10 @@ func RBAC() gin.HandlerFunc {
 		permitted, _ := cachedEnforcer.Enforce(subject, object, act)
 
 		if !permitted {
-			c.AbortWithStatusJSON(http.StatusOK, response.Failure(util.ErrorUnauthorized))
+			c.AbortWithStatusJSON(
+				http.StatusOK,
+				response.GenerateCommon(nil, util.ErrorUnauthorized),
+			)
 			return
 		}
 

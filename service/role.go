@@ -1,11 +1,11 @@
 package service
 
 import (
+	"errors"
 	"gorm.io/gorm"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
-	"pmis-backend-go/serializer/response"
 	"pmis-backend-go/util"
 	"strconv"
 )
@@ -93,18 +93,18 @@ type RoleOutput struct {
 	SuperiorID *int64  `json:"superior_id"`
 }
 
-func (r *RoleGet) Get() response.Common {
-	var result RoleOutput
+func (r *RoleGet) Get() (output *RoleOutput, errCode int) {
 	err := global.DB.Model(model.Role{}).
-		Where("id = ?", r.ID).First(&result).Error
+		Where("id = ?", r.ID).
+		First(&output).Error
 	if err != nil {
-		return response.Failure(util.ErrorRecordNotFound)
+		return nil, util.ErrorRecordNotFound
 	}
 
-	return response.SuccessWithData(result)
+	return output, util.Success
 }
 
-func (r *RoleCreate) Create() response.Common {
+func (r *RoleCreate) Create() (errCode int) {
 	var paramOut model.Role
 
 	if r.UserID > 0 {
@@ -127,26 +127,14 @@ func (r *RoleCreate) Create() response.Common {
 
 	paramOut.DataAuthorityID = r.DataAuthorityID
 
-	//计算有修改值的字段数，分别进行不同处理
-	tempParamOut, err := util.StructToMap(paramOut)
+	err := global.DB.Create(&paramOut).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return util.ErrorFailToCreateRecord
 	}
-	paramOutForCounting := util.MapCopy(tempParamOut,
-		"UserID", "UserID", "CreateAt", "UpdatedAt")
-
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
-	}
-
-	err = global.DB.Create(&paramOut).Error
-	if err != nil {
-		return response.Failure(util.ErrorFailToCreateRecord)
-	}
-	return response.Success()
+	return util.Success
 }
 
-func (r *RoleUpdate) Update() response.Common {
+func (r *RoleUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
 	if r.UserID > 0 {
@@ -159,7 +147,7 @@ func (r *RoleUpdate) Update() response.Common {
 			if *r.Name != "" {
 				paramOut["name"] = r.Name
 			} else {
-				return response.Failure(util.ErrorInvalidJSONParameters)
+				return util.ErrorInvalidJSONParameters
 			}
 		}
 	}
@@ -172,38 +160,33 @@ func (r *RoleUpdate) Update() response.Common {
 		}
 	}
 
-	//计算有修改值的字段数，分别进行不同处理
-	paramOutForCounting := util.MapCopy(paramOut, "UserID",
-		"UserID", "CreateAt", "UpdatedAt")
-
-	if len(paramOutForCounting) == 0 {
-		return response.Failure(util.ErrorFieldsToBeUpdatedNotFound)
-	}
-
-	err := global.DB.Model(&model.Role{}).Where("id = ?", r.ID).
+	err := global.DB.Model(&model.Role{}).
+		Where("id = ?", r.ID).
 		Updates(paramOut).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return util.ErrorFailToUpdateRecord
 	}
 
-	return response.Success()
+	return util.Success
 }
 
-func (r *RoleDelete) Delete() response.Common {
+func (r *RoleDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Role
-	global.DB.Where("id = ?", r.ID).Find(&record)
-	err := global.DB.Where("id = ?", r.ID).Delete(&record).Error
+	err := global.DB.Where("id = ?", r.ID).
+		Find(&record).
+		Delete(&record).Error
 
 	if err != nil {
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	}
-	return response.Success()
+	return util.Success
 }
 
-func (r *RoleGetList) GetList() response.List {
+func (r *RoleGetList) GetList() (outputs []RoleOutput,
+	errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.Role{})
-	// 顺序：where -> count -> Order -> limit -> offset -> data
+	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
 
@@ -224,7 +207,7 @@ func (r *RoleGetList) GetList() response.List {
 		//先看排序字段是否存在于表中
 		exists := util.FieldIsInModel(&model.Role{}, orderBy)
 		if !exists {
-			return response.FailureForList(util.ErrorSortingFieldDoesNotExist)
+			return nil, util.ErrorSortingFieldDoesNotExist, nil
 		}
 		//如果要求降序排列
 		if desc == true {
@@ -253,48 +236,46 @@ func (r *RoleGetList) GetList() response.List {
 	offset := (page - 1) * pageSize
 	db = db.Offset(offset)
 
-	//data
-	var data []RoleOutput
-	db.Model(&model.Role{}).Find(&data)
+	//outputs
+	db.Model(&model.Role{}).Find(&outputs)
 
-	if len(data) == 0 {
-		return response.FailureForList(util.ErrorRecordNotFound)
+	if len(outputs) == 0 {
+		return nil, util.ErrorRecordNotFound, nil
 	}
 
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
 
-	return response.List{
-		Data: data,
-		Paging: &list.PagingOutput{
+	return outputs,
+		util.Success,
+		&list.PagingOutput{
 			Page:            page,
 			PageSize:        pageSize,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
-		},
-		Code:    util.Success,
-		Message: util.GetErrorDescription(util.Success),
-	}
+		}
 }
 
-func (r *RoleUpdateUsers) Update() response.Common {
+func (r *RoleUpdateUsers) Update() (errCode int) {
 	if r.UserIDs == nil {
-		return response.Failure(util.ErrorInvalidJSONParameters)
+		return util.ErrorInvalidJSONParameters
 	}
 
 	if len(*r.UserIDs) == 0 {
-		err := global.DB.Where("role_id = ?", r.RoleID).Delete(&model.UserAndRole{}).Error
+		err := global.DB.Where("role_id = ?", r.RoleID).
+			Delete(&model.UserAndRole{}).Error
 		if err != nil {
-			return response.Failure(util.ErrorFailToDeleteRecord)
+			return util.ErrorFailToDeleteRecord
 		}
-		return response.Success()
+		return util.Success
 	}
 
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		//先删掉原始记录
-		err := tx.Where("role_id = ?", r.RoleID).Delete(&model.UserAndRole{}).Error
+		err := tx.Where("role_id = ?", r.RoleID).
+			Delete(&model.UserAndRole{}).Error
 		if err != nil {
-			return ErrorFailToDeleteRecord
+			return util.GenerateCustomError(util.ErrorFailToDeleteRecord)
 		}
 
 		//再增加新的记录
@@ -311,23 +292,9 @@ func (r *RoleUpdateUsers) Update() response.Common {
 			paramOut = append(paramOut, record)
 		}
 
-		for i := range paramOut {
-			//计算有修改值的字段数，分别进行不同处理
-			tempParamOut, err := util.StructToMap(paramOut[i])
-			if err != nil {
-				return ErrorFailToUpdateRecord
-			}
-			paramOutForCounting := util.MapCopy(tempParamOut,
-				"UserID", "UserID", "CreateAt", "UpdatedAt")
-
-			if len(paramOutForCounting) == 0 {
-				return ErrorFieldsToBeCreatedNotFound
-			}
-		}
-
 		err = global.DB.Create(&paramOut).Error
 		if err != nil {
-			return ErrorFailToCreateRecord
+			return util.GenerateCustomError(util.ErrorFailToCreateRecord)
 		}
 
 		//更新casbin的rbac分组规则
@@ -338,45 +305,47 @@ func (r *RoleUpdateUsers) Update() response.Common {
 		}
 		err = param1.Update()
 		if err != nil {
-			return ErrorFailToUpdateRBACGroupingPolicies
+			return util.GenerateCustomError(util.ErrorFailToUpdateRBACGroupingPolicies)
 		}
 
 		return nil
 	})
 
-	switch err {
-	case nil:
-		return response.Success()
-	case ErrorFailToCreateRecord:
-		return response.Failure(util.ErrorFailToCreateRecord)
-	case ErrorFailToDeleteRecord:
-		return response.Failure(util.ErrorFailToDeleteRecord)
-	case ErrorFieldsToBeCreatedNotFound:
-		return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
-	case ErrorFailToUpdateRBACGroupingPolicies:
-		return response.Failure(util.ErrorFailToUpdateRBACGroupingPolicies)
+	switch {
+	case err == nil:
+		return util.Success
+	case errors.Is(err, ErrorFailToCreateRecord):
+		return util.ErrorFailToCreateRecord
+	case errors.Is(err, ErrorFailToDeleteRecord):
+		return util.ErrorFailToDeleteRecord
+	case errors.Is(err, ErrorFieldsToBeCreatedNotFound):
+		return util.ErrorFieldsToBeCreatedNotFound
+	case errors.Is(err, ErrorFailToUpdateRBACGroupingPolicies):
+		return util.ErrorFailToUpdateRBACGroupingPolicies
 	default:
-		return response.Failure(util.ErrorFailToUpdateRecord)
+		return util.ErrorFailToUpdateRecord
 	}
 }
 
-func (r *RoleUpdateMenus) Update() response.Common {
+func (r *RoleUpdateMenus) Update() (errCode int) {
 	if r.MenuIDs == nil {
-		return response.Failure(util.ErrorInvalidJSONParameters)
+		return util.ErrorInvalidJSONParameters
 	}
 
 	if len(*r.MenuIDs) == 0 {
-		err := global.DB.Where("role_id = ?", r.RoleID).Delete(&model.RoleAndMenu{}).Error
+		err := global.DB.Where("role_id = ?", r.RoleID).
+			Delete(&model.RoleAndMenu{}).Error
 		if err != nil {
-			return response.Failure(util.ErrorFailToDeleteRecord)
+			return util.ErrorFailToDeleteRecord
 		}
-		return response.Success()
+		return util.Success
 	}
 
 	//先删掉原始记录
-	err := global.DB.Where("role_id = ?", r.RoleID).Delete(&model.RoleAndMenu{}).Error
+	err := global.DB.Where("role_id = ?", r.RoleID).
+		Delete(&model.RoleAndMenu{}).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToDeleteRecord)
+		return util.ErrorFailToDeleteRecord
 	}
 
 	//再增加新的记录
@@ -393,23 +362,9 @@ func (r *RoleUpdateMenus) Update() response.Common {
 		paramOut = append(paramOut, record)
 	}
 
-	for i := range paramOut {
-		//计算有修改值的字段数，分别进行不同处理
-		tempParamOut, err1 := util.StructToMap(paramOut[i])
-		if err1 != nil {
-			return response.Failure(util.ErrorFailToUpdateRecord)
-		}
-		paramOutForCounting := util.MapCopy(tempParamOut,
-			"UserID", "UserID", "CreateAt", "UpdatedAt")
-
-		if len(paramOutForCounting) == 0 {
-			return response.Failure(util.ErrorFieldsToBeCreatedNotFound)
-		}
-	}
-
 	err = global.DB.Create(&paramOut).Error
 	if err != nil {
-		return response.Failure(util.ErrorFailToCreateRecord)
+		return util.ErrorFailToCreateRecord
 	}
 
 	//更新casbin的rbac的策略
@@ -417,8 +372,8 @@ func (r *RoleUpdateMenus) Update() response.Common {
 	param1.RoleID = r.RoleID
 	err = param1.Update()
 	if err != nil {
-		return response.Failure(util.ErrorFailToUpdateRBACPoliciesByRoleID)
+		return util.ErrorFailToUpdateRBACPoliciesByRoleID
 	}
 
-	return response.Success()
+	return util.Success
 }
