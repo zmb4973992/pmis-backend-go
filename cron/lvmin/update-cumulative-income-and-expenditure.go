@@ -5,12 +5,12 @@ import (
 	"pmis-backend-go/util"
 )
 
-func updateCumulativeExpenditure(userID int64, projectIDs []int64, contractIDs []int64) error {
-	projectIDs = util.RemoveDuplication(projectIDs)
-	for i := range projectIDs {
+func updateCumulativeExpenditure(userId int64, projectIds []int64, contractIds []int64) error {
+	projectIds = util.RemoveDuplication(projectIds)
+	for i := range projectIds {
 		var param service.ProjectDailyAndCumulativeExpenditureUpdate
-		param.UserID = userID
-		param.ProjectID = projectIDs[i]
+		param.UserId = userId
+		param.ProjectId = projectIds[i]
 
 		errCode := param.Update()
 		if errCode != util.Success {
@@ -18,11 +18,11 @@ func updateCumulativeExpenditure(userID int64, projectIDs []int64, contractIDs [
 		}
 	}
 
-	contractIDs = util.RemoveDuplication(contractIDs)
-	for i := range contractIDs {
+	contractIds = util.RemoveDuplication(contractIds)
+	for i := range contractIds {
 		var param service.ContractDailyAndCumulativeExpenditureUpdate
-		param.UserID = userID
-		param.ContractID = contractIDs[i]
+		param.UserId = userId
+		param.ContractId = contractIds[i]
 
 		errCode := param.Update()
 		if errCode != util.Success {
@@ -33,12 +33,12 @@ func updateCumulativeExpenditure(userID int64, projectIDs []int64, contractIDs [
 	return nil
 }
 
-func updateCumulativeIncome(userID int64, projectIDs []int64, contractIDs []int64) error {
-	projectIDs = util.RemoveDuplication(projectIDs)
-	for i := range projectIDs {
+func updateCumulativeIncome(userId int64, projectIds []int64, contractIds []int64) error {
+	projectIds = util.RemoveDuplication(projectIds)
+	for i := range projectIds {
 		var param service.ProjectDailyAndCumulativeIncomeUpdate
-		param.UserID = userID
-		param.ProjectID = projectIDs[i]
+		param.UserId = userId
+		param.ProjectId = projectIds[i]
 
 		errCode := param.Update()
 		if errCode != util.Success {
@@ -46,11 +46,11 @@ func updateCumulativeIncome(userID int64, projectIDs []int64, contractIDs []int6
 		}
 	}
 
-	contractIDs = util.RemoveDuplication(contractIDs)
-	for i := range contractIDs {
+	contractIds = util.RemoveDuplication(contractIds)
+	for i := range contractIds {
 		var param service.ContractDailyAndCumulativeIncomeUpdate
-		param.UserID = userID
-		param.ContractID = contractIDs[i]
+		param.UserId = userId
+		param.ContractId = contractIds[i]
 
 		errCode := param.Update()
 		if errCode != util.Success {

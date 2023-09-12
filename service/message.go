@@ -12,11 +12,11 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type MessageGet struct {
-	ID int64
+	Id int64
 }
 
 type MessageCreate struct {
-	UserID     int64
+	UserId     int64
 	Recipients []int64 `binding:"required"`
 	Title      string  `binding:"required"`
 	Content    string  `binding:"required"`
@@ -27,25 +27,25 @@ type MessageCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type MessageUpdate struct {
-	UserID int64
-	ID     int64
+	UserId int64
+	Id     int64
 }
 
 type MessageDelete struct {
-	UserID int64
-	ID     int64
+	UserId int64
+	Id     int64
 }
 
 type MessageGetList struct {
 	list.Input
-	UserID int64
+	UserId int64
 	IsRead bool `json:"is_read"`
 }
 
 type MessageOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 	Title        string `json:"title"`
 	Content      string `json:"content"`
 	Datetime     string `json:"datetime"`
@@ -53,7 +53,7 @@ type MessageOutput struct {
 
 func (m *MessageGet) Get() (output *MessageOutput, errCode int) {
 	err := global.DB.Model(model.Message{}).
-		Where("id = ?", m.ID).
+		Where("id = ?", m.Id).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
@@ -67,7 +67,7 @@ func (m *MessageGet) Get() (output *MessageOutput, errCode int) {
 func (m *MessageCreate) Create() (errCode int) {
 	var message model.Message
 
-	message.Creator = &m.UserID
+	message.Creator = &m.UserId
 	message.Title = m.Title
 	message.Content = m.Content
 	message.Datetime = time.Now()
@@ -81,9 +81,9 @@ func (m *MessageCreate) Create() (errCode int) {
 	var messageAndUsers []model.MessageAndUser
 	for i := range m.Recipients {
 		var messageAndUser model.MessageAndUser
-		messageAndUser.Creator = &m.UserID
-		messageAndUser.MessageID = message.ID
-		messageAndUser.UserID = m.Recipients[i]
+		messageAndUser.Creator = &m.UserId
+		messageAndUser.MessageId = message.Id
+		messageAndUser.UserId = m.Recipients[i]
 		messageAndUsers = append(messageAndUsers, messageAndUser)
 	}
 
@@ -95,13 +95,13 @@ func (m *MessageCreate) Create() (errCode int) {
 func (m *MessageUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
-	paramOut["last_modifier"] = m.UserID
+	paramOut["last_modifier"] = m.UserId
 
 	paramOut["is_read"] = true
 
 	err := global.DB.Model(&model.MessageAndUser{}).
-		Where("message_id = ?", m.ID).
-		Where("user_id = ?", m.UserID).
+		Where("message_id = ?", m.Id).
+		Where("user_id = ?", m.UserId).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
@@ -111,8 +111,8 @@ func (m *MessageUpdate) Update() (errCode int) {
 }
 
 func (m *MessageDelete) Delete() (errCode int) {
-	global.DB.Where("message_id = ?", m.ID).
-		Where("user_id = ?", m.UserID).
+	global.DB.Where("message_id = ?", m.Id).
+		Where("user_id = ?", m.UserId).
 		Delete(&model.MessageAndUser{})
 
 	return util.Success
@@ -121,7 +121,7 @@ func (m *MessageDelete) Delete() (errCode int) {
 func (m *MessageGetList) GetList() (
 	outputs []MessageOutput, errCode int, paging *list.PagingOutput) {
 	db := global.DB.Model(&model.Message{}).
-		Joins("join (select distinct message_id,user_id,is_read from message_and_user where user_id = ?) as temp1 on message.id = temp1.message_id", m.UserID)
+		Joins("join (select distinct message_id,user_id,is_read from message_and_user where user_id = ?) as temp1 on message.id = temp1.message_id", m.UserId)
 
 	if m.IsRead {
 		db = db.Where("is_read = ?", true)

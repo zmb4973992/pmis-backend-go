@@ -13,11 +13,11 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type RelatedPartyGet struct {
-	ID int64
+	Id int64
 }
 
 type RelatedPartyCreate struct {
-	UserID       int64
+	UserId       int64
 	LastModifier int64
 
 	Name                    string `json:"name,omitempty"`
@@ -26,7 +26,7 @@ type RelatedPartyCreate struct {
 	UniformSocialCreditCode string `json:"uniform_social_credit_code,omitempty"` //统一社会信用代码
 	Telephone               string `json:"telephone,omitempty"`
 	Remarks                 string `json:"remarks,omitempty"`
-	FileIDs                 string `json:"file_ids,omitempty"`
+	FileIds                 string `json:"file_ids,omitempty"`
 	ImportedOriginalName    string `json:"imported_original_name,omitempty"`
 }
 
@@ -35,8 +35,8 @@ type RelatedPartyCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type RelatedPartyUpdate struct {
-	UserID int64
-	ID     int64
+	UserId int64
+	Id     int64
 
 	Name                    *string `json:"name"`
 	EnglishName             *string `json:"english_name"`
@@ -44,11 +44,11 @@ type RelatedPartyUpdate struct {
 	UniformSocialCreditCode *string `json:"uniform_social_credit_code"` //统一社会信用代码
 	Telephone               *string `json:"telephone"`
 	Remarks                 *string `json:"remarks"`
-	FileIDs                 *string `json:"file_ids"`
+	FileIds                 *string `json:"file_ids"`
 }
 
 type RelatedPartyDelete struct {
-	ID int64
+	Id int64
 }
 
 type RelatedPartyGetList struct {
@@ -63,7 +63,7 @@ type RelatedPartyGetList struct {
 type RelatedPartyOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 
 	Name                    *string      `json:"name"`
 	EnglishName             *string      `json:"english_name"`
@@ -71,33 +71,33 @@ type RelatedPartyOutput struct {
 	UniformSocialCreditCode *string      `json:"uniform_social_credit_code"` //统一社会信用代码
 	Telephone               *string      `json:"telephone"`
 	Remarks                 *string      `json:"remarks"`
-	FileIDs                 *string      `json:"-"`
+	FileIds                 *string      `json:"-"`
 	FilesExternal           []FileOutput `json:"files" gorm:"-"`
 }
 
 func (r *RelatedPartyGet) Get() (output *RelatedPartyOutput, errCode int) {
 	err := global.DB.Model(&model.RelatedParty{}).
-		Where("id = ?", r.ID).
+		Where("id = ?", r.Id).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
 	}
 
 	//查文件信息
-	if output.FileIDs != nil {
-		tempFileIDs := strings.Split(*output.FileIDs, ",")
-		var fileIDs []int64
-		for i := range tempFileIDs {
-			fileID, err1 := strconv.ParseInt(tempFileIDs[i], 10, 64)
+	if output.FileIds != nil {
+		tempFileIds := strings.Split(*output.FileIds, ",")
+		var fileIds []int64
+		for i := range tempFileIds {
+			fileId, err1 := strconv.ParseInt(tempFileIds[i], 10, 64)
 			if err1 != nil {
 				continue
 			}
-			fileIDs = append(fileIDs, fileID)
+			fileIds = append(fileIds, fileId)
 		}
 
 		var records []FileOutput
 		global.DB.Model(&model.File{}).
-			Where("id in ?", fileIDs).
+			Where("id in ?", fileIds).
 			Find(&records)
 		output.FilesExternal = records
 	}
@@ -107,8 +107,8 @@ func (r *RelatedPartyGet) Get() (output *RelatedPartyOutput, errCode int) {
 
 func (r *RelatedPartyCreate) Create() (errCode int) {
 	var paramOut model.RelatedParty
-	if r.UserID > 0 {
-		paramOut.Creator = &r.UserID
+	if r.UserId > 0 {
+		paramOut.Creator = &r.UserId
 	}
 
 	if r.LastModifier > 0 {
@@ -143,8 +143,8 @@ func (r *RelatedPartyCreate) Create() (errCode int) {
 		paramOut.Remarks = &r.Remarks
 	}
 
-	if r.FileIDs != "" {
-		paramOut.FileIDs = &r.FileIDs
+	if r.FileIds != "" {
+		paramOut.FileIds = &r.FileIds
 	}
 
 	err := global.DB.Create(&paramOut).Error
@@ -157,8 +157,8 @@ func (r *RelatedPartyCreate) Create() (errCode int) {
 func (r *RelatedPartyUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
-	if r.UserID > 0 {
-		paramOut["last_modifier"] = r.UserID
+	if r.UserId > 0 {
+		paramOut["last_modifier"] = r.UserId
 	}
 
 	if r.Name != nil {
@@ -210,16 +210,16 @@ func (r *RelatedPartyUpdate) Update() (errCode int) {
 	}
 
 	//查文件信息
-	if r.FileIDs != nil {
-		if *r.FileIDs != "" {
-			paramOut["file_ids"] = r.FileIDs
+	if r.FileIds != nil {
+		if *r.FileIds != "" {
+			paramOut["file_ids"] = r.FileIds
 		} else {
 			paramOut["file_ids"] = nil
 		}
 	}
 
 	err := global.DB.Model(&model.RelatedParty{}).
-		Where("id = ?", r.ID).
+		Where("id = ?", r.Id).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
@@ -231,7 +231,7 @@ func (r *RelatedPartyUpdate) Update() (errCode int) {
 func (r *RelatedPartyDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.RelatedParty
-	err := global.DB.Where("id = ?", r.ID).
+	err := global.DB.Where("id = ?", r.Id).
 		Find(&record).
 		Delete(&record).Error
 

@@ -12,20 +12,20 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type DisassemblyGet struct {
-	ID int64
+	Id int64
 }
 
 type DisassemblyTree struct {
-	UserID    int64
-	ProjectID int64 `json:"project_id" binding:"required"`
+	UserId    int64
+	ProjectId int64 `json:"project_id" binding:"required"`
 }
 
 type DisassemblyCreate struct {
-	UserID                int64
+	UserId                int64
 	Name                  string  `json:"name" binding:"required"`        //拆解项名称
 	Weight                float64 `json:"weight" binding:"required"`      //权重
-	SuperiorID            int64   `json:"superior_id" binding:"required"` //上级拆解项ID
-	ImportedIDFromOldPmis int64   `json:"imported_id_from_old_pmis,omitempty"`
+	SuperiorId            int64   `json:"superior_id" binding:"required"` //上级拆解项id
+	ImportedIdFromOldPmis int64   `json:"imported_id_from_old_pmis,omitempty"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -33,22 +33,22 @@ type DisassemblyCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type DisassemblyUpdate struct {
-	UserID int64
-	ID     int64
+	UserId int64
+	Id     int64
 
 	Name   *string  `json:"name"`   //拆解项名称
 	Weight *float64 `json:"weight"` //权重
 }
 
 type DisassemblyDelete struct {
-	UserID int64
-	ID     int64
+	UserId int64
+	Id     int64
 }
 
 type DisassemblyGetList struct {
 	list.Input
-	ProjectID  int64 `json:"project_id"`
-	SuperiorID int64 `json:"superior_id"`
+	ProjectId  int64 `json:"project_id"`
+	SuperiorId int64 `json:"superior_id"`
 	Level      int   `json:"level"`
 	LevelGte   *int  `json:"level_gte"`
 	LevelLte   *int  `json:"level_lte"`
@@ -59,25 +59,25 @@ type DisassemblyGetList struct {
 type DisassemblyOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 
 	Name       *string  `json:"name"`        //名称
-	ProjectID  *int64   `json:"project_id"`  //所属项目ID
+	ProjectId  *int64   `json:"project_id"`  //所属项目id
 	Level      *int     `json:"level"`       //层级
 	Weight     *float64 `json:"weight"`      //权重
-	SuperiorID *int64   `json:"superior_id"` //上级拆解项ID
+	SuperiorId *int64   `json:"superior_id"` //上级拆解项id
 }
 
 type DisassemblyTreeOutput struct {
 	Name     *string                 `json:"name"`
-	ID       int64                   `json:"id"`
+	Id       int64                   `json:"id"`
 	Level    int                     `json:"level"`
 	Children []DisassemblyTreeOutput `json:"children" gorm:"-"`
 }
 
 func (d *DisassemblyGet) Get() (output *DisassemblyOutput, errCode int) {
 	err := global.DB.Model(model.Disassembly{}).
-		Where("id = ?", d.ID).
+		Where("id = ?", d.Id).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
@@ -87,19 +87,19 @@ func (d *DisassemblyGet) Get() (output *DisassemblyOutput, errCode int) {
 
 func (d *DisassemblyTree) Tree() (outputs []DisassemblyTreeOutput, errCode int) {
 	//根据project_id获取disassembly_id
-	var disassemblyID int64
+	var disassemblyId int64
 	res := global.DB.Model(model.Disassembly{}).
-		Where("project_id = ?", d.ProjectID).
+		Where("project_id = ?", d.ProjectId).
 		Where("level = 1").
 		Select("id").
-		Find(&disassemblyID)
+		Find(&disassemblyId)
 	if res.RowsAffected == 0 {
 		return nil, util.ErrorRecordNotFound
 	}
 
 	//第一轮查找，查询条件为id
 	res = global.DB.Model(model.Disassembly{}).
-		Where("id = ?", disassemblyID).
+		Where("id = ?", disassemblyId).
 		Find(&outputs)
 	if res.RowsAffected == 0 {
 		return nil, util.ErrorRecordNotFound
@@ -107,50 +107,50 @@ func (d *DisassemblyTree) Tree() (outputs []DisassemblyTreeOutput, errCode int) 
 
 	//第二轮及以后的查找，查询条件为superior_id
 	for i := range outputs {
-		outputs[i].Children = getDisassemblyTree(outputs[i].ID)
+		outputs[i].Children = getDisassemblyTree(outputs[i].Id)
 	}
 
 	return outputs, util.Success
 }
 
-func getDisassemblyTree(superiorID int64) []DisassemblyTreeOutput {
+func getDisassemblyTree(superiorId int64) []DisassemblyTreeOutput {
 	var result []DisassemblyTreeOutput
 	res := global.DB.Model(model.Disassembly{}).
-		Where("superior_id = ?", superiorID).
+		Where("superior_id = ?", superiorId).
 		Find(&result)
 	if res.RowsAffected == 0 {
 		return nil
 	}
 	for i := range result {
-		result[i].Children = getDisassemblyTree(result[i].ID)
+		result[i].Children = getDisassemblyTree(result[i].Id)
 	}
 	return result
 }
 
 func (d *DisassemblyCreate) Create() (errCode int) {
 	var paramOut model.Disassembly
-	if d.UserID > 0 {
-		paramOut.Creator = &d.UserID
+	if d.UserId > 0 {
+		paramOut.Creator = &d.UserId
 	}
 
 	paramOut.Name = &d.Name
 	paramOut.Weight = &d.Weight
-	paramOut.SuperiorID = &d.SuperiorID
-	paramOut.ImportedIDFromOldPmis = &d.ImportedIDFromOldPmis
+	paramOut.SuperiorId = &d.SuperiorId
+	paramOut.ImportedIdFromOldPmis = &d.ImportedIdFromOldPmis
 
 	//根据上级拆解id，找到项目id和层级
 	var superiorDisassembly model.Disassembly
-	err := global.DB.Where("id = ?", d.SuperiorID).
+	err := global.DB.Where("id = ?", d.SuperiorId).
 		First(&superiorDisassembly).Error
 	if err != nil {
 		return util.ErrorWrongSuperiorInformation
 	}
 
-	if superiorDisassembly.ProjectID == nil || superiorDisassembly.Level == nil {
+	if superiorDisassembly.ProjectId == nil || superiorDisassembly.Level == nil {
 		return util.ErrorWrongSuperiorInformation
 	}
 
-	paramOut.ProjectID = superiorDisassembly.ProjectID
+	paramOut.ProjectId = superiorDisassembly.ProjectId
 	level := *superiorDisassembly.Level + 1
 	paramOut.Level = &level
 
@@ -174,12 +174,12 @@ func (d *DisassemblyCreate) Create() (errCode int) {
 	}
 
 	var param OperationLogCreate
-	param.Creator = d.UserID
-	param.Operator = d.UserID
-	param.ProjectID = *superiorDisassembly.ProjectID
+	param.Creator = d.UserId
+	param.Operator = d.UserId
+	param.ProjectId = *superiorDisassembly.ProjectId
 
 	param.Date = time.Now().Format("2006-01-02")
-	param.OperationType = create.ID
+	param.OperationType = create.Id
 	param.Detail = "添加了一条项目拆解记录：" + d.Name
 	param.Create()
 
@@ -189,7 +189,7 @@ func (d *DisassemblyCreate) Create() (errCode int) {
 func (d *DisassemblyUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
-	paramOut["last_modifier"] = d.UserID
+	paramOut["last_modifier"] = d.UserId
 
 	if d.Name != nil {
 		if *d.Name != "" {
@@ -208,14 +208,14 @@ func (d *DisassemblyUpdate) Update() (errCode int) {
 	}
 
 	err := global.DB.Model(&model.Disassembly{}).
-		Where("id = ?", d.ID).
+		Where("id = ?", d.Id).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
 	}
 
 	var disassembly model.Disassembly
-	err = global.DB.Where("id = ?", d.ID).
+	err = global.DB.Where("id = ?", d.Id).
 		First(&disassembly).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
@@ -236,13 +236,13 @@ func (d *DisassemblyUpdate) Update() (errCode int) {
 	}
 
 	var param OperationLogCreate
-	param.Creator = d.UserID
-	param.Operator = d.UserID
-	if disassembly.ProjectID != nil {
-		param.ProjectID = *disassembly.ProjectID
+	param.Creator = d.UserId
+	param.Operator = d.UserId
+	if disassembly.ProjectId != nil {
+		param.ProjectId = *disassembly.ProjectId
 	}
 	param.Date = time.Now().Format("2006-01-02")
-	param.OperationType = update.ID
+	param.OperationType = update.Id
 	param.Detail = "修改了一条项目拆解记录：" + *disassembly.Name
 	param.Create()
 
@@ -250,32 +250,32 @@ func (d *DisassemblyUpdate) Update() (errCode int) {
 	for i := range paramOut {
 		if i == "weight" {
 			//获取进度类型在字典类型表中的值
-			var progressTypeID int64
+			var progressTypeId int64
 			err = global.DB.Model(&model.DictionaryType{}).
 				Where("name = '进度类型'").
 				Select("id").
-				First(&progressTypeID).Error
+				First(&progressTypeId).Error
 			if err != nil {
 				return util.ErrorFailToCalculateSelfAndSuperiorProgress
 			}
 			//获取进度类型在字典详情表中的值
-			var progressDetailIDs []int64
+			var progressDetailIds []int64
 			err = global.DB.Model(&model.DictionaryDetail{}).
-				Where("dictionary_type_id = ?", progressTypeID).
+				Where("dictionary_type_id = ?", progressTypeId).
 				Select("id").
-				Find(&progressDetailIDs).Error
+				Find(&progressDetailIds).Error
 			if err != nil {
 				return util.ErrorFailToCalculateSelfAndSuperiorProgress
 			}
 			//更新自身和所有上级的进度
-			for _, v := range progressDetailIDs {
+			for _, v := range progressDetailIds {
 				//更新自身进度
-				err = util.UpdateOwnProgress(d.ID, v, d.UserID)
+				err = util.UpdateOwnProgress(d.Id, v, d.UserId)
 				if err != nil {
 					return util.ErrorFailToCalculateSelfProgress
 				}
 				//更新所有上级的进度
-				err = util.UpdateProgressOfSuperiors(d.ID, v, d.UserID)
+				err = util.UpdateProgressOfSuperiors(d.Id, v, d.UserId)
 				if err != nil {
 					return util.ErrorFailToCalculateSuperiorProgress
 				}
@@ -289,21 +289,21 @@ func (d *DisassemblyUpdate) Update() (errCode int) {
 func (d *DisassemblyDelete) Delete() (errCode int) {
 	//先找到所有的上级id(如果放在删除后执行，就找不到上级id了)
 	//这里的上级id需要更新进度
-	superiorIDs := util.GetSuperiorIDs(d.ID)
+	superiorIds := util.GetSuperiorIds(d.Id)
 
 	//先找到所有的下级id(如果放在删除后执行，就找不到上级id了)
 	//这里的下级id(包括自己)需要删除进度
-	inferiorIDs := util.GetInferiorIDs(d.ID)
-	ToBeDeletedIDs := append([]int64{d.ID}, inferiorIDs...)
+	inferiorIds := util.GetInferiorIds(d.Id)
+	ToBeDeletedIds := append([]int64{d.Id}, inferiorIds...)
 
 	var disassembly model.Disassembly
-	err := global.DB.Where("id = ?", d.ID).
+	err := global.DB.Where("id = ?", d.Id).
 		First(&disassembly).Error
 	if err != nil {
 		return util.ErrorFailToDeleteRecord
 	}
 
-	err = global.DB.Where("id in ?", ToBeDeletedIDs).
+	err = global.DB.Where("id in ?", ToBeDeletedIds).
 		Delete(&model.Disassembly{}).Error
 	if err != nil {
 		return util.ErrorFailToDeleteRecord
@@ -324,11 +324,11 @@ func (d *DisassemblyDelete) Delete() (errCode int) {
 	}
 
 	var param OperationLogCreate
-	param.Creator = d.UserID
-	param.Operator = d.UserID
-	param.ProjectID = *disassembly.ProjectID
+	param.Creator = d.UserId
+	param.Operator = d.UserId
+	param.ProjectId = *disassembly.ProjectId
 	param.Date = time.Now().Format("2006-01-02")
-	param.OperationType = deleting.ID
+	param.OperationType = deleting.Id
 	param.Detail = "删除了一条项目拆解记录：" + *disassembly.Name
 	param.Create()
 
@@ -344,14 +344,14 @@ func (d *DisassemblyDelete) Delete() (errCode int) {
 	//获取所有进度类型在字典详情表中的值
 	var allProgressTypes []model.DictionaryDetail
 	err = global.DB.
-		Where("dictionary_type_id = ?", progressType.ID).
+		Where("dictionary_type_id = ?", progressType.Id).
 		Find(&allProgressTypes).Error
 	if err != nil {
 		return util.ErrorFailToCalculateSelfAndSuperiorProgress
 	}
 
 	//删除自身和所有下级的进度
-	for _, v := range ToBeDeletedIDs {
+	for _, v := range ToBeDeletedIds {
 		err = global.DB.Where("disassembly_id = ?", v).
 			Delete(&model.Progress{}).Error
 		if err != nil {
@@ -361,8 +361,8 @@ func (d *DisassemblyDelete) Delete() (errCode int) {
 
 	//更新所有上级的进度
 	for i := range allProgressTypes {
-		for j := range superiorIDs {
-			err = util.UpdateOwnProgress(superiorIDs[j], allProgressTypes[i].ID, d.UserID)
+		for j := range superiorIds {
+			err = util.UpdateOwnProgress(superiorIds[j], allProgressTypes[i].Id, d.UserId)
 			if err != nil {
 				return util.ErrorFailToCalculateSuperiorProgress
 			}
@@ -378,12 +378,12 @@ func (d *DisassemblyGetList) GetList() (
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if d.ProjectID > 0 {
-		db = db.Where("project_id = ?", d.ProjectID)
+	if d.ProjectId > 0 {
+		db = db.Where("project_id = ?", d.ProjectId)
 	}
 
-	if d.SuperiorID > 0 {
-		db = db.Where("superior_id = ?", d.SuperiorID)
+	if d.SuperiorId > 0 {
+		db = db.Where("superior_id = ?", d.SuperiorId)
 	}
 
 	if d.Level > 0 {

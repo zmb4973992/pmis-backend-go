@@ -10,11 +10,11 @@ import (
 )
 
 // UpdateProgressOfSuperiors 给定拆解id、进度类型，计算所有上级的进度
-func UpdateProgressOfSuperiors(disassemblyID int64, progressType int64, userID int64) (err error) {
-	superiorIDs := GetSuperiorIDs(disassemblyID)
+func UpdateProgressOfSuperiors(disassemblyId int64, progressType int64, userId int64) (err error) {
+	superiorIds := GetSuperiorIds(disassemblyId)
 
-	for i := range superiorIDs {
-		err = UpdateOwnProgress(superiorIDs[i], progressType, userID)
+	for i := range superiorIds {
+		err = UpdateOwnProgress(superiorIds[i], progressType, userId)
 		if err != nil {
 			return err
 		}
@@ -23,7 +23,7 @@ func UpdateProgressOfSuperiors(disassemblyID int64, progressType int64, userID i
 }
 
 // UpdateOwnProgress 给定拆解id、进度类型，计算自身的进度
-func UpdateOwnProgress(disassemblyID int64, progressType int64, userID int64) (err error) {
+func UpdateOwnProgress(disassemblyId int64, progressType int64, userId int64) (err error) {
 	//找到"进度的数据来源"的字典类型值
 	var dataSourceOfProgress model.DictionaryType
 	err = global.DB.Where("name = '进度的数据来源'").
@@ -35,7 +35,7 @@ func UpdateOwnProgress(disassemblyID int64, progressType int64, userID int64) (e
 	//找到"系统计算"的字典详情值
 	var systemCalculation model.DictionaryDetail
 	err = global.DB.
-		Where("dictionary_type_id = ?", dataSourceOfProgress.ID).
+		Where("dictionary_type_id = ?", dataSourceOfProgress.Id).
 		Where("name = '系统计算'").
 		First(&systemCalculation).Error
 	if err != nil {
@@ -43,14 +43,14 @@ func UpdateOwnProgress(disassemblyID int64, progressType int64, userID int64) (e
 	}
 
 	//删除相关进度,防止产生重复数据
-	global.DB.Where("disassembly_id = ?", disassemblyID).
-		Where("data_source = ?", systemCalculation.ID).
+	global.DB.Where("disassembly_id = ?", disassemblyId).
+		Where("data_source = ?", systemCalculation.Id).
 		Where("type = ?", progressType).
 		Delete(&model.Progress{})
 
 	//获取下级拆解情况
 	var subDisassembly []model.Disassembly
-	err = global.DB.Where("superior_id = ?", disassemblyID).
+	err = global.DB.Where("superior_id = ?", disassemblyId).
 		Find(&subDisassembly).Error
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func UpdateOwnProgress(disassemblyID int64, progressType int64, userID int64) (e
 	for i := range subDisassembly {
 		var subDates []string
 		global.DB.Model(&model.Progress{}).
-			Where("disassembly_id = ?", subDisassembly[i].ID).
+			Where("disassembly_id = ?", subDisassembly[i].Id).
 			Where("type = ?", progressType).
 			Select("date").Find(&subDates)
 		tempDates = append(tempDates, subDates...)
@@ -85,7 +85,7 @@ func UpdateOwnProgress(disassemblyID int64, progressType int64, userID int64) (e
 			return err1
 		}
 
-		err = updateOwnProgress1(disassemblyID, date, progressType, userID)
+		err = updateOwnProgress1(disassemblyId, date, progressType, userId)
 		if err != nil {
 			return err
 		}
@@ -94,16 +94,16 @@ func UpdateOwnProgress(disassemblyID int64, progressType int64, userID int64) (e
 }
 
 // 给定拆解id、日期、进度类型，计算自身的进度
-func updateOwnProgress1(disassemblyID int64, date time.Time, progressType int64, userID int64) (err error) {
+func updateOwnProgress1(disassemblyId int64, date time.Time, progressType int64, userId int64) (err error) {
 	//删除相关进度,防止产生重复数据
-	global.DB.Where("disassembly_id = ?", disassemblyID).
+	global.DB.Where("disassembly_id = ?", disassemblyId).
 		Where("date = ?", date).
 		Where("type = ?", progressType).
 		Delete(&model.Progress{})
 
 	//获取下级拆解情况
 	var subDisassembly []model.Disassembly
-	err = global.DB.Where("superior_id = ?", disassemblyID).
+	err = global.DB.Where("superior_id = ?", disassemblyId).
 		Find(&subDisassembly).Error
 	if err != nil {
 		return err
@@ -115,7 +115,7 @@ func updateOwnProgress1(disassemblyID int64, date time.Time, progressType int64,
 		//下级拆解id是否包含有效记录
 		var count int64
 		global.DB.Model(&model.Progress{}).
-			Where("disassembly_id = ?", subDisassembly[i].ID).
+			Where("disassembly_id = ?", subDisassembly[i].Id).
 			Where("type = ?", progressType).
 			Where("date <= ?", date).
 			Count(&count)
@@ -124,7 +124,7 @@ func updateOwnProgress1(disassemblyID int64, date time.Time, progressType int64,
 
 		if count > 0 {
 			global.DB.Model(&model.Progress{}).
-				Where("disassembly_id = ?", subDisassembly[i].ID).
+				Where("disassembly_id = ?", subDisassembly[i].Id).
 				Where("type = ?", progressType).
 				Where("date <= ?", date).
 				Order("date desc").Select("value").
@@ -152,7 +152,7 @@ func updateOwnProgress1(disassemblyID int64, date time.Time, progressType int64,
 
 	var systemCalculation model.DictionaryDetail
 	err = global.DB.
-		Where("dictionary_type_id = ?", dataSourceOfProgress.ID).
+		Where("dictionary_type_id = ?", dataSourceOfProgress.Id).
 		Where("name = '系统计算'").
 		First(&systemCalculation).Error
 	if err != nil {
@@ -160,12 +160,12 @@ func updateOwnProgress1(disassemblyID int64, date time.Time, progressType int64,
 	}
 
 	var progress = model.Progress{
-		DisassemblyID: &disassemblyID,
+		DisassemblyId: &disassemblyId,
 		Date:          &date,
 		Type:          &progressType,
 		Value:         &sumOfProgress,
-		DataSource:    &systemCalculation.ID,
-		BasicModel:    model.BasicModel{Creator: &userID},
+		DataSource:    &systemCalculation.Id,
+		BasicModel:    model.BasicModel{Creator: &userId},
 	}
 
 	err = global.DB.Create(&progress).Error

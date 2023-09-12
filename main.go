@@ -15,8 +15,8 @@ func main() {
 	global.InitConfig()
 	//加载日志记录器，使用的是zap
 	util.InitLogger()
-	//加载ID生成器
-	util.InitIDGenerator()
+	//加载id生成器
+	util.InitIdGenerator()
 	//连接数据库
 	model.InitDatabase()
 	//创建保存上传文件的文件夹

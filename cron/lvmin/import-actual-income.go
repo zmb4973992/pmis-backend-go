@@ -10,13 +10,13 @@ import (
 	"strings"
 )
 
-func ImportActualIncome(userID int64) error {
-	err := ImportActualIncomeFromTabShouKuan(userID)
+func ImportActualIncome(userId int64) error {
+	err := ImportActualIncomeFromTabShouKuan(userId)
 	if err != nil {
 		return err
 	}
 
-	err = ImportActualIncomeFromTabShouHui(userID)
+	err = ImportActualIncomeFromTabShouHui(userId)
 	if err != nil {
 		return err
 	}
@@ -31,11 +31,11 @@ type tabShouKuan struct {
 	ContractCode             string  `gorm:"column:F10624"`
 	ProjectCode              string  `gorm:"column:F10589"`
 	ImportedRelatedPartyName string  `gorm:"column:F10581"`
-	ImportedID               string  `gorm:"column:ContractID"`
+	ImportedId               string  `gorm:"column:ContractId"`
 	IOrd                     string  `gorm:"column:iOrd"`
 }
 
-func ImportActualIncomeFromTabShouKuan(userID int64) error {
+func ImportActualIncomeFromTabShouKuan(userId int64) error {
 	fmt.Println("★★★★★开始处理人民币实际收款记录......★★★★★")
 
 	var records []tabShouKuan
@@ -69,7 +69,7 @@ func ImportActualIncomeFromTabShouKuan(userID int64) error {
 	}
 
 	err = global.DB.
-		Where("dictionary_type_id =?", fundDirection.ID).
+		Where("dictionary_type_id =?", fundDirection.Id).
 		Where("name = '收款'").
 		First(&income).Error
 	if err != nil {
@@ -94,7 +94,7 @@ func ImportActualIncomeFromTabShouKuan(userID int64) error {
 	}
 
 	err = global.DB.
-		Where("dictionary_type_id =?", kind.ID).
+		Where("dictionary_type_id =?", kind.Id).
 		Where("name = '实际'").
 		First(&actual).Error
 	if err != nil {
@@ -105,8 +105,8 @@ func ImportActualIncomeFromTabShouKuan(userID int64) error {
 		return err
 	}
 
-	var affectedProjectIDs []int64
-	var affectedContractIDs []int64
+	var affectedProjectIds []int64
+	var affectedContractIds []int64
 
 	for i := range records {
 		if i > 0 && i%1000 == 0 {
@@ -118,7 +118,7 @@ func ImportActualIncomeFromTabShouKuan(userID int64) error {
 
 		var tempCount int64
 		global.DB.Model(&model.IncomeAndExpenditure{}).
-			Where("imported_approval_id = ?", records[i].ImportedID+records[i].IOrd).
+			Where("imported_approval_id = ?", records[i].ImportedId+records[i].IOrd).
 			Count(&tempCount)
 
 		if tempCount > 0 {
@@ -147,13 +147,13 @@ func ImportActualIncomeFromTabShouKuan(userID int64) error {
 		var detailedCurrency model.DictionaryDetail
 		if records[i].Currency != "" {
 			err = global.DB.
-				Where("dictionary_type_id = ?", currency.ID).
+				Where("dictionary_type_id = ?", currency.Id).
 				Where("name = ?", records[i].Currency).
 				First(&detailedCurrency).Error
 			if err != nil {
 				param := service.ErrorLogCreate{
 					Detail: "tabShouKuan视图的记录中发现无法匹配的币种：" +
-						records[i].Currency + "，审批ID为：" + records[i].ImportedID,
+						records[i].Currency + "，审批id为：" + records[i].ImportedId,
 				}
 				param.Create()
 			}
@@ -172,7 +172,7 @@ func ImportActualIncomeFromTabShouKuan(userID int64) error {
 				param.Create()
 			}
 
-			affectedContractIDs = append(affectedContractIDs, contract.ID)
+			affectedContractIds = append(affectedContractIds, contract.Id)
 		}
 
 		var project model.Project
@@ -188,7 +188,7 @@ func ImportActualIncomeFromTabShouKuan(userID int64) error {
 				param.Create()
 			}
 
-			affectedProjectIDs = append(affectedProjectIDs, project.ID)
+			affectedProjectIds = append(affectedProjectIds, project.Id)
 		}
 
 		var relatedParty model.RelatedParty
@@ -203,7 +203,7 @@ func ImportActualIncomeFromTabShouKuan(userID int64) error {
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "tabShouKuan视图的记录中发现无法匹配的相关方名称：" +
-							records[i].ImportedRelatedPartyName + "审批ID为：" + records[i].ImportedID,
+							records[i].ImportedRelatedPartyName + "审批id为：" + records[i].ImportedId,
 					}
 					param.Create()
 				}
@@ -214,16 +214,16 @@ func ImportActualIncomeFromTabShouKuan(userID int64) error {
 
 		newRecord := service.IncomeAndExpenditureCreate{
 			IgnoreUpdatingCumulativeIncomeAndExpenditure: true,
-			UserID:             userID,
-			ProjectID:          project.ID,
-			ContractID:         contract.ID,
+			UserId:             userId,
+			ProjectId:          project.Id,
+			ContractId:         contract.Id,
 			Kind:               "实际",
 			FundDirection:      "收款",
-			Currency:           currency.ID,
+			Currency:           currency.Id,
 			Date:               records[i].Date,
 			Amount:             &records[i].Amount,
 			ExchangeRate:       &exchangeRate,
-			ImportedApprovalID: records[i].ImportedID + records[i].IOrd,
+			ImportedApprovalId: records[i].ImportedId + records[i].IOrd,
 		}
 
 		errCode := newRecord.Create()
@@ -231,14 +231,14 @@ func ImportActualIncomeFromTabShouKuan(userID int64) error {
 		if errCode != util.Success {
 			param := service.ErrorLogCreate{
 				Detail: "导入tabShouKuan视图的记录时发生错误：" +
-					util.GetErrorDescription(errCode) + "，ID为：" +
-					records[i].ImportedID + "，iOrd为：" + records[i].IOrd,
+					util.GetErrorDescription(errCode) + "，id为：" +
+					records[i].ImportedId + "，iOrd为：" + records[i].IOrd,
 			}
 			param.Create()
 		}
 	}
 
-	err = updateCumulativeIncome(userID, affectedProjectIDs, affectedContractIDs)
+	err = updateCumulativeIncome(userId, affectedProjectIds, affectedContractIds)
 	if err != nil {
 		return err
 	}
@@ -254,11 +254,11 @@ type tabShouHui struct {
 	Currency                 string  `gorm:"column:F14168"`
 	ProjectCode              string  `gorm:"column:F16856"`
 	ImportedRelatedPartyName string  `gorm:"column:F14394"`
-	BankSerialID             string  `gorm:"column:F14165"`
+	BankSerialId             string  `gorm:"column:F14165"`
 	IOrd                     string  `gorm:"column:iOrd"`
 }
 
-func ImportActualIncomeFromTabShouHui(userID int64) error {
+func ImportActualIncomeFromTabShouHui(userId int64) error {
 	fmt.Println("★★★★★开始处理实际收汇记录......★★★★★")
 
 	//只处理“完成申报”的记录，别的状态可能会发生修改
@@ -293,7 +293,7 @@ func ImportActualIncomeFromTabShouHui(userID int64) error {
 		return err
 	}
 	err = global.DB.
-		Where("dictionary_type_id =?", fundDirection.ID).
+		Where("dictionary_type_id =?", fundDirection.Id).
 		Where("name = '收款'").
 		First(&income).Error
 	if err != nil {
@@ -317,7 +317,7 @@ func ImportActualIncomeFromTabShouHui(userID int64) error {
 		return err
 	}
 	err = global.DB.
-		Where("dictionary_type_id =?", kind.ID).
+		Where("dictionary_type_id =?", kind.Id).
 		Where("name = '实际'").
 		First(&actual).Error
 	if err != nil {
@@ -328,8 +328,8 @@ func ImportActualIncomeFromTabShouHui(userID int64) error {
 		return err
 	}
 
-	var affectedProjectIDs []int64
-	var affectedContractIDs []int64
+	var affectedProjectIds []int64
+	var affectedContractIds []int64
 
 	for i := range records {
 		if i > 0 && i%1000 == 0 {
@@ -341,7 +341,7 @@ func ImportActualIncomeFromTabShouHui(userID int64) error {
 
 		var tempCount int64
 		global.DB.Model(&model.IncomeAndExpenditure{}).
-			Where("imported_approval_id = ?", records[i].BankSerialID+records[i].IOrd).
+			Where("imported_approval_id = ?", records[i].BankSerialId+records[i].IOrd).
 			Count(&tempCount)
 
 		if tempCount > 0 {
@@ -370,13 +370,13 @@ func ImportActualIncomeFromTabShouHui(userID int64) error {
 		var detailedCurrency model.DictionaryDetail
 		if records[i].Currency != "" {
 			err = global.DB.
-				Where("dictionary_type_id = ?", currency.ID).
+				Where("dictionary_type_id = ?", currency.Id).
 				Where("name = ?", records[i].Currency).
 				First(&detailedCurrency).Error
 			if err != nil {
 				param := service.ErrorLogCreate{
 					Detail: "tabShouHui视图的记录中发现无法匹配的币种：" +
-						records[i].Currency + "，银行流水号为：" + records[i].BankSerialID + "，IOrd为：" + records[i].IOrd,
+						records[i].Currency + "，银行流水号为：" + records[i].BankSerialId + "，IOrd为：" + records[i].IOrd,
 				}
 				param.Create()
 			}
@@ -391,13 +391,13 @@ func ImportActualIncomeFromTabShouHui(userID int64) error {
 				param := service.ErrorLogCreate{
 					Detail: "tabShouHui视图的记录中发现无法匹配的项目编号：" +
 						records[i].ProjectCode +
-						"，银行流水号为：" + records[i].BankSerialID +
+						"，银行流水号为：" + records[i].BankSerialId +
 						"，IOrd为：" + records[i].IOrd,
 				}
 				param.Create()
 			}
 
-			affectedProjectIDs = append(affectedProjectIDs, project.ID)
+			affectedProjectIds = append(affectedProjectIds, project.Id)
 		}
 
 		var relatedParty model.RelatedParty
@@ -412,7 +412,7 @@ func ImportActualIncomeFromTabShouHui(userID int64) error {
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "tabShouHui视图的记录中发现无法匹配的相关方名称：" +
-							records[i].ImportedRelatedPartyName + "，银行流水号为：" + records[i].BankSerialID + "，IOrd为：" + records[i].IOrd,
+							records[i].ImportedRelatedPartyName + "，银行流水号为：" + records[i].BankSerialId + "，IOrd为：" + records[i].IOrd,
 					}
 					param.Create()
 				}
@@ -421,14 +421,14 @@ func ImportActualIncomeFromTabShouHui(userID int64) error {
 
 		newRecord := service.IncomeAndExpenditureCreate{
 			IgnoreUpdatingCumulativeIncomeAndExpenditure: true,
-			UserID:             userID,
-			ProjectID:          project.ID,
+			UserId:             userId,
+			ProjectId:          project.Id,
 			Kind:               "实际",
 			FundDirection:      "收款",
-			Currency:           detailedCurrency.ID,
+			Currency:           detailedCurrency.Id,
 			Date:               records[i].Date,
 			Amount:             &records[i].Amount,
-			ImportedApprovalID: records[i].BankSerialID + records[i].IOrd,
+			ImportedApprovalId: records[i].BankSerialId + records[i].IOrd,
 		}
 
 		switch records[i].Currency {
@@ -453,14 +453,14 @@ func ImportActualIncomeFromTabShouHui(userID int64) error {
 		if errCode != util.Success {
 			param := service.ErrorLogCreate{
 				Detail: "导入tabShouHui视图的记录时发生错误：" +
-					util.GetErrorDescription(errCode) + "，银行流水ID为：" +
-					records[i].BankSerialID + "，iOrd为：" + records[i].IOrd,
+					util.GetErrorDescription(errCode) + "，银行流水id为：" +
+					records[i].BankSerialId + "，iOrd为：" + records[i].IOrd,
 			}
 			param.Create()
 		}
 	}
 
-	err = updateCumulativeIncome(userID, affectedProjectIDs, affectedContractIDs)
+	err = updateCumulativeIncome(userId, affectedProjectIds, affectedContractIds)
 	if err != nil {
 		return err
 	}

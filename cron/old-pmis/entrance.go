@@ -15,25 +15,25 @@ func ImportDataForCron() {
 		global.SugaredLogger.Panicln(err)
 	}
 
-	err = ImportData(user.ID)
+	err = ImportData(user.Id)
 	if err != nil {
 		param := service.ErrorLogCreate{Detail: err.Error()}
 		param.Create()
 	}
 }
 
-func ImportData(userID int64) error {
+func ImportData(userId int64) error {
 	err := connectToDatabase()
 	if err != nil {
 		return err
 	}
 
-	err = importDisassembly(userID)
+	err = importDisassembly(userId)
 	if err != nil {
 		return err
 	}
 
-	err = importProgress(userID)
+	err = importProgress(userId)
 	if err != nil {
 		return err
 	}

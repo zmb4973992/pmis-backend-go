@@ -16,9 +16,9 @@ import (
 //如果指针字段没传，那么数据库不会修改该字段
 
 type ProjectDailyAndCumulativeIncomeUpdate struct {
-	UserID int64
+	UserId int64
 	//连接关联表的id
-	ProjectID int64 `json:"project_id,omitempty"`
+	ProjectId int64 `json:"project_id,omitempty"`
 	//连接dictionary_item表的id
 
 	//日期
@@ -29,7 +29,7 @@ type ProjectDailyAndCumulativeIncomeUpdate struct {
 
 type ProjectDailyAndCumulativeIncomeGetList struct {
 	list.Input
-	ProjectID int64  `json:"project_id,omitempty"`
+	ProjectId int64  `json:"project_id,omitempty"`
 	DateGte   string `json:"date_gte,omitempty"`
 	DateLte   string `json:"date_lte,omitempty"`
 }
@@ -39,9 +39,9 @@ type ProjectDailyAndCumulativeIncomeGetList struct {
 type ProjectDailyAndCumulativeIncomeOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
-	//ProjectID *int64 `json:"-"`
+	//ProjectId *int64 `json:"-"`
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
 
 	//日期
@@ -65,7 +65,7 @@ type ProjectDailyAndCumulativeIncomeOutput struct {
 func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() (errCode int) {
 	//连接关联表的id
 	{
-		if p.ProjectID > 0 {
+		if p.ProjectId > 0 {
 			var typeOfIncomeAndExpenditure int64
 			err := global.DB.Model(&model.DictionaryType{}).
 				Where("name = '收付款的种类'").Select("id").First(&typeOfIncomeAndExpenditure).Error
@@ -111,14 +111,14 @@ func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() (errCode int) {
 			//计算收款合同的总金额
 			var totalAmountOfIncomeContract float64
 			err = global.DB.Model(&model.Contract{}).
-				Where("project_id = ?", p.ProjectID).
+				Where("project_id = ?", p.ProjectId).
 				Where("fund_direction = ?", incomeContract).
 				Select("coalesce(sum(amount * exchange_rate),0)").
 				Find(&totalAmountOfIncomeContract).Error
 			//fmt.Println("收款合同总金额：", totalAmountOfIncomeContract)
 			//fmt.Println("*********************************")
 
-			global.DB.Where("project_id = ?", p.ProjectID).
+			global.DB.Where("project_id = ?", p.ProjectId).
 				Delete(&model.ProjectDailyAndCumulativeIncome{})
 
 			var fundDirectionOfIncomeAndExpenditure int64
@@ -138,7 +138,7 @@ func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() (errCode int) {
 
 			var dates []time.Time
 			global.DB.Model(&model.IncomeAndExpenditure{}).
-				Where("project_id = ?", p.ProjectID).
+				Where("project_id = ?", p.ProjectId).
 				Where("fund_direction = ?", income).
 				Distinct("date").
 				Order("date desc").
@@ -156,14 +156,14 @@ func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() (errCode int) {
 					var totalPlannedIncome float64
 					var countForPlanned int64
 					global.DB.Model(&model.IncomeAndExpenditure{}).
-						Where("project_id = ?", p.ProjectID).
+						Where("project_id = ?", p.ProjectId).
 						Where("kind = ?", planned).
 						Where("fund_direction = ?", income).
 						Where("date = ?", dates[j]).
 						Count(&countForPlanned)
 					if countForPlanned > 0 {
 						global.DB.Model(&model.IncomeAndExpenditure{}).
-							Where("project_id = ?", p.ProjectID).
+							Where("project_id = ?", p.ProjectId).
 							Where("kind = ?", planned).
 							Where("fund_direction = ?", income).
 							Where("date <= ?", dates[j]).
@@ -181,14 +181,14 @@ func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() (errCode int) {
 					var totalActualIncome float64
 					var countForActual int64
 					global.DB.Model(&model.IncomeAndExpenditure{}).
-						Where("project_id = ?", p.ProjectID).
+						Where("project_id = ?", p.ProjectId).
 						Where("kind = ?", actual).
 						Where("fund_direction = ?", income).
 						Where("date = ?", dates[j]).
 						Count(&countForActual)
 					if countForActual > 0 {
 						global.DB.Model(&model.IncomeAndExpenditure{}).
-							Where("project_id = ?", p.ProjectID).
+							Where("project_id = ?", p.ProjectId).
 							Where("kind = ?", actual).
 							Where("fund_direction = ?", income).
 							Where("date <= ?", dates[j]).
@@ -206,14 +206,14 @@ func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() (errCode int) {
 					var totalForecastedIncome float64
 					var countForForecasted int64
 					global.DB.Model(&model.IncomeAndExpenditure{}).
-						Where("project_id = ?", p.ProjectID).
+						Where("project_id = ?", p.ProjectId).
 						Where("kind = ?", forecasted).
 						Where("fund_direction = ?", income).
 						Where("date = ?", dates[j]).
 						Count(&countForForecasted)
 					if countForForecasted > 0 {
 						global.DB.Model(&model.IncomeAndExpenditure{}).
-							Where("project_id = ?", p.ProjectID).
+							Where("project_id = ?", p.ProjectId).
 							Where("kind = ?", forecasted).
 							Where("fund_direction = ?", income).
 							Where("date <= ?", dates[j]).
@@ -231,14 +231,14 @@ func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() (errCode int) {
 					var dailyActualIncome float64
 					var countForDailyActual int64
 					global.DB.Model(&model.IncomeAndExpenditure{}).
-						Where("project_id = ?", p.ProjectID).
+						Where("project_id = ?", p.ProjectId).
 						Where("kind = ?", actual).
 						Where("fund_direction = ?", income).
 						Where("date = ?", dates[j]).
 						Count(&countForDailyActual)
 					if countForDailyActual > 0 {
 						global.DB.Model(&model.IncomeAndExpenditure{}).
-							Where("project_id = ?", p.ProjectID).
+							Where("project_id = ?", p.ProjectId).
 							Where("kind = ?", actual).
 							Where("fund_direction = ?", income).
 							Where("date = ?", dates[j]).
@@ -248,8 +248,8 @@ func (p *ProjectDailyAndCumulativeIncomeUpdate) Update() (errCode int) {
 						//fmt.Println("当日收款金额：", dailyActualIncome)
 					}
 
-					record.Creator = &p.UserID
-					record.ProjectID = p.ProjectID
+					record.Creator = &p.UserId
+					record.ProjectId = p.ProjectId
 					record.Date = &dates[j]
 
 					records <- record
@@ -278,8 +278,8 @@ func (p *ProjectDailyAndCumulativeIncomeGetList) GetList() (
 	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
-	if p.ProjectID > 0 {
-		db = db.Where("project_id = ?", p.ProjectID)
+	if p.ProjectId > 0 {
+		db = db.Where("project_id = ?", p.ProjectId)
 	}
 
 	if p.DateGte != "" {

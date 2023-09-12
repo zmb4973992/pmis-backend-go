@@ -11,11 +11,11 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type MenuGet struct {
-	ID int64
+	Id int64
 }
 
 type MenuCreate struct {
-	UserID int64
+	UserId int64
 	//连接关联表的id
 
 	//连接dictionary_item表的id
@@ -23,7 +23,7 @@ type MenuCreate struct {
 	//日期
 
 	//数字(允许为0、nil)
-	SuperiorID    int64  `json:"superior_id,omitempty"`
+	SuperiorId    int64  `json:"superior_id,omitempty"`
 	Path          string `json:"path" binding:"required"`
 	Group         string `json:"group"  binding:"required"`
 	Name          string `json:"name"  binding:"required"`
@@ -40,8 +40,8 @@ type MenuCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type MenuUpdate struct {
-	UserID int64
-	ID     int64
+	UserId int64
+	Id     int64
 	//连接关联表的id
 
 	//连接dictionary_item表的id
@@ -49,11 +49,11 @@ type MenuUpdate struct {
 	//日期
 
 	//允许为0的数字
-	//SuperiorID *int64 `json:"superior_id"`
+	//SuperiorId *int64 `json:"superior_id"`
 
 	//允许为null的字符串
 
-	SuperiorID    *int64  `json:"superior_id"`
+	SuperiorId    *int64  `json:"superior_id"`
 	Path          *string `json:"path"`
 	Group         *string `json:"group"`
 	Name          *string `json:"name"`
@@ -66,18 +66,18 @@ type MenuUpdate struct {
 }
 
 type MenuDelete struct {
-	ID int64
+	Id int64
 }
 
 type MenuGetList struct {
 	list.Input
-	UserID int64  `json:"-"`
+	UserId int64  `json:"-"`
 	Group  string `json:"group,omitempty"`
 }
 
 type MenuGetTree struct {
 	list.Input
-	UserID int64  `json:"-"`
+	UserId int64  `json:"-"`
 	Group  string `json:"group,omitempty"`
 }
 
@@ -85,8 +85,8 @@ type MenuUpdateApis struct {
 	Creator      int64
 	LastModifier int64
 
-	MenuID int64    `json:"-"`
-	ApiIDs *[]int64 `json:"api_ids"`
+	MenuId int64    `json:"-"`
+	ApiIds *[]int64 `json:"api_ids"`
 }
 
 //以下为出参
@@ -101,7 +101,7 @@ type Meta struct {
 type MenuOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
 
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
@@ -111,7 +111,7 @@ type MenuOutput struct {
 	//dictionary_item表的详情，不需要gorm查询，需要在json中显示
 
 	//其他属性
-	SuperiorID *int64  `json:"superior_id"`
+	SuperiorId *int64  `json:"superior_id"`
 	Path       *string `json:"path"`
 	Group      *string `json:"group"`
 	Name       *string `json:"name"`
@@ -124,7 +124,7 @@ type MenuOutput struct {
 func (m *MenuGet) Get() (output *MenuOutput, errCode int) {
 	var result MenuOutput
 	err := global.DB.Model(model.Menu{}).
-		Where("id = ?", m.ID).
+		Where("id = ?", m.Id).
 		First(&result).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
@@ -136,12 +136,12 @@ func (m *MenuGet) Get() (output *MenuOutput, errCode int) {
 func (m *MenuCreate) Create() (errCode int) {
 	var paramOut model.Menu
 
-	if m.UserID > 0 {
-		paramOut.Creator = &m.UserID
+	if m.UserId > 0 {
+		paramOut.Creator = &m.UserId
 	}
 
-	if m.SuperiorID > 0 {
-		paramOut.SuperiorID = &m.SuperiorID
+	if m.SuperiorId > 0 {
+		paramOut.SuperiorId = &m.SuperiorId
 	}
 
 	if m.Path != "" {
@@ -186,15 +186,15 @@ func (m *MenuCreate) Create() (errCode int) {
 func (m *MenuUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
-	if m.UserID > 0 {
-		paramOut["last_modifier"] = m.UserID
+	if m.UserId > 0 {
+		paramOut["last_modifier"] = m.UserId
 	}
 
-	if m.SuperiorID != nil {
-		if *m.SuperiorID == -1 {
+	if m.SuperiorId != nil {
+		if *m.SuperiorId == -1 {
 			paramOut["superior_id"] = nil
 		} else {
-			paramOut["superior_id"] = *m.SuperiorID
+			paramOut["superior_id"] = *m.SuperiorId
 		}
 	}
 
@@ -260,7 +260,7 @@ func (m *MenuUpdate) Update() (errCode int) {
 	}
 
 	err := global.DB.Model(&model.Menu{}).
-		Where("id = ?", m.ID).
+		Where("id = ?", m.Id).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
@@ -272,7 +272,7 @@ func (m *MenuUpdate) Update() (errCode int) {
 func (m *MenuDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Menu
-	err := global.DB.Where("id = ?", m.ID).
+	err := global.DB.Where("id = ?", m.Id).
 		Find(&record).
 		Delete(&record).Error
 
@@ -283,13 +283,13 @@ func (m *MenuDelete) Delete() (errCode int) {
 }
 
 func (m *MenuUpdateApis) Update() (errCode int) {
-	if m.ApiIDs == nil {
+	if m.ApiIds == nil {
 		return util.ErrorInvalidJSONParameters
 	}
 
-	if len(*m.ApiIDs) == 0 {
+	if len(*m.ApiIds) == 0 {
 		err := global.DB.
-			Where("menu_id = ?", m.MenuID).
+			Where("menu_id = ?", m.MenuId).
 			Delete(&model.Menu{}).Error
 		if err != nil {
 			return util.ErrorFailToDeleteRecord
@@ -299,7 +299,7 @@ func (m *MenuUpdateApis) Update() (errCode int) {
 
 	//先删掉原始记录
 	err := global.DB.
-		Where("menu_id = ?", m.MenuID).
+		Where("menu_id = ?", m.MenuId).
 		Delete(&model.MenuAndApi{}).Error
 	if err != nil {
 		return util.ErrorFailToDeleteRecord
@@ -307,7 +307,7 @@ func (m *MenuUpdateApis) Update() (errCode int) {
 
 	//再增加新的记录
 	var paramOut []model.MenuAndApi
-	for _, apiID := range *m.ApiIDs {
+	for _, apiId := range *m.ApiIds {
 		var record model.MenuAndApi
 		if m.Creator > 0 {
 			record.Creator = &m.Creator
@@ -316,8 +316,8 @@ func (m *MenuUpdateApis) Update() (errCode int) {
 			record.LastModifier = &m.LastModifier
 		}
 
-		record.MenuID = m.MenuID
-		record.ApiID = apiID
+		record.MenuId = m.MenuId
+		record.ApiId = apiId
 		paramOut = append(paramOut, record)
 	}
 
@@ -327,11 +327,11 @@ func (m *MenuUpdateApis) Update() (errCode int) {
 	}
 
 	//更新casbin的rbac的策略
-	var param1 rbacUpdatePolicyByMenuID
-	param1.MenuID = m.MenuID
+	var param1 rbacUpdatePolicyByMenuId
+	param1.MenuId = m.MenuId
 	err = param1.Update()
 	if err != nil {
-		return util.ErrorFailToUpdateRBACPoliciesByMenuID
+		return util.ErrorFailToUpdateRBACPoliciesByMenuId
 	}
 
 	return util.Success
@@ -339,7 +339,7 @@ func (m *MenuUpdateApis) Update() (errCode int) {
 
 func (m *MenuGetList) GetList() (outputs []MenuOutput,
 	errCode int, paging *list.PagingOutput) {
-	if m.UserID == 0 {
+	if m.UserId == 0 {
 		return nil, util.ErrorRecordNotFound, nil
 	}
 
@@ -351,17 +351,17 @@ func (m *MenuGetList) GetList() (outputs []MenuOutput,
 		db = db.Where("group = ?", m.Group)
 	}
 
-	var roleIDs []int64
+	var roleIds []int64
 	global.DB.Model(&model.UserAndRole{}).
-		Where("user_id = ?", m.UserID).
+		Where("user_id = ?", m.UserId).
 		Select("role_id").
-		Find(&roleIDs)
-	var menuIDs []int64
+		Find(&roleIds)
+	var menuIds []int64
 	global.DB.Model(&model.RoleAndMenu{}).
-		Where("role_id in ?", roleIDs).
+		Where("role_id in ?", roleIds).
 		Select("menu_id").
-		Find(&menuIDs)
-	db = db.Where("id in ?", menuIDs)
+		Find(&menuIds)
+	db = db.Where("id in ?", menuIds)
 
 	//count
 	var count int64
@@ -431,7 +431,7 @@ func (m *MenuGetList) GetList() (outputs []MenuOutput,
 
 func (m *MenuGetTree) GetTree() (outputs []MenuOutput,
 	errCode int, paging *list.PagingOutput) {
-	if m.UserID == 0 {
+	if m.UserId == 0 {
 		return nil, util.ErrorRecordNotFound, nil
 	}
 
@@ -445,17 +445,17 @@ func (m *MenuGetTree) GetTree() (outputs []MenuOutput,
 		db = db.Where("group = ?", m.Group)
 	}
 
-	var roleIDs []int64
+	var roleIds []int64
 	global.DB.Model(&model.UserAndRole{}).
-		Where("user_id = ?", m.UserID).
+		Where("user_id = ?", m.UserId).
 		Select("role_id").
-		Find(&roleIDs)
-	var menuIDs []int64
+		Find(&roleIds)
+	var menuIds []int64
 	global.DB.Model(&model.RoleAndMenu{}).
-		Where("role_id in ?", roleIDs).
+		Where("role_id in ?", roleIds).
 		Select("menu_id").
-		Find(&menuIDs)
-	db = db.Where("id in ?", menuIDs)
+		Find(&menuIds)
+	db = db.Where("id in ?", menuIds)
 
 	//count
 	var count int64
@@ -511,7 +511,7 @@ func (m *MenuGetTree) GetTree() (outputs []MenuOutput,
 	}
 
 	for i := range outputs {
-		outputs[i].Children = getMenuTree(outputs[i].ID)
+		outputs[i].Children = getMenuTree(outputs[i].Id)
 	}
 
 	numberOfRecords := int(count)
@@ -527,17 +527,17 @@ func (m *MenuGetTree) GetTree() (outputs []MenuOutput,
 		}
 }
 
-func getMenuTree(superiorID int64) []MenuOutput {
+func getMenuTree(superiorId int64) []MenuOutput {
 	var result []MenuOutput
 	res := global.DB.Model(model.Menu{}).
-		Where("superior_id = ?", superiorID).
+		Where("superior_id = ?", superiorId).
 		Find(&result)
 	if res.RowsAffected == 0 {
 		return nil
 	}
 
 	for i := range result {
-		result[i].Children = getMenuTree(result[i].ID)
+		result[i].Children = getMenuTree(result[i].Id)
 	}
 	return result
 }

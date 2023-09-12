@@ -27,11 +27,11 @@ func RequestLog() gin.HandlerFunc {
 		//直接操作model更方便
 		var requestLog model.RequestLog
 
-		//处理creator、lastModifier、userID字段
-		userID, exists := util.GetUserID(c)
+		//处理creator、lastModifier、userId字段
+		userId, exists := util.GetUserId(c)
 		if exists {
-			requestLog.Creator = &userID
-			requestLog.LastModifier = &userID
+			requestLog.Creator = &userId
+			requestLog.LastModifier = &userId
 		}
 
 		//获取访问路径

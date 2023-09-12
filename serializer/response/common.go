@@ -12,7 +12,7 @@ type Common struct {
 }
 
 // List 这里不直接嵌套response，是为了调整字段显示顺序，
-// 另外嵌套多层也会导致出参结果需要嵌套，略麻烦
+// 另外嵌套多层也会导致出参结果需要嵌套，比较麻烦
 type List struct {
 	Data    any                `json:"data"`
 	Paging  *list.PagingOutput `json:"paging"`

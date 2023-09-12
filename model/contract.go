@@ -5,9 +5,9 @@ import "time"
 type Contract struct {
 	BasicModel
 	//连接其他表的id
-	ProjectID      *int64 //项目ID
-	OrganizationID *int64 //组织ID
-	RelatedPartyID *int64 //相关方ID
+	ProjectId      *int64 //项目id
+	OrganizationId *int64 //组织id
+	RelatedPartyId *int64 //相关方id
 	//连接dictionary_item表的id
 	FundDirection *int64 //资金方向
 	OurSignatory  *int64 //我方签约主体
@@ -31,7 +31,7 @@ type Contract struct {
 	Deliverable *string //交付物
 	PenaltyRule *string //罚则
 	Operator    *string //经办人
-	FileIDs     *string //附件
+	FileIds     *string //附件
 
 	//字符串(不允许为nil，必须有值)，暂无
 }

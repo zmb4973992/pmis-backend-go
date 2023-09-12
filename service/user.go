@@ -17,16 +17,16 @@ import (
 type UserLogin struct {
 	Username  string `json:"username" binding:"required"`
 	Password  string `json:"password" binding:"required"`
-	CaptchaID string `json:"captcha_id"`
+	CaptchaId string `json:"captcha_id"`
 	Captcha   string `json:"captcha"`
 }
 
 type UserGet struct {
-	ID int64
+	Id int64
 }
 
 type UserCreate struct {
-	UserID            int64
+	UserId            int64
 	Username          string `json:"username" binding:"required"`
 	Password          string `json:"password" binding:"required"`
 	FullName          string `json:"full_name,omitempty"`           //全名
@@ -41,8 +41,8 @@ type UserCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type UserUpdate struct {
-	UserID            int64
-	ID                int64
+	UserId            int64
+	Id                int64
 	FullName          *string `json:"full_name"`           //全名
 	EmailAddress      *string `json:"email_address"`       //邮箱地址
 	IsValid           *bool   `json:"is_valid"`            //是否有效
@@ -51,28 +51,28 @@ type UserUpdate struct {
 }
 
 type UserDelete struct {
-	ID int64
+	Id int64
 }
 
 type UserGetList struct {
 	list.Input
 	IsValid         *bool  `json:"is_valid"`
 	UsernameInclude string `json:"username_include,omitempty"`
-	RoleID          int64  `json:"role_id,omitempty"`
+	RoleId          int64  `json:"role_id,omitempty"`
 }
 
 type UserUpdateRoles struct {
 	LastModifier int64
 
-	UserID  int64    `json:"-"`
-	RoleIDs *[]int64 `json:"role_ids"`
+	UserId  int64    `json:"-"`
+	RoleIds *[]int64 `json:"role_ids"`
 }
 
 type UserUpdateDataAuthority struct {
 	LastModifier int64
 
-	UserID          int64 `json:"-"`
-	DataAuthorityID int64 `json:"data_authority_id" binding:"required"`
+	UserId          int64 `json:"-"`
+	DataAuthorityId int64 `json:"data_authority_id" binding:"required"`
 }
 
 //以下为出参
@@ -80,7 +80,7 @@ type UserUpdateDataAuthority struct {
 type UserOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 
 	Username          string  `json:"username"`            //用户名
 	FullName          *string `json:"full_name"`           //全名
@@ -92,7 +92,7 @@ type UserOutput struct {
 
 func (u *UserLogin) Verify() bool {
 	store := base64Captcha.DefaultMemStore
-	permitted := store.Verify(u.CaptchaID, u.Captcha, true)
+	permitted := store.Verify(u.CaptchaId, u.Captcha, true)
 	return permitted
 }
 
@@ -111,7 +111,7 @@ func (u *UserLogin) Login() (output any, errCode int) {
 		return nil, util.ErrorInvalidUsernameOrPassword
 	}
 
-	token, err1 := util.GenerateToken(user.ID)
+	token, err1 := util.GenerateToken(user.Id)
 	if err1 != nil {
 		return nil, util.ErrorFailToGenerateToken
 	}
@@ -122,7 +122,7 @@ func (u *UserLogin) Login() (output any, errCode int) {
 
 func (u *UserGet) Get() (output *UserOutput, errCode int) {
 	err := global.DB.Model(model.User{}).
-		Where("id = ?", u.ID).
+		Where("id = ?", u.Id).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
@@ -133,8 +133,8 @@ func (u *UserGet) Get() (output *UserOutput, errCode int) {
 
 func (u *UserCreate) Create() (errCode int) {
 	var paramOut model.User
-	if u.UserID > 0 {
-		paramOut.Creator = &u.UserID
+	if u.UserId > 0 {
+		paramOut.Creator = &u.UserId
 	}
 
 	paramOut.Username = u.Username
@@ -175,8 +175,8 @@ func (u *UserCreate) Create() (errCode int) {
 func (u *UserUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
-	if u.UserID > 0 {
-		paramOut["last_modifier"] = u.UserID
+	if u.UserId > 0 {
+		paramOut["last_modifier"] = u.UserId
 	}
 
 	if u.FullName != nil {
@@ -216,7 +216,7 @@ func (u *UserUpdate) Update() (errCode int) {
 	}
 
 	err := global.DB.Model(&model.User{}).
-		Where("id = ?", u.ID).
+		Where("id = ?", u.Id).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
@@ -228,7 +228,7 @@ func (u *UserUpdate) Update() (errCode int) {
 func (u *UserDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.User
-	err := global.DB.Where("id = ?", u.ID).
+	err := global.DB.Where("id = ?", u.Id).
 		Find(&record).
 		Delete(&record).Error
 
@@ -253,13 +253,13 @@ func (u *UserGetList) GetList() (outputs []UserOutput,
 		db = db.Where("username like ?", "%"+u.UsernameInclude+"%")
 	}
 
-	if u.RoleID > 0 {
-		var userIDs []int64
+	if u.RoleId > 0 {
+		var userIds []int64
 		global.DB.Model(&model.UserAndRole{}).
-			Where("role_id = ?", u.RoleID).
+			Where("role_id = ?", u.RoleId).
 			Select("user_id").
-			Find(&userIDs)
-		db = db.Where("id in ?", userIDs)
+			Find(&userIds)
+		db = db.Where("id in ?", userIds)
 	}
 
 	// count
@@ -328,12 +328,12 @@ func (u *UserGetList) GetList() (outputs []UserOutput,
 }
 
 func (u *UserUpdateRoles) Update() (errCode int) {
-	if u.RoleIDs == nil {
+	if u.RoleIds == nil {
 		return util.ErrorInvalidJSONParameters
 	}
 
-	if len(*u.RoleIDs) == 0 {
-		err := global.DB.Where("user_id = ?", u.UserID).
+	if len(*u.RoleIds) == 0 {
+		err := global.DB.Where("user_id = ?", u.UserId).
 			Delete(&model.UserAndRole{}).Error
 		if err != nil {
 			return util.ErrorFailToDeleteRecord
@@ -343,7 +343,7 @@ func (u *UserUpdateRoles) Update() (errCode int) {
 
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		//先删掉原始记录
-		err := tx.Where("user_id = ?", u.UserID).
+		err := tx.Where("user_id = ?", u.UserId).
 			Delete(&model.UserAndRole{}).Error
 		if err != nil {
 			return ErrorFailToDeleteRecord
@@ -351,14 +351,14 @@ func (u *UserUpdateRoles) Update() (errCode int) {
 
 		//再增加新的记录
 		var paramOut []model.UserAndRole
-		for _, roleID := range *u.RoleIDs {
+		for _, roleId := range *u.RoleIds {
 			var record model.UserAndRole
 			if u.LastModifier > 0 {
 				record.LastModifier = &u.LastModifier
 			}
 
-			record.UserID = u.UserID
-			record.RoleID = roleID
+			record.UserId = u.UserId
+			record.RoleId = roleId
 			paramOut = append(paramOut, record)
 		}
 
@@ -369,9 +369,9 @@ func (u *UserUpdateRoles) Update() (errCode int) {
 
 		//更新casbin的rbac分组规则
 		var param1 rbacUpdateGroupingPolicyByMember
-		param1.Member = strconv.FormatInt(u.UserID, 10)
-		for _, roleID := range *u.RoleIDs {
-			param1.Groups = append(param1.Groups, strconv.FormatInt(roleID, 10))
+		param1.Member = strconv.FormatInt(u.UserId, 10)
+		for _, roleId := range *u.RoleIds {
+			param1.Groups = append(param1.Groups, strconv.FormatInt(roleId, 10))
 		}
 		err = param1.Update()
 		if err != nil {
@@ -403,10 +403,10 @@ func (u *UserUpdateDataAuthority) Update() (errCode int) {
 		paramOut["last_modifier"] = u.LastModifier
 	}
 
-	paramOut["data_authority_id"] = u.DataAuthorityID
+	paramOut["data_authority_id"] = u.DataAuthorityId
 
 	err := global.DB.Model(&model.UserAndDataAuthority{}).
-		Where("user_id = ?", u.UserID).
+		Where("user_id = ?", u.UserId).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord

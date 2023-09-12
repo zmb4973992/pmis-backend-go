@@ -16,7 +16,7 @@ type organization struct{}
 func (o *organization) Get(c *gin.Context) {
 	var param service.OrganizationGet
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("organization-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("organization-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -44,9 +44,9 @@ func (o *organization) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Create()
@@ -68,7 +68,7 @@ func (o *organization) Update(c *gin.Context) {
 		return
 	}
 
-	param.ID, err = strconv.ParseInt(c.Param("organization-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("organization-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -78,9 +78,9 @@ func (o *organization) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.LastModifier = userID
+		param.LastModifier = userId
 	}
 
 	errCode := param.Update()
@@ -94,7 +94,7 @@ func (o *organization) Update(c *gin.Context) {
 func (o *organization) Delete(c *gin.Context) {
 	var param service.OrganizationDelete
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("organization-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("organization-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -125,9 +125,9 @@ func (o *organization) GetList(c *gin.Context) {
 		return
 	}
 
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	outputs, errCode, paging := param.GetList()

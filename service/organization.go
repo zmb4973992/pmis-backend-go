@@ -11,12 +11,12 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type OrganizationGet struct {
-	ID int64
+	Id int64
 }
 
 type OrganizationCreate struct {
-	UserID     int64
-	SuperiorID int64  `json:"superior_id" binding:"required"` //上级机构ID
+	UserId     int64
+	SuperiorId int64  `json:"superior_id" binding:"required"` //上级机构id
 	Name       string `json:"name" binding:"required"`        //名称
 	//Sort           int    `json:"sort" binding:"required"`       //级别，如公司、事业部、部门等
 }
@@ -27,18 +27,18 @@ type OrganizationCreate struct {
 
 type OrganizationUpdate struct {
 	LastModifier int64
-	ID           int64
+	Id           int64
 	Name         *string `json:"name"`        //名称
-	SuperiorID   *int64  `json:"superior_id"` //上级机构ID
+	SuperiorId   *int64  `json:"superior_id"` //上级机构id
 }
 
 type OrganizationDelete struct {
-	ID int64
+	Id int64
 }
 
 type OrganizationGetList struct {
 	list.Input
-	UserID      int64  `json:"-"`
+	UserId      int64  `json:"-"`
 	Name        string `json:"name,omitempty"`
 	IsValid     *bool  `json:"is_valid"`
 	NameInclude string `json:"name_include,omitempty"`
@@ -47,15 +47,15 @@ type OrganizationGetList struct {
 type OrganizationOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 	Name         string `json:"name"`        //名称
-	SuperiorID   *int   `json:"superior_id"` //上级机构id
+	SuperiorId   *int   `json:"superior_id"` //上级机构id
 	IsValid      *bool  `json:"is_valid"`    //是否有效
 }
 
 func (d *OrganizationGet) Get() (output *OrganizationOutput, errCode int) {
 	err := global.DB.Model(model.Organization{}).
-		Where("id = ?", d.ID).
+		Where("id = ?", d.Id).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
@@ -67,13 +67,13 @@ func (d *OrganizationGet) Get() (output *OrganizationOutput, errCode int) {
 func (d *OrganizationCreate) Create() (errCode int) {
 	var paramOut model.Organization
 
-	if d.UserID > 0 {
-		paramOut.Creator = &d.UserID
+	if d.UserId > 0 {
+		paramOut.Creator = &d.UserId
 	}
 
 	paramOut.Name = d.Name
 
-	paramOut.SuperiorID = &d.SuperiorID
+	paramOut.SuperiorId = &d.SuperiorId
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
@@ -97,10 +97,10 @@ func (d *OrganizationUpdate) Update() (errCode int) {
 		}
 	}
 
-	if d.SuperiorID != nil {
-		if *d.SuperiorID > 0 {
-			paramOut["superior_id"] = d.SuperiorID
-		} else if *d.SuperiorID == -1 {
+	if d.SuperiorId != nil {
+		if *d.SuperiorId > 0 {
+			paramOut["superior_id"] = d.SuperiorId
+		} else if *d.SuperiorId == -1 {
 			paramOut["superior_id"] = nil
 		} else {
 			return util.ErrorInvalidJSONParameters
@@ -108,7 +108,7 @@ func (d *OrganizationUpdate) Update() (errCode int) {
 	}
 
 	err := global.DB.Model(&model.Organization{}).
-		Where("id = ?", d.ID).
+		Where("id = ?", d.Id).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
@@ -120,7 +120,7 @@ func (d *OrganizationUpdate) Update() (errCode int) {
 func (d *OrganizationDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.Organization
-	err := global.DB.Where("id = ?", d.ID).
+	err := global.DB.Where("id = ?", d.Id).
 		Find(&record).
 		Delete(&record).Error
 	if err != nil {
@@ -135,8 +135,8 @@ func (o *OrganizationGetList) GetList() (
 	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
-	organizationIDs := util.GetOrganizationIDsForDataAuthority(o.UserID)
-	db = db.Where("id in ?", organizationIDs)
+	organizationIds := util.GetOrganizationIdsForDataAuthority(o.UserId)
+	db = db.Where("id in ?", organizationIds)
 
 	if o.Name != "" {
 		db = db.Where("name = ?", o.Name)

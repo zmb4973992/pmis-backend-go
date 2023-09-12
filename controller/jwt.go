@@ -32,12 +32,12 @@ func (t *token) Validate(c *gin.Context) {
 		return
 	}
 
-	userID := res.UserID
+	userId := res.UserId
 
 	c.JSON(
 		http.StatusOK,
 		response.GenerateCommon(
-			gin.H{"user_id": userID},
+			gin.H{"user_id": userId},
 			util.Success),
 	)
 	return

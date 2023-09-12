@@ -6,7 +6,7 @@ import (
 
 type Progress struct {
 	BasicModel
-	DisassemblyID *int64     //拆解情况ID
+	DisassemblyId *int64     //拆解情况id
 	Date          *time.Time `gorm:"type:date"`
 	Type          *int64
 	Value         *float64

@@ -16,16 +16,16 @@ import (
 //如果指针字段没传，那么数据库不会修改该字段
 
 type RequestLogGet struct {
-	ID int64
+	Id int64
 }
 
 type RequestLogDelete struct {
-	ID int64
+	Id int64
 }
 
 type RequestLogGetList struct {
 	list.Input
-	UserID int64 `json:"user_id,omitempty"`
+	UserId int64 `json:"user_id,omitempty"`
 }
 
 //以下为出参
@@ -33,7 +33,7 @@ type RequestLogGetList struct {
 type RequestLogOutput struct {
 	Creator      *int64     `json:"creator"`
 	LastModifier *int64     `json:"last_modifier"`
-	ID           int64      `json:"id"`
+	Id           int64      `json:"id"`
 	IP           *string    `json:"ip"`            //IP
 	Location     *string    `json:"location"`      //所在地
 	Method       *string    `json:"method"`        //请求方式
@@ -47,7 +47,7 @@ type RequestLogOutput struct {
 
 func (o *RequestLogGet) Get() (output *RequestLogOutput, errCode int) {
 	err := global.DB.Model(model.RequestLog{}).
-		Where("id = ?", o.ID).
+		Where("id = ?", o.Id).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
@@ -59,7 +59,7 @@ func (o *RequestLogGet) Get() (output *RequestLogOutput, errCode int) {
 func (o *RequestLogDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.RequestLog
-	err := global.DB.Where("id = ?", o.ID).
+	err := global.DB.Where("id = ?", o.Id).
 		Find(&record).
 		Delete(&record).Error
 
@@ -75,8 +75,8 @@ func (o *RequestLogGetList) GetList() (outputs []RequestLogOutput,
 	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
-	if o.UserID > 0 {
-		db = db.Where("creator = ?", o.UserID)
+	if o.UserId > 0 {
+		db = db.Where("creator = ?", o.UserId)
 	}
 
 	// count

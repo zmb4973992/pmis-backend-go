@@ -4,8 +4,8 @@ package model
 
 type RoleAndMenu struct {
 	BasicModel
-	RoleID int64 `gorm:"nut null;"`
-	MenuID int64 `gorm:"nut null;"`
+	RoleId int64 `gorm:"nut null;"`
+	MenuId int64 `gorm:"nut null;"`
 }
 
 // TableName 修改表名

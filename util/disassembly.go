@@ -5,30 +5,30 @@ import (
 	"pmis-backend-go/model"
 )
 
-// GetSuperiorIDs 给定拆解id，找到所有上级id
-func GetSuperiorIDs(disassemblyID int64) (superiorIDs []int64) {
+// GetSuperiorIds 给定拆解id，找到所有上级id
+func GetSuperiorIds(disassemblyId int64) (superiorIds []int64) {
 	//superior_id可能为空，所以用指针来接收
 	var disassembly model.Disassembly
-	err := global.DB.Where("id = ?", disassemblyID).
+	err := global.DB.Where("id = ?", disassemblyId).
 		First(&disassembly).Error
 
 	//如果发生任何错误、或者上级id为空：
-	if err != nil || disassembly.SuperiorID == nil {
+	if err != nil || disassembly.SuperiorId == nil {
 		return nil
 	}
 
-	superiorIDs = append(superiorIDs, *disassembly.SuperiorID)
-	res := GetSuperiorIDs(*disassembly.SuperiorID)
+	superiorIds = append(superiorIds, *disassembly.SuperiorId)
+	res := GetSuperiorIds(*disassembly.SuperiorId)
 
-	superiorIDs = append(superiorIDs, res...)
+	superiorIds = append(superiorIds, res...)
 
-	return superiorIDs
+	return superiorIds
 }
 
-// GetInferiorIDs 给定拆解id，找到所有下级id
-func GetInferiorIDs(disassemblyID int64) (inferiorIDs []int64) {
+// GetInferiorIds 给定拆解id，找到所有下级id
+func GetInferiorIds(disassemblyId int64) (inferiorIds []int64) {
 	var disassemblies []model.Disassembly
-	err := global.DB.Where("superior_id = ?", disassemblyID).
+	err := global.DB.Where("superior_id = ?", disassemblyId).
 		Find(&disassemblies).Error
 
 	if err != nil {
@@ -36,11 +36,11 @@ func GetInferiorIDs(disassemblyID int64) (inferiorIDs []int64) {
 	}
 
 	for i := range disassemblies {
-		inferiorIDs = append(inferiorIDs, disassemblies[i].ID)
-		res := GetInferiorIDs(disassemblies[i].ID)
+		inferiorIds = append(inferiorIds, disassemblies[i].Id)
+		res := GetInferiorIds(disassemblies[i].Id)
 
-		inferiorIDs = append(inferiorIDs, res...)
+		inferiorIds = append(inferiorIds, res...)
 	}
 
-	return inferiorIDs
+	return inferiorIds
 }

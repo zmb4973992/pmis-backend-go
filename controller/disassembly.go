@@ -16,7 +16,7 @@ type disassembly struct{}
 func (d *disassembly) Get(c *gin.Context) {
 	var param service.DisassemblyGet
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -63,9 +63,9 @@ func (d *disassembly) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Create()
@@ -87,7 +87,7 @@ func (d *disassembly) Update(c *gin.Context) {
 		return
 	}
 
-	param.ID, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
 	if err != nil {
 		c.JSON(http.StatusOK,
 			response.GenerateCommon(nil, util.ErrorInvalidURIParameters),
@@ -96,9 +96,9 @@ func (d *disassembly) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Update()
@@ -112,7 +112,7 @@ func (d *disassembly) Update(c *gin.Context) {
 func (d *disassembly) Delete(c *gin.Context) {
 	var param service.DisassemblyDelete
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("disassembly-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -121,9 +121,9 @@ func (d *disassembly) Delete(c *gin.Context) {
 		return
 	}
 
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Delete()

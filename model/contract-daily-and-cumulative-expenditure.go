@@ -5,7 +5,7 @@ import "time"
 type ContractDailyAndCumulativeExpenditure struct {
 	BasicModel
 	//连接其他表的id
-	ContractID int64 //合同ID
+	ContractId int64 //合同id
 	//连接dictionary_item表的id
 	//日期
 	Date *time.Time `gorm:"type:date"`

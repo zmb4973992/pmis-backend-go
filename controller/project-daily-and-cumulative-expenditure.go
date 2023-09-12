@@ -24,9 +24,9 @@ func (p *projectDailyAndCumulativeExpenditure) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Update()

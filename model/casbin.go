@@ -9,7 +9,7 @@ import (
 // 因为添加的方法是enforcer.addPolicy()，不走gorm。以后再说
 
 type CasbinRule struct {
-	ID    int64   `json:"id"`
+	Id    int64   `json:"id"`
 	PType *string `json:"p_type" gorm:"column:ptype;type:nvarchar(100)"`
 	V0    *string `json:"v0" gorm:"type:nvarchar(100)"`
 	V1    *string `json:"v1" gorm:"type:nvarchar(100)"`

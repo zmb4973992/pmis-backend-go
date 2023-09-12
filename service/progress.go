@@ -11,13 +11,13 @@ import (
 //以下为入参
 
 type ProgressGet struct {
-	ID int64
+	Id int64
 }
 
 type ProgressCreate struct {
-	UserID int64
+	UserId int64
 
-	DisassemblyID int64    `json:"disassembly_id" binding:"required"`
+	DisassemblyId int64    `json:"disassembly_id" binding:"required"`
 	Date          string   `json:"date" binding:"required"`
 	Type          int64    `json:"type" binding:"required"`
 	Value         *float64 `json:"value" binding:"required"`
@@ -25,8 +25,8 @@ type ProgressCreate struct {
 }
 
 type ProgressUpdate struct {
-	UserID int64
-	ID     int64
+	UserId int64
+	Id     int64
 
 	Date    *string  `json:"date"`
 	Type    *int64   `json:"type"`
@@ -34,20 +34,20 @@ type ProgressUpdate struct {
 	Remarks *string  `json:"remarks"`
 }
 
-type ProgressUpdateByProjectID struct {
-	UserID    int64
-	ProjectID int64 `json:"project_id,omitempty"`
+type ProgressUpdateByProjectId struct {
+	UserId    int64
+	ProjectId int64 `json:"project_id,omitempty"`
 }
 
 type ProgressDelete struct {
-	UserID int64
-	ID     int64
+	UserId int64
+	Id     int64
 }
 
 type ProgressGetList struct {
 	list.Input
-	ProjectID     int64    `json:"project_id"`
-	DisassemblyID int64    `json:"disassembly_id"`
+	ProjectId     int64    `json:"project_id"`
+	DisassemblyId int64    `json:"disassembly_id"`
 	DateGte       string   `json:"date_gte,omitempty"`
 	DateLte       string   `json:"date_lte,omitempty"`
 	Type          int64    `json:"type,omitempty"`
@@ -63,9 +63,9 @@ type ProgressGetList struct {
 type ProgressOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 
-	DisassemblyID       *int64             `json:"-"`
+	DisassemblyId       *int64             `json:"-"`
 	DisassemblyExternal *DisassemblyOutput `json:"disassembly" gorm:"-"`
 
 	Date               *string                 `json:"date"`
@@ -79,7 +79,7 @@ type ProgressOutput struct {
 
 func (p *ProgressGet) Get() (output *ProgressOutput, errCode int) {
 	err := global.DB.Model(model.Progress{}).
-		Where("id = ?", p.ID).
+		Where("id = ?", p.Id).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
@@ -120,11 +120,11 @@ func (p *ProgressGet) Get() (output *ProgressOutput, errCode int) {
 func (p *ProgressCreate) Create() (errCode int) {
 	var paramOut model.Progress
 
-	if p.UserID > 0 {
-		paramOut.Creator = &p.UserID
+	if p.UserId > 0 {
+		paramOut.Creator = &p.UserId
 	}
 
-	paramOut.DisassemblyID = &p.DisassemblyID
+	paramOut.DisassemblyId = &p.DisassemblyId
 
 	date, err := time.Parse("2006-01-02", p.Date)
 	if err != nil {
@@ -141,7 +141,7 @@ func (p *ProgressCreate) Create() (errCode int) {
 	if err != nil {
 		return util.ErrorFailToCreateRecord
 	}
-	paramOut.DataSource = &dataSource.ID
+	paramOut.DataSource = &dataSource.Id
 
 	if p.Remarks != "" {
 		paramOut.Remarks = &p.Remarks
@@ -157,7 +157,7 @@ func (p *ProgressCreate) Create() (errCode int) {
 
 	//检查数据库是否已有相同日期、相同类型的记录
 	res := global.DB.FirstOrCreate(&paramOut, model.Progress{
-		DisassemblyID: &p.DisassemblyID,
+		DisassemblyId: &p.DisassemblyId,
 		Date:          &date,
 		Type:          &p.Type,
 	})
@@ -171,7 +171,7 @@ func (p *ProgressCreate) Create() (errCode int) {
 	}
 
 	var disassembly model.Disassembly
-	err = global.DB.Where("id = ?", p.DisassemblyID).
+	err = global.DB.Where("id = ?", p.DisassemblyId).
 		First(&disassembly).Error
 	if err != nil {
 		return util.ErrorFailToCreateRecord
@@ -192,16 +192,16 @@ func (p *ProgressCreate) Create() (errCode int) {
 	}
 
 	var param OperationLogCreate
-	param.Creator = p.UserID
-	param.Operator = p.UserID
-	param.ProjectID = *disassembly.ProjectID
+	param.Creator = p.UserId
+	param.Operator = p.UserId
+	param.ProjectId = *disassembly.ProjectId
 	param.Date = time.Now().Format("2006-01-02")
-	param.OperationType = create.ID
+	param.OperationType = create.Id
 	param.Detail = "添加了" + *disassembly.Name + "的进度"
 	param.Create()
 
 	//更新所有上级的进度
-	err = util.UpdateProgressOfSuperiors(p.DisassemblyID, p.Type, p.UserID)
+	err = util.UpdateProgressOfSuperiors(p.DisassemblyId, p.Type, p.UserId)
 
 	if err != nil {
 		return util.ErrorFailToCalculateSuperiorProgress
@@ -213,8 +213,8 @@ func (p *ProgressCreate) Create() (errCode int) {
 func (p *ProgressUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
-	if p.UserID > 0 {
-		paramOut["last_modifier"] = p.UserID
+	if p.UserId > 0 {
+		paramOut["last_modifier"] = p.UserId
 	}
 
 	if p.Date != nil {
@@ -260,11 +260,11 @@ func (p *ProgressUpdate) Update() (errCode int) {
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
 	}
-	paramOut["data_source"] = dataSource.ID
+	paramOut["data_source"] = dataSource.Id
 
 	//找到待更新的这条记录
 	var progress model.Progress
-	err = global.DB.Where("id = ?", p.ID).
+	err = global.DB.Where("id = ?", p.Id).
 		First(&progress).Error
 	if err != nil {
 		return util.ErrorFailToCalculateSuperiorProgress
@@ -273,36 +273,36 @@ func (p *ProgressUpdate) Update() (errCode int) {
 	//如果修改了date或type，意味着可能有重复记录，需要进行判断
 	if p.Date != nil || p.Type != nil {
 		//从数据库找出相同拆解id、相同日期、相同类型的记录
-		var tempProgressIDs []int64
+		var tempProgressIds []int64
 		tempDate, err1 := time.Parse("2006-01-02", *p.Date)
 		if err1 != nil {
 			return util.ErrorInvalidDateFormat
 		}
 		global.DB.Model(&model.Progress{}).
 			Where(&model.Progress{
-				DisassemblyID: progress.DisassemblyID,
+				DisassemblyId: progress.DisassemblyId,
 				Date:          &tempDate,
 				Type:          p.Type,
 			}).
 			Select("id").
-			Find(&tempProgressIDs)
-		//如果数据库有记录、且待修改的progressID不在数据库记录的progressIDs里面，说明是新的记录
+			Find(&tempProgressIds)
+		//如果数据库有记录、且待修改的progressId不在数据库记录的progressIds里面，说明是新的记录
 		//则不允许修改
-		if len(tempProgressIDs) > 0 && !util.IsInSlice(p.ID, tempProgressIDs) {
+		if len(tempProgressIds) > 0 && !util.IsInSlice(p.Id, tempProgressIds) {
 			return util.ErrorDuplicateRecord
 		}
 	}
 
 	//更新记录
 	err = global.DB.Model(&model.Progress{}).
-		Where("id = ?", p.ID).
+		Where("id = ?", p.Id).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
 	}
 
 	var disassembly model.Disassembly
-	err = global.DB.Where("id = ?", progress.DisassemblyID).
+	err = global.DB.Where("id = ?", progress.DisassemblyId).
 		First(&disassembly).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
@@ -323,43 +323,43 @@ func (p *ProgressUpdate) Update() (errCode int) {
 	}
 
 	var param OperationLogCreate
-	param.Creator = p.UserID
-	param.Operator = p.UserID
-	if disassembly.ProjectID != nil {
-		param.ProjectID = *disassembly.ProjectID
+	param.Creator = p.UserId
+	param.Operator = p.UserId
+	if disassembly.ProjectId != nil {
+		param.ProjectId = *disassembly.ProjectId
 	}
 	param.Date = time.Now().Format("2006-01-02")
-	param.OperationType = update.ID
+	param.OperationType = update.Id
 	param.Detail = "修改了" + *disassembly.Name + "的进度"
 	param.Create()
 
 	//更新所有上级的进度
-	if progress.DisassemblyID != nil {
+	if progress.DisassemblyId != nil {
 		//如果传入了type值(意味着type值可能从a改成b，同时影响a、b)，就准备更新所有的进度类型
 		if p.Type != nil {
 			//找出”进度类型“的dictionary_type值
-			var progressTypeIDInDictionaryType model.DictionaryType
+			var progressTypeIdInDictionaryType model.DictionaryType
 			err = global.DB.Where("name = '进度类型'").
-				First(&progressTypeIDInDictionaryType).
+				First(&progressTypeIdInDictionaryType).
 				Error
 			if err != nil {
 				return util.ErrorFailToCalculateSuperiorProgress
 			}
 
 			//找出"进度类型"的dictionary_item值，准备遍历
-			var progressTypeIDs []int64
+			var progressTypeIds []int64
 			global.DB.Model(&model.DictionaryDetail{}).
-				Where("dictionary_type_id = ?", progressTypeIDInDictionaryType.ID).
-				Select("id").Find(&progressTypeIDs)
+				Where("dictionary_type_id = ?", progressTypeIdInDictionaryType.Id).
+				Select("id").Find(&progressTypeIds)
 
-			for _, v := range progressTypeIDs {
-				err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, v, p.UserID)
+			for _, v := range progressTypeIds {
+				err = util.UpdateProgressOfSuperiors(*progress.DisassemblyId, v, p.UserId)
 				if err != nil {
 					return util.ErrorFailToCalculateSuperiorProgress
 				}
 			}
 		} else { //如果没有传入type值(意味着记录的type值不变)，则只更新原来的进度类型
-			err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, *progress.Type, p.UserID)
+			err = util.UpdateProgressOfSuperiors(*progress.DisassemblyId, *progress.Type, p.UserId)
 			if err != nil {
 				return util.ErrorFailToCalculateSuperiorProgress
 			}
@@ -369,7 +369,7 @@ func (p *ProgressUpdate) Update() (errCode int) {
 	return util.Success
 }
 
-func (p *ProgressUpdateByProjectID) UpdateByProjectID() error {
+func (p *ProgressUpdateByProjectId) UpdateByProjectId() error {
 	var progressType model.DictionaryType
 	err := global.DB.Where("name = '进度类型'").
 		First(&progressType).Error
@@ -378,18 +378,18 @@ func (p *ProgressUpdateByProjectID) UpdateByProjectID() error {
 	}
 
 	var allProgressTypes []model.DictionaryDetail
-	err = global.DB.Where("dictionary_type_id = ?", progressType.ID).
+	err = global.DB.Where("dictionary_type_id = ?", progressType.Id).
 		Find(&allProgressTypes).Error
 
 	var disassemblies []model.Disassembly
 	global.DB.
-		Where("project_id = ?", p.ProjectID).
+		Where("project_id = ?", p.ProjectId).
 		Order("level desc").
 		Find(&disassemblies)
 
 	for i := range allProgressTypes {
 		for j := range disassemblies {
-			err = util.UpdateOwnProgress(disassemblies[j].ID, allProgressTypes[i].ID, p.UserID)
+			err = util.UpdateOwnProgress(disassemblies[j].Id, allProgressTypes[i].Id, p.UserId)
 			if err != nil {
 				return err
 			}
@@ -402,7 +402,7 @@ func (p *ProgressUpdateByProjectID) UpdateByProjectID() error {
 func (p *ProgressDelete) Delete() (errCode int) {
 	//先找到记录，这样参数才能获得值、触发钩子函数，再删除记录
 	var progress model.Progress
-	err := global.DB.Where("id = ?", p.ID).
+	err := global.DB.Where("id = ?", p.Id).
 		First(&progress).
 		Delete(&progress).Error
 
@@ -411,7 +411,7 @@ func (p *ProgressDelete) Delete() (errCode int) {
 	}
 
 	var disassembly model.Disassembly
-	err = global.DB.Where("id = ?", progress.DisassemblyID).
+	err = global.DB.Where("id = ?", progress.DisassemblyId).
 		First(&disassembly).Error
 	if err != nil {
 		return util.ErrorFailToDeleteRecord
@@ -432,17 +432,17 @@ func (p *ProgressDelete) Delete() (errCode int) {
 	}
 
 	var param OperationLogCreate
-	param.Creator = p.UserID
-	param.Operator = p.UserID
-	param.ProjectID = *disassembly.ProjectID
+	param.Creator = p.UserId
+	param.Operator = p.UserId
+	param.ProjectId = *disassembly.ProjectId
 	param.Date = time.Now().Format("2006-01-02")
-	param.OperationType = deleting.ID
+	param.OperationType = deleting.Id
 	param.Detail = "删除了" + *disassembly.Name + "的进度"
 	param.Create()
 
 	//更新所有上级的进度
-	if progress.DisassemblyID != nil && progress.Type != nil {
-		err = util.UpdateProgressOfSuperiors(*progress.DisassemblyID, *progress.Type, p.UserID)
+	if progress.DisassemblyId != nil && progress.Type != nil {
+		err = util.UpdateProgressOfSuperiors(*progress.DisassemblyId, *progress.Type, p.UserId)
 		if err != nil {
 			return util.ErrorFailToCalculateSuperiorProgress
 		}
@@ -457,19 +457,19 @@ func (p *ProgressGetList) GetList() (
 	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
-	if p.ProjectID > 0 {
-		var disassemblyID int64
+	if p.ProjectId > 0 {
+		var disassemblyId int64
 		err := global.DB.Model(&model.Disassembly{}).
-			Where("project_id = ?", p.ProjectID).
+			Where("project_id = ?", p.ProjectId).
 			Where("superior_id is null").
-			Select("id").First(&disassemblyID).Error
+			Select("id").First(&disassemblyId).Error
 		if err != nil {
 			return nil, util.ErrorRecordNotFound, nil
 		}
-		db = db.Where("disassembly_id = ?", disassemblyID)
+		db = db.Where("disassembly_id = ?", disassemblyId)
 	}
-	if p.DisassemblyID > 0 {
-		db = db.Where("disassembly_id = ?", p.DisassemblyID)
+	if p.DisassemblyId > 0 {
+		db = db.Where("disassembly_id = ?", p.DisassemblyId)
 	}
 
 	if p.DateGte != "" {
@@ -493,15 +493,15 @@ func (p *ProgressGetList) GetList() (
 	}
 
 	if p.TypeName != "" {
-		var typeID int64
+		var typeId int64
 		err := global.DB.Model(&model.DictionaryDetail{}).
 			Where("name = ?", p.TypeName).
 			Select("id").
-			First(&typeID).Error
+			First(&typeId).Error
 		if err != nil {
 			return nil, util.ErrorRecordNotFound, nil
 		}
-		db = db.Where("type = ?", typeID)
+		db = db.Where("type = ?", typeId)
 
 	}
 
@@ -575,10 +575,10 @@ func (p *ProgressGetList) GetList() (
 	}
 
 	//查拆解信息
-	if p.DisassemblyID > 0 {
+	if p.DisassemblyId > 0 {
 		var record DisassemblyOutput
 		res := global.DB.Model(&model.Disassembly{}).
-			Where("id = ?", p.DisassemblyID).
+			Where("id = ?", p.DisassemblyId).
 			Limit(1).
 			Find(&record)
 		if res.RowsAffected > 0 {
@@ -598,7 +598,7 @@ func (p *ProgressGetList) GetList() (
 
 	var planned DictionaryDetailOutput
 	err = global.DB.Model(&model.DictionaryDetail{}).
-		Where("dictionary_type_id =?", progressType.ID).
+		Where("dictionary_type_id =?", progressType.Id).
 		Where("name = '计划进度'").
 		First(&planned).Error
 	if err != nil {
@@ -607,7 +607,7 @@ func (p *ProgressGetList) GetList() (
 
 	var forecasted DictionaryDetailOutput
 	err = global.DB.Model(&model.DictionaryDetail{}).
-		Where("dictionary_type_id =?", progressType.ID).
+		Where("dictionary_type_id =?", progressType.Id).
 		Where("name = '预测进度'").
 		First(&forecasted).Error
 	if err != nil {
@@ -616,7 +616,7 @@ func (p *ProgressGetList) GetList() (
 
 	var actual DictionaryDetailOutput
 	err = global.DB.Model(&model.DictionaryDetail{}).
-		Where("dictionary_type_id =?", progressType.ID).
+		Where("dictionary_type_id =?", progressType.Id).
 		Where("name = '实际进度'").
 		First(&actual).Error
 	if err != nil {
@@ -632,7 +632,7 @@ func (p *ProgressGetList) GetList() (
 
 	var systemCalculation DictionaryDetailOutput
 	err = global.DB.Model(&model.DictionaryDetail{}).
-		Where("dictionary_type_id =?", dataSource.ID).
+		Where("dictionary_type_id =?", dataSource.Id).
 		Where("name = '系统计算'").
 		First(&systemCalculation).Error
 	if err != nil {
@@ -641,7 +641,7 @@ func (p *ProgressGetList) GetList() (
 
 	var manualFilling DictionaryDetailOutput
 	err = global.DB.Model(&model.DictionaryDetail{}).
-		Where("dictionary_type_id =?", dataSource.ID).
+		Where("dictionary_type_id =?", dataSource.Id).
 		Where("name = '人工填写'").
 		First(&manualFilling).Error
 	if err != nil {
@@ -659,11 +659,11 @@ func (p *ProgressGetList) GetList() (
 		//查dictionary_item表
 		{
 			if outputs[i].Type != nil {
-				if *outputs[i].Type == planned.ID {
+				if *outputs[i].Type == planned.Id {
 					outputs[i].TypeExternal = &planned
-				} else if *outputs[i].Type == forecasted.ID {
+				} else if *outputs[i].Type == forecasted.Id {
 					outputs[i].TypeExternal = &forecasted
-				} else if *outputs[i].Type == actual.ID {
+				} else if *outputs[i].Type == actual.Id {
 					outputs[i].TypeExternal = &actual
 				} else {
 					var record DictionaryDetailOutput
@@ -677,9 +677,9 @@ func (p *ProgressGetList) GetList() (
 			}
 
 			if outputs[i].DataSource != nil {
-				if *outputs[i].DataSource == systemCalculation.ID {
+				if *outputs[i].DataSource == systemCalculation.Id {
 					outputs[i].DataSourceExternal = &systemCalculation
-				} else if *outputs[i].DataSource == manualFilling.ID {
+				} else if *outputs[i].DataSource == manualFilling.Id {
 					outputs[i].DataSourceExternal = &manualFilling
 				} else {
 					var record DictionaryDetailOutput

@@ -19,14 +19,14 @@ func (d *DictionaryType) TableName() string {
 }
 
 func (d *DictionaryType) BeforeDelete(tx *gorm.DB) error {
-	if d.ID == 0 {
+	if d.Id == 0 {
 		return nil
 	}
 
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var records []DictionaryDetail
-	err = tx.Where(DictionaryDetail{DictionaryTypeID: d.ID}).
+	err = tx.Where(DictionaryDetail{DictionaryTypeId: d.Id}).
 		Find(&records).Delete(&records).Error
 	if err != nil {
 		return err

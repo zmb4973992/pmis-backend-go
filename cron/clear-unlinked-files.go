@@ -9,14 +9,14 @@ import (
 )
 
 func clearUnlinkedFiles() {
-	var fileIDs []int64
+	var fileIds []int64
 	global.DB.Model(&model.File{}).
-		Select("id").Find(&fileIDs)
+		Select("id").Find(&fileIds)
 
-	for i := range fileIDs {
+	for i := range fileIds {
 		var count int64
 		global.DB.Model(&model.RelatedParty{}).
-			Where("file_ids like ?", "%"+strconv.FormatInt(fileIDs[i], 10)+"%").
+			Where("file_ids like ?", "%"+strconv.FormatInt(fileIds[i], 10)+"%").
 			Count(&count)
 		if count > 0 {
 			continue
@@ -24,11 +24,11 @@ func clearUnlinkedFiles() {
 
 		//如果在所有表中都没有找到这个引用，就可以删掉这个文件
 		var param service.FileDelete
-		param.ID = fileIDs[i]
+		param.Id = fileIds[i]
 		errCode := param.Delete()
 		if errCode != util.Success {
 			var param1 service.ErrorLogCreate
-			param1.Detail = "删除文件失败，文件id为：" + strconv.FormatInt(fileIDs[i], 10) + "请手动删除"
+			param1.Detail = "删除文件失败，文件id为：" + strconv.FormatInt(fileIds[i], 10) + "请手动删除"
 			param1.Create()
 		}
 	}

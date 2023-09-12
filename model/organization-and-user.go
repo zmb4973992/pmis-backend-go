@@ -3,8 +3,8 @@ package model
 // OrganizationAndUser 组织和用户的中间表
 type OrganizationAndUser struct {
 	BasicModel
-	OrganizationID int64 `gorm:"nut null;"`
-	UserID         int64 `gorm:"nut null;"`
+	OrganizationId int64 `gorm:"nut null;"`
+	UserId         int64 `gorm:"nut null;"`
 	ImportedByLDAP *bool
 }
 

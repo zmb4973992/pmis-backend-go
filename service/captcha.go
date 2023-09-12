@@ -11,7 +11,7 @@ type CaptchaGet struct {
 }
 
 type CaptchaOutput struct {
-	ID           string `json:"id"`
+	Id           string `json:"id"`
 	Base64String string `json:"base64_string"`
 }
 
@@ -30,7 +30,7 @@ func (c *CaptchaGet) Get() (output *CaptchaOutput, errCode int) {
 		response.GenerateCommon(nil, util.ErrorFailToGenerateCaptcha)
 	}
 
-	output.ID = id
+	output.Id = id
 	output.Base64String = base64String
 
 	return output, util.Success

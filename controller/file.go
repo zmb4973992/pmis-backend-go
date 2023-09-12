@@ -28,7 +28,7 @@ type file struct{}
 func (f *file) Get(c *gin.Context) {
 	var param service.FileGet
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("file-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("file-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -62,9 +62,9 @@ func (f *file) Create(c *gin.Context) {
 	var param service.FileCreate
 	param.FileHeader = fileHeader
 
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	id, url, err1 := param.Create()
@@ -91,7 +91,7 @@ func (f *file) Create(c *gin.Context) {
 func (f *file) Delete(c *gin.Context) {
 	var param service.FileDelete
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("file-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("file-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,

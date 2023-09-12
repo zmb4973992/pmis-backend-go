@@ -16,7 +16,7 @@ type incomeAndExpenditure struct{}
 func (i *incomeAndExpenditure) Get(c *gin.Context) {
 	var param service.IncomeAndExpenditureGet
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("income-and-expenditure-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("income-and-expenditure-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -45,9 +45,9 @@ func (i *incomeAndExpenditure) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Create()
@@ -69,7 +69,7 @@ func (i *incomeAndExpenditure) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.ID, err = strconv.ParseInt(c.Param("income-and-expenditure-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("income-and-expenditure-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -79,9 +79,9 @@ func (i *incomeAndExpenditure) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Update()
@@ -95,7 +95,7 @@ func (i *incomeAndExpenditure) Update(c *gin.Context) {
 func (i *incomeAndExpenditure) Delete(c *gin.Context) {
 	var param service.IncomeAndExpenditureDelete
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("income-and-expenditure-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("income-and-expenditure-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -126,10 +126,10 @@ func (i *incomeAndExpenditure) GetList(c *gin.Context) {
 		return
 	}
 
-	//AuthorityInput需要userID
-	userID, exists := util.GetUserID(c)
+	//AuthorityInput需要userId
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	outputs, errCode, paging := param.GetList()

@@ -18,11 +18,11 @@ type tabFukuan2a struct {
 	ProjectCode              string  `gorm:"column:F7546"`
 	Type                     string  `gorm:"column:F7541"`
 	Remarks                  string  `gorm:"column:F8666"`
-	ImportedApprovalID       string  `gorm:"column:F7549"`
+	ImportedApprovalId       string  `gorm:"column:F7549"`
 	ImportedRelatedPartyName string  `gorm:"column:F13591"`
 }
 
-func ImportActualExpenditure(userID int64) error {
+func ImportActualExpenditure(userId int64) error {
 	fmt.Println("★★★★★开始处理实际付款记录......★★★★★")
 
 	var records []tabFukuan2a
@@ -58,7 +58,7 @@ func ImportActualExpenditure(userID int64) error {
 	}
 
 	err = global.DB.
-		Where("dictionary_type_id =?", fundDirection.ID).
+		Where("dictionary_type_id =?", fundDirection.Id).
 		Where("name = '付款'").
 		First(&expenditure).Error
 	if err != nil {
@@ -82,7 +82,7 @@ func ImportActualExpenditure(userID int64) error {
 		return err
 	}
 	err = global.DB.
-		Where("dictionary_type_id =?", kind.ID).
+		Where("dictionary_type_id =?", kind.Id).
 		Where("name = '实际'").
 		First(&actual).Error
 	if err != nil {
@@ -93,8 +93,8 @@ func ImportActualExpenditure(userID int64) error {
 		return err
 	}
 
-	var affectedProjectIDs []int64
-	var affectedContractIDs []int64
+	var affectedProjectIds []int64
+	var affectedContractIds []int64
 
 	for i := range records {
 		if i > 0 && i%1000 == 0 {
@@ -106,7 +106,7 @@ func ImportActualExpenditure(userID int64) error {
 
 		var tempCount int64
 		global.DB.Model(&model.IncomeAndExpenditure{}).
-			Where("imported_approval_id = ?", records[i].ImportedApprovalID).
+			Where("imported_approval_id = ?", records[i].ImportedApprovalId).
 			Count(&tempCount)
 		if tempCount > 0 {
 			continue
@@ -134,13 +134,13 @@ func ImportActualExpenditure(userID int64) error {
 		var specificCurrency model.DictionaryDetail
 		if records[i].Currency != "" {
 			err = global.DB.
-				Where("dictionary_type_id = ?", currency.ID).
+				Where("dictionary_type_id = ?", currency.Id).
 				Where("name = ?", records[i].Currency).
 				First(&specificCurrency).Error
 			if err != nil {
 				param := service.ErrorLogCreate{
 					Detail: "tabFukuan2视图的记录中发现无法匹配的币种：" +
-						records[i].Currency + "，付款审批id为：" + records[i].ImportedApprovalID,
+						records[i].Currency + "，付款审批id为：" + records[i].ImportedApprovalId,
 				}
 				param.Create()
 			}
@@ -154,12 +154,12 @@ func ImportActualExpenditure(userID int64) error {
 			if err != nil {
 				param := service.ErrorLogCreate{
 					Detail: "tabFukuan2视图的记录中发现无法匹配的合同编号：" +
-						records[i].ContractCode + "，付款审批id为：" + records[i].ImportedApprovalID,
+						records[i].ContractCode + "，付款审批id为：" + records[i].ImportedApprovalId,
 				}
 				param.Create()
 			}
 
-			affectedContractIDs = append(affectedContractIDs, contract.ID)
+			affectedContractIds = append(affectedContractIds, contract.Id)
 		}
 
 		var project model.Project
@@ -170,12 +170,12 @@ func ImportActualExpenditure(userID int64) error {
 			if err != nil {
 				param := service.ErrorLogCreate{
 					Detail: "tabFukuan2视图的记录中发现无法匹配的项目编号：" +
-						records[i].ProjectCode + "，付款审批id为：" + records[i].ImportedApprovalID,
+						records[i].ProjectCode + "，付款审批id为：" + records[i].ImportedApprovalId,
 				}
 				param.Create()
 			}
 
-			affectedProjectIDs = append(affectedProjectIDs, project.ID)
+			affectedProjectIds = append(affectedProjectIds, project.Id)
 		}
 
 		var relatedParty model.RelatedParty
@@ -190,7 +190,7 @@ func ImportActualExpenditure(userID int64) error {
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "tabFukuan2视图的记录中发现无法匹配的相关方名称：" +
-							records[i].ImportedRelatedPartyName + "付款审批ID为：" + records[i].ImportedApprovalID,
+							records[i].ImportedRelatedPartyName + "付款审批id为：" + records[i].ImportedApprovalId,
 					}
 					param.Create()
 				}
@@ -199,17 +199,17 @@ func ImportActualExpenditure(userID int64) error {
 
 		newRecord := service.IncomeAndExpenditureCreate{
 			IgnoreUpdatingCumulativeIncomeAndExpenditure: true,
-			UserID:             userID,
-			ProjectID:          project.ID,
-			ContractID:         contract.ID,
+			UserId:             userId,
+			ProjectId:          project.Id,
+			ContractId:         contract.Id,
 			Kind:               "实际",
 			FundDirection:      "付款",
-			Currency:           specificCurrency.ID,
+			Currency:           specificCurrency.Id,
 			Date:               records[i].Date,
 			Amount:             &records[i].Amount,
 			Type:               records[i].Type,
 			Remarks:            records[i].Remarks,
-			ImportedApprovalID: records[i].ImportedApprovalID,
+			ImportedApprovalId: records[i].ImportedApprovalId,
 		}
 
 		switch records[i].Currency {
@@ -235,13 +235,13 @@ func ImportActualExpenditure(userID int64) error {
 			param := service.ErrorLogCreate{
 				Detail: "导入tabFukuan2视图的记录时发生错误：" +
 					util.GetErrorDescription(errCode) +
-					"，付款审批ID为：" + records[i].ImportedApprovalID,
+					"，付款审批id为：" + records[i].ImportedApprovalId,
 			}
 			param.Create()
 		}
 	}
 
-	err = updateCumulativeExpenditure(userID, affectedProjectIDs, affectedContractIDs)
+	err = updateCumulativeExpenditure(userId, affectedProjectIds, affectedContractIds)
 	if err != nil {
 		return err
 	}

@@ -32,7 +32,7 @@ func JWT() gin.HandlerFunc {
 			return
 		}
 		//如果access_token校验通过
-		//c.Set("user_id", res.UserID)
+		//c.Set("user_id", res.UserId)
 		c.Next()
 		return
 	}

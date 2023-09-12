@@ -9,7 +9,7 @@ import (
 )
 
 type progress struct {
-	DisassemblyID               int64      `gorm:"column:拆解情况id"`
+	DisassemblyId               int64      `gorm:"column:拆解情况id"`
 	Date                        *time.Time `gorm:"column:日期;type:date"`
 	PlannedProgress             *float64   `gorm:"column:初始计划进度"`
 	RemarksOfPlannedProgress    string     `gorm:"column:初始计划进度的备注"`
@@ -19,7 +19,7 @@ type progress struct {
 	RemarksOfForecastedProgress string     `gorm:"column:预测进度的备注"`
 }
 
-func importProgress(userID int64) error {
+func importProgress(userId int64) error {
 	fmt.Println("★★★★★开始处理进度记录......★★★★★")
 
 	var originalCountOfProgressRecords int64
@@ -43,7 +43,7 @@ func importProgress(userID int64) error {
 
 	var planned model.DictionaryDetail
 	err = global.DB.
-		Where("dictionary_type_id = ?", progressType.ID).
+		Where("dictionary_type_id = ?", progressType.Id).
 		Where("name = '计划进度'").
 		First(&planned).Error
 	if err != nil {
@@ -52,7 +52,7 @@ func importProgress(userID int64) error {
 
 	var actual model.DictionaryDetail
 	err = global.DB.
-		Where("dictionary_type_id = ?", progressType.ID).
+		Where("dictionary_type_id = ?", progressType.Id).
 		Where("name = '实际进度'").
 		First(&actual).Error
 	if err != nil {
@@ -61,7 +61,7 @@ func importProgress(userID int64) error {
 
 	var forecasted model.DictionaryDetail
 	err = global.DB.
-		Where("dictionary_type_id = ?", progressType.ID).
+		Where("dictionary_type_id = ?", progressType.Id).
 		Where("name = '预测进度'").
 		First(&forecasted).Error
 	if err != nil {
@@ -77,7 +77,7 @@ func importProgress(userID int64) error {
 
 	var manualFilling model.DictionaryDetail
 	err = global.DB.
-		Where("dictionary_type_id = ?", dataSourceOfProgress.ID).
+		Where("dictionary_type_id = ?", dataSourceOfProgress.Id).
 		Where("name = '人工填写'").
 		First(&manualFilling).Error
 	if err != nil {
@@ -87,35 +87,35 @@ func importProgress(userID int64) error {
 	for i := range oldProgresses {
 		var newDisassembly model.Disassembly
 		err = global.DB.
-			Where("imported_id_from_old_pmis = ?", oldProgresses[i].DisassemblyID).
+			Where("imported_id_from_old_pmis = ?", oldProgresses[i].DisassemblyId).
 			First(&newDisassembly).Error
 		if err != nil {
 			continue
 		}
 
 		var newProgress model.Progress
-		newProgress.Creator = &userID
-		newProgress.DisassemblyID = &newDisassembly.ID
+		newProgress.Creator = &userId
+		newProgress.DisassemblyId = &newDisassembly.Id
 		newProgress.Date = oldProgresses[i].Date
-		newProgress.DataSource = &manualFilling.ID
+		newProgress.DataSource = &manualFilling.Id
 		if oldProgresses[i].PlannedProgress != nil {
-			newProgress.Type = &planned.ID
+			newProgress.Type = &planned.Id
 			newProgress.Value = oldProgresses[i].PlannedProgress
 			newProgress.Remarks = &oldProgresses[i].RemarksOfPlannedProgress
 		} else if oldProgresses[i].ActualProgress != nil {
-			newProgress.Type = &actual.ID
+			newProgress.Type = &actual.Id
 			newProgress.Value = oldProgresses[i].ActualProgress
 			newProgress.Remarks = &oldProgresses[i].RemarksOfActualProgress
 		} else if oldProgresses[i].ForecastedProgress != nil {
-			newProgress.Type = &forecasted.ID
+			newProgress.Type = &forecasted.Id
 			newProgress.Value = oldProgresses[i].ForecastedProgress
 			newProgress.Remarks = &oldProgresses[i].RemarksOfForecastedProgress
 		}
 
 		err = global.DB.
-			Where("disassembly_id = ?", newProgress.DisassemblyID).
+			Where("disassembly_id = ?", newProgress.DisassemblyId).
 			Where("date = ?", newProgress.Date).
-			Where("data_source = ?", manualFilling.ID).
+			Where("data_source = ?", manualFilling.Id).
 			Where("type = ?", newProgress.Type).
 			Where("value = ?", newProgress.Value).
 			Where("remarks = ?", newProgress.Remarks).
@@ -136,10 +136,10 @@ func importProgress(userID int64) error {
 		var projects []model.Project
 		global.DB.Find(&projects)
 		for i := range projects {
-			var param service.ProgressUpdateByProjectID
-			param.UserID = userID
-			param.ProjectID = projects[i].ID
-			err = param.UpdateByProjectID()
+			var param service.ProgressUpdateByProjectId
+			param.UserId = userId
+			param.ProjectId = projects[i].Id
+			err = param.UpdateByProjectId()
 			if err != nil {
 				return err
 			}

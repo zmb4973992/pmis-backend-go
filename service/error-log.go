@@ -11,11 +11,11 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type ErrorLogGet struct {
-	ID int64
+	Id int64
 }
 
 type ErrorLogCreate struct {
-	UserID int64
+	UserId int64
 
 	Detail            string `json:"detail,omitempty"`
 	MainCategory      string `json:"main_category,omitempty"`
@@ -28,8 +28,8 @@ type ErrorLogCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type ErrorLogUpdate struct {
-	UserID int64
-	ID     int64
+	UserId int64
+	Id     int64
 
 	Detail            *string `json:"detail"`
 	MainCategory      *string `json:"main_category"`
@@ -38,7 +38,7 @@ type ErrorLogUpdate struct {
 }
 
 type ErrorLogDelete struct {
-	ID int64
+	Id int64
 }
 
 type ErrorLogGetList struct {
@@ -55,7 +55,7 @@ type ErrorLogGetList struct {
 type ErrorLogOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 
 	Detail            *string `json:"detail"`
 	Date              *string `json:"date"`
@@ -66,7 +66,7 @@ type ErrorLogOutput struct {
 
 func (e *ErrorLogGet) Get() (output *ErrorLogOutput, errCode int) {
 	err := global.DB.Model(model.ErrorLog{}).
-		Where("id = ?", e.ID).
+		Where("id = ?", e.Id).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
@@ -77,8 +77,8 @@ func (e *ErrorLogGet) Get() (output *ErrorLogOutput, errCode int) {
 
 func (e *ErrorLogCreate) Create() (errCode int) {
 	var paramOut model.ErrorLog
-	if e.UserID > 0 {
-		paramOut.Creator = &e.UserID
+	if e.UserId > 0 {
+		paramOut.Creator = &e.UserId
 	}
 
 	if e.Detail != "" {
@@ -108,8 +108,8 @@ func (e *ErrorLogCreate) Create() (errCode int) {
 func (e *ErrorLogUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
-	if e.UserID > 0 {
-		paramOut["last_modifier"] = e.UserID
+	if e.UserId > 0 {
+		paramOut["last_modifier"] = e.UserId
 	}
 
 	if e.Detail != nil {
@@ -145,7 +145,7 @@ func (e *ErrorLogUpdate) Update() (errCode int) {
 	}
 
 	err := global.DB.Model(&model.ErrorLog{}).
-		Where("id = ?", e.ID).
+		Where("id = ?", e.Id).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
@@ -157,7 +157,7 @@ func (e *ErrorLogUpdate) Update() (errCode int) {
 func (e *ErrorLogDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.ErrorLog
-	err := global.DB.Where("id = ?", e.ID).
+	err := global.DB.Where("id = ?", e.Id).
 		Find(&record).
 		Delete(&record).Error
 

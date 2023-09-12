@@ -5,11 +5,11 @@ import (
 	"pmis-backend-go/model"
 )
 
-func GetOrganizationIDsForDataAuthority(userID int64) (organizationIDs []int64) {
+func GetOrganizationIdsForDataAuthority(userId int64) (organizationIds []int64) {
 	//先获取角色
 	var userAndDataAuthority model.UserAndDataAuthority
 	err := global.DB.
-		Where("user_id = ?", userID).
+		Where("user_id = ?", userId).
 		First(&userAndDataAuthority).Error
 	if err != nil {
 		return nil
@@ -18,7 +18,7 @@ func GetOrganizationIDsForDataAuthority(userID int64) (organizationIDs []int64) 
 	//获得数据范围的信息
 	var dataAuthority model.DataAuthority
 	err = global.DB.
-		Where("id = ?", userAndDataAuthority.DataAuthorityID).
+		Where("id = ?", userAndDataAuthority.DataAuthorityId).
 		First(&dataAuthority).Error
 	if err != nil {
 		return nil
@@ -29,25 +29,25 @@ func GetOrganizationIDsForDataAuthority(userID int64) (organizationIDs []int64) 
 	if dataAuthority.Name == "所有部门" {
 		global.DB.Model(&model.Organization{}).
 			Select("id").
-			Find(&organizationIDs)
+			Find(&organizationIds)
 		return
 	} else if dataAuthority.Name == "所属部门和子部门" {
-		var tempOrganizationIDs []int64
+		var tempOrganizationIds []int64
 		global.DB.Model(&model.OrganizationAndUser{}).
-			Where("user_id = ?", userID).
+			Where("user_id = ?", userId).
 			Select("organization_id").
-			Find(&tempOrganizationIDs)
-		for i := range tempOrganizationIDs {
-			res := getSubOrganizationIDs(tempOrganizationIDs[i])
-			tempOrganizationIDs = append(tempOrganizationIDs, res...)
+			Find(&tempOrganizationIds)
+		for i := range tempOrganizationIds {
+			res := getSubOrganizationIds(tempOrganizationIds[i])
+			tempOrganizationIds = append(tempOrganizationIds, res...)
 		}
-		organizationIDs = RemoveDuplication(tempOrganizationIDs)
+		organizationIds = RemoveDuplication(tempOrganizationIds)
 		return
 	} else if dataAuthority.Name == "所属部门" {
 		global.DB.Model(&model.OrganizationAndUser{}).
-			Where("user_id = ?", userID).
+			Where("user_id = ?", userId).
 			Select("organization_id").
-			Find(&organizationIDs)
+			Find(&organizationIds)
 		return
 	} else if dataAuthority.Name == "无权限" {
 		return
@@ -56,14 +56,14 @@ func GetOrganizationIDsForDataAuthority(userID int64) (organizationIDs []int64) 
 	return
 }
 
-func getSubOrganizationIDs(organizationID int64) (organizationIDs []int64) {
+func getSubOrganizationIds(organizationId int64) (organizationIds []int64) {
 	global.DB.Model(&model.Organization{}).
-		Where("superior_id = ?", organizationID).
+		Where("superior_id = ?", organizationId).
 		Select("id").
-		Find(&organizationIDs)
-	for i := range organizationIDs {
-		res := getSubOrganizationIDs(organizationIDs[i])
-		organizationIDs = append(organizationIDs, res...)
+		Find(&organizationIds)
+	for i := range organizationIds {
+		res := getSubOrganizationIds(organizationIds[i])
+		organizationIds = append(organizationIds, res...)
 	}
 	return
 }

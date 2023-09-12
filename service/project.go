@@ -13,16 +13,16 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type ProjectGet struct {
-	ID     int64
-	UserID int64
+	Id     int64
+	UserId int64
 }
 
 type ProjectCreate struct {
-	UserID       int64
+	UserId       int64
 	LastModifier int64
 	//连接其他表的id
-	OrganizationID int64 `json:"organization_id,omitempty"`
-	RelatedPartyID int64 `json:"related_party_id,omitempty"`
+	OrganizationId int64 `json:"organization_id,omitempty"`
+	RelatedPartyId int64 `json:"related_party_id,omitempty"`
 	//连接dictionary_item表的id
 	Country      int64 `json:"country,omitempty"`
 	Type         int64 `json:"type,omitempty"`
@@ -50,11 +50,11 @@ type ProjectCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type ProjectUpdate struct {
-	UserID int64
-	ID     int64
+	UserId int64
+	Id     int64
 	//连接其他表的id
-	OrganizationID *int64 `json:"organization_id"`
-	RelatedPartyID *int64 `json:"related_party_id"`
+	OrganizationId *int64 `json:"organization_id"`
+	RelatedPartyId *int64 `json:"related_party_id"`
 	//连接dictionary_item表的id
 	Country      *int64 `json:"country"`
 	Type         *int64 `json:"type"`
@@ -80,16 +80,16 @@ type ProjectUpdate struct {
 }
 
 type ProjectDelete struct {
-	ID int64
+	Id int64
 }
 
 type ProjectGetList struct {
 	list.Input
-	UserID                  int64   `json:"-"`
+	UserId                  int64   `json:"-"`
 	NameInclude             string  `json:"name_include,omitempty"`
-	RelatedPartyID          int64   `json:"related_party_id,omitempty"`
+	RelatedPartyId          int64   `json:"related_party_id,omitempty"`
 	OrganizationNameInclude string  `json:"organization_name_include,omitempty"`
-	OrganizationIDIn        []int64 `json:"organization_id_in"`
+	OrganizationIdIn        []int64 `json:"organization_id_in"`
 	Country                 int64   `json:"country,omitempty"`
 
 	//是否忽略数据权限的限制，用于请求数据范围外的全部数据
@@ -99,7 +99,7 @@ type ProjectGetList struct {
 //获取简化的列表（），用于下拉框选项
 
 type ProjectGetSimplifiedList struct {
-	UserID int64 `json:"-"`
+	UserId int64 `json:"-"`
 	//是否忽略数据权限的限制，用于请求数据范围外的全部数据
 	IgnoreDataAuthority bool `json:"ignore_data_authority"`
 }
@@ -109,10 +109,10 @@ type ProjectGetSimplifiedList struct {
 type ProjectOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
-	OrganizationID *int64 `json:"-"`
-	RelatedPartyID *int64 `json:"-"`
+	OrganizationId *int64 `json:"-"`
+	RelatedPartyId *int64 `json:"-"`
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
 	Country      *int64 `json:"-"`
 	Type         *int64 `json:"-"`
@@ -149,26 +149,26 @@ type ProjectOutput struct {
 }
 
 type ProjectSimplifiedOutput struct {
-	ID   int64   `json:"id"`
+	Id   int64   `json:"id"`
 	Name *string `json:"name"`
 }
 
 type projectCheckAuth struct {
-	ProjectID int64
-	UserID    int64
+	ProjectId int64
+	UserId    int64
 }
 
 func (p *ProjectGet) Get() (output *ProjectOutput, errCode int) {
 	err := global.DB.Model(model.Project{}).
-		Where("id = ?", p.ID).
+		Where("id = ?", p.Id).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
 	}
 
 	var authorize projectCheckAuth
-	authorize.ProjectID = p.ID
-	authorize.UserID = p.UserID
+	authorize.ProjectId = p.Id
+	authorize.UserId = p.UserId
 	authorized := authorize.checkAuth()
 
 	if !authorized {
@@ -188,10 +188,10 @@ func (p *ProjectGet) Get() (output *ProjectOutput, errCode int) {
 	}
 
 	//查部门信息
-	if output.OrganizationID != nil {
+	if output.OrganizationId != nil {
 		var record OrganizationOutput
 		res := global.DB.Model(&model.Organization{}).
-			Where("id = ?", *output.OrganizationID).
+			Where("id = ?", *output.OrganizationId).
 			Limit(1).
 			Find(&record)
 		if res.RowsAffected > 0 {
@@ -200,10 +200,10 @@ func (p *ProjectGet) Get() (output *ProjectOutput, errCode int) {
 	}
 
 	//查相关方信息
-	if output.RelatedPartyID != nil {
+	if output.RelatedPartyId != nil {
 		var record RelatedPartyOutput
 		res := global.DB.Model(&model.RelatedParty{}).
-			Where("id = ?", *output.RelatedPartyID).
+			Where("id = ?", *output.RelatedPartyId).
 			Limit(1).
 			Find(&record)
 		if res.RowsAffected > 0 {
@@ -274,8 +274,8 @@ func (p *ProjectGet) Get() (output *ProjectOutput, errCode int) {
 
 func (p *ProjectCreate) Create() (errCode int) {
 	var paramOut model.Project
-	if p.UserID > 0 {
-		paramOut.Creator = &p.UserID
+	if p.UserId > 0 {
+		paramOut.Creator = &p.UserId
 	}
 	if p.LastModifier > 0 {
 		paramOut.LastModifier = &p.LastModifier
@@ -283,11 +283,11 @@ func (p *ProjectCreate) Create() (errCode int) {
 
 	//连接其他表的id
 	{
-		if p.OrganizationID != 0 {
-			paramOut.OrganizationID = &p.OrganizationID
+		if p.OrganizationId != 0 {
+			paramOut.OrganizationId = &p.OrganizationId
 		}
-		if p.RelatedPartyID != 0 {
-			paramOut.RelatedPartyID = &p.RelatedPartyID
+		if p.RelatedPartyId != 0 {
+			paramOut.RelatedPartyId = &p.RelatedPartyId
 		}
 	}
 	//连接dictionary_item表的id
@@ -374,7 +374,7 @@ func (p *ProjectCreate) Create() (errCode int) {
 func (p *ProjectUpdate) Update() (errCode int) {
 	var result ProjectOutput
 	err := global.DB.Model(model.Project{}).
-		Where("id = ?", p.ID).
+		Where("id = ?", p.Id).
 		First(&result).Error
 	if err != nil {
 		return util.ErrorRecordNotFound
@@ -382,8 +382,8 @@ func (p *ProjectUpdate) Update() (errCode int) {
 
 	if p.IgnoreDataAuthority == false {
 		var authorization projectCheckAuth
-		authorization.ProjectID = p.ID
-		authorization.UserID = p.UserID
+		authorization.ProjectId = p.Id
+		authorization.UserId = p.UserId
 		authorized := authorization.checkAuth()
 		if !authorized {
 			return util.ErrorUnauthorized
@@ -391,22 +391,22 @@ func (p *ProjectUpdate) Update() (errCode int) {
 	}
 
 	paramOut := make(map[string]any)
-	if p.UserID > 0 {
-		paramOut["last_modifier"] = p.UserID
+	if p.UserId > 0 {
+		paramOut["last_modifier"] = p.UserId
 	}
 	//连接其他表的id
 	{
-		if p.OrganizationID != nil {
-			if *p.OrganizationID > 0 {
-				paramOut["organization_id"] = p.OrganizationID
-			} else if *p.OrganizationID == -1 {
+		if p.OrganizationId != nil {
+			if *p.OrganizationId > 0 {
+				paramOut["organization_id"] = p.OrganizationId
+			} else if *p.OrganizationId == -1 {
 				paramOut["organization_id"] = nil
 			}
 		}
-		if p.RelatedPartyID != nil {
-			if *p.RelatedPartyID > 0 {
-				paramOut["related_party_id"] = p.RelatedPartyID
-			} else if *p.RelatedPartyID == -1 {
+		if p.RelatedPartyId != nil {
+			if *p.RelatedPartyId > 0 {
+				paramOut["related_party_id"] = p.RelatedPartyId
+			} else if *p.RelatedPartyId == -1 {
 				paramOut["related_party_id"] = nil
 			}
 		}
@@ -546,7 +546,7 @@ func (p *ProjectUpdate) Update() (errCode int) {
 	}
 
 	err = global.DB.Model(&model.Project{}).
-		Where("id = ?", p.ID).
+		Where("id = ?", p.Id).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
@@ -558,7 +558,7 @@ func (p *ProjectUpdate) Update() (errCode int) {
 func (p *ProjectDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Project
-	err := global.DB.Where("id = ?", p.ID).
+	err := global.DB.Where("id = ?", p.Id).
 		Find(&record).
 		Delete(&record).Error
 
@@ -579,23 +579,23 @@ func (p *ProjectGetList) GetList() (
 	}
 
 	if p.OrganizationNameInclude != "" {
-		var organizationIDs []int64
+		var organizationIds []int64
 		global.DB.Model(&model.Organization{}).
 			Where("name like ?", "%"+p.OrganizationNameInclude+"%").
 			Select("id").
-			Find(&organizationIDs)
-		if len(organizationIDs) > 0 {
-			db = db.Where("organization_id in ?", organizationIDs)
+			Find(&organizationIds)
+		if len(organizationIds) > 0 {
+			db = db.Where("organization_id in ?", organizationIds)
 		}
 	}
 
 	//将临时表的字段名改为temp，是为了防止临时表的字段和主表发生重复，影响后面的查询
-	if p.RelatedPartyID > 0 {
-		db = db.Joins("join (select distinct project_id as temp_project_id from contract where contract.related_party_id = ?) as temp on project.id = temp.temp_project_id ", p.RelatedPartyID)
+	if p.RelatedPartyId > 0 {
+		db = db.Joins("join (select distinct project_id as temp_project_id from contract where contract.related_party_id = ?) as temp on project.id = temp.temp_project_id ", p.RelatedPartyId)
 	}
 
-	if len(p.OrganizationIDIn) > 0 {
-		db = db.Where("organization_id in ?", p.OrganizationIDIn)
+	if len(p.OrganizationIdIn) > 0 {
+		db = db.Where("organization_id in ?", p.OrganizationIdIn)
 	}
 
 	if p.Country > 0 {
@@ -604,8 +604,8 @@ func (p *ProjectGetList) GetList() (
 
 	//用来确定数据范围
 	if p.IgnoreDataAuthority == false {
-		organizationIDs := util.GetOrganizationIDsForDataAuthority(p.UserID)
-		db = db.Where("organization_id in ?", organizationIDs)
+		organizationIds := util.GetOrganizationIdsForDataAuthority(p.UserId)
+		db = db.Where("organization_id in ?", organizationIds)
 	}
 
 	//count
@@ -671,19 +671,19 @@ func (p *ProjectGetList) GetList() (
 			//查询关联表的详情
 			{
 				//查部门信息
-				if outputs[i].OrganizationID != nil {
+				if outputs[i].OrganizationId != nil {
 					var record OrganizationOutput
 					res := global.DB.Model(&model.Organization{}).
-						Where("id = ?", *outputs[i].OrganizationID).Limit(1).Find(&record)
+						Where("id = ?", *outputs[i].OrganizationId).Limit(1).Find(&record)
 					if res.RowsAffected > 0 {
 						outputs[i].OrganizationExternal = &record
 					}
 				}
 				//查相关方信息
-				if outputs[i].RelatedPartyID != nil {
+				if outputs[i].RelatedPartyId != nil {
 					var record RelatedPartyOutput
 					res := global.DB.Model(&model.RelatedParty{}).
-						Where("id = ?", *outputs[i].RelatedPartyID).Limit(1).Find(&record)
+						Where("id = ?", *outputs[i].RelatedPartyId).Limit(1).Find(&record)
 					if res.RowsAffected > 0 {
 						outputs[i].RelatedPartyExternal = &record
 					}
@@ -760,8 +760,8 @@ func (p *ProjectGetList) GetList() (
 
 			if p.IgnoreDataAuthority == true {
 				var authorize projectCheckAuth
-				authorize.ProjectID = outputs[i].ID
-				authorize.UserID = p.UserID
+				authorize.ProjectId = outputs[i].Id
+				authorize.UserId = p.UserId
 				outputs[i].Authorized = authorize.checkAuth()
 			} else {
 				outputs[i].Authorized = true
@@ -793,8 +793,8 @@ func (p *ProjectGetSimplifiedList) GetSimplifiedList() (
 
 	//用来确定数据范围
 	if p.IgnoreDataAuthority == false {
-		organizationIDs := util.GetOrganizationIDsForDataAuthority(p.UserID)
-		db = db.Where("organization_id in ?", organizationIDs)
+		organizationIds := util.GetOrganizationIdsForDataAuthority(p.UserId)
+		db = db.Where("organization_id in ?", organizationIds)
 	}
 
 	//count
@@ -823,16 +823,16 @@ func (p *ProjectGetSimplifiedList) GetSimplifiedList() (
 
 func (p *projectCheckAuth) checkAuth() (authorized bool) {
 	//用来确定数据范围内的组织id
-	organizationIDs := util.GetOrganizationIDsForDataAuthority(p.UserID)
-	if len(organizationIDs) == 0 {
+	organizationIds := util.GetOrganizationIdsForDataAuthority(p.UserId)
+	if len(organizationIds) == 0 {
 		return false
 	}
 
 	//看看在数据范围内是否有该记录
 	var count int64
 	global.DB.Model(model.Project{}).
-		Where("organization_id in ?", organizationIDs).
-		Where("id = ?", p.ProjectID).
+		Where("organization_id in ?", organizationIds).
+		Where("id = ?", p.ProjectId).
 		Count(&count)
 
 	if count > 0 {

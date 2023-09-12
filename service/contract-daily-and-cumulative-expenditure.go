@@ -16,9 +16,9 @@ import (
 //如果指针字段没传，那么数据库不会修改该字段
 
 type ContractDailyAndCumulativeExpenditureUpdate struct {
-	UserID int64
+	UserId int64
 	//连接关联表的id
-	ContractID int64 `json:"contract_id,omitempty"`
+	ContractId int64 `json:"contract_id,omitempty"`
 	//连接dictionary_item表的id
 
 	//日期
@@ -29,7 +29,7 @@ type ContractDailyAndCumulativeExpenditureUpdate struct {
 
 type ContractDailyAndCumulativeExpenditureGetList struct {
 	list.Input
-	ContractID int64  `json:"contract_id,omitempty"`
+	ContractId int64  `json:"contract_id,omitempty"`
 	DateGte    string `json:"date_gte,omitempty"`
 	DateLte    string `json:"date_lte,omitempty"`
 }
@@ -39,7 +39,7 @@ type ContractDailyAndCumulativeExpenditureGetList struct {
 type ContractDailyAndCumulativeExpenditureOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
 
@@ -63,7 +63,7 @@ type ContractDailyAndCumulativeExpenditureOutput struct {
 
 func (c *ContractDailyAndCumulativeExpenditureUpdate) Update() (errCode int) {
 	//连接关联表的id
-	if c.ContractID > 0 {
+	if c.ContractId > 0 {
 		var typeOfIncomeAndExpenditure int64
 		err := global.DB.Model(&model.DictionaryType{}).
 			Where("name = '收付款的种类'").
@@ -104,13 +104,13 @@ func (c *ContractDailyAndCumulativeExpenditureUpdate) Update() (errCode int) {
 		}
 
 		var contract model.Contract
-		err = global.DB.Where("id = ?", c.ContractID).
+		err = global.DB.Where("id = ?", c.ContractId).
 			First(&contract).Error
 		if err != nil {
 			return util.ErrorFailToUpdateRecord
 		}
 
-		global.DB.Where("contract_id = ?", c.ContractID).
+		global.DB.Where("contract_id = ?", c.ContractId).
 			Delete(&model.ContractDailyAndCumulativeExpenditure{})
 
 		var fundDirectionOfIncomeAndExpenditure int64
@@ -134,7 +134,7 @@ func (c *ContractDailyAndCumulativeExpenditureUpdate) Update() (errCode int) {
 
 		var dates []time.Time
 		global.DB.Model(&model.IncomeAndExpenditure{}).
-			Where("contract_id = ?", c.ContractID).
+			Where("contract_id = ?", c.ContractId).
 			Where("fund_direction = ?", expenditure).
 			Distinct("date").
 			Order("date desc").
@@ -151,14 +151,14 @@ func (c *ContractDailyAndCumulativeExpenditureUpdate) Update() (errCode int) {
 				var totalPlannedExpenditure float64
 				var countForPlanned int64
 				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Where("contract_id = ?", c.ContractID).
+					Where("contract_id = ?", c.ContractId).
 					Where("kind = ?", planned).
 					Where("fund_direction = ?", expenditure).
 					Where("date = ?", dates[j]).
 					Count(&countForPlanned)
 				if countForPlanned > 0 {
 					global.DB.Model(&model.IncomeAndExpenditure{}).
-						Where("contract_id = ?", c.ContractID).
+						Where("contract_id = ?", c.ContractId).
 						Where("kind = ?", planned).
 						Where("fund_direction = ?", expenditure).
 						Where("date <= ?", dates[j]).
@@ -176,14 +176,14 @@ func (c *ContractDailyAndCumulativeExpenditureUpdate) Update() (errCode int) {
 				var totalActualExpenditure float64
 				var countForActual int64
 				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Where("contract_id = ?", c.ContractID).
+					Where("contract_id = ?", c.ContractId).
 					Where("kind = ?", actual).
 					Where("fund_direction = ?", expenditure).
 					Where("date = ?", dates[j]).
 					Count(&countForActual)
 				if countForActual > 0 {
 					global.DB.Model(&model.IncomeAndExpenditure{}).
-						Where("contract_id = ?", c.ContractID).
+						Where("contract_id = ?", c.ContractId).
 						Where("kind = ?", actual).
 						Where("fund_direction = ?", expenditure).
 						Where("date <= ?", dates[j]).
@@ -201,14 +201,14 @@ func (c *ContractDailyAndCumulativeExpenditureUpdate) Update() (errCode int) {
 				var totalForecastedExpenditure float64
 				var countForForecasted int64
 				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Where("contract_id = ?", c.ContractID).
+					Where("contract_id = ?", c.ContractId).
 					Where("kind = ?", forecasted).
 					Where("fund_direction = ?", expenditure).
 					Where("date = ?", dates[j]).
 					Count(&countForForecasted)
 				if countForForecasted > 0 {
 					global.DB.Model(&model.IncomeAndExpenditure{}).
-						Where("contract_id = ?", c.ContractID).
+						Where("contract_id = ?", c.ContractId).
 						Where("kind = ?", forecasted).
 						Where("fund_direction = ?", expenditure).
 						Where("date <= ?", dates[j]).
@@ -226,14 +226,14 @@ func (c *ContractDailyAndCumulativeExpenditureUpdate) Update() (errCode int) {
 				var dailyActualExpenditure float64
 				var countForDailyActual int64
 				global.DB.Model(&model.IncomeAndExpenditure{}).
-					Where("contract_id = ?", c.ContractID).
+					Where("contract_id = ?", c.ContractId).
 					Where("kind = ?", actual).
 					Where("fund_direction = ?", expenditure).
 					Where("date = ?", dates[j]).
 					Count(&countForDailyActual)
 				if countForDailyActual > 0 {
 					global.DB.Model(&model.IncomeAndExpenditure{}).
-						Where("contract_id = ?", c.ContractID).
+						Where("contract_id = ?", c.ContractId).
 						Where("kind = ?", actual).
 						Where("fund_direction = ?", expenditure).
 						Where("date = ?", dates[j]).
@@ -243,8 +243,8 @@ func (c *ContractDailyAndCumulativeExpenditureUpdate) Update() (errCode int) {
 					//fmt.Println("当日实际付款金额：", dailyActualExpenditure)
 				}
 
-				record.Creator = &c.UserID
-				record.ContractID = c.ContractID
+				record.Creator = &c.UserId
+				record.ContractId = c.ContractId
 				record.Date = &dates[j]
 
 				records <- record
@@ -272,8 +272,8 @@ func (c *ContractDailyAndCumulativeExpenditureGetList) GetList() (
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if c.ContractID > 0 {
-		db = db.Where("contract_id = ?", c.ContractID)
+	if c.ContractId > 0 {
+		db = db.Where("contract_id = ?", c.ContractId)
 	}
 
 	if c.DateGte != "" {

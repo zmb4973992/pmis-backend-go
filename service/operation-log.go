@@ -12,15 +12,15 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type OperationLogGet struct {
-	ID     int64
-	UserID int64
+	Id     int64
+	UserId int64
 }
 
 type OperationLogCreate struct {
 	Creator int64
 
 	Operator      int64  `json:"operator,omitempty"`
-	ProjectID     int64  `json:"project_id,omitempty"`
+	ProjectId     int64  `json:"project_id,omitempty"`
 	Date          string `json:"date,omitempty"`
 	OperationType int64  `json:"operation_type,omitempty"`
 	Detail        string `json:"detail,omitempty"`
@@ -31,13 +31,13 @@ type OperationLogCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type OperationLogDelete struct {
-	OperationLogID int64
-	UserID         int64
+	OperationLogId int64
+	UserId         int64
 }
 
 type OperationLogGetList struct {
 	list.Input
-	ProjectID int64 `json:"project_id,omitempty"`
+	ProjectId int64 `json:"project_id,omitempty"`
 }
 
 //以下为出参
@@ -45,9 +45,9 @@ type OperationLogGetList struct {
 type OperationLogOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
-	ProjectID *int64 `json:"-"`
+	ProjectId *int64 `json:"-"`
 	Operator  *int64 `json:"-"`
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
 	OperationType *int64 `json:"-"`
@@ -63,7 +63,7 @@ type OperationLogOutput struct {
 
 func (o *OperationLogGet) Get() (output *OperationLogOutput, errCode int) {
 	err := global.DB.Model(model.OperationLog{}).
-		Where("id = ?", o.ID).
+		Where("id = ?", o.Id).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
@@ -72,10 +72,10 @@ func (o *OperationLogGet) Get() (output *OperationLogOutput, errCode int) {
 	//查询关联表的详情
 	{
 		//查项目信息
-		if output.ProjectID != nil {
+		if output.ProjectId != nil {
 			var record ProjectOutput
 			res := global.DB.Model(&model.Project{}).
-				Where("id = ?", *output.ProjectID).
+				Where("id = ?", *output.ProjectId).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
@@ -135,8 +135,8 @@ func (o *OperationLogCreate) Create() (errCode int) {
 
 	//连接关联表的id
 	{
-		if o.ProjectID > 0 {
-			paramOut.ProjectID = &o.ProjectID
+		if o.ProjectId > 0 {
+			paramOut.ProjectId = &o.ProjectId
 		}
 	}
 
@@ -174,7 +174,7 @@ func (o *OperationLogCreate) Create() (errCode int) {
 func (o *OperationLogDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.OperationLog
-	err := global.DB.Where("id = ?", o.OperationLogID).
+	err := global.DB.Where("id = ?", o.OperationLogId).
 		Find(&record).
 		Delete(&record).Error
 
@@ -191,8 +191,8 @@ func (c *OperationLogGetList) GetList() (
 	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
-	if c.ProjectID > 0 {
-		db = db.Where("project_id = ?", c.ProjectID)
+	if c.ProjectId > 0 {
+		db = db.Where("project_id = ?", c.ProjectId)
 	}
 
 	//count
@@ -253,10 +253,10 @@ func (c *OperationLogGetList) GetList() (
 		//查询关联表的详情
 		{
 			//查项目信息
-			if outputs[i].ProjectID != nil {
+			if outputs[i].ProjectId != nil {
 				var record ProjectOutput
 				res := global.DB.Model(&model.Project{}).
-					Where("id = ?", *outputs[i].ProjectID).
+					Where("id = ?", *outputs[i].ProjectId).
 					Limit(1).
 					Find(&record)
 				if res.RowsAffected > 0 {

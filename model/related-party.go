@@ -8,7 +8,7 @@ type RelatedParty struct {
 	UniformSocialCreditCode *string //统一社会信用代码
 	Telephone               *string //电话
 	Remarks                 *string //备注
-	FileIDs                 *string //附件
+	FileIds                 *string //附件
 	ImportedOriginalName    *string //导入的原名称
 }
 

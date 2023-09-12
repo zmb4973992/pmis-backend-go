@@ -26,7 +26,7 @@ type tabContract struct {
 	FillDate                  string  `gorm:"column:FillDate"`
 }
 
-func ImportContract(userID int64) error {
+func ImportContract(userId int64) error {
 	fmt.Println("★★★★★开始处理合同记录......★★★★★")
 
 	var records []tabContract
@@ -157,7 +157,7 @@ func ImportContract(userID int64) error {
 				}
 
 				err = global.DB.
-					Where("dictionary_type_id = ?", contractType.ID).
+					Where("dictionary_type_id = ?", contractType.Id).
 					Where("name = ?", records[i].Type).
 					First(&specificContractType).Error
 				if err != nil {
@@ -184,7 +184,7 @@ func ImportContract(userID int64) error {
 				}
 
 				err = global.DB.
-					Where("dictionary_type_id = ?", currency.ID).
+					Where("dictionary_type_id = ?", currency.Id).
 					Where("name = ?", records[i].Currency).
 					First(&specificCurrency).Error
 				if err != nil {
@@ -242,7 +242,7 @@ func ImportContract(userID int64) error {
 				}
 
 				err = global.DB.
-					Where("dictionary_type_id = ?", ContractFundDirection.ID).
+					Where("dictionary_type_id = ?", ContractFundDirection.Id).
 					Where("name = ?", records[i].FundDirection).
 					First(&specificContractFundDirection).Error
 				if err != nil {
@@ -259,7 +259,7 @@ func ImportContract(userID int64) error {
 			var specificOurSignatory model.DictionaryDetail
 			if records[i].FundDirection != "" {
 				err = global.DB.
-					Where("dictionary_type_id = ?", ourSignatory.ID).
+					Where("dictionary_type_id = ?", ourSignatory.Id).
 					Where("name = ?", records[i].OurSignatory).
 					First(&specificOurSignatory).Error
 				if err != nil {
@@ -273,14 +273,14 @@ func ImportContract(userID int64) error {
 			}
 
 			newRecord := service.ContractCreate{
-				UserID:         userID,
-				ProjectID:      project.ID,
-				OrganizationID: organization.ID,
-				RelatedPartyID: relatedParty.ID,
-				FundDirection:  specificContractFundDirection.ID,
-				OurSignatory:   specificOurSignatory.ID,
-				Currency:       specificCurrency.ID,
-				Type:           specificContractType.ID,
+				UserId:         userId,
+				ProjectId:      project.Id,
+				OrganizationId: organization.Id,
+				RelatedPartyId: relatedParty.Id,
+				FundDirection:  specificContractFundDirection.Id,
+				OurSignatory:   specificOurSignatory.Id,
+				Currency:       specificCurrency.Id,
+				Type:           specificContractType.Id,
 				Amount:         &records[i].Amount,
 				Name:           records[i].Name,
 				Code:           records[i].Code,
@@ -298,7 +298,7 @@ func ImportContract(userID int64) error {
 	return nil
 }
 
-func UpdateExchangeRageOfContract(userID int64) error {
+func UpdateExchangeRageOfContract(userId int64) error {
 	//处理合同的币种和汇率
 	var contracts []model.Contract
 	global.DB.
@@ -326,8 +326,8 @@ func UpdateExchangeRageOfContract(userID int64) error {
 		case "人民币":
 			param := service.ContractUpdate{
 				IgnoreDataAuthority: true,
-				UserID:              userID,
-				ContractID:          contracts[i].ID,
+				UserId:              userId,
+				ContractId:          contracts[i].Id,
 				ExchangeRate:        model.Float64ToPointer(1),
 			}
 			errCode := param.Update()
@@ -338,8 +338,8 @@ func UpdateExchangeRageOfContract(userID int64) error {
 		case "美元":
 			param := service.ContractUpdate{
 				IgnoreDataAuthority: true,
-				UserID:              userID,
-				ContractID:          contracts[i].ID,
+				UserId:              userId,
+				ContractId:          contracts[i].Id,
 				ExchangeRate:        &global.Config.ExchangeRateConfig.USD,
 			}
 			errCode := param.Update()
@@ -350,8 +350,8 @@ func UpdateExchangeRageOfContract(userID int64) error {
 		case "欧元":
 			param := service.ContractUpdate{
 				IgnoreDataAuthority: true,
-				UserID:              userID,
-				ContractID:          contracts[i].ID,
+				UserId:              userId,
+				ContractId:          contracts[i].Id,
 				ExchangeRate:        &global.Config.ExchangeRateConfig.EUR,
 			}
 			errCode := param.Update()
@@ -362,8 +362,8 @@ func UpdateExchangeRageOfContract(userID int64) error {
 		case "港币":
 			param := service.ContractUpdate{
 				IgnoreDataAuthority: true,
-				UserID:              userID,
-				ContractID:          contracts[i].ID,
+				UserId:              userId,
+				ContractId:          contracts[i].Id,
 				ExchangeRate:        &global.Config.ExchangeRateConfig.HKD,
 			}
 			errCode := param.Update()
@@ -374,8 +374,8 @@ func UpdateExchangeRageOfContract(userID int64) error {
 		case "新加坡元":
 			param := service.ContractUpdate{
 				IgnoreDataAuthority: true,
-				UserID:              userID,
-				ContractID:          contracts[i].ID,
+				UserId:              userId,
+				ContractId:          contracts[i].Id,
 				ExchangeRate:        &global.Config.ExchangeRateConfig.SGD,
 			}
 			errCode := param.Update()
@@ -386,8 +386,8 @@ func UpdateExchangeRageOfContract(userID int64) error {
 		case "马来西亚币":
 			param := service.ContractUpdate{
 				IgnoreDataAuthority: true,
-				UserID:              userID,
-				ContractID:          contracts[i].ID,
+				UserId:              userId,
+				ContractId:          contracts[i].Id,
 				ExchangeRate:        &global.Config.ExchangeRateConfig.MLR,
 			}
 			errCode := param.Update()

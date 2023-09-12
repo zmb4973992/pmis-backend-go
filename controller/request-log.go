@@ -16,7 +16,7 @@ type requestLog struct{}
 func (o *requestLog) Get(c *gin.Context) {
 	var param service.RequestLogGet
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("request-log-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("request-log-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -36,7 +36,7 @@ func (o *requestLog) Get(c *gin.Context) {
 func (o *requestLog) Delete(c *gin.Context) {
 	var param service.RequestLogDelete
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("request-log-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("request-log-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,

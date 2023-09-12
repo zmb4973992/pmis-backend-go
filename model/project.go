@@ -8,8 +8,8 @@ import (
 type Project struct {
 	BasicModel
 	//连接其他表的id
-	OrganizationID *int64 //见organization
-	RelatedPartyID *int64 //见related_party
+	OrganizationId *int64 //见organization
+	RelatedPartyId *int64 //见related_party
 	//连接dictionary_item表的id
 	Country      *int64
 	Type         *int64
@@ -46,7 +46,7 @@ func (p *Project) AfterCreate(tx *gorm.DB) error {
 	level := 1
 	disassembly.Creator = p.Creator
 	disassembly.LastModifier = p.LastModifier
-	disassembly.ProjectID = &p.ID
+	disassembly.ProjectId = &p.Id
 	disassembly.Name = p.Name
 	disassembly.Level = &level
 
@@ -55,42 +55,42 @@ func (p *Project) AfterCreate(tx *gorm.DB) error {
 }
 
 func (p *Project) BeforeDelete(tx *gorm.DB) error {
-	if p.ID == 0 {
+	if p.Id == 0 {
 		return nil
 	}
 
 	//删除相关的子表记录
 	//先find，再delete，可以激活相关的钩子函数
 	var disassemblies []Disassembly
-	err = tx.Where(&Disassembly{ProjectID: &p.ID}).
+	err = tx.Where(&Disassembly{ProjectId: &p.Id}).
 		Find(&disassemblies).Delete(&disassemblies).Error
 	if err != nil {
 		return err
 	}
 
 	var contracts []Contract
-	err = tx.Where(&Contract{ProjectID: &p.ID}).
+	err = tx.Where(&Contract{ProjectId: &p.Id}).
 		Find(&contracts).Delete(&contracts).Error
 	if err != nil {
 		return err
 	}
 
 	var incomeAndExpenditures []IncomeAndExpenditure
-	err = tx.Where(&IncomeAndExpenditure{ProjectID: &p.ID}).
+	err = tx.Where(&IncomeAndExpenditure{ProjectId: &p.Id}).
 		Find(&incomeAndExpenditures).Delete(&incomeAndExpenditures).Error
 	if err != nil {
 		return err
 	}
 
 	var projectCumulativeIncomes []ProjectDailyAndCumulativeIncome
-	err = tx.Where(&ProjectDailyAndCumulativeIncome{ProjectID: p.ID}).
+	err = tx.Where(&ProjectDailyAndCumulativeIncome{ProjectId: p.Id}).
 		Find(&projectCumulativeIncomes).Delete(&projectCumulativeIncomes).Error
 	if err != nil {
 		return err
 	}
 
 	var projectCumulativeExpenditures []ProjectDailyAndCumulativeExpenditure
-	err = tx.Where(&ProjectDailyAndCumulativeExpenditure{ProjectID: p.ID}).
+	err = tx.Where(&ProjectDailyAndCumulativeExpenditure{ProjectId: p.Id}).
 		Find(&projectCumulativeExpenditures).Delete(&projectCumulativeExpenditures).Error
 	if err != nil {
 		return err

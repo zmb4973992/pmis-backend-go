@@ -17,7 +17,7 @@ type dictionaryType struct {
 func (d *dictionaryType) Get(c *gin.Context) {
 	var param service.DictionaryTypeGet
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("dictionary-type-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("dictionary-type-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -45,9 +45,9 @@ func (d *dictionaryType) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Create()
@@ -70,7 +70,7 @@ func (d *dictionaryType) Update(c *gin.Context) {
 		return
 	}
 
-	param.ID, err = strconv.ParseInt(c.Param("dictionary-type-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("dictionary-type-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -80,9 +80,9 @@ func (d *dictionaryType) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Update()
@@ -96,7 +96,7 @@ func (d *dictionaryType) Update(c *gin.Context) {
 func (d *dictionaryType) Delete(c *gin.Context) {
 	var param service.DictionaryTypeDelete
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("dictionary-type-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("dictionary-type-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,

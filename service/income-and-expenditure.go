@@ -12,14 +12,14 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type IncomeAndExpenditureGet struct {
-	ID int64
+	Id int64
 }
 
 type IncomeAndExpenditureCreate struct {
-	UserID int64
+	UserId int64
 	//连接关联表的id
-	ProjectID  int64 `json:"project_id,omitempty"`
-	ContractID int64 `json:"contract_id,omitempty"`
+	ProjectId  int64 `json:"project_id,omitempty"`
+	ContractId int64 `json:"contract_id,omitempty"`
 	//连接dictionary_item表的id
 	FundDirection string `json:"fund_direction,omitempty"`
 	Currency      int64  `json:"currency,omitempty"`
@@ -34,7 +34,7 @@ type IncomeAndExpenditureCreate struct {
 	Term               string `json:"term,omitempty"`
 	Remarks            string `json:"remarks,omitempty"`
 	Attachment         string `json:"attachment,omitempty"`
-	ImportedApprovalID string `json:"imported_approval_id,omitempty"`
+	ImportedApprovalId string `json:"imported_approval_id,omitempty"`
 
 	IgnoreUpdatingCumulativeIncomeAndExpenditure bool `json:"-"`
 }
@@ -44,11 +44,11 @@ type IncomeAndExpenditureCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type IncomeAndExpenditureUpdate struct {
-	UserID int64
-	ID     int64
+	UserId int64
+	Id     int64
 	//连接关联表的id
-	ProjectID  *int64 `json:"project_id"`
-	ContractID *int64 `json:"contract_id"`
+	ProjectId  *int64 `json:"project_id"`
+	ContractId *int64 `json:"contract_id"`
 	//连接dictionary_item表的id
 	FundDirection *string `json:"fund_direction"`
 	Currency      *int64  `json:"currency"`
@@ -66,13 +66,13 @@ type IncomeAndExpenditureUpdate struct {
 }
 
 type IncomeAndExpenditureDelete struct {
-	ID int64
+	Id int64
 }
 
 type IncomeAndExpenditureGetList struct {
 	list.Input
-	UserID        int64  `json:"-"`
-	ProjectID     int64  `json:"project_id,omitempty"`
+	UserId        int64  `json:"-"`
+	ProjectId     int64  `json:"project_id,omitempty"`
 	Kind          string `json:"kind,omitempty"`
 	FundDirection string `json:"fund_direction,omitempty"`
 	DateGte       string `json:"date_gte,omitempty"`
@@ -84,10 +84,10 @@ type IncomeAndExpenditureGetList struct {
 type IncomeAndExpenditureOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
-	ProjectID  *int64 `json:"-"`
-	ContractID *int64 `json:"-"`
+	ProjectId  *int64 `json:"-"`
+	ContractId *int64 `json:"-"`
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
 	FundDirection *int64 `json:"-"`
 	Currency      *int64 `json:"-"`
@@ -115,7 +115,7 @@ type IncomeAndExpenditureOutput struct {
 
 func (i *IncomeAndExpenditureGet) Get() (output *IncomeAndExpenditureOutput, errCode int) {
 	err := global.DB.Model(model.IncomeAndExpenditure{}).
-		Where("id = ?", i.ID).
+		Where("id = ?", i.Id).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
@@ -123,10 +123,10 @@ func (i *IncomeAndExpenditureGet) Get() (output *IncomeAndExpenditureOutput, err
 	//查询关联表的详情
 	{
 		//查项目信息
-		if output.ProjectID != nil {
+		if output.ProjectId != nil {
 			var record ProjectOutput
 			res := global.DB.Model(&model.Project{}).
-				Where("id = ?", *output.ProjectID).
+				Where("id = ?", *output.ProjectId).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
@@ -134,10 +134,10 @@ func (i *IncomeAndExpenditureGet) Get() (output *IncomeAndExpenditureOutput, err
 			}
 		}
 		//查合同信息
-		if output.ContractID != nil {
+		if output.ContractId != nil {
 			var record ContractOutput
 			res := global.DB.Model(&model.Contract{}).
-				Where("id = ?", *output.ContractID).
+				Where("id = ?", *output.ContractId).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
@@ -195,17 +195,17 @@ func (i *IncomeAndExpenditureGet) Get() (output *IncomeAndExpenditureOutput, err
 func (i *IncomeAndExpenditureCreate) Create() (errCode int) {
 	var paramOut model.IncomeAndExpenditure
 
-	if i.UserID > 0 {
-		paramOut.Creator = &i.UserID
+	if i.UserId > 0 {
+		paramOut.Creator = &i.UserId
 	}
 
 	//连接关联表的id
 	{
-		if i.ProjectID > 0 {
-			paramOut.ProjectID = &i.ProjectID
+		if i.ProjectId > 0 {
+			paramOut.ProjectId = &i.ProjectId
 		}
-		if i.ContractID > 0 {
-			paramOut.ContractID = &i.ContractID
+		if i.ContractId > 0 {
+			paramOut.ContractId = &i.ContractId
 		}
 	}
 
@@ -218,7 +218,7 @@ func (i *IncomeAndExpenditureCreate) Create() (errCode int) {
 			if err != nil {
 				return util.ErrorFailToCreateRecord
 			}
-			paramOut.FundDirection = &fundDirection.ID
+			paramOut.FundDirection = &fundDirection.Id
 		}
 		if i.Currency > 0 {
 			paramOut.Currency = &i.Currency
@@ -230,7 +230,7 @@ func (i *IncomeAndExpenditureCreate) Create() (errCode int) {
 			if err != nil {
 				return util.ErrorFailToCreateRecord
 			}
-			paramOut.Kind = &kind.ID
+			paramOut.Kind = &kind.Id
 		}
 	}
 
@@ -269,8 +269,8 @@ func (i *IncomeAndExpenditureCreate) Create() (errCode int) {
 		if i.Attachment != "" {
 			paramOut.Attachment = &i.Attachment
 		}
-		if i.ImportedApprovalID != "" {
-			paramOut.ImportedApprovalID = &i.ImportedApprovalID
+		if i.ImportedApprovalId != "" {
+			paramOut.ImportedApprovalId = &i.ImportedApprovalId
 		}
 	}
 
@@ -281,26 +281,26 @@ func (i *IncomeAndExpenditureCreate) Create() (errCode int) {
 
 	if i.IgnoreUpdatingCumulativeIncomeAndExpenditure == false {
 		//更新项目的累计收付款
-		if i.ProjectID > 0 {
+		if i.ProjectId > 0 {
 			temp1 := ProjectDailyAndCumulativeExpenditureUpdate{
-				UserID:    i.UserID,
-				ProjectID: i.ProjectID,
+				UserId:    i.UserId,
+				ProjectId: i.ProjectId,
 			}
 			temp1.Update()
-			temp2 := ProjectDailyAndCumulativeIncomeUpdate{ProjectID: i.ProjectID}
+			temp2 := ProjectDailyAndCumulativeIncomeUpdate{ProjectId: i.ProjectId}
 			temp2.Update()
 		}
 
 		//更新合同的累计收付款
-		if i.ContractID > 0 {
+		if i.ContractId > 0 {
 			temp3 := ContractDailyAndCumulativeExpenditureUpdate{
-				UserID:     i.UserID,
-				ContractID: i.ContractID,
+				UserId:     i.UserId,
+				ContractId: i.ContractId,
 			}
 			temp3.Update()
 			temp4 := ContractDailyAndCumulativeIncomeUpdate{
-				UserID:     i.UserID,
-				ContractID: i.ContractID,
+				UserId:     i.UserId,
+				ContractId: i.ContractId,
 			}
 			temp4.Update()
 		}
@@ -312,21 +312,21 @@ func (i *IncomeAndExpenditureCreate) Create() (errCode int) {
 func (i *IncomeAndExpenditureUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
-	if i.UserID > 0 {
-		paramOut["last_modifier"] = i.UserID
+	if i.UserId > 0 {
+		paramOut["last_modifier"] = i.UserId
 	}
 
 	//连接关联表的id
 	{
-		if i.ProjectID != nil {
-			if *i.ProjectID > 0 {
-				paramOut["project_id"] = *i.ProjectID
+		if i.ProjectId != nil {
+			if *i.ProjectId > 0 {
+				paramOut["project_id"] = *i.ProjectId
 			}
 		}
-		if i.ContractID != nil {
-			if *i.ContractID > 0 {
-				paramOut["contract_id"] = i.ContractID
-			} else if *i.ContractID == -1 {
+		if i.ContractId != nil {
+			if *i.ContractId > 0 {
+				paramOut["contract_id"] = i.ContractId
+			} else if *i.ContractId == -1 {
 				paramOut["contract_id"] = nil
 			}
 		}
@@ -342,7 +342,7 @@ func (i *IncomeAndExpenditureUpdate) Update() (errCode int) {
 				if err != nil {
 					return util.ErrorFailToUpdateRecord
 				}
-				paramOut["fund_direction"] = fundDirection.ID
+				paramOut["fund_direction"] = fundDirection.Id
 			} else if *i.FundDirection == "" {
 				paramOut["fund_direction"] = nil
 			}
@@ -362,7 +362,7 @@ func (i *IncomeAndExpenditureUpdate) Update() (errCode int) {
 				if err != nil {
 					return util.ErrorFailToUpdateRecord
 				}
-				paramOut["kind"] = kind.ID
+				paramOut["kind"] = kind.Id
 			} else if *i.Kind == "" {
 				paramOut["kind"] = nil
 			}
@@ -435,47 +435,47 @@ func (i *IncomeAndExpenditureUpdate) Update() (errCode int) {
 	}
 
 	err := global.DB.Model(&model.IncomeAndExpenditure{}).
-		Where("id = ?", i.ID).
+		Where("id = ?", i.Id).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
 	}
 
 	//更新项目的累计收付款
-	if i.ProjectID == nil {
-		//如果没有修改projectID,就用原纪录的projectID
+	if i.ProjectId == nil {
+		//如果没有修改projectId,就用原纪录的projectId
 		var record model.IncomeAndExpenditure
-		err = global.DB.Where("id = ?", i.ID).
+		err = global.DB.Where("id = ?", i.Id).
 			First(&record).Error
-		if err == nil && record.ProjectID != nil {
-			temp1 := ProjectDailyAndCumulativeExpenditureUpdate{ProjectID: *record.ProjectID}
+		if err == nil && record.ProjectId != nil {
+			temp1 := ProjectDailyAndCumulativeExpenditureUpdate{ProjectId: *record.ProjectId}
 			temp1.Update()
-			temp2 := ProjectDailyAndCumulativeIncomeUpdate{ProjectID: *record.ProjectID}
+			temp2 := ProjectDailyAndCumulativeIncomeUpdate{ProjectId: *record.ProjectId}
 			temp2.Update()
 		}
 	} else {
-		temp1 := ProjectDailyAndCumulativeExpenditureUpdate{ProjectID: *i.ProjectID}
+		temp1 := ProjectDailyAndCumulativeExpenditureUpdate{ProjectId: *i.ProjectId}
 		temp1.Update()
-		temp2 := ProjectDailyAndCumulativeIncomeUpdate{ProjectID: *i.ProjectID}
+		temp2 := ProjectDailyAndCumulativeIncomeUpdate{ProjectId: *i.ProjectId}
 		temp2.Update()
 	}
 
 	//更新合同的累计收付款
-	if i.ContractID == nil {
-		//如果没有修改contractID,就用原纪录的contractID
+	if i.ContractId == nil {
+		//如果没有修改contractId,就用原纪录的contractId
 		var record model.IncomeAndExpenditure
-		err = global.DB.Where("id = ?", i.ID).
+		err = global.DB.Where("id = ?", i.Id).
 			First(&record).Error
-		if err == nil && record.ContractID != nil {
-			temp3 := ContractDailyAndCumulativeExpenditureUpdate{ContractID: *record.ContractID}
+		if err == nil && record.ContractId != nil {
+			temp3 := ContractDailyAndCumulativeExpenditureUpdate{ContractId: *record.ContractId}
 			temp3.Update()
-			temp4 := ContractDailyAndCumulativeIncomeUpdate{ContractID: *record.ContractID}
+			temp4 := ContractDailyAndCumulativeIncomeUpdate{ContractId: *record.ContractId}
 			temp4.Update()
 		}
 	} else {
-		temp3 := ContractDailyAndCumulativeExpenditureUpdate{ContractID: *i.ContractID}
+		temp3 := ContractDailyAndCumulativeExpenditureUpdate{ContractId: *i.ContractId}
 		temp3.Update()
-		temp4 := ContractDailyAndCumulativeIncomeUpdate{ContractID: *i.ContractID}
+		temp4 := ContractDailyAndCumulativeIncomeUpdate{ContractId: *i.ContractId}
 		temp4.Update()
 	}
 
@@ -485,7 +485,7 @@ func (i *IncomeAndExpenditureUpdate) Update() (errCode int) {
 func (i *IncomeAndExpenditureDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.IncomeAndExpenditure
-	err := global.DB.Where("id = ?", i.ID).
+	err := global.DB.Where("id = ?", i.Id).
 		Find(&record).
 		Delete(&record).Error
 
@@ -494,18 +494,18 @@ func (i *IncomeAndExpenditureDelete) Delete() (errCode int) {
 	}
 
 	//更新项目的累计收付款
-	if record.ProjectID != nil {
-		temp1 := ProjectDailyAndCumulativeExpenditureUpdate{ProjectID: *record.ProjectID}
+	if record.ProjectId != nil {
+		temp1 := ProjectDailyAndCumulativeExpenditureUpdate{ProjectId: *record.ProjectId}
 		temp1.Update()
-		temp2 := ProjectDailyAndCumulativeIncomeUpdate{ProjectID: *record.ProjectID}
+		temp2 := ProjectDailyAndCumulativeIncomeUpdate{ProjectId: *record.ProjectId}
 		temp2.Update()
 	}
 
 	//更新合同的累计收付款
-	if record.ProjectID != nil {
-		temp3 := ContractDailyAndCumulativeExpenditureUpdate{ContractID: *record.ContractID}
+	if record.ProjectId != nil {
+		temp3 := ContractDailyAndCumulativeExpenditureUpdate{ContractId: *record.ContractId}
 		temp3.Update()
-		temp4 := ContractDailyAndCumulativeIncomeUpdate{ContractID: *record.ContractID}
+		temp4 := ContractDailyAndCumulativeIncomeUpdate{ContractId: *record.ContractId}
 		temp4.Update()
 	}
 
@@ -518,8 +518,8 @@ func (i *IncomeAndExpenditureGetList) GetList() (
 	// 顺序：where -> count -> Order -> limit -> offset -> outputs
 
 	//where
-	if i.ProjectID > 0 {
-		db = db.Where("project_id = ?", i.ProjectID)
+	if i.ProjectId > 0 {
+		db = db.Where("project_id = ?", i.ProjectId)
 	}
 
 	if i.Kind != "" {
@@ -530,7 +530,7 @@ func (i *IncomeAndExpenditureGetList) GetList() (
 		if err != nil {
 			return nil, util.ErrorRecordNotFound, nil
 		}
-		db = db.Where("kind = ?", dictionaryDetail.ID)
+		db = db.Where("kind = ?", dictionaryDetail.Id)
 	}
 
 	if i.FundDirection != "" {
@@ -541,7 +541,7 @@ func (i *IncomeAndExpenditureGetList) GetList() (
 		if err != nil {
 			return nil, util.ErrorRecordNotFound, nil
 		}
-		db = db.Where("fund_direction = ?", dictionaryDetail.ID)
+		db = db.Where("fund_direction = ?", dictionaryDetail.Id)
 	}
 
 	if i.DateGte != "" {
@@ -553,9 +553,9 @@ func (i *IncomeAndExpenditureGetList) GetList() (
 	}
 
 	//用来确定组织的数据范围
-	organizationIDs := util.GetOrganizationIDsForDataAuthority(i.UserID)
+	organizationIds := util.GetOrganizationIdsForDataAuthority(i.UserId)
 
-	db = db.Joins("join (select distinct income_and_expenditure.id as income_and_expenditure_id from income_and_expenditure join (select distinct contract.id as contract_id from contract join (select distinct project.id as project_id from project where organization_id in ?) as temp1 on contract.project_id = temp1.project_id) as temp2  on income_and_expenditure.contract_id = temp2.contract_id union select distinct income_and_expenditure.id as income_and_expenditure_id from income_and_expenditure join (select distinct project.id as project_id from project where organization_id in ?) as temp2 on income_and_expenditure.project_id = temp2.project_id) as temp3 on income_and_expenditure.id = temp3.income_and_expenditure_id", organizationIDs, organizationIDs)
+	db = db.Joins("join (select distinct income_and_expenditure.id as income_and_expenditure_id from income_and_expenditure join (select distinct contract.id as contract_id from contract join (select distinct project.id as project_id from project where organization_id in ?) as temp1 on contract.project_id = temp1.project_id) as temp2  on income_and_expenditure.contract_id = temp2.contract_id union select distinct income_and_expenditure.id as income_and_expenditure_id from income_and_expenditure join (select distinct project.id as project_id from project where organization_id in ?) as temp2 on income_and_expenditure.project_id = temp2.project_id) as temp3 on income_and_expenditure.id = temp3.income_and_expenditure_id", organizationIds, organizationIds)
 	//count
 	var count int64
 	db.Count(&count)
@@ -612,10 +612,10 @@ func (i *IncomeAndExpenditureGetList) GetList() (
 		//查询关联表的详情
 		{
 			//查项目信息
-			if outputs[i].ProjectID != nil {
+			if outputs[i].ProjectId != nil {
 				var record ProjectOutput
 				res := global.DB.Model(&model.Project{}).
-					Where("id = ?", *outputs[i].ProjectID).
+					Where("id = ?", *outputs[i].ProjectId).
 					Limit(1).
 					Find(&record)
 				if res.RowsAffected > 0 {
@@ -623,10 +623,10 @@ func (i *IncomeAndExpenditureGetList) GetList() (
 				}
 			}
 			//查合同信息
-			if outputs[i].ContractID != nil {
+			if outputs[i].ContractId != nil {
 				var record ContractOutput
 				res := global.DB.Model(&model.Contract{}).
-					Where("id = ?", *outputs[i].ContractID).
+					Where("id = ?", *outputs[i].ContractId).
 					Limit(1).
 					Find(&record)
 				if res.RowsAffected > 0 {

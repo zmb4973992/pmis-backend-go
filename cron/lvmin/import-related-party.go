@@ -10,29 +10,29 @@ import (
 	"strings"
 )
 
-func ImportRelatedParty(userID int64) error {
+func ImportRelatedParty(userId int64) error {
 	fmt.Println("★★★★★开始处理相关方记录......★★★★★")
-	err := importRelatedPartyFromTabSupplier(userID)
+	err := importRelatedPartyFromTabSupplier(userId)
 	if err != nil {
 		return err
 	}
 
-	err = importRelatedPartyFromTabContract(userID)
+	err = importRelatedPartyFromTabContract(userId)
 	if err != nil {
 		return err
 	}
 
-	err = importRelatedPartyFromTabFukuan2(userID)
+	err = importRelatedPartyFromTabFukuan2(userId)
 	if err != nil {
 		return err
 	}
 
-	err = importRelatedPartyFromTabShouKuan(userID)
+	err = importRelatedPartyFromTabShouKuan(userId)
 	if err != nil {
 		return err
 	}
 
-	err = importRelatedPartyFromTabShouHui(userID)
+	err = importRelatedPartyFromTabShouHui(userId)
 	if err != nil {
 		return err
 	}
@@ -47,7 +47,7 @@ type tabSupplier struct {
 	UniformSocialCreditCode string `gorm:"column:F10632"`
 }
 
-func importRelatedPartyFromTabSupplier(userID int64) error {
+func importRelatedPartyFromTabSupplier(userId int64) error {
 	fmt.Println("正在从tabSupplier导入相关方数据......")
 	var records []tabSupplier
 	global.DBForLvmin.Table("tabSupplier").Find(&records)
@@ -91,7 +91,7 @@ func importRelatedPartyFromTabSupplier(userID int64) error {
 			}
 
 			param := service.RelatedPartyCreate{
-				UserID:                  userID,
+				UserId:                  userId,
 				Name:                    strings.TrimSpace(records[i].Name),
 				Address:                 records[i].Address,
 				UniformSocialCreditCode: records[i].UniformSocialCreditCode,
@@ -111,7 +111,7 @@ type tabContract2 struct {
 	Name string `gorm:"column:F6102"`
 }
 
-func importRelatedPartyFromTabContract(userID int64) error {
+func importRelatedPartyFromTabContract(userId int64) error {
 	fmt.Println("正在从tabContract导入相关方数据......")
 
 	var records []tabContract2
@@ -156,7 +156,7 @@ func importRelatedPartyFromTabContract(userID int64) error {
 			}
 
 			param := service.RelatedPartyCreate{
-				UserID:               userID,
+				UserId:               userId,
 				Name:                 strings.TrimSpace(records[i].Name),
 				ImportedOriginalName: records[i].Name + "|",
 			}
@@ -175,7 +175,7 @@ type tabFukuan2 struct {
 	Name string `gorm:"column:F13591"`
 }
 
-func importRelatedPartyFromTabFukuan2(userID int64) error {
+func importRelatedPartyFromTabFukuan2(userId int64) error {
 	fmt.Println("正在从tabFukuan2导入相关方数据......")
 
 	var records []tabFukuan2
@@ -220,7 +220,7 @@ func importRelatedPartyFromTabFukuan2(userID int64) error {
 			}
 
 			param := service.RelatedPartyCreate{
-				UserID:               userID,
+				UserId:               userId,
 				Name:                 strings.TrimSpace(records[i].Name),
 				ImportedOriginalName: records[i].Name + "|"}
 
@@ -238,7 +238,7 @@ type tabShouKuanA struct {
 	RelatedPartyName string `gorm:"column:F10851"`
 }
 
-func importRelatedPartyFromTabShouKuan(userID int64) error {
+func importRelatedPartyFromTabShouKuan(userId int64) error {
 	fmt.Println("正在从tabShouKuan导入相关方数据......")
 
 	var records []tabShouKuanA
@@ -284,7 +284,7 @@ func importRelatedPartyFromTabShouKuan(userID int64) error {
 			}
 
 			param := service.RelatedPartyCreate{
-				UserID:               userID,
+				UserId:               userId,
 				Name:                 strings.TrimSpace(records[i].RelatedPartyName),
 				ImportedOriginalName: records[i].RelatedPartyName + "|"}
 
@@ -302,7 +302,7 @@ type tabShouHuiA struct {
 	RelatedPartyName string `gorm:"column:F14394"`
 }
 
-func importRelatedPartyFromTabShouHui(userID int64) error {
+func importRelatedPartyFromTabShouHui(userId int64) error {
 	fmt.Println("正在从tabShouHui导入相关方数据......")
 
 	var records []tabShouHuiA
@@ -349,7 +349,7 @@ func importRelatedPartyFromTabShouHui(userID int64) error {
 			}
 
 			param := service.RelatedPartyCreate{
-				UserID:               userID,
+				UserId:               userId,
 				Name:                 strings.TrimSpace(records[i].RelatedPartyName),
 				ImportedOriginalName: records[i].RelatedPartyName + "|"}
 

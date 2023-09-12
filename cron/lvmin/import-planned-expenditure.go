@@ -17,10 +17,10 @@ type tabOriPayPlan struct {
 	ContractCode       string  `gorm:"column:F12383"`
 	Type               string  `gorm:"column:F12384"`
 	Remarks            string  `gorm:"column:F12385"`
-	ImportedApprovalID string  `gorm:"column:F12395"`
+	ImportedApprovalId string  `gorm:"column:F12395"`
 }
 
-func ImportPlannedExpenditure(userID int64) error {
+func ImportPlannedExpenditure(userId int64) error {
 	fmt.Println("★★★★★开始处理计划付款记录......★★★★★")
 
 	var records []tabOriPayPlan
@@ -55,7 +55,7 @@ func ImportPlannedExpenditure(userID int64) error {
 		return err
 	} else {
 		err = global.DB.
-			Where("dictionary_type_id =?", fundDirection.ID).
+			Where("dictionary_type_id =?", fundDirection.Id).
 			Where("name = '付款'").
 			First(&expenditure).Error
 		if err != nil {
@@ -80,7 +80,7 @@ func ImportPlannedExpenditure(userID int64) error {
 		return err
 	} else {
 		err = global.DB.
-			Where("dictionary_type_id =?", kind.ID).
+			Where("dictionary_type_id =?", kind.Id).
 			Where("name = '计划'").
 			First(&forecasted).Error
 		if err != nil {
@@ -92,8 +92,8 @@ func ImportPlannedExpenditure(userID int64) error {
 		}
 	}
 
-	var affectedProjectIDs []int64
-	var affectedContractIDs []int64
+	var affectedProjectIds []int64
+	var affectedContractIds []int64
 
 	for i := range records {
 		if i > 0 && i%1000 == 0 {
@@ -105,7 +105,7 @@ func ImportPlannedExpenditure(userID int64) error {
 
 		var tempCount int64
 		global.DB.Model(&model.IncomeAndExpenditure{}).
-			Where("imported_approval_id = ?", records[i].ImportedApprovalID).
+			Where("imported_approval_id = ?", records[i].ImportedApprovalId).
 			Count(&tempCount)
 		if tempCount > 0 {
 			continue
@@ -132,13 +132,13 @@ func ImportPlannedExpenditure(userID int64) error {
 		var detailedCurrency model.DictionaryDetail
 		if records[i].Currency != "" {
 			err = global.DB.
-				Where("dictionary_type_id = ?", currency.ID).
+				Where("dictionary_type_id = ?", currency.Id).
 				Where("name = ?", records[i].Currency).
 				First(&detailedCurrency).Error
 			if err != nil {
 				param := service.ErrorLogCreate{
 					Detail: "tabOriPayPlan视图的记录中发现无法匹配的币种：" +
-						records[i].Currency + "，付款审批ID为：" + records[i].ImportedApprovalID,
+						records[i].Currency + "，付款审批id为：" + records[i].ImportedApprovalId,
 				}
 				param.Create()
 			}
@@ -152,18 +152,18 @@ func ImportPlannedExpenditure(userID int64) error {
 			if err != nil {
 				param := service.ErrorLogCreate{
 					Detail: "tabOriPayPlan视图的记录中发现无法匹配的合同编号：" +
-						records[i].ContractCode + "，付款审批id为：" + records[i].ImportedApprovalID,
+						records[i].ContractCode + "，付款审批id为：" + records[i].ImportedApprovalId,
 				}
 				param.Create()
 			}
 
-			affectedContractIDs = append(affectedContractIDs, contract.ID)
+			affectedContractIds = append(affectedContractIds, contract.Id)
 		}
 
-		var projectID int64
-		if contract.ProjectID != nil {
-			projectID = *contract.ProjectID
-			affectedProjectIDs = append(affectedProjectIDs, projectID)
+		var projectId int64
+		if contract.ProjectId != nil {
+			projectId = *contract.ProjectId
+			affectedProjectIds = append(affectedProjectIds, projectId)
 		}
 
 		switch {
@@ -201,17 +201,17 @@ func ImportPlannedExpenditure(userID int64) error {
 
 		newRecord := service.IncomeAndExpenditureCreate{
 			IgnoreUpdatingCumulativeIncomeAndExpenditure: true,
-			UserID:             userID,
-			ProjectID:          projectID,
-			ContractID:         contract.ID,
+			UserId:             userId,
+			ProjectId:          projectId,
+			ContractId:         contract.Id,
 			Kind:               "计划",
 			FundDirection:      "付款",
-			Currency:           detailedCurrency.ID,
+			Currency:           detailedCurrency.Id,
 			Date:               records[i].Date,
 			Amount:             &records[i].Amount,
 			Type:               records[i].Type,
 			Remarks:            records[i].Remarks,
-			ImportedApprovalID: records[i].ImportedApprovalID,
+			ImportedApprovalId: records[i].ImportedApprovalId,
 		}
 
 		switch records[i].Currency {
@@ -236,14 +236,14 @@ func ImportPlannedExpenditure(userID int64) error {
 		if errCode != util.Success {
 			param := service.ErrorLogCreate{
 				Detail: "导入tabOriPayPlan视图的记录时发生错误：" +
-					util.GetErrorDescription(errCode) + "，付款审批ID为：" +
-					records[i].ImportedApprovalID,
+					util.GetErrorDescription(errCode) + "，付款审批id为：" +
+					records[i].ImportedApprovalId,
 			}
 			param.Create()
 		}
 	}
 
-	err = updateCumulativeExpenditure(userID, affectedProjectIDs, affectedContractIDs)
+	err = updateCumulativeExpenditure(userId, affectedProjectIds, affectedContractIds)
 	if err != nil {
 		return err
 	}

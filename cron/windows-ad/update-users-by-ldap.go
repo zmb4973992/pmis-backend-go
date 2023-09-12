@@ -110,13 +110,13 @@ func UpdateUsersByLDAP() error {
 					}
 
 					record1 := model.OrganizationAndUser{
-						UserID:         user.ID,
-						OrganizationID: organization.ID,
+						UserId:         user.Id,
+						OrganizationId: organization.Id,
 						ImportedByLDAP: model.BoolToPointer(true),
 					}
 					err = global.DB.
-						Where("organization_id = ?", organization.ID).
-						Where("user_id = ?", user.ID).
+						Where("organization_id = ?", organization.Id).
+						Where("user_id = ?", user.Id).
 						FirstOrCreate(&record1).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
@@ -140,13 +140,13 @@ func UpdateUsersByLDAP() error {
 					}
 
 					record2 := model.UserAndDataAuthority{
-						UserID:          user.ID,
-						DataAuthorityID: dataAuthority.ID,
-						ImportedByLDAP:  model.BoolToPointer(true),
+						UserId:          user.Id,
+						DataAuthorityId: dataAuthority.Id,
+						ImportedByLdap:  model.BoolToPointer(true),
 					}
 					err = global.DB.
-						Where("data_authority_id = ?", dataAuthority.ID).
-						Where("user_id = ?", user.ID).
+						Where("data_authority_id = ?", dataAuthority.Id).
+						Where("user_id = ?", user.Id).
 						FirstOrCreate(&record2).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
@@ -170,13 +170,13 @@ func UpdateUsersByLDAP() error {
 						continue
 					}
 					record := model.OrganizationAndUser{
-						UserID:         user.ID,
-						OrganizationID: organization.ID,
+						UserId:         user.Id,
+						OrganizationId: organization.Id,
 						ImportedByLDAP: model.BoolToPointer(true),
 					}
 					err = global.DB.
-						Where("organization_id = ?", organization.ID).
-						Where("user_id = ?", user.ID).
+						Where("organization_id = ?", organization.Id).
+						Where("user_id = ?", user.Id).
 						FirstOrCreate(&record).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
@@ -200,13 +200,13 @@ func UpdateUsersByLDAP() error {
 					}
 
 					record2 := model.UserAndDataAuthority{
-						UserID:          user.ID,
-						DataAuthorityID: dataAuthority.ID,
-						ImportedByLDAP:  model.BoolToPointer(true),
+						UserId:          user.Id,
+						DataAuthorityId: dataAuthority.Id,
+						ImportedByLdap:  model.BoolToPointer(true),
 					}
 					err = global.DB.
-						Where("data_authority_id = ?", dataAuthority.ID).
-						Where("user_id = ?", user.ID).
+						Where("data_authority_id = ?", dataAuthority.Id).
+						Where("user_id = ?", user.Id).
 						FirstOrCreate(&record2).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
@@ -228,13 +228,13 @@ func UpdateUsersByLDAP() error {
 						continue
 					}
 					record1 := model.OrganizationAndUser{
-						UserID:         user.ID,
-						OrganizationID: organization.ID,
+						UserId:         user.Id,
+						OrganizationId: organization.Id,
 						ImportedByLDAP: model.BoolToPointer(true),
 					}
 					err = global.DB.
-						Where("organization_id = ?", organization.ID).
-						Where("user_id = ?", user.ID).
+						Where("organization_id = ?", organization.Id).
+						Where("user_id = ?", user.Id).
 						FirstOrCreate(&record1).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
@@ -258,13 +258,13 @@ func UpdateUsersByLDAP() error {
 					}
 
 					record2 := model.UserAndDataAuthority{
-						UserID:          user.ID,
-						DataAuthorityID: dataAuthority.ID,
-						ImportedByLDAP:  model.BoolToPointer(true),
+						UserId:          user.Id,
+						DataAuthorityId: dataAuthority.Id,
+						ImportedByLdap:  model.BoolToPointer(true),
 					}
 					err = global.DB.
-						Where("data_authority_id = ?", dataAuthority.ID).
-						Where("user_id = ?", user.ID).
+						Where("data_authority_id = ?", dataAuthority.Id).
+						Where("user_id = ?", user.Id).
 						FirstOrCreate(&record2).Error
 					if err != nil {
 						global.SugaredLogger.Errorln(err)
@@ -309,13 +309,13 @@ func setAdmin() error {
 		return err
 	}
 
-	global.DB.Where("user_id = ?", user.ID).
+	global.DB.Where("user_id = ?", user.Id).
 		Delete(&model.UserAndDataAuthority{})
 
 	var userAndAuthority model.UserAndDataAuthority
-	userAndAuthority.UserID = user.ID
-	userAndAuthority.DataAuthorityID = dataAuthority.ID
-	userAndAuthority.ImportedByLDAP = model.BoolToPointer(true)
+	userAndAuthority.UserId = user.Id
+	userAndAuthority.DataAuthorityId = dataAuthority.Id
+	userAndAuthority.ImportedByLdap = model.BoolToPointer(true)
 
 	err = global.DB.Create(&userAndAuthority).Error
 	if err != nil {

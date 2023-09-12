@@ -8,12 +8,12 @@ import (
 )
 
 type DictionaryDetailGet struct {
-	ID int64
+	Id int64
 }
 
 type DictionaryDetailCreate struct {
-	UserID           int64
-	DictionaryTypeID int64  `json:"dictionary_type_id" binding:"required"` //字典类型id
+	UserId           int64
+	DictionaryTypeId int64  `json:"dictionary_type_id" binding:"required"` //字典类型id
 	Name             string `json:"name" binding:"required"`               //名称
 	Sort             int    `json:"sort,omitempty"`                        //顺序值
 	Status           *bool  `json:"status"`                                //是否启用
@@ -25,8 +25,8 @@ type DictionaryDetailCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type DictionaryDetailUpdate struct {
-	UserID  int64
-	ID      int64
+	UserId  int64
+	Id      int64
 	Name    *string `json:"name"`    //名称
 	Sort    *int    `json:"sort"`    //顺序值
 	Status  *bool   `json:"status"`  //是否启用
@@ -34,7 +34,7 @@ type DictionaryDetailUpdate struct {
 }
 
 type DictionaryDetailDelete struct {
-	ID int64
+	Id int64
 }
 
 type DictionaryDetailGetList struct {
@@ -47,8 +47,8 @@ type DictionaryDetailGetList struct {
 type DictionaryDetailOutput struct {
 	Creator          *int64  `json:"creator"`
 	LastModifier     *int64  `json:"last_modifier"`
-	ID               int64   `json:"id"`
-	DictionaryTypeID int64   `json:"dictionary_type_id"` //字典类型
+	Id               int64   `json:"id"`
+	DictionaryTypeId int64   `json:"dictionary_type_id"` //字典类型
 	Name             string  `json:"name"`               //名称
 	Sort             *int    `json:"sort"`               //顺序值
 	Status           *bool   `json:"status"`             //是否启用
@@ -57,7 +57,7 @@ type DictionaryDetailOutput struct {
 
 func (d *DictionaryDetailGet) Get() (output *DictionaryDetailOutput, errCode int) {
 	err := global.DB.Model(model.DictionaryDetail{}).
-		Where("id = ?", d.ID).
+		Where("id = ?", d.Id).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
@@ -68,11 +68,11 @@ func (d *DictionaryDetailGet) Get() (output *DictionaryDetailOutput, errCode int
 
 func (d *DictionaryDetailCreate) Create() (errCode int) {
 	var paramOut model.DictionaryDetail
-	if d.UserID > 0 {
-		paramOut.Creator = &d.UserID
+	if d.UserId > 0 {
+		paramOut.Creator = &d.UserId
 	}
 
-	paramOut.DictionaryTypeID = d.DictionaryTypeID
+	paramOut.DictionaryTypeId = d.DictionaryTypeId
 
 	paramOut.Name = d.Name
 
@@ -98,8 +98,8 @@ func (d *DictionaryDetailCreate) Create() (errCode int) {
 func (d *DictionaryDetailUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
-	if d.UserID > 0 {
-		paramOut["last_modifier"] = d.UserID
+	if d.UserId > 0 {
+		paramOut["last_modifier"] = d.UserId
 	}
 
 	if d.Name != nil {
@@ -133,7 +133,7 @@ func (d *DictionaryDetailUpdate) Update() (errCode int) {
 	}
 
 	err := global.DB.Model(&model.DictionaryDetail{}).
-		Where("id = ?", d.ID).
+		Where("id = ?", d.Id).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
@@ -145,9 +145,9 @@ func (d *DictionaryDetailUpdate) Update() (errCode int) {
 func (d *DictionaryDetailDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.DictionaryDetail
-	global.DB.Where("id = ?", d.ID)
+	global.DB.Where("id = ?", d.Id)
 	err := global.DB.
-		Where("id = ?", d.ID).
+		Where("id = ?", d.Id).
 		Find(&record).
 		Delete(&record).Error
 
@@ -170,7 +170,7 @@ func (d *DictionaryDetailGetList) GetList() (
 		if err != nil {
 			return nil, util.ErrorRecordNotFound, nil
 		}
-		db = db.Where("dictionary_type_id = ?", dictionaryType.ID)
+		db = db.Where("dictionary_type_id = ?", dictionaryType.Id)
 	}
 
 	// count

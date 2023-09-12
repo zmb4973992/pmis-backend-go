@@ -15,20 +15,20 @@ func UpdateCumulativeIncomeAndExpenditureForCron() {
 		global.SugaredLogger.Panicln(err)
 	}
 
-	err = UpdateCumulativeIncomeAndExpenditure(user.ID)
+	err = UpdateCumulativeIncomeAndExpenditure(user.Id)
 	if err != nil {
 		param := service.ErrorLogCreate{Detail: err.Error()}
 		param.Create()
 	}
 }
 
-func UpdateCumulativeIncomeAndExpenditure(userID int64) error {
-	err := updateProjectCumulativeIncomeAndExpenditure(userID)
+func UpdateCumulativeIncomeAndExpenditure(userId int64) error {
+	err := updateProjectCumulativeIncomeAndExpenditure(userId)
 	if err != nil {
 		return err
 	}
 
-	err = updateContractCumulativeIncomeAndExpenditure(userID)
+	err = updateContractCumulativeIncomeAndExpenditure(userId)
 	if err != nil {
 		return err
 	}
@@ -36,7 +36,7 @@ func UpdateCumulativeIncomeAndExpenditure(userID int64) error {
 	return nil
 }
 
-func updateProjectCumulativeIncomeAndExpenditure(userID int64) error {
+func updateProjectCumulativeIncomeAndExpenditure(userId int64) error {
 	var projects []model.Project
 	err := global.DB.Find(&projects).Error
 	if err != nil {
@@ -45,8 +45,8 @@ func updateProjectCumulativeIncomeAndExpenditure(userID int64) error {
 
 	for i := range projects {
 		var param1 service.ProjectDailyAndCumulativeIncomeUpdate
-		param1.UserID = userID
-		param1.ProjectID = projects[i].ID
+		param1.UserId = userId
+		param1.ProjectId = projects[i].Id
 
 		errCode := param1.Update()
 		if errCode != util.Success {
@@ -54,8 +54,8 @@ func updateProjectCumulativeIncomeAndExpenditure(userID int64) error {
 		}
 
 		var param2 service.ProjectDailyAndCumulativeExpenditureUpdate
-		param2.UserID = userID
-		param2.ProjectID = projects[i].ID
+		param2.UserId = userId
+		param2.ProjectId = projects[i].Id
 
 		errCode = param2.Update()
 		if errCode != util.Success {
@@ -66,7 +66,7 @@ func updateProjectCumulativeIncomeAndExpenditure(userID int64) error {
 	return nil
 }
 
-func updateContractCumulativeIncomeAndExpenditure(userID int64) error {
+func updateContractCumulativeIncomeAndExpenditure(userId int64) error {
 	var contract []model.Contract
 	err := global.DB.Find(&contract).Error
 	if err != nil {
@@ -75,8 +75,8 @@ func updateContractCumulativeIncomeAndExpenditure(userID int64) error {
 
 	for i := range contract {
 		var param1 service.ContractDailyAndCumulativeIncomeUpdate
-		param1.UserID = userID
-		param1.ContractID = contract[i].ID
+		param1.UserId = userId
+		param1.ContractId = contract[i].Id
 
 		errCode := param1.Update()
 		if errCode != util.Success {
@@ -84,8 +84,8 @@ func updateContractCumulativeIncomeAndExpenditure(userID int64) error {
 		}
 
 		var param2 service.ContractDailyAndCumulativeExpenditureUpdate
-		param2.UserID = userID
-		param2.ContractID = contract[i].ID
+		param2.UserId = userId
+		param2.ContractId = contract[i].Id
 
 		errCode = param2.Update()
 		if errCode != util.Success {

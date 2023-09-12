@@ -20,7 +20,7 @@ type tabProject struct {
 	Date         string  `gorm:"column:F6363"`
 }
 
-func ImportProject(userID int64) error {
+func ImportProject(userId int64) error {
 	fmt.Println("★★★★★开始导入项目记录......★★★★★")
 
 	var projects []tabProject
@@ -258,7 +258,7 @@ func ImportProject(userID int64) error {
 				case "HU":
 					projects[i].Country = "匈牙利"
 
-				case "ID":
+				case "Id":
 					projects[i].Country = "印度尼西亚"
 				case "IE":
 					projects[i].Country = "爱尔兰"
@@ -505,7 +505,7 @@ func ImportProject(userID int64) error {
 				}
 
 				err = global.DB.Model(&model.DictionaryDetail{}).
-					Where("dictionary_type_id = ?", country.ID).
+					Where("dictionary_type_id = ?", country.Id).
 					Where("name = ?", projects[i].Country).
 					First(&specificCountry).Error
 				if err != nil {
@@ -534,7 +534,7 @@ func ImportProject(userID int64) error {
 				}
 
 				err = global.DB.
-					Where("dictionary_type_id = ?", projectType.ID).
+					Where("dictionary_type_id = ?", projectType.Id).
 					Where("name = ?", projects[i].Type).
 					First(&specificProjectType).Error
 				if err != nil {
@@ -561,7 +561,7 @@ func ImportProject(userID int64) error {
 				}
 
 				err = global.DB.
-					Where("dictionary_type_id = ?", currency.ID).
+					Where("dictionary_type_id = ?", currency.Id).
 					Where("name = ?", projects[i].Currency).
 					First(&specificCurrency).Error
 				if err != nil {
@@ -575,13 +575,13 @@ func ImportProject(userID int64) error {
 			}
 
 			newRecord := service.ProjectCreate{
-				UserID:             userID,
-				OrganizationID:     organization.ID,
-				RelatedPartyID:     0,
-				Country:            specificCountry.ID,
-				Type:               specificProjectType.ID,
+				UserId:             userId,
+				OrganizationId:     organization.Id,
+				RelatedPartyId:     0,
+				Country:            specificCountry.Id,
+				Type:               specificProjectType.Id,
 				DetailedType:       0,
-				Currency:           specificCurrency.ID,
+				Currency:           specificCurrency.Id,
 				Status:             0,
 				OurSignatory:       0,
 				SigningDate:        "",
@@ -611,7 +611,7 @@ func ImportProject(userID int64) error {
 	return nil
 }
 
-func UpdateExchangeRageOfProject(userID int64) error {
+func UpdateExchangeRageOfProject(userId int64) error {
 	fmt.Println("★★★★★开始更正所有项目的汇率......★★★★★")
 
 	var projects []model.Project
@@ -640,8 +640,8 @@ func UpdateExchangeRageOfProject(userID int64) error {
 		case "人民币":
 			param := service.ProjectUpdate{
 				IgnoreDataAuthority: true,
-				UserID:              userID,
-				ID:                  projects[i].ID,
+				UserId:              userId,
+				Id:                  projects[i].Id,
 				ExchangeRate:        model.Float64ToPointer(1),
 			}
 
@@ -653,8 +653,8 @@ func UpdateExchangeRageOfProject(userID int64) error {
 		case "美元":
 			param := service.ProjectUpdate{
 				IgnoreDataAuthority: true,
-				UserID:              userID,
-				ID:                  projects[i].ID,
+				UserId:              userId,
+				Id:                  projects[i].Id,
 				ExchangeRate:        &global.Config.ExchangeRateConfig.USD,
 			}
 
@@ -666,8 +666,8 @@ func UpdateExchangeRageOfProject(userID int64) error {
 		case "欧元":
 			param := service.ProjectUpdate{
 				IgnoreDataAuthority: true,
-				UserID:              userID,
-				ID:                  projects[i].ID,
+				UserId:              userId,
+				Id:                  projects[i].Id,
 				ExchangeRate:        &global.Config.ExchangeRateConfig.EUR,
 			}
 
@@ -679,8 +679,8 @@ func UpdateExchangeRageOfProject(userID int64) error {
 		case "港币":
 			param := service.ProjectUpdate{
 				IgnoreDataAuthority: true,
-				UserID:              userID,
-				ID:                  projects[i].ID,
+				UserId:              userId,
+				Id:                  projects[i].Id,
 				ExchangeRate:        &global.Config.ExchangeRateConfig.HKD,
 			}
 
@@ -692,8 +692,8 @@ func UpdateExchangeRageOfProject(userID int64) error {
 		case "新加坡元":
 			param := service.ProjectUpdate{
 				IgnoreDataAuthority: true,
-				UserID:              userID,
-				ID:                  projects[i].ID,
+				UserId:              userId,
+				Id:                  projects[i].Id,
 				ExchangeRate:        &global.Config.ExchangeRateConfig.SGD,
 			}
 

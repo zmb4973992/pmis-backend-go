@@ -13,60 +13,60 @@ func ImportDataForCron() {
 		global.SugaredLogger.Panicln(err)
 	}
 
-	err = ImportData(user.ID)
+	err = ImportData(user.Id)
 	if err != nil {
 		param := service.ErrorLogCreate{Detail: err.Error()}
 		param.Create()
 	}
 }
 
-func ImportData(userID int64) error {
+func ImportData(userId int64) error {
 	err := ConnectToDatabase()
 	if err != nil {
 		return err
 	}
 
-	err = ImportRelatedParty(userID)
+	err = ImportRelatedParty(userId)
 	if err != nil {
 		return err
 	}
 
-	err = ImportProject(userID)
+	err = ImportProject(userId)
 	if err != nil {
 		return err
 	}
 
-	err = UpdateExchangeRageOfProject(userID)
+	err = UpdateExchangeRageOfProject(userId)
 	if err != nil {
 		return err
 	}
 
-	err = ImportContract(userID)
+	err = ImportContract(userId)
 	if err != nil {
 		return err
 	}
 
-	err = UpdateExchangeRageOfContract(userID)
+	err = UpdateExchangeRageOfContract(userId)
 	if err != nil {
 		return err
 	}
 
-	err = ImportActualExpenditure(userID)
+	err = ImportActualExpenditure(userId)
 	if err != nil {
 		return err
 	}
 
-	err = ImportForecastedExpenditure(userID)
+	err = ImportForecastedExpenditure(userId)
 	if err != nil {
 		return err
 	}
 
-	err = ImportPlannedExpenditure(userID)
+	err = ImportPlannedExpenditure(userId)
 	if err != nil {
 		return err
 	}
 
-	err = ImportActualIncome(userID)
+	err = ImportActualIncome(userId)
 	if err != nil {
 		return err
 	}

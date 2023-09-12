@@ -12,7 +12,7 @@ import (
 type Local struct {
 }
 
-func (l *Local) UploadMultipleFiles(userID int64, fileHeaders []*multipart.FileHeader) (fileNames []string, err error) {
+func (l *Local) UploadMultipleFiles(userId int64, fileHeaders []*multipart.FileHeader) (fileNames []string, err error) {
 	for i := range fileHeaders {
 		if fileHeaders[i].Size > global.Config.UploadConfig.MaxSize {
 			return nil, errors.New("文件过大")
@@ -24,7 +24,7 @@ func (l *Local) UploadMultipleFiles(userID int64, fileHeaders []*multipart.FileH
 	for i := range fileHeaders {
 		//保存记录
 		var record model.File
-		record.Creator = &userID
+		record.Creator = &userId
 		record.Name = fileHeaders[i].Filename
 
 		record.SizeMB = math.Round(float64(fileHeaders[i].Size)/(1024*1024)*100) / 100
@@ -33,7 +33,7 @@ func (l *Local) UploadMultipleFiles(userID int64, fileHeaders []*multipart.FileH
 			return nil, err
 		}
 
-		fileName := strconv.FormatInt(record.ID, 10) + "--" + fileHeaders[i].Filename
+		fileName := strconv.FormatInt(record.Id, 10) + "--" + fileHeaders[i].Filename
 		fileNames = append(fileNames, fileName)
 
 		//err = saveUploadedFile(fileHeaders[i], storagePath+fileName)

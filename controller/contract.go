@@ -16,7 +16,7 @@ type contract struct{}
 func (co *contract) Get(c *gin.Context) {
 	var param service.ContractGet
 	var err error
-	param.ContractID, err = strconv.ParseInt(c.Param("contract-id"), 10, 64)
+	param.ContractId, err = strconv.ParseInt(c.Param("contract-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -25,10 +25,10 @@ func (co *contract) Get(c *gin.Context) {
 		return
 	}
 
-	//处理userID字段
-	userID, exists := util.GetUserID(c)
+	//处理userId字段
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	output, errCode := param.Get()
@@ -51,9 +51,9 @@ func (co *contract) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Create()
@@ -75,7 +75,7 @@ func (co *contract) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.ContractID, err = strconv.ParseInt(c.Param("contract-id"), 10, 64)
+	param.ContractId, err = strconv.ParseInt(c.Param("contract-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -85,9 +85,9 @@ func (co *contract) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Update()
@@ -101,7 +101,7 @@ func (co *contract) Update(c *gin.Context) {
 func (co *contract) Delete(c *gin.Context) {
 	var param service.ContractDelete
 	var err error
-	param.ContractID, err = strconv.ParseInt(c.Param("contract-id"), 10, 64)
+	param.ContractId, err = strconv.ParseInt(c.Param("contract-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -132,10 +132,10 @@ func (co *contract) GetList(c *gin.Context) {
 		return
 	}
 
-	//AuthorityInput需要userID
-	userID, exists := util.GetUserID(c)
+	//AuthorityInput需要userId
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	outputs, errCode, paging := param.GetList()

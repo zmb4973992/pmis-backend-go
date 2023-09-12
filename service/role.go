@@ -14,11 +14,11 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type RoleGet struct {
-	ID int64
+	Id int64
 }
 
 type RoleCreate struct {
-	UserID int64
+	UserId int64
 	//连接关联表的id
 
 	//连接dictionary_item表的id
@@ -26,9 +26,9 @@ type RoleCreate struct {
 	//日期
 
 	//数字(允许为0、nil)
-	SuperiorID      *int64 `json:"superior_id"`
+	SuperiorId      *int64 `json:"superior_id"`
 	Name            string `json:"name" binding:"required"`
-	DataAuthorityID int64  `json:"data_authority_id" binding:"required"`
+	DataAuthorityId int64  `json:"data_authority_id" binding:"required"`
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update
@@ -36,8 +36,8 @@ type RoleCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type RoleUpdate struct {
-	UserID int64
-	ID     int64
+	UserId int64
+	Id     int64
 	//连接关联表的id
 
 	//连接dictionary_item表的id
@@ -45,15 +45,15 @@ type RoleUpdate struct {
 	//日期
 
 	//允许为0的数字
-	//SuperiorID *int64 `json:"superior_id"`
+	//SuperiorId *int64 `json:"superior_id"`
 
 	//允许为null的字符串
 	Name            *string `json:"name"`
-	DataAuthorityID *int64  `json:"data_authority_id"`
+	DataAuthorityId *int64  `json:"data_authority_id"`
 }
 
 type RoleDelete struct {
-	ID int64
+	Id int64
 }
 
 type RoleGetList struct {
@@ -61,17 +61,17 @@ type RoleGetList struct {
 }
 
 type RoleUpdateUsers struct {
-	UserID int64
+	UserId int64
 
-	RoleID  int64    `json:"-"`
-	UserIDs *[]int64 `json:"user_ids"`
+	RoleId  int64    `json:"-"`
+	UserIds *[]int64 `json:"user_ids"`
 }
 
 type RoleUpdateMenus struct {
-	UserID int64
+	UserId int64
 
-	RoleID  int64    `json:"-"`
-	MenuIDs *[]int64 `json:"menu_ids"`
+	RoleId  int64    `json:"-"`
+	MenuIds *[]int64 `json:"menu_ids"`
 }
 
 //以下为出参
@@ -79,7 +79,7 @@ type RoleUpdateMenus struct {
 type RoleOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
 
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
@@ -90,12 +90,12 @@ type RoleOutput struct {
 
 	//其他属性
 	Name       *string `json:"name"`
-	SuperiorID *int64  `json:"superior_id"`
+	SuperiorId *int64  `json:"superior_id"`
 }
 
 func (r *RoleGet) Get() (output *RoleOutput, errCode int) {
 	err := global.DB.Model(model.Role{}).
-		Where("id = ?", r.ID).
+		Where("id = ?", r.Id).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
@@ -107,14 +107,14 @@ func (r *RoleGet) Get() (output *RoleOutput, errCode int) {
 func (r *RoleCreate) Create() (errCode int) {
 	var paramOut model.Role
 
-	if r.UserID > 0 {
-		paramOut.Creator = &r.UserID
+	if r.UserId > 0 {
+		paramOut.Creator = &r.UserId
 	}
 
 	//允许为0的数字
 	{
-		if r.SuperiorID != nil {
-			paramOut.SuperiorID = r.SuperiorID
+		if r.SuperiorId != nil {
+			paramOut.SuperiorId = r.SuperiorId
 		}
 	}
 
@@ -125,7 +125,7 @@ func (r *RoleCreate) Create() (errCode int) {
 		}
 	}
 
-	paramOut.DataAuthorityID = r.DataAuthorityID
+	paramOut.DataAuthorityId = r.DataAuthorityId
 
 	err := global.DB.Create(&paramOut).Error
 	if err != nil {
@@ -137,8 +137,8 @@ func (r *RoleCreate) Create() (errCode int) {
 func (r *RoleUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
-	if r.UserID > 0 {
-		paramOut["last_modifier"] = r.UserID
+	if r.UserId > 0 {
+		paramOut["last_modifier"] = r.UserId
 	}
 
 	//允许为null的字符串
@@ -152,16 +152,16 @@ func (r *RoleUpdate) Update() (errCode int) {
 		}
 	}
 
-	if r.DataAuthorityID != nil {
-		if *r.DataAuthorityID == -1 {
+	if r.DataAuthorityId != nil {
+		if *r.DataAuthorityId == -1 {
 			paramOut["data_authority_id"] = nil
 		} else {
-			paramOut["data_authority_id"] = r.DataAuthorityID
+			paramOut["data_authority_id"] = r.DataAuthorityId
 		}
 	}
 
 	err := global.DB.Model(&model.Role{}).
-		Where("id = ?", r.ID).
+		Where("id = ?", r.Id).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
@@ -173,7 +173,7 @@ func (r *RoleUpdate) Update() (errCode int) {
 func (r *RoleDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Role
-	err := global.DB.Where("id = ?", r.ID).
+	err := global.DB.Where("id = ?", r.Id).
 		Find(&record).
 		Delete(&record).Error
 
@@ -257,12 +257,12 @@ func (r *RoleGetList) GetList() (outputs []RoleOutput,
 }
 
 func (r *RoleUpdateUsers) Update() (errCode int) {
-	if r.UserIDs == nil {
+	if r.UserIds == nil {
 		return util.ErrorInvalidJSONParameters
 	}
 
-	if len(*r.UserIDs) == 0 {
-		err := global.DB.Where("role_id = ?", r.RoleID).
+	if len(*r.UserIds) == 0 {
+		err := global.DB.Where("role_id = ?", r.RoleId).
 			Delete(&model.UserAndRole{}).Error
 		if err != nil {
 			return util.ErrorFailToDeleteRecord
@@ -272,7 +272,7 @@ func (r *RoleUpdateUsers) Update() (errCode int) {
 
 	err := global.DB.Transaction(func(tx *gorm.DB) error {
 		//先删掉原始记录
-		err := tx.Where("role_id = ?", r.RoleID).
+		err := tx.Where("role_id = ?", r.RoleId).
 			Delete(&model.UserAndRole{}).Error
 		if err != nil {
 			return util.GenerateCustomError(util.ErrorFailToDeleteRecord)
@@ -280,15 +280,15 @@ func (r *RoleUpdateUsers) Update() (errCode int) {
 
 		//再增加新的记录
 		var paramOut []model.UserAndRole
-		for _, userID := range *r.UserIDs {
+		for _, userId := range *r.UserIds {
 			var record model.UserAndRole
 
-			if r.UserID > 0 {
-				record.LastModifier = &r.UserID
+			if r.UserId > 0 {
+				record.LastModifier = &r.UserId
 			}
 
-			record.RoleID = r.RoleID
-			record.UserID = userID
+			record.RoleId = r.RoleId
+			record.UserId = userId
 			paramOut = append(paramOut, record)
 		}
 
@@ -299,9 +299,9 @@ func (r *RoleUpdateUsers) Update() (errCode int) {
 
 		//更新casbin的rbac分组规则
 		var param1 rbacUpdateGroupingPolicyByGroup
-		param1.Group = strconv.FormatInt(r.RoleID, 10)
-		for _, userID := range *r.UserIDs {
-			param1.Members = append(param1.Members, strconv.FormatInt(userID, 10))
+		param1.Group = strconv.FormatInt(r.RoleId, 10)
+		for _, userId := range *r.UserIds {
+			param1.Members = append(param1.Members, strconv.FormatInt(userId, 10))
 		}
 		err = param1.Update()
 		if err != nil {
@@ -328,12 +328,12 @@ func (r *RoleUpdateUsers) Update() (errCode int) {
 }
 
 func (r *RoleUpdateMenus) Update() (errCode int) {
-	if r.MenuIDs == nil {
+	if r.MenuIds == nil {
 		return util.ErrorInvalidJSONParameters
 	}
 
-	if len(*r.MenuIDs) == 0 {
-		err := global.DB.Where("role_id = ?", r.RoleID).
+	if len(*r.MenuIds) == 0 {
+		err := global.DB.Where("role_id = ?", r.RoleId).
 			Delete(&model.RoleAndMenu{}).Error
 		if err != nil {
 			return util.ErrorFailToDeleteRecord
@@ -342,7 +342,7 @@ func (r *RoleUpdateMenus) Update() (errCode int) {
 	}
 
 	//先删掉原始记录
-	err := global.DB.Where("role_id = ?", r.RoleID).
+	err := global.DB.Where("role_id = ?", r.RoleId).
 		Delete(&model.RoleAndMenu{}).Error
 	if err != nil {
 		return util.ErrorFailToDeleteRecord
@@ -350,15 +350,15 @@ func (r *RoleUpdateMenus) Update() (errCode int) {
 
 	//再增加新的记录
 	var paramOut []model.RoleAndMenu
-	for _, menuID := range *r.MenuIDs {
+	for _, menuId := range *r.MenuIds {
 		var record model.RoleAndMenu
 
-		if r.UserID > 0 {
-			record.LastModifier = &r.UserID
+		if r.UserId > 0 {
+			record.LastModifier = &r.UserId
 		}
 
-		record.RoleID = r.RoleID
-		record.MenuID = menuID
+		record.RoleId = r.RoleId
+		record.MenuId = menuId
 		paramOut = append(paramOut, record)
 	}
 
@@ -368,11 +368,11 @@ func (r *RoleUpdateMenus) Update() (errCode int) {
 	}
 
 	//更新casbin的rbac的策略
-	var param1 rbacUpdatePolicyByRoleID
-	param1.RoleID = r.RoleID
+	var param1 rbacUpdatePolicyByRoleId
+	param1.RoleId = r.RoleId
 	err = param1.Update()
 	if err != nil {
-		return util.ErrorFailToUpdateRBACPoliciesByRoleID
+		return util.ErrorFailToUpdateRBACPoliciesByRoleId
 	}
 
 	return util.Success

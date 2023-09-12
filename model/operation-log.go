@@ -6,7 +6,7 @@ import (
 
 type OperationLog struct {
 	BasicModel
-	ProjectID     *int64
+	ProjectId     *int64
 	Operator      *int64
 	Date          *time.Time `gorm:"type:date"`
 	OperationType *int64

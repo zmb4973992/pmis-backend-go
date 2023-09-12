@@ -26,14 +26,14 @@ func Init() {
 		global.SugaredLogger.Panicln(err)
 	}
 
-	err = lvmin.ImportData(user.ID)
+	err = lvmin.ImportData(user.Id)
 	if err != nil {
 		param := service.ErrorLogCreate{Detail: err.Error()}
 		param.Create()
 		global.SugaredLogger.Panicln(err)
 	}
 
-	err = oldPmis.ImportData(user.ID)
+	err = oldPmis.ImportData(user.Id)
 	if err != nil {
 		param := service.ErrorLogCreate{Detail: err.Error()}
 		param.Create()

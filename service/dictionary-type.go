@@ -8,11 +8,11 @@ import (
 )
 
 type DictionaryTypeGet struct {
-	ID int64
+	Id int64
 }
 
 type DictionaryTypeCreate struct {
-	UserID  int64
+	UserId  int64
 	Name    string `json:"name" binding:"required"` //名称
 	Sort    int    `json:"sort,omitempty"`          //顺序值
 	Status  *bool  `json:"status"`                  //是否启用
@@ -24,8 +24,8 @@ type DictionaryTypeCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type DictionaryTypeUpdate struct {
-	UserID  int64
-	ID      int64
+	UserId  int64
+	Id      int64
 	Name    *string `json:"name"`    //名称
 	Sort    *int    `json:"sort"`    //顺序值
 	Status  *bool   `json:"status"`  //是否启用
@@ -33,7 +33,7 @@ type DictionaryTypeUpdate struct {
 }
 
 type DictionaryTypeDelete struct {
-	ID int64
+	Id int64
 }
 
 type DictionaryTypeGetList struct {
@@ -44,7 +44,7 @@ type DictionaryTypeGetList struct {
 type DictionaryTypeOutput struct {
 	Creator      *int64  `json:"creator"`
 	LastModifier *int64  `json:"last_modifier"`
-	ID           int64   `json:"id"`
+	Id           int64   `json:"id"`
 	Name         string  `json:"name"`    //名称
 	Sort         *int    `json:"sort"`    //顺序值
 	Remarks      *string `json:"remarks"` //备注
@@ -52,7 +52,7 @@ type DictionaryTypeOutput struct {
 
 func (d *DictionaryTypeGet) Get() (output *DictionaryTypeOutput, errCode int) {
 	err := global.DB.Model(model.DictionaryType{}).
-		Where("id = ?", d.ID).
+		Where("id = ?", d.Id).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
@@ -62,8 +62,8 @@ func (d *DictionaryTypeGet) Get() (output *DictionaryTypeOutput, errCode int) {
 
 func (d *DictionaryTypeCreate) Create() (errCode int) {
 	var paramOut model.DictionaryType
-	if d.UserID > 0 {
-		paramOut.Creator = &d.UserID
+	if d.UserId > 0 {
+		paramOut.Creator = &d.UserId
 	}
 
 	paramOut.Name = d.Name
@@ -90,8 +90,8 @@ func (d *DictionaryTypeCreate) Create() (errCode int) {
 func (d *DictionaryTypeUpdate) Update() (errCode int) {
 	paramOut := make(map[string]any)
 
-	if d.UserID > 0 {
-		paramOut["last_modifier"] = d.UserID
+	if d.UserId > 0 {
+		paramOut["last_modifier"] = d.UserId
 	}
 
 	if d.Name != nil {
@@ -125,7 +125,7 @@ func (d *DictionaryTypeUpdate) Update() (errCode int) {
 	}
 
 	err := global.DB.Model(&model.DictionaryType{}).
-		Where("id = ?", d.ID).
+		Where("id = ?", d.Id).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
@@ -137,7 +137,7 @@ func (d *DictionaryTypeUpdate) Update() (errCode int) {
 func (d *DictionaryTypeDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录，详见：
 	var record model.DictionaryType
-	err := global.DB.Where("id = ?", d.ID).
+	err := global.DB.Where("id = ?", d.Id).
 		Find(&record).
 		Delete(&record).Error
 

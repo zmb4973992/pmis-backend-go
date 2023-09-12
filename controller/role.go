@@ -16,7 +16,7 @@ type role struct{}
 func (r *role) Get(c *gin.Context) {
 	var param service.RoleGet
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("role-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("role-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -45,9 +45,9 @@ func (r *role) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Create()
@@ -69,7 +69,7 @@ func (r *role) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.ID, err = strconv.ParseInt(c.Param("role-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("role-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -79,9 +79,9 @@ func (r *role) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Update()
@@ -95,7 +95,7 @@ func (r *role) Update(c *gin.Context) {
 func (r *role) Delete(c *gin.Context) {
 	var param service.RoleDelete
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("role-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("role-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -145,7 +145,7 @@ func (r *role) UpdateUsers(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.RoleID, err = strconv.ParseInt(c.Param("role-id"), 10, 64)
+	param.RoleId, err = strconv.ParseInt(c.Param("role-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -155,9 +155,9 @@ func (r *role) UpdateUsers(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Update()
@@ -179,7 +179,7 @@ func (r *role) UpdateMenus(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.RoleID, err = strconv.ParseInt(c.Param("role-id"), 10, 64)
+	param.RoleId, err = strconv.ParseInt(c.Param("role-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -189,9 +189,9 @@ func (r *role) UpdateMenus(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Update()

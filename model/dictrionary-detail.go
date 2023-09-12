@@ -6,7 +6,7 @@ import (
 
 type DictionaryDetail struct {
 	BasicModel
-	DictionaryTypeID int64   //字典类型的ID
+	DictionaryTypeId int64   //字典类型的Id
 	Name             string  //名称
 	Sort             *int    //用于排序的值
 	Status           *bool   //是否启用
@@ -143,7 +143,7 @@ func generateDictionaryDetail() (err error) {
 
 		for j := range initialDictionary[i].DetailNames {
 			dictionaryDetails = append(dictionaryDetails, DictionaryDetail{
-				DictionaryTypeID: dictionaryTypeInfo.ID,
+				DictionaryTypeId: dictionaryTypeInfo.Id,
 				Name:             initialDictionary[i].DetailNames[j],
 				Remarks:          &initialDictionary[i].TypeName,
 			})
@@ -153,7 +153,7 @@ func generateDictionaryDetail() (err error) {
 	for _, dictionaryDetail := range dictionaryDetails {
 		err = global.DB.
 			Where("name = ?", dictionaryDetail.Name).
-			Where("dictionary_type_id = ?", dictionaryDetail.DictionaryTypeID).
+			Where("dictionary_type_id = ?", dictionaryDetail.DictionaryTypeId).
 			Attrs(&DictionaryDetail{
 				Status: BoolToPointer(true),
 			}).

@@ -16,7 +16,7 @@ type menu struct{}
 func (m *menu) Get(c *gin.Context) {
 	var param service.MenuGet
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("menu-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("menu-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusBadRequest,
@@ -45,9 +45,9 @@ func (m *menu) Create(c *gin.Context) {
 	}
 
 	//处理creator、last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Create()
@@ -69,7 +69,7 @@ func (m *menu) Update(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.ID, err = strconv.ParseInt(c.Param("menu-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("menu-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -79,9 +79,9 @@ func (m *menu) Update(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	errCode := param.Update()
@@ -95,7 +95,7 @@ func (m *menu) Update(c *gin.Context) {
 func (m *menu) Delete(c *gin.Context) {
 	var param service.MenuDelete
 	var err error
-	param.ID, err = strconv.ParseInt(c.Param("menu-id"), 10, 64)
+	param.Id, err = strconv.ParseInt(c.Param("menu-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -126,10 +126,10 @@ func (m *menu) GetList(c *gin.Context) {
 		return
 	}
 
-	//AuthorityInput需要userID
-	userID, exists := util.GetUserID(c)
+	//AuthorityInput需要userId
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	outputs, errCode, paging := param.GetList()
@@ -154,10 +154,10 @@ func (m *menu) GetTree(c *gin.Context) {
 		return
 	}
 
-	//AuthorityInput需要userID
-	userID, exists := util.GetUserID(c)
+	//AuthorityInput需要userId
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.UserID = userID
+		param.UserId = userId
 	}
 
 	outputs, errCode, paging := param.GetTree()
@@ -179,7 +179,7 @@ func (m *menu) UpdateUsers(c *gin.Context) {
 		return
 	}
 	//把uri上的id参数传递给结构体形式的入参
-	param.MenuID, err = strconv.ParseInt(c.Param("menu-id"), 10, 64)
+	param.MenuId, err = strconv.ParseInt(c.Param("menu-id"), 10, 64)
 	if err != nil {
 		c.JSON(
 			http.StatusOK,
@@ -189,10 +189,10 @@ func (m *menu) UpdateUsers(c *gin.Context) {
 	}
 
 	//处理last_modifier字段
-	userID, exists := util.GetUserID(c)
+	userId, exists := util.GetUserId(c)
 	if exists {
-		param.Creator = userID
-		param.LastModifier = userID
+		param.Creator = userId
+		param.LastModifier = userId
 	}
 
 	errCode := param.Update()

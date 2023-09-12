@@ -16,16 +16,16 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type FileGet struct {
-	ID int64
+	Id int64
 }
 
 type FileCreate struct {
-	UserID     int64
+	UserId     int64
 	FileHeader *multipart.FileHeader
 }
 
 type FileDelete struct {
-	ID int64
+	Id int64
 }
 
 //以下为出参
@@ -33,7 +33,7 @@ type FileDelete struct {
 type FileOutput struct {
 	Creator      *int64  `json:"creator"`
 	LastModifier *int64  `json:"last_modifier"`
-	ID           int64   `json:"id"`
+	Id           int64   `json:"id"`
 	Name         string  `json:"name"`
 	Url          string  `json:"url" gorm:"-"`
 	SizeMB       float64 `json:"size_mb"`
@@ -43,14 +43,14 @@ type FileOutput struct {
 func (f *FileGet) Get() (filePath string, fileName string, existed bool) {
 	var record FileOutput
 	err := global.DB.Model(model.File{}).
-		Where("id = ?", f.ID).
+		Where("id = ?", f.Id).
 		First(&record).Error
 	if err != nil {
 		return "", "", false
 	}
 
 	storagePath := global.Config.UploadConfig.StoragePath
-	filePath = storagePath + strconv.FormatInt(record.ID, 10) +
+	filePath = storagePath + strconv.FormatInt(record.Id, 10) +
 		"--" + record.Name
 	//看该文件是否存在于服务器的文件夹中
 	_, err = os.Stat(filePath)
@@ -61,7 +61,7 @@ func (f *FileGet) Get() (filePath string, fileName string, existed bool) {
 	return filePath, record.Name, true
 }
 
-func (f *FileCreate) Create() (fileID int64, url string, err error) {
+func (f *FileCreate) Create() (fileId int64, url string, err error) {
 	if f.FileHeader.Size > global.Config.MaxSize {
 		return 0, "", errors.New("文件过大")
 	}
@@ -70,7 +70,7 @@ func (f *FileCreate) Create() (fileID int64, url string, err error) {
 
 	file := model.File{
 		BasicModel: model.BasicModel{
-			Creator: &f.UserID,
+			Creator: &f.UserId,
 		},
 		Name:   f.FileHeader.Filename,
 		SizeMB: math.Round(float64(f.FileHeader.Size)/(1024*1024)*100) / 100,
@@ -82,27 +82,27 @@ func (f *FileCreate) Create() (fileID int64, url string, err error) {
 	}
 
 	// 给文件名添加id
-	fileNameWithID := strconv.FormatInt(file.ID, 10) + "--" + f.FileHeader.Filename
-	err = saveUploadedFile(f.FileHeader, storagePath+fileNameWithID)
+	fileNameWithId := strconv.FormatInt(file.Id, 10) + "--" + f.FileHeader.Filename
+	err = saveUploadedFile(f.FileHeader, storagePath+fileNameWithId)
 	if err != nil {
 		return 0, "", err
 	}
 
-	url = global.Config.DownloadConfig.FullPath + strconv.FormatInt(file.ID, 10)
+	url = global.Config.DownloadConfig.FullPath + strconv.FormatInt(file.Id, 10)
 
-	return file.ID, url, nil
+	return file.Id, url, nil
 }
 
 func (f *FileDelete) Delete() (errCode int) {
 	var record model.File
-	err := global.DB.Where("id = ?", f.ID).
+	err := global.DB.Where("id = ?", f.Id).
 		First(&record).Error
 	if err != nil {
 		return util.Success
 	}
 
 	storagePath := global.Config.UploadConfig.StoragePath
-	filePath := storagePath + strconv.FormatInt(record.ID, 10) +
+	filePath := storagePath + strconv.FormatInt(record.Id, 10) +
 		"--" + record.Name
 	err = os.Remove(filePath)
 
@@ -110,7 +110,7 @@ func (f *FileDelete) Delete() (errCode int) {
 		return util.ErrorFailToDeleteRecord
 	}
 
-	err = global.DB.Where("id = ?", f.ID).Delete(&record).Error
+	err = global.DB.Where("id = ?", f.Id).Delete(&record).Error
 	if err != nil {
 		return util.ErrorFailToDeleteRecord
 	}

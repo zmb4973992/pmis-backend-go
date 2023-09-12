@@ -14,16 +14,16 @@ import (
 //有些字段不用json tag，因为不从前端读取，而是在controller中处理
 
 type ContractGet struct {
-	ContractID int64
-	UserID     int64
+	ContractId int64
+	UserId     int64
 }
 
 type ContractCreate struct {
-	UserID int64
+	UserId int64
 	//连接关联表的id
-	ProjectID      int64 `json:"project_id,omitempty"`
-	OrganizationID int64 `json:"organization_id,omitempty"`
-	RelatedPartyID int64 `json:"related_party_id,omitempty"`
+	ProjectId      int64 `json:"project_id,omitempty"`
+	OrganizationId int64 `json:"organization_id,omitempty"`
+	RelatedPartyId int64 `json:"related_party_id,omitempty"`
 	//连接dictionary_item表的id
 	FundDirection int64 `json:"fund_direction,omitempty"`
 	OurSignatory  int64 `json:"our_signatory,omitempty"`
@@ -44,7 +44,7 @@ type ContractCreate struct {
 	Content     string `json:"content,omitempty"`
 	Deliverable string `json:"deliverable,omitempty"`
 	PenaltyRule string `json:"penalty_rule,omitempty"`
-	FileIDs     string `json:"file_ids,omitempty"`
+	FileIds     string `json:"file_ids,omitempty"`
 	Operator    string `json:"operator,omitempty"`
 }
 
@@ -53,12 +53,12 @@ type ContractCreate struct {
 //如果指针字段没传，那么数据库不会修改该字段
 
 type ContractUpdate struct {
-	UserID     int64
-	ContractID int64
+	UserId     int64
+	ContractId int64
 	//连接关联表的id
-	ProjectID      *int64 `json:"project_id"`
-	OrganizationID *int64 `json:"organization_id"`
-	RelatedPartyID *int64 `json:"related_party_id"`
+	ProjectId      *int64 `json:"project_id"`
+	OrganizationId *int64 `json:"organization_id"`
+	RelatedPartyId *int64 `json:"related_party_id"`
 	//连接dictionary_item表的id
 	FundDirection *int64 `json:"fund_direction"`
 	OurSignatory  *int64 `json:"our_signatory"`
@@ -79,22 +79,22 @@ type ContractUpdate struct {
 	Content     *string `json:"content"`
 	Deliverable *string `json:"deliverable"`
 	PenaltyRule *string `json:"penalty_rule"`
-	FileIDs     []int64 `json:"file_ids"`
+	FileIds     []int64 `json:"file_ids"`
 	Operator    *string `json:"operator"`
 
 	IgnoreDataAuthority bool `json:"-"`
 }
 
 type ContractDelete struct {
-	UserID     int64
-	ContractID int64
+	UserId     int64
+	ContractId int64
 }
 
 type ContractGetList struct {
 	list.Input
-	UserID         int64  `json:"-"`
-	ProjectID      int64  `json:"project_id,omitempty"`
-	RelatedPartyID int64  `json:"related_party_id,omitempty"`
+	UserId         int64  `json:"-"`
+	ProjectId      int64  `json:"project_id,omitempty"`
+	RelatedPartyId int64  `json:"related_party_id,omitempty"`
 	FundDirection  int64  `json:"fund_direction,omitempty"`
 	NameInclude    string `json:"name_include,omitempty"`
 
@@ -107,11 +107,11 @@ type ContractGetList struct {
 type ContractOutput struct {
 	Creator      *int64 `json:"creator"`
 	LastModifier *int64 `json:"last_modifier"`
-	ID           int64  `json:"id"`
+	Id           int64  `json:"id"`
 	//连接关联表的id，只用来给gorm查询，不在json中显示
-	ProjectID      *int64 `json:"-"`
-	OrganizationID *int64 `json:"-"`
-	RelatedPartyID *int64 `json:"-"`
+	ProjectId      *int64 `json:"-"`
+	OrganizationId *int64 `json:"-"`
+	RelatedPartyId *int64 `json:"-"`
 	//连接dictionary_item表的id，只用来给gorm查询，不在json中显示
 	FundDirection *int64 `json:"-"`
 	OurSignatory  *int64 `json:"-"`
@@ -142,7 +142,7 @@ type ContractOutput struct {
 	Deliverable   *string      `json:"deliverable"`
 	PenaltyRule   *string      `json:"penalty_rule"`
 	Operator      *string      `json:"operator"`
-	FileIDs       *string      `json:"-"`
+	FileIds       *string      `json:"-"`
 	FilesExternal []FileOutput `json:"files" gorm:"-"`
 
 	//用来告诉前端，该记录是否为数据范围内，用来判定是否能访问详情、是否需要做跳转等
@@ -150,21 +150,21 @@ type ContractOutput struct {
 }
 
 type contractCheckAuth struct {
-	UserID     int64
-	ContractID int64
+	UserId     int64
+	ContractId int64
 }
 
 func (c *ContractGet) Get() (output *ContractOutput, errCode int) {
 	err := global.DB.Model(model.Contract{}).
-		Where("id = ?", c.ContractID).
+		Where("id = ?", c.ContractId).
 		First(&output).Error
 	if err != nil {
 		return nil, util.ErrorRecordNotFound
 	}
 
 	var auth contractCheckAuth
-	auth.ContractID = c.ContractID
-	auth.UserID = c.UserID
+	auth.ContractId = c.ContractId
+	auth.UserId = c.UserId
 	authorized := auth.checkAuth()
 
 	if !authorized {
@@ -174,10 +174,10 @@ func (c *ContractGet) Get() (output *ContractOutput, errCode int) {
 	//查询关联表的详情
 	{
 		//查项目信息
-		if output.ProjectID != nil {
+		if output.ProjectId != nil {
 			var record *ProjectOutput
 			res := global.DB.Model(&model.Project{}).
-				Where("id = ?", output.ProjectID).
+				Where("id = ?", output.ProjectId).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
@@ -185,10 +185,10 @@ func (c *ContractGet) Get() (output *ContractOutput, errCode int) {
 			}
 		}
 		//查部门信息
-		if output.OrganizationID != nil {
+		if output.OrganizationId != nil {
 			var record *OrganizationOutput
 			res := global.DB.Model(&model.Organization{}).
-				Where("id = ?", output.OrganizationID).
+				Where("id = ?", output.OrganizationId).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
@@ -196,10 +196,10 @@ func (c *ContractGet) Get() (output *ContractOutput, errCode int) {
 			}
 		}
 		//查相关方信息
-		if output.RelatedPartyID != nil {
+		if output.RelatedPartyId != nil {
 			var record *RelatedPartyOutput
 			res := global.DB.Model(&model.RelatedParty{}).
-				Where("id = ?", output.RelatedPartyID).
+				Where("id = ?", output.RelatedPartyId).
 				Limit(1).
 				Find(&record)
 			if res.RowsAffected > 0 {
@@ -208,20 +208,20 @@ func (c *ContractGet) Get() (output *ContractOutput, errCode int) {
 		}
 
 		//查文件信息
-		if output.FileIDs != nil {
-			tempFileIDs := strings.Split(*output.FileIDs, ",")
-			var fileIDs []int64
-			for i := range tempFileIDs {
-				fileID, err1 := strconv.ParseInt(tempFileIDs[i], 10, 64)
+		if output.FileIds != nil {
+			tempFileIds := strings.Split(*output.FileIds, ",")
+			var fileIds []int64
+			for i := range tempFileIds {
+				fileId, err1 := strconv.ParseInt(tempFileIds[i], 10, 64)
 				if err1 != nil {
 					continue
 				}
-				fileIDs = append(fileIDs, fileID)
+				fileIds = append(fileIds, fileId)
 			}
 
 			var records []FileOutput
 			global.DB.Model(&model.File{}).
-				Where("id in ?", fileIDs).
+				Where("id in ?", fileIds).
 				Find(&records)
 			for i := range records {
 				if records[i].CreatedAt != nil {
@@ -236,7 +236,7 @@ func (c *ContractGet) Get() (output *ContractOutput, errCode int) {
 			accessPath := global.Config.DownloadConfig.RelativePath
 			for i := range records {
 				records[i].Url = "http://" + ip + ":" + port + accessPath +
-					strconv.FormatInt(records[i].ID, 10)
+					strconv.FormatInt(records[i].Id, 10)
 			}
 			output.FilesExternal = records
 		}
@@ -317,20 +317,20 @@ func (c *ContractGet) Get() (output *ContractOutput, errCode int) {
 func (c *ContractCreate) Create() (errCode int) {
 	var paramOut model.Contract
 
-	if c.UserID > 0 {
-		paramOut.Creator = &c.UserID
+	if c.UserId > 0 {
+		paramOut.Creator = &c.UserId
 	}
 
 	//连接关联表的id
 	{
-		if c.ProjectID > 0 {
-			paramOut.ProjectID = &c.ProjectID
+		if c.ProjectId > 0 {
+			paramOut.ProjectId = &c.ProjectId
 		}
-		if c.OrganizationID > 0 {
-			paramOut.OrganizationID = &c.OrganizationID
+		if c.OrganizationId > 0 {
+			paramOut.OrganizationId = &c.OrganizationId
 		}
-		if c.RelatedPartyID > 0 {
-			paramOut.RelatedPartyID = &c.RelatedPartyID
+		if c.RelatedPartyId > 0 {
+			paramOut.RelatedPartyId = &c.RelatedPartyId
 		}
 	}
 
@@ -420,8 +420,8 @@ func (c *ContractCreate) Create() (errCode int) {
 			paramOut.PenaltyRule = &c.PenaltyRule
 		}
 
-		if c.FileIDs != "" {
-			paramOut.FileIDs = &c.FileIDs
+		if c.FileIds != "" {
+			paramOut.FileIds = &c.FileIds
 		}
 
 		if c.Operator != "" {
@@ -439,7 +439,7 @@ func (c *ContractCreate) Create() (errCode int) {
 func (c *ContractUpdate) Update() (errCode int) {
 	var result ContractOutput
 	err := global.DB.Model(model.Contract{}).
-		Where("id = ?", c.ContractID).
+		Where("id = ?", c.ContractId).
 		First(&result).Error
 	if err != nil {
 		return util.ErrorRecordNotFound
@@ -447,8 +447,8 @@ func (c *ContractUpdate) Update() (errCode int) {
 
 	if c.IgnoreDataAuthority == false {
 		var authorization contractCheckAuth
-		authorization.ContractID = c.ContractID
-		authorization.UserID = c.UserID
+		authorization.ContractId = c.ContractId
+		authorization.UserId = c.UserId
 		authorized := authorization.checkAuth()
 		if !authorized {
 			return util.ErrorUnauthorized
@@ -457,28 +457,28 @@ func (c *ContractUpdate) Update() (errCode int) {
 
 	paramOut := make(map[string]any)
 
-	if c.UserID > 0 {
-		paramOut["last_modifier"] = c.UserID
+	if c.UserId > 0 {
+		paramOut["last_modifier"] = c.UserId
 	}
 
 	//连接关联表的id
 	{
-		if c.ProjectID != nil {
-			if *c.ProjectID > 0 {
-				paramOut["project_id"] = *c.ProjectID
+		if c.ProjectId != nil {
+			if *c.ProjectId > 0 {
+				paramOut["project_id"] = *c.ProjectId
 			}
 		}
-		if c.OrganizationID != nil {
-			if *c.OrganizationID > 0 {
-				paramOut["organization_id"] = c.OrganizationID
-			} else if *c.OrganizationID == -1 {
+		if c.OrganizationId != nil {
+			if *c.OrganizationId > 0 {
+				paramOut["organization_id"] = c.OrganizationId
+			} else if *c.OrganizationId == -1 {
 				paramOut["organization_id"] = nil
 			}
 		}
-		if c.RelatedPartyID != nil {
-			if *c.RelatedPartyID > 0 {
-				paramOut["related_party_id"] = c.RelatedPartyID
-			} else if *c.RelatedPartyID == -1 {
+		if c.RelatedPartyId != nil {
+			if *c.RelatedPartyId > 0 {
+				paramOut["related_party_id"] = c.RelatedPartyId
+			} else if *c.RelatedPartyId == -1 {
 				paramOut["related_party_id"] = nil
 			}
 		}
@@ -627,13 +627,13 @@ func (c *ContractUpdate) Update() (errCode int) {
 			}
 		}
 
-		if c.FileIDs != nil {
-			if len(c.FileIDs) > 0 {
-				var fileIDs []string
-				for _, v := range c.FileIDs {
-					fileIDs = append(fileIDs, strconv.FormatInt(v, 10))
+		if c.FileIds != nil {
+			if len(c.FileIds) > 0 {
+				var fileIds []string
+				for _, v := range c.FileIds {
+					fileIds = append(fileIds, strconv.FormatInt(v, 10))
 				}
-				paramOut["file_ids"] = strings.Join(fileIDs, ",")
+				paramOut["file_ids"] = strings.Join(fileIds, ",")
 			} else {
 				paramOut["file_ids"] = nil
 			}
@@ -649,7 +649,7 @@ func (c *ContractUpdate) Update() (errCode int) {
 	}
 
 	err = global.DB.Model(&model.Contract{}).
-		Where("id = ?", c.ContractID).
+		Where("id = ?", c.ContractId).
 		Updates(paramOut).Error
 	if err != nil {
 		return util.ErrorFailToUpdateRecord
@@ -661,7 +661,7 @@ func (c *ContractUpdate) Update() (errCode int) {
 func (c *ContractDelete) Delete() (errCode int) {
 	//先找到记录，然后把deleter赋值给记录方便传给钩子函数，再删除记录
 	var record model.Contract
-	err := global.DB.Where("id = ?", c.ContractID).
+	err := global.DB.Where("id = ?", c.ContractId).
 		Find(&record).
 		Delete(&record).Error
 
@@ -678,12 +678,12 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 	// 顺序：where -> count -> Order -> limit -> offset -> data
 
 	//where
-	if c.ProjectID > 0 {
-		db = db.Where("project_id = ?", c.ProjectID)
+	if c.ProjectId > 0 {
+		db = db.Where("project_id = ?", c.ProjectId)
 	}
 
-	if c.RelatedPartyID > 0 {
-		db = db.Where("related_party_id = ?", c.RelatedPartyID)
+	if c.RelatedPartyId > 0 {
+		db = db.Where("related_party_id = ?", c.RelatedPartyId)
 	}
 
 	if c.FundDirection > 0 {
@@ -696,16 +696,16 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 
 	//用来确定数据范围
 	if c.IgnoreDataAuthority == false {
-		organizationIDs := util.GetOrganizationIDsForDataAuthority(c.UserID)
+		organizationIds := util.GetOrganizationIdsForDataAuthority(c.UserId)
 		//先找出项目的数据范围
-		var projectIDs []int64
+		var projectIds []int64
 		global.DB.Model(&model.Project{}).
-			Where("organization_id in ?", organizationIDs).
+			Where("organization_id in ?", organizationIds).
 			Select("id").
-			Find(&projectIDs)
+			Find(&projectIds)
 		//然后再加上组织的数据范围
 		db = db.Where("organization_id in ? or project_id in ?",
-			organizationIDs, projectIDs)
+			organizationIds, projectIds)
 	}
 
 	//count
@@ -765,10 +765,10 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 		//查询关联表的详情
 		{
 			//查项目信息
-			if outputs[i].ProjectID != nil {
+			if outputs[i].ProjectId != nil {
 				var record ProjectOutput
 				res := global.DB.Model(&model.Project{}).
-					Where("id = ?", *outputs[i].ProjectID).
+					Where("id = ?", *outputs[i].ProjectId).
 					Limit(1).
 					Find(&record)
 				if res.RowsAffected > 0 {
@@ -776,10 +776,10 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 				}
 			}
 			//查部门信息
-			if outputs[i].OrganizationID != nil {
+			if outputs[i].OrganizationId != nil {
 				var record OrganizationOutput
 				res := global.DB.Model(&model.Organization{}).
-					Where("id = ?", *outputs[i].OrganizationID).
+					Where("id = ?", *outputs[i].OrganizationId).
 					Limit(1).
 					Find(&record)
 				if res.RowsAffected > 0 {
@@ -787,10 +787,10 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 				}
 			}
 			//查相关方信息
-			if outputs[i].RelatedPartyID != nil {
+			if outputs[i].RelatedPartyId != nil {
 				var record RelatedPartyOutput
 				res := global.DB.Model(&model.RelatedParty{}).
-					Where("id = ?", *outputs[i].RelatedPartyID).
+					Where("id = ?", *outputs[i].RelatedPartyId).
 					Limit(1).
 					Find(&record)
 				if res.RowsAffected > 0 {
@@ -866,8 +866,8 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 
 		if c.IgnoreDataAuthority == true {
 			var authorize contractCheckAuth
-			authorize.ContractID = outputs[i].ID
-			authorize.UserID = c.UserID
+			authorize.ContractId = outputs[i].Id
+			authorize.UserId = c.UserId
 			outputs[i].Authorized = authorize.checkAuth()
 		} else {
 			outputs[i].Authorized = true
@@ -889,17 +889,17 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 
 func (c *contractCheckAuth) checkAuth() (authorized bool) {
 	//用来确定数据范围内的组织id
-	organizationIDs := util.GetOrganizationIDsForDataAuthority(c.UserID)
+	organizationIds := util.GetOrganizationIdsForDataAuthority(c.UserId)
 
-	if len(organizationIDs) == 0 {
+	if len(organizationIds) == 0 {
 		return false
 	}
 
 	//看看在数据范围内是否有该记录
 	var count int64
 	global.DB.Model(model.Contract{}).
-		Joins("join (select id as project_id from project where organization_id in ?) as temp1 on contract.project_id = temp1.project_id", organizationIDs).
-		Where("id = ?", c.ContractID).
+		Joins("join (select id as project_id from project where organization_id in ?) as temp1 on contract.project_id = temp1.project_id", organizationIds).
+		Where("id = ?", c.ContractId).
 		Count(&count)
 
 	if count > 0 {

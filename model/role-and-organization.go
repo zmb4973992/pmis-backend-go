@@ -4,8 +4,8 @@ package model
 // 当角色的数据范围为自定义时，系统会到这个表来查询，具体能访问哪些组织的数据
 type RoleAndOrganization struct {
 	BasicModel
-	RoleID         *int64 `gorm:"nut null;"`
-	OrganizationID *int64 `gorm:"nut null;"` //等同于组织ID，用来定义可以查看哪些组织的数据
+	RoleId         *int64 `gorm:"nut null;"`
+	OrganizationId *int64 `gorm:"nut null;"` //等同于组织id，用来定义可以查看哪些组织的数据
 }
 
 // TableName 修改表名

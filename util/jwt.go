@@ -8,15 +8,15 @@ import (
 )
 
 type CustomClaims struct {
-	UserID int64
+	UserId int64
 	jwt.RegisteredClaims
 }
 
 // 构建载荷
-func buildClaims(userID int64) CustomClaims {
+func buildClaims(userId int64) CustomClaims {
 	validityDays := time.Duration(global.Config.ValidityDays) * 24 * time.Hour
 	return CustomClaims{
-		UserID: userID,
+		UserId: userId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    global.Config.JWTConfig.Issuer,
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(validityDays)),
@@ -24,9 +24,9 @@ func buildClaims(userID int64) CustomClaims {
 	}
 }
 
-// GenerateToken 传入userID，返回token字符串
-func GenerateToken(userID int64) (string, error) {
-	claims := buildClaims(userID)
+// GenerateToken 传入userId，返回token字符串
+func GenerateToken(userId int64) (string, error) {
+	claims := buildClaims(userId)
 	tokenStruct := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := tokenStruct.SignedString([]byte(global.Config.SecretKey))
 	if err != nil {
@@ -51,8 +51,8 @@ func ParseToken(token string) (*CustomClaims, error) {
 	return nil, err
 }
 
-// GetUserID 从token获取userID
-func GetUserID(c *gin.Context) (userID int64, exists bool) {
+// GetUserId 从token获取userId
+func GetUserId(c *gin.Context) (userId int64, exists bool) {
 	token := c.GetHeader("access_token")
 	if token == "" {
 		return 0, false
@@ -64,6 +64,6 @@ func GetUserID(c *gin.Context) (userID int64, exists bool) {
 		return 0, false
 	}
 	//如果access_token校验通过
-	userID = customClaims.UserID
-	return userID, true
+	userId = customClaims.UserId
+	return userId, true
 }
