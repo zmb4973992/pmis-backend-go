@@ -340,7 +340,7 @@ func UpdateExchangeRageOfContract(userId int64) error {
 				IgnoreDataAuthority: true,
 				UserId:              userId,
 				ContractId:          contracts[i].Id,
-				ExchangeRate:        &global.Config.ExchangeRateConfig.USD,
+				ExchangeRate:        &global.Config.ExchangeRate.USD,
 			}
 			errCode := param.Update()
 			if errCode != util.Success {
@@ -352,7 +352,7 @@ func UpdateExchangeRageOfContract(userId int64) error {
 				IgnoreDataAuthority: true,
 				UserId:              userId,
 				ContractId:          contracts[i].Id,
-				ExchangeRate:        &global.Config.ExchangeRateConfig.EUR,
+				ExchangeRate:        &global.Config.ExchangeRate.EUR,
 			}
 			errCode := param.Update()
 			if errCode != util.Success {
@@ -364,7 +364,7 @@ func UpdateExchangeRageOfContract(userId int64) error {
 				IgnoreDataAuthority: true,
 				UserId:              userId,
 				ContractId:          contracts[i].Id,
-				ExchangeRate:        &global.Config.ExchangeRateConfig.HKD,
+				ExchangeRate:        &global.Config.ExchangeRate.HKD,
 			}
 			errCode := param.Update()
 			if errCode != util.Success {
@@ -376,7 +376,7 @@ func UpdateExchangeRageOfContract(userId int64) error {
 				IgnoreDataAuthority: true,
 				UserId:              userId,
 				ContractId:          contracts[i].Id,
-				ExchangeRate:        &global.Config.ExchangeRateConfig.SGD,
+				ExchangeRate:        &global.Config.ExchangeRate.SGD,
 			}
 			errCode := param.Update()
 			if errCode != util.Success {
@@ -388,7 +388,7 @@ func UpdateExchangeRageOfContract(userId int64) error {
 				IgnoreDataAuthority: true,
 				UserId:              userId,
 				ContractId:          contracts[i].Id,
-				ExchangeRate:        &global.Config.ExchangeRateConfig.MLR,
+				ExchangeRate:        &global.Config.ExchangeRate.MLR,
 			}
 			errCode := param.Update()
 			if errCode != util.Success {

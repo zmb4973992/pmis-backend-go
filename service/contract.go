@@ -231,9 +231,9 @@ func (c *ContractGet) Get() (output *ContractOutput, errCode int) {
 				}
 			}
 
-			ip := global.Config.DownloadConfig.LocalIP
-			port := global.Config.AppConfig.HttpPort
-			accessPath := global.Config.DownloadConfig.RelativePath
+			ip := global.Config.Download.LocalIP
+			port := global.Config.App.HttpPort
+			accessPath := global.Config.Download.RelativePath
 			for i := range records {
 				records[i].Url = "http://" + ip + ":" + port + accessPath +
 					strconv.FormatInt(records[i].Id, 10)
@@ -740,9 +740,9 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 	if c.PagingInput.Page > 0 {
 		page = c.PagingInput.Page
 	}
-	pageSize := global.Config.DefaultPageSize
+	pageSize := global.Config.Paging.DefaultPageSize
 	if c.PagingInput.PageSize != nil && *c.PagingInput.PageSize >= 0 &&
-		*c.PagingInput.PageSize <= global.Config.MaxPageSize {
+		*c.PagingInput.PageSize <= global.Config.Paging.MaxPageSize {
 
 		pageSize = *c.PagingInput.PageSize
 	}

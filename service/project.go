@@ -641,9 +641,9 @@ func (p *ProjectGetList) GetList() (
 	if p.PagingInput.Page > 0 {
 		page = p.PagingInput.Page
 	}
-	pageSize := global.Config.DefaultPageSize
+	pageSize := global.Config.Paging.DefaultPageSize
 	if p.PagingInput.PageSize != nil && *p.PagingInput.PageSize >= 0 &&
-		*p.PagingInput.PageSize <= global.Config.MaxPageSize {
+		*p.PagingInput.PageSize <= global.Config.Paging.MaxPageSize {
 		pageSize = *p.PagingInput.PageSize
 	}
 	if pageSize > 0 {

@@ -395,9 +395,9 @@ func (m *MenuGetList) GetList() (outputs []MenuOutput,
 	if m.PagingInput.Page > 0 {
 		page = m.PagingInput.Page
 	}
-	pageSize := global.Config.DefaultPageSize
+	pageSize := global.Config.Paging.DefaultPageSize
 	if m.PagingInput.PageSize != nil && *m.PagingInput.PageSize >= 0 &&
-		*m.PagingInput.PageSize <= global.Config.MaxPageSize {
+		*m.PagingInput.PageSize <= global.Config.Paging.MaxPageSize {
 
 		pageSize = *m.PagingInput.PageSize
 	}
@@ -489,9 +489,9 @@ func (m *MenuGetTree) GetTree() (outputs []MenuOutput,
 	if m.PagingInput.Page > 0 {
 		page = m.PagingInput.Page
 	}
-	pageSize := global.Config.DefaultPageSize
+	pageSize := global.Config.Paging.DefaultPageSize
 	if m.PagingInput.PageSize != nil && *m.PagingInput.PageSize >= 0 &&
-		*m.PagingInput.PageSize <= global.Config.MaxPageSize {
+		*m.PagingInput.PageSize <= global.Config.Paging.MaxPageSize {
 
 		pageSize = *m.PagingInput.PageSize
 	}

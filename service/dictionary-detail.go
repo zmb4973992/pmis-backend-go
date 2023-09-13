@@ -205,9 +205,9 @@ func (d *DictionaryDetailGetList) GetList() (
 	if d.PagingInput.Page > 0 {
 		page = d.PagingInput.Page
 	}
-	pageSize := global.Config.DefaultPageSize
+	pageSize := global.Config.Paging.DefaultPageSize
 	if d.PagingInput.PageSize != nil && *d.PagingInput.PageSize >= 0 &&
-		*d.PagingInput.PageSize <= global.Config.MaxPageSize {
+		*d.PagingInput.PageSize <= global.Config.Paging.MaxPageSize {
 		pageSize = *d.PagingInput.PageSize
 	}
 	if pageSize > 0 {

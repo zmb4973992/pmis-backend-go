@@ -23,14 +23,14 @@ func UpdateUsersForCron() {
 }
 
 func UpdateUsersByLDAP() error {
-	ldapServer := global.Config.LDAPConfig.Server
-	baseDN := global.Config.LDAPConfig.BaseDN
-	filter := global.Config.LDAPConfig.Filter
-	suffix := global.Config.LDAPConfig.Suffix
-	account := global.Config.LDAPConfig.Account
-	password := global.Config.LDAPConfig.Password
-	permittedOUs := global.Config.LDAPConfig.PermittedOUs
-	attributes := global.Config.LDAPConfig.Attributes
+	ldapServer := global.Config.Ldap.Server
+	baseDN := global.Config.Ldap.BaseDN
+	filter := global.Config.Ldap.Filter
+	suffix := global.Config.Ldap.Suffix
+	account := global.Config.Ldap.Account
+	password := global.Config.Ldap.Password
+	permittedOUs := global.Config.Ldap.PermittedOUs
+	attributes := global.Config.Ldap.Attributes
 
 	l, err := ldap.DialURL(ldapServer)
 	if err != nil {

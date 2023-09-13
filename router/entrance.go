@@ -45,7 +45,7 @@ type CustomRouterGroup struct {
 // InitEngine 初始化路由器,最终返回*gin.Engine类型，给main调用
 func InitEngine() *gin.Engine {
 	//设置运行模式
-	gin.SetMode(global.Config.AppConfig.AppMode)
+	gin.SetMode(global.Config.App.Mode)
 	fmt.Println("当前运行模式为：", gin.Mode())
 	engine := gin.New()
 

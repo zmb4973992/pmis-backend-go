@@ -14,11 +14,11 @@ type CustomClaims struct {
 
 // 构建载荷
 func buildClaims(userId int64) CustomClaims {
-	validityDays := time.Duration(global.Config.ValidityDays) * 24 * time.Hour
+	validityDays := time.Duration(global.Config.Jwt.ValidityDays) * 24 * time.Hour
 	return CustomClaims{
 		UserId: userId,
 		RegisteredClaims: jwt.RegisteredClaims{
-			Issuer:    global.Config.JWTConfig.Issuer,
+			Issuer:    global.Config.Jwt.Issuer,
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(validityDays)),
 		},
 	}
@@ -28,7 +28,7 @@ func buildClaims(userId int64) CustomClaims {
 func GenerateToken(userId int64) (string, error) {
 	claims := buildClaims(userId)
 	tokenStruct := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := tokenStruct.SignedString([]byte(global.Config.SecretKey))
+	tokenString, err := tokenStruct.SignedString([]byte(global.Config.Jwt.SecretKey))
 	if err != nil {
 		return "", err
 	}
@@ -41,7 +41,7 @@ func GenerateToken(userId int64) (string, error) {
 func ParseToken(token string) (*CustomClaims, error) {
 	tokenClaims, err := jwt.ParseWithClaims(token, &CustomClaims{},
 		func(token *jwt.Token) (any, error) {
-			return []byte(global.Config.SecretKey), nil
+			return []byte(global.Config.Jwt.SecretKey), nil
 		})
 	if tokenClaims != nil {
 		if claims, ok := tokenClaims.Claims.(*CustomClaims); ok && tokenClaims.Valid {

@@ -221,9 +221,9 @@ func (e *ErrorLogGetList) GetList() (
 	if e.PagingInput.Page > 0 {
 		page = e.PagingInput.Page
 	}
-	pageSize := global.Config.DefaultPageSize
+	pageSize := global.Config.Paging.DefaultPageSize
 	if e.PagingInput.PageSize != nil && *e.PagingInput.PageSize >= 0 &&
-		*e.PagingInput.PageSize <= global.Config.MaxPageSize {
+		*e.PagingInput.PageSize <= global.Config.Paging.MaxPageSize {
 		pageSize = *e.PagingInput.PageSize
 	}
 	if pageSize > 0 {

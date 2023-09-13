@@ -10,13 +10,13 @@ import (
 
 // SendEmail 使用email库，测试通过。更简单点
 func SendEmail(to string, subject string, body string) error {
-	host := global.Config.EmailConfig.OutgoingMailServer
-	port := strconv.Itoa(global.Config.EmailConfig.Port)
-	account := global.Config.EmailConfig.Account
-	password := global.Config.EmailConfig.Password
+	host := global.Config.Email.OutgoingMailServer
+	port := strconv.Itoa(global.Config.Email.Port)
+	account := global.Config.Email.Account
+	password := global.Config.Email.Password
 
 	e := email.NewEmail()
-	e.From = global.Config.EmailConfig.Account
+	e.From = global.Config.Email.Account
 	e.To = []string{to}
 	e.Subject = subject
 	e.Text = []byte(body)

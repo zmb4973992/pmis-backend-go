@@ -655,7 +655,7 @@ func UpdateExchangeRageOfProject(userId int64) error {
 				IgnoreDataAuthority: true,
 				UserId:              userId,
 				Id:                  projects[i].Id,
-				ExchangeRate:        &global.Config.ExchangeRateConfig.USD,
+				ExchangeRate:        &global.Config.ExchangeRate.USD,
 			}
 
 			errCode := param.Update()
@@ -668,7 +668,7 @@ func UpdateExchangeRageOfProject(userId int64) error {
 				IgnoreDataAuthority: true,
 				UserId:              userId,
 				Id:                  projects[i].Id,
-				ExchangeRate:        &global.Config.ExchangeRateConfig.EUR,
+				ExchangeRate:        &global.Config.ExchangeRate.EUR,
 			}
 
 			errCode := param.Update()
@@ -681,7 +681,7 @@ func UpdateExchangeRageOfProject(userId int64) error {
 				IgnoreDataAuthority: true,
 				UserId:              userId,
 				Id:                  projects[i].Id,
-				ExchangeRate:        &global.Config.ExchangeRateConfig.HKD,
+				ExchangeRate:        &global.Config.ExchangeRate.HKD,
 			}
 
 			errCode := param.Update()
@@ -694,7 +694,7 @@ func UpdateExchangeRageOfProject(userId int64) error {
 				IgnoreDataAuthority: true,
 				UserId:              userId,
 				Id:                  projects[i].Id,
-				ExchangeRate:        &global.Config.ExchangeRateConfig.SGD,
+				ExchangeRate:        &global.Config.ExchangeRate.SGD,
 			}
 
 			errCode := param.Update()

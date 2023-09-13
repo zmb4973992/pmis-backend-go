@@ -16,11 +16,11 @@ type CaptchaOutput struct {
 }
 
 func (c *CaptchaGet) Get() (output *CaptchaOutput, errCode int) {
-	height := global.Config.CaptchaConfig.ImageHeight
-	width := global.Config.CaptchaConfig.ImageWidth
-	length := global.Config.CaptchaConfig.DigitLength
-	maxSkew := global.Config.CaptchaConfig.MaxSkew
-	dotCount := global.Config.CaptchaConfig.DotCount
+	height := global.Config.Captcha.ImageHeight
+	width := global.Config.Captcha.ImageWidth
+	length := global.Config.Captcha.DigitLength
+	maxSkew := global.Config.Captcha.MaxSkew
+	dotCount := global.Config.Captcha.DotCount
 
 	store := base64Captcha.DefaultMemStore
 	driver := base64Captcha.NewDriverDigit(height, width, length, maxSkew, dotCount)

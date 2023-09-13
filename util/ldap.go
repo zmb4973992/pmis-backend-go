@@ -38,10 +38,10 @@ func LoginByLDAP(username, password string) (permitted bool, err error) {
 		return true, nil
 	}
 
-	ldapServer := global.Config.LDAPConfig.Server
-	baseDN := global.Config.LDAPConfig.BaseDN
-	filter := global.Config.LDAPConfig.Filter
-	suffix := global.Config.LDAPConfig.Suffix
+	ldapServer := global.Config.Ldap.Server
+	baseDN := global.Config.Ldap.BaseDN
+	filter := global.Config.Ldap.Filter
+	suffix := global.Config.Ldap.Suffix
 
 	l, err := ldap.DialURL(ldapServer)
 	if err != nil {
@@ -70,7 +70,7 @@ func LoginByLDAP(username, password string) (permitted bool, err error) {
 		DN := entry.GetAttributeValue("distinguishedName")
 
 		if username+suffix == userPrincipalName {
-			permittedOUs := global.Config.LDAPConfig.PermittedOUs
+			permittedOUs := global.Config.Ldap.PermittedOUs
 			for j := range permittedOUs {
 				if strings.Contains(DN, permittedOUs[j]) {
 					//var user UserInfo

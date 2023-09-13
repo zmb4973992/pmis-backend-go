@@ -13,10 +13,10 @@ import (
 
 func Init() {
 	//检查上传文件的文件夹是否存在
-	exists := util.PathExistsOrNot(global.Config.StoragePath)
+	exists := util.PathExistsOrNot(global.Config.Upload.StoragePath)
 	//如果不存在就创建
 	if !exists {
-		err := os.MkdirAll(global.Config.StoragePath, os.ModePerm)
+		err := os.MkdirAll(global.Config.Upload.StoragePath, os.ModePerm)
 		if err != nil {
 			global.SugaredLogger.Panicln(err)
 		}

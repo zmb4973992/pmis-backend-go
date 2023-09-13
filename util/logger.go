@@ -38,15 +38,15 @@ func InitLogger() {
 	encoder := newEncoder() //调用自定义的编码器函数，生成新的编码器
 	//调用自定义的写入同步器函数，传入文件路径+名称、最大尺寸、最大备份数量、最大保存天数，生成新的写入同步器
 	writeSyncer := newWriteSyncer(
-		global.Config.LogConfig.FileName,
-		global.Config.LogConfig.MaxSizeForLog,
-		global.Config.LogConfig.MaxBackup,
-		global.Config.LogConfig.MaxAge,
-		global.Config.LogConfig.Compress,
+		global.Config.Log.FileName,
+		global.Config.Log.MaxSizeForLog,
+		global.Config.Log.MaxBackup,
+		global.Config.Log.MaxAge,
+		global.Config.Log.Compress,
 	)
 	//声明zap的核心参数
 	var core zapcore.Core
-	mode := global.Config.AppConfig.AppMode
+	mode := global.Config.App.Mode
 	//如果是开发模式：
 	if mode == "debug" {
 		//生成开发模式下的、encoder默认配置文件，用于管理控制台的显示内容

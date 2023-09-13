@@ -163,9 +163,9 @@ func (m *MessageGetList) GetList() (
 	if m.PagingInput.Page > 0 {
 		page = m.PagingInput.Page
 	}
-	pageSize := global.Config.DefaultPageSize
+	pageSize := global.Config.Paging.DefaultPageSize
 	if m.PagingInput.PageSize != nil && *m.PagingInput.PageSize >= 0 &&
-		*m.PagingInput.PageSize <= global.Config.MaxPageSize {
+		*m.PagingInput.PageSize <= global.Config.Paging.MaxPageSize {
 		pageSize = *m.PagingInput.PageSize
 	}
 	if pageSize > 0 {

@@ -222,9 +222,9 @@ func (r *RoleGetList) GetList() (outputs []RoleOutput,
 	if r.PagingInput.Page > 0 {
 		page = r.PagingInput.Page
 	}
-	pageSize := global.Config.DefaultPageSize
+	pageSize := global.Config.Paging.DefaultPageSize
 	if r.PagingInput.PageSize != nil && *r.PagingInput.PageSize >= 0 &&
-		*r.PagingInput.PageSize <= global.Config.MaxPageSize {
+		*r.PagingInput.PageSize <= global.Config.Paging.MaxPageSize {
 
 		pageSize = *r.PagingInput.PageSize
 	}

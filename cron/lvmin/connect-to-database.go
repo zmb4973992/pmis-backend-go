@@ -9,7 +9,7 @@ import (
 
 func ConnectToDatabase() (err error) {
 	global.DBForLvmin, err = gorm.Open(
-		sqlserver.Open(global.Config.DBConfigForLvmin.DSN), &gorm.Config{},
+		sqlserver.Open(global.Config.DbForLvmin.DSN), &gorm.Config{},
 	)
 	if err != nil {
 		return err

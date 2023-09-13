@@ -588,9 +588,9 @@ func (i *IncomeAndExpenditureGetList) GetList() (
 	if i.PagingInput.Page > 0 {
 		page = i.PagingInput.Page
 	}
-	pageSize := global.Config.DefaultPageSize
+	pageSize := global.Config.Paging.DefaultPageSize
 	if i.PagingInput.PageSize != nil && *i.PagingInput.PageSize >= 0 &&
-		*i.PagingInput.PageSize <= global.Config.MaxPageSize {
+		*i.PagingInput.PageSize <= global.Config.Paging.MaxPageSize {
 		pageSize = *i.PagingInput.PageSize
 	}
 	if pageSize > 0 {

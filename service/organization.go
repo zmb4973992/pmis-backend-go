@@ -186,9 +186,9 @@ func (o *OrganizationGetList) GetList() (
 	if o.PagingInput.Page > 0 {
 		page = o.PagingInput.Page
 	}
-	pageSize := global.Config.DefaultPageSize
+	pageSize := global.Config.Paging.DefaultPageSize
 	if o.PagingInput.PageSize != nil && *o.PagingInput.PageSize >= 0 &&
-		*o.PagingInput.PageSize <= global.Config.MaxPageSize {
+		*o.PagingInput.PageSize <= global.Config.Paging.MaxPageSize {
 		pageSize = *o.PagingInput.PageSize
 	}
 	if pageSize > 0 {

@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/mojocn/base64Captcha"
 	"gorm.io/gorm"
@@ -294,9 +295,9 @@ func (u *UserGetList) GetList() (outputs []UserOutput,
 	if u.PagingInput.Page > 0 {
 		page = u.PagingInput.Page
 	}
-	pageSize := global.Config.DefaultPageSize
+	pageSize := global.Config.Paging.DefaultPageSize
 	if u.PagingInput.PageSize != nil && *u.PagingInput.PageSize >= 0 &&
-		*u.PagingInput.PageSize <= global.Config.MaxPageSize {
+		*u.PagingInput.PageSize <= global.Config.Paging.MaxPageSize {
 		pageSize = *u.PagingInput.PageSize
 	}
 	if pageSize > 0 {
@@ -381,16 +382,16 @@ func (u *UserUpdateRoles) Update() (errCode int) {
 		return nil
 	})
 
-	switch err {
-	case nil:
+	switch {
+	case err == nil:
 		return util.Success
-	case ErrorFailToCreateRecord:
+	case errors.Is(err, ErrorFailToCreateRecord):
 		return util.ErrorFailToCreateRecord
-	case ErrorFailToDeleteRecord:
+	case errors.Is(err, ErrorFailToDeleteRecord):
 		return util.ErrorFailToDeleteRecord
-	case ErrorFieldsToBeCreatedNotFound:
+	case errors.Is(err, ErrorFieldsToBeCreatedNotFound):
 		return util.ErrorFieldsToBeCreatedNotFound
-	case ErrorFailToUpdateRBACGroupingPolicies:
+	case errors.Is(err, ErrorFailToUpdateRBACGroupingPolicies):
 		return util.ErrorFailToUpdateRBACGroupingPolicies
 	default:
 		return util.ErrorFailToUpdateRecord

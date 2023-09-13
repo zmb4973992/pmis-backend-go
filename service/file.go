@@ -49,7 +49,7 @@ func (f *FileGet) Get() (filePath string, fileName string, existed bool) {
 		return "", "", false
 	}
 
-	storagePath := global.Config.UploadConfig.StoragePath
+	storagePath := global.Config.Upload.StoragePath
 	filePath = storagePath + strconv.FormatInt(record.Id, 10) +
 		"--" + record.Name
 	//看该文件是否存在于服务器的文件夹中
@@ -62,11 +62,11 @@ func (f *FileGet) Get() (filePath string, fileName string, existed bool) {
 }
 
 func (f *FileCreate) Create() (fileId int64, url string, err error) {
-	if f.FileHeader.Size > global.Config.MaxSize {
+	if f.FileHeader.Size > global.Config.Upload.MaxSize {
 		return 0, "", errors.New("文件过大")
 	}
 
-	storagePath := global.Config.UploadConfig.StoragePath
+	storagePath := global.Config.Upload.StoragePath
 
 	file := model.File{
 		BasicModel: model.BasicModel{
@@ -88,7 +88,7 @@ func (f *FileCreate) Create() (fileId int64, url string, err error) {
 		return 0, "", err
 	}
 
-	url = global.Config.DownloadConfig.FullPath + strconv.FormatInt(file.Id, 10)
+	url = global.Config.Download.FullPath + strconv.FormatInt(file.Id, 10)
 
 	return file.Id, url, nil
 }
@@ -101,7 +101,7 @@ func (f *FileDelete) Delete() (errCode int) {
 		return util.Success
 	}
 
-	storagePath := global.Config.UploadConfig.StoragePath
+	storagePath := global.Config.Upload.StoragePath
 	filePath := storagePath + strconv.FormatInt(record.Id, 10) +
 		"--" + record.Name
 	err = os.Remove(filePath)

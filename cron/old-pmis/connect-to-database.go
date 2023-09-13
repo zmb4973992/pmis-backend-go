@@ -9,7 +9,7 @@ import (
 
 func connectToDatabase() (err error) {
 	global.DBForOldPmis, err = gorm.Open(
-		sqlserver.Open(global.Config.DBConfigForOldPmis.DSN), &gorm.Config{},
+		sqlserver.Open(global.Config.DbForOldPmis.DSN), &gorm.Config{},
 	)
 	if err != nil {
 		return err

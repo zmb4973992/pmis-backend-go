@@ -12,5 +12,5 @@ func (s *StaticRouter) InitStaticRouter(param *gin.RouterGroup) {
 	staticRouter := param.Group("")
 	staticRouter.Use(middleware.RateLimit())
 	//将存储路径下的所有文件设置为静态文件，可以直接访问
-	staticRouter.Static("/static-test", global.Config.UploadConfig.StoragePath)
+	staticRouter.Static("/static-test", global.Config.Upload.StoragePath)
 }

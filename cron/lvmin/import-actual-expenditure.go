@@ -216,15 +216,15 @@ func ImportActualExpenditure(userId int64) error {
 		case "人民币":
 			newRecord.ExchangeRate = model.Float64ToPointer(1)
 		case "美元":
-			newRecord.ExchangeRate = &global.Config.ExchangeRateConfig.USD
+			newRecord.ExchangeRate = &global.Config.ExchangeRate.USD
 		case "欧元":
-			newRecord.ExchangeRate = &global.Config.ExchangeRateConfig.EUR
+			newRecord.ExchangeRate = &global.Config.ExchangeRate.EUR
 		case "港币":
-			newRecord.ExchangeRate = &global.Config.ExchangeRateConfig.HKD
+			newRecord.ExchangeRate = &global.Config.ExchangeRate.HKD
 		case "新加坡元":
-			newRecord.ExchangeRate = &global.Config.ExchangeRateConfig.SGD
+			newRecord.ExchangeRate = &global.Config.ExchangeRate.SGD
 		case "马来西亚币":
-			newRecord.ExchangeRate = &global.Config.ExchangeRateConfig.MLR
+			newRecord.ExchangeRate = &global.Config.ExchangeRate.MLR
 		default:
 			newRecord.ExchangeRate = model.Float64ToPointer(1)
 		}

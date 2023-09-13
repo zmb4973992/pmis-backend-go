@@ -28,33 +28,32 @@ var (
 
 // 这层只是中间的汇总层，只是包内引用、不展示，所以小写
 type config struct {
-	AppConfig
-	DBConfig, DBConfigForLvmin, DBConfigForOldPmis DBConfig
-	JWTConfig
-	LogConfig
-	UploadConfig
-	DownloadConfig
-	EmailConfig
-	PagingConfig
-	RateLimitConfig
-	CaptchaConfig
-	OssConfig
-	LDAPConfig
-	ExchangeRateConfig
+	App                          AppConfig
+	Db, DbForLvmin, DbForOldPmis DBConfig
+	Jwt                          JWTConfig
+	Log                          LogConfig
+	Upload                       UploadConfig
+	Download                     DownloadConfig
+	Email                        EmailConfig
+	Paging                       PagingConfig
+	RateLimit                    RateLimitConfig
+	Captcha                      CaptchaConfig
+	Ldap                         LDAPConfig
+	ExchangeRate                 ExchangeRateConfig
 }
 
 type AppConfig struct {
-	AppMode  string
+	Mode     string
 	HttpPort string
 }
 
 type DBConfig struct {
-	DbHost     string
-	DbPort     string
-	DbName     string
-	DbUsername string
-	DbPassword string
-	DSN        string // Param Source Name 数据库连接字符串
+	Host     string
+	Port     string
+	DbName   string
+	Username string
+	Password string
+	DSN      string // Param Source Name 数据库连接字符串
 }
 
 type JWTConfig struct {
@@ -107,10 +106,6 @@ type CaptchaConfig struct {
 	DotCount    int
 }
 
-type OssConfig struct {
-	Type string
-}
-
 type LDAPConfig struct {
 	Server       string
 	BaseDN       string
@@ -149,96 +144,94 @@ func InitConfig() {
 }
 
 func loadConfig() {
-	Config.AppConfig.AppMode = v.GetString("app.app-mode")
+	Config.App.Mode = v.GetString("App.App-mode")
 	allowedAppMode := []string{"debug", "test", "release"}
-	if !isInSlice(Config.AppConfig.AppMode, allowedAppMode) {
-		Config.AppConfig.AppMode = "debug"
+	if !isInSlice(Config.App.Mode, allowedAppMode) {
+		Config.App.Mode = "debug"
 	}
-	Config.AppConfig.HttpPort = v.GetString("app.http-port")
+	Config.App.HttpPort = v.GetString("App.http-port")
 
-	Config.DBConfig.DbHost = v.GetString("database.db-host")
-	Config.DBConfig.DbPort = v.GetString("database.db-port")
-	Config.DBConfig.DbName = v.GetString("database.db-name")
-	Config.DBConfig.DbUsername = v.GetString("database.db-username")
-	Config.DBConfig.DbPassword = v.GetString("database.db-password")
-	Config.DBConfig.DSN = "sqlserver://" + Config.DBConfig.DbUsername +
-		":" + Config.DBConfig.DbPassword + "@" + Config.DBConfig.DbHost +
-		":" + Config.DBConfig.DbPort + "?database=" + Config.DBConfig.DbName
+	Config.Db.Host = v.GetString("database.db-host")
+	Config.Db.Port = v.GetString("database.db-port")
+	Config.Db.DbName = v.GetString("database.db-name")
+	Config.Db.Username = v.GetString("database.db-username")
+	Config.Db.Password = v.GetString("database.db-password")
+	Config.Db.DSN = "sqlserver://" + Config.Db.Username +
+		":" + Config.Db.Password + "@" + Config.Db.Host +
+		":" + Config.Db.Port + "?database=" + Config.Db.DbName
 
-	Config.DBConfigForLvmin.DbHost = v.GetString("database2.db-host")
-	Config.DBConfigForLvmin.DbPort = v.GetString("database2.db-port")
-	Config.DBConfigForLvmin.DbName = v.GetString("database2.db-name")
-	Config.DBConfigForLvmin.DbUsername = v.GetString("database2.db-username")
-	Config.DBConfigForLvmin.DbPassword = v.GetString("database2.db-password")
-	Config.DBConfigForLvmin.DSN = "sqlserver://" + Config.DBConfigForLvmin.DbUsername +
-		":" + Config.DBConfigForLvmin.DbPassword + "@" + Config.DBConfigForLvmin.DbHost +
-		":" + Config.DBConfigForLvmin.DbPort + "?database=" + Config.DBConfigForLvmin.DbName +
+	Config.DbForLvmin.Host = v.GetString("database2.db-host")
+	Config.DbForLvmin.Port = v.GetString("database2.db-port")
+	Config.DbForLvmin.DbName = v.GetString("database2.db-name")
+	Config.DbForLvmin.Username = v.GetString("database2.db-username")
+	Config.DbForLvmin.Password = v.GetString("database2.db-password")
+	Config.DbForLvmin.DSN = "sqlserver://" + Config.DbForLvmin.Username +
+		":" + Config.DbForLvmin.Password + "@" + Config.DbForLvmin.Host +
+		":" + Config.DbForLvmin.Port + "?database=" + Config.DbForLvmin.DbName +
 		"&encrypt=disable" //老版本数据库不支持加密连接，不加这个会报错
 
-	Config.DBConfigForOldPmis.DbHost = v.GetString("database3.db-host")
-	Config.DBConfigForOldPmis.DbPort = v.GetString("database3.db-port")
-	Config.DBConfigForOldPmis.DbName = v.GetString("database3.db-name")
-	Config.DBConfigForOldPmis.DbUsername = v.GetString("database3.db-username")
-	Config.DBConfigForOldPmis.DbPassword = v.GetString("database3.db-password")
-	Config.DBConfigForOldPmis.DSN = "sqlserver://" + Config.DBConfigForOldPmis.DbUsername +
-		":" + Config.DBConfigForOldPmis.DbPassword + "@" + Config.DBConfigForOldPmis.DbHost +
-		":" + Config.DBConfigForOldPmis.DbPort + "?database=" + Config.DBConfigForOldPmis.DbName
+	Config.DbForOldPmis.Host = v.GetString("database3.db-host")
+	Config.DbForOldPmis.Port = v.GetString("database3.db-port")
+	Config.DbForOldPmis.DbName = v.GetString("database3.db-name")
+	Config.DbForOldPmis.Username = v.GetString("database3.db-username")
+	Config.DbForOldPmis.Password = v.GetString("database3.db-password")
+	Config.DbForOldPmis.DSN = "sqlserver://" + Config.DbForOldPmis.Username +
+		":" + Config.DbForOldPmis.Password + "@" + Config.DbForOldPmis.Host +
+		":" + Config.DbForOldPmis.Port + "?database=" + Config.DbForOldPmis.DbName
 
-	Config.JWTConfig.SecretKey = v.GetString("jwt.secret-key")
-	Config.JWTConfig.ValidityDays = v.GetInt("jwt.validity-days")
-	Config.JWTConfig.Issuer = v.GetString("jwt.issuer")
+	Config.Jwt.SecretKey = v.GetString("Jwt.secret-key")
+	Config.Jwt.ValidityDays = v.GetInt("Jwt.validity-days")
+	Config.Jwt.Issuer = v.GetString("Jwt.issuer")
 
-	Config.LogConfig.FileName = v.GetString("log.log-path") + "/status.log"
-	Config.LogConfig.MaxSizeForLog = v.GetInt("log.log-max-size")
-	Config.LogConfig.MaxBackup = v.GetInt("log.log-max-backup")
-	Config.LogConfig.MaxAge = v.GetInt("log.log-max-age")
-	Config.LogConfig.Compress = v.GetBool("log.log-compress")
+	Config.Log.FileName = v.GetString("Log.Log-path") + "/status.Log"
+	Config.Log.MaxSizeForLog = v.GetInt("Log.Log-max-size")
+	Config.Log.MaxBackup = v.GetInt("Log.Log-max-backup")
+	Config.Log.MaxAge = v.GetInt("Log.Log-max-age")
+	Config.Log.Compress = v.GetBool("Log.Log-compress")
 
-	Config.UploadConfig.StoragePath = v.GetString("upload.storage-path") + "/"
-	Config.UploadConfig.MaxSize = v.GetInt64("upload.max-size") << 20
+	Config.Upload.StoragePath = v.GetString("Upload.storage-path") + "/"
+	Config.Upload.MaxSize = v.GetInt64("Upload.max-size") << 20
 
-	Config.DownloadConfig.RelativePath = v.GetString("download.relative-path") + "/"
+	Config.Download.RelativePath = v.GetString("Download.relative-path") + "/"
 	var err error
-	Config.DownloadConfig.LocalIP, err = GetLocalIP()
+	Config.Download.LocalIP, err = GetLocalIP()
 	if err != nil {
 		SugaredLogger.Panicln("获取本地IP失败：", err)
 	}
-	Config.DownloadConfig.FullPath = "http://" + Config.DownloadConfig.LocalIP +
-		":" + Config.AppConfig.HttpPort + Config.DownloadConfig.RelativePath
+	Config.Download.FullPath = "http://" + Config.Download.LocalIP +
+		":" + Config.App.HttpPort + Config.Download.RelativePath
 
-	Config.EmailConfig.OutgoingMailServer = v.GetString("email.outgoing-mail-server")
-	Config.EmailConfig.Port = v.GetInt("email.port")
-	Config.EmailConfig.Account = v.GetString("email.account")
-	Config.EmailConfig.Password = v.GetString("email.password")
+	Config.Email.OutgoingMailServer = v.GetString("Email.outgoing-mail-server")
+	Config.Email.Port = v.GetInt("Email.port")
+	Config.Email.Account = v.GetString("Email.account")
+	Config.Email.Password = v.GetString("Email.password")
 
-	Config.PagingConfig.DefaultPageSize = v.GetInt("paging.default-page-size")
-	Config.PagingConfig.MaxPageSize = v.GetInt("paging.max-page-size")
+	Config.Paging.DefaultPageSize = v.GetInt("Paging.default-page-size")
+	Config.Paging.MaxPageSize = v.GetInt("Paging.max-page-size")
 
-	Config.RateLimitConfig.Limit = v.GetFloat64("rate-limit.limit")
-	Config.RateLimitConfig.Burst = v.GetInt("rate-limit.burst")
+	Config.RateLimit.Limit = v.GetFloat64("rate-limit.limit")
+	Config.RateLimit.Burst = v.GetInt("rate-limit.burst")
 
-	Config.CaptchaConfig.DigitLength = v.GetInt("captcha.digit-length")
-	Config.CaptchaConfig.ImageWidth = v.GetInt("captcha.image-width")
-	Config.CaptchaConfig.ImageHeight = v.GetInt("captcha.image-height")
-	Config.CaptchaConfig.MaxSkew = v.GetFloat64("captcha.max-skew")
-	Config.CaptchaConfig.DotCount = v.GetInt("captcha.dot-count")
+	Config.Captcha.DigitLength = v.GetInt("Captcha.digit-length")
+	Config.Captcha.ImageWidth = v.GetInt("Captcha.image-width")
+	Config.Captcha.ImageHeight = v.GetInt("Captcha.image-height")
+	Config.Captcha.MaxSkew = v.GetFloat64("Captcha.max-skew")
+	Config.Captcha.DotCount = v.GetInt("Captcha.dot-count")
 
-	Config.OssConfig.Type = v.GetString("oss.type")
+	Config.Ldap.Server = v.GetString("Ldap.server")
+	Config.Ldap.BaseDN = v.GetString("Ldap.base-dn")
+	Config.Ldap.Filter = v.GetString("Ldap.filter")
+	Config.Ldap.Suffix = v.GetString("Ldap.suffix")
+	Config.Ldap.Account = v.GetString("Ldap.account")
+	Config.Ldap.Password = v.GetString("Ldap.password")
+	Config.Ldap.PermittedOUs = v.GetStringSlice("Ldap.permitted-OUs")
+	Config.Ldap.Attributes = v.GetStringSlice("Ldap.attributes")
 
-	Config.LDAPConfig.Server = v.GetString("ldap.server")
-	Config.LDAPConfig.BaseDN = v.GetString("ldap.base-dn")
-	Config.LDAPConfig.Filter = v.GetString("ldap.filter")
-	Config.LDAPConfig.Suffix = v.GetString("ldap.suffix")
-	Config.LDAPConfig.Account = v.GetString("ldap.account")
-	Config.LDAPConfig.Password = v.GetString("ldap.password")
-	Config.LDAPConfig.PermittedOUs = v.GetStringSlice("ldap.permitted-OUs")
-	Config.LDAPConfig.Attributes = v.GetStringSlice("ldap.attributes")
-
-	Config.ExchangeRateConfig.USD = v.GetFloat64("exchange-rate.USD")
-	Config.ExchangeRateConfig.EUR = v.GetFloat64("exchange-rate.EUR")
-	Config.ExchangeRateConfig.HKD = v.GetFloat64("exchange-rate.HKD")
-	Config.ExchangeRateConfig.SGD = v.GetFloat64("exchange-rate.SGD")
-	Config.ExchangeRateConfig.MLR = v.GetFloat64("exchange-rate.MLR")
+	Config.ExchangeRate.USD = v.GetFloat64("exchange-rate.USD")
+	Config.ExchangeRate.EUR = v.GetFloat64("exchange-rate.EUR")
+	Config.ExchangeRate.HKD = v.GetFloat64("exchange-rate.HKD")
+	Config.ExchangeRate.SGD = v.GetFloat64("exchange-rate.SGD")
+	Config.ExchangeRate.MLR = v.GetFloat64("exchange-rate.MLR")
 
 }
 

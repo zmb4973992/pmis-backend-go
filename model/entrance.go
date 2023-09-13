@@ -11,7 +11,7 @@ var err error
 
 func InitDatabase() {
 	//通过gorm连接sqlserver数据库
-	global.DB, err = gorm.Open(sqlserver.Open(global.Config.DBConfig.DSN), &gorm.Config{})
+	global.DB, err = gorm.Open(sqlserver.Open(global.Config.Db.DSN), &gorm.Config{})
 	if err != nil {
 		global.SugaredLogger.Panicln(err)
 	}

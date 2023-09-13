@@ -35,7 +35,7 @@ func main() {
 	cron.Init()
 
 	//运行服务，必须放最后
-	err := engine.Run(":" + global.Config.AppConfig.HttpPort)
+	err := engine.Run(":" + global.Config.App.HttpPort)
 
 	if err != nil {
 		global.SugaredLogger.Panicln(err)
