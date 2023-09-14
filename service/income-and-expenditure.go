@@ -34,7 +34,8 @@ type IncomeAndExpenditureCreate struct {
 	Term               string `json:"term,omitempty"`
 	Remarks            string `json:"remarks,omitempty"`
 	Attachment         string `json:"attachment,omitempty"`
-	ImportedApprovalId string `json:"imported_approval_id,omitempty"`
+	ImportedApprovalId string `json:"-"`
+	DataSource         string `json:"-"`
 
 	IgnoreUpdatingCumulativeIncomeAndExpenditure bool `json:"-"`
 }
@@ -271,6 +272,23 @@ func (i *IncomeAndExpenditureCreate) Create() (errCode int) {
 		}
 		if i.ImportedApprovalId != "" {
 			paramOut.ImportedApprovalId = &i.ImportedApprovalId
+		}
+		if i.DataSource != "" {
+			var dataSource model.DictionaryType
+			err := global.DB.Where("name = ?", "收款的数据来源").
+				First(&dataSource).Error
+			if err != nil {
+				return util.ErrorFailToCreateRecord
+			}
+
+			var detailedDataSource model.DictionaryDetail
+			err = global.DB.Where("dictionary_type_id = ?", dataSource.Id).
+				Where("name = ?", i.DataSource).Error
+			if err != nil {
+				return util.ErrorFailToCreateRecord
+			}
+
+			paramOut.DataSource = &detailedDataSource.Id
 		}
 	}
 

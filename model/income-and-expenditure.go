@@ -12,7 +12,9 @@ type IncomeAndExpenditure struct {
 	Currency      *int64  //币种
 	Kind          *int64  //款项种类(计划、实际、预测等)
 	Type          *string //款项类型(预付款、进度款、尾款等)
-	Term          *string //条款、方式
+	DataSource    *int64  //数据来源，来自哪个视图(来自收款、收汇、收票等某个视图)
+
+	Term *string //条款、方式
 
 	//日期
 	Date *time.Time `gorm:"type:date"`

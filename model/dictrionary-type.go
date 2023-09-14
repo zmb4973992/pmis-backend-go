@@ -120,6 +120,10 @@ var dictionaryTypes = []DictionaryType{
 		Sort:    IntToPointer(21),
 		Remarks: stringToPointer("这是操作日志的操作类型，如：添加、修改、删除、查看、查看列表等"),
 	},
+	{Name: "收款的数据来源",
+		Sort:    IntToPointer(22),
+		Remarks: stringToPointer("标识收款记录来自率敏的哪个视图，如收款、收汇、收票等"),
+	},
 }
 
 func generateDictionaryType() (err error) {

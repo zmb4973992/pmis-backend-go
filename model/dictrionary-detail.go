@@ -128,6 +128,10 @@ var initialDictionary = []dictionaryDetailFormat{
 		TypeName:    "操作类型",
 		DetailNames: []string{"添加", "修改", "删除"},
 	},
+	{
+		TypeName:    "收款的数据来源",
+		DetailNames: []string{"收款", "收汇", "收票"},
+	},
 }
 
 func generateDictionaryDetail() (err error) {

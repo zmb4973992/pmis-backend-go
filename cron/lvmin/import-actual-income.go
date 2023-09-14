@@ -21,6 +21,11 @@ func ImportActualIncome(userId int64) error {
 		return err
 	}
 
+	err = ImportActualIncomeFromTabShouPiao(userId)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -224,6 +229,7 @@ func ImportActualIncomeFromTabShouKuan(userId int64) error {
 			Amount:             &records[i].Amount,
 			ExchangeRate:       &exchangeRate,
 			ImportedApprovalId: records[i].ImportedId + records[i].IOrd,
+			DataSource:         "收款",
 		}
 
 		errCode := newRecord.Create()
@@ -429,6 +435,7 @@ func ImportActualIncomeFromTabShouHui(userId int64) error {
 			Date:               records[i].Date,
 			Amount:             &records[i].Amount,
 			ImportedApprovalId: records[i].BankSerialId + records[i].IOrd,
+			DataSource:         "收汇",
 		}
 
 		switch records[i].Currency {
@@ -455,6 +462,189 @@ func ImportActualIncomeFromTabShouHui(userId int64) error {
 				Detail: "导入tabShouHui视图的记录时发生错误：" +
 					util.GetErrorDescription(errCode) + "，银行流水id为：" +
 					records[i].BankSerialId + "，iOrd为：" + records[i].IOrd,
+			}
+			param.Create()
+		}
+	}
+
+	err = updateCumulativeIncome(userId, affectedProjectIds, affectedContractIds)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("★★★★★实际收汇记录处理完成......★★★★★")
+
+	return nil
+}
+
+type tabShouPiao struct {
+	Date                     string  `gorm:"column:F6446"`
+	Amount                   float64 `gorm:"column:F6445"`
+	ProjectCode              string  `gorm:"column:F10517"`
+	ImportedRelatedPartyName string  `gorm:"column:F6443"`
+	BankSerialId             string  `gorm:"column:F8544"`
+}
+
+func ImportActualIncomeFromTabShouPiao(userId int64) error {
+	fmt.Println("★★★★★开始处理实际收票记录......★★★★★")
+
+	//只处理“确认全部收票金额”的记录，别的状态可能会发生修改
+	var records []tabShouPiao
+	global.DBForLvmin.Table("tabShouPiao").
+		Where("F6445 > 0").
+		Where("F6442 = '确认全部收票金额'").
+		Find(&records)
+
+	var currency model.DictionaryType
+	err := global.DB.
+		Where("name = ?", "币种").
+		First(&currency).Error
+	if err != nil {
+		param := service.ErrorLogCreate{
+			Detail: "dictionary_type表中找不到”币种“这个名称",
+		}
+		param.Create()
+		return err
+	}
+	var CNY model.DictionaryDetail
+	err = global.DB.
+		Where("dictionary_type_id = ?", currency.Id).
+		Where("name = ?", "人民币").
+		First(&CNY).Error
+	if err != nil {
+		param := service.ErrorLogCreate{
+			Detail: "dictionary_detail表中找不到”人民币“这个名称",
+		}
+		param.Create()
+		return err
+	}
+
+	var fundDirection model.DictionaryType
+	var income model.DictionaryDetail
+	err = global.DB.
+		Where("name = '收付款的资金方向'").
+		First(&fundDirection).Error
+	if err != nil {
+		param := service.ErrorLogCreate{
+			Detail: "在dictionary_type表中找不到”收付款的资金方向“这个名称",
+		}
+		param.Create()
+		return err
+	}
+	err = global.DB.
+		Where("dictionary_type_id =?", fundDirection.Id).
+		Where("name = '收款'").
+		First(&income).Error
+	if err != nil {
+		param := service.ErrorLogCreate{
+			Detail: "在dictionary_detail表中找不到”收款“这个名称",
+		}
+		param.Create()
+		return err
+	}
+
+	var kind model.DictionaryType
+	var actual model.DictionaryDetail
+	err = global.DB.
+		Where("name = '收付款的种类'").
+		First(&kind).Error
+	if err != nil {
+		param := service.ErrorLogCreate{
+			Detail: "在dictionary_type表中找不到”收付款的种类“这个名称",
+		}
+		param.Create()
+		return err
+	}
+	err = global.DB.
+		Where("dictionary_type_id =?", kind.Id).
+		Where("name = '实际'").
+		First(&actual).Error
+	if err != nil {
+		param := service.ErrorLogCreate{
+			Detail: "在dictionary_detail表中找不到”实际“这个名称(dictionaryType为：收付款的种类)",
+		}
+		param.Create()
+		return err
+	}
+
+	var affectedProjectIds []int64
+	var affectedContractIds []int64
+
+	for i := range records {
+		if i > 0 && i%1000 == 0 {
+			process, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(i)/float64(len(records))), 64)
+			fmt.Println("已处理", i, "条实际收票记录，当前进度：", fmt.Sprintf("%.0f", process*100), "%")
+		} else if i == len(records)-1 {
+			fmt.Println("已处理", i, "条实际收票记录，当前进度：100 %")
+		}
+
+		var tempCount int64
+		global.DB.Model(&model.IncomeAndExpenditure{}).
+			Where("imported_approval_id = ?", records[i].BankSerialId).
+			Count(&tempCount)
+
+		if tempCount > 0 {
+			continue
+		}
+
+		records[i].Date = records[i].Date[:10]
+
+		var project model.Project
+		if records[i].ProjectCode != "" {
+			err = global.DB.
+				Where("code = ?", records[i].ProjectCode).
+				First(&project).Error
+			if err != nil {
+				param := service.ErrorLogCreate{
+					Detail: "tabShouPiao视图的记录中发现无法匹配的项目编号：" +
+						records[i].ProjectCode +
+						"，银行单号为：" + records[i].BankSerialId,
+				}
+				param.Create()
+			}
+
+			affectedProjectIds = append(affectedProjectIds, project.Id)
+		}
+
+		var relatedParty model.RelatedParty
+		if records[i].ImportedRelatedPartyName != "" {
+			err = global.DB.
+				Where("name = ?", strings.TrimSpace(records[i].ImportedRelatedPartyName)).
+				First(&relatedParty).Error
+			if err != nil {
+				err = global.DB.
+					Where("imported_original_name like ?", "%"+strings.TrimSpace(records[i].ImportedRelatedPartyName)+"%").
+					First(&relatedParty).Error
+				if err != nil {
+					param := service.ErrorLogCreate{
+						Detail: "tabShouHui视图的记录中发现无法匹配的相关方名称：" +
+							records[i].ImportedRelatedPartyName + "，银行单号为：" + records[i].BankSerialId,
+					}
+					param.Create()
+				}
+			}
+		}
+
+		newRecord := service.IncomeAndExpenditureCreate{
+			IgnoreUpdatingCumulativeIncomeAndExpenditure: true,
+			UserId:             userId,
+			ProjectId:          project.Id,
+			Kind:               "实际",
+			FundDirection:      "收款",
+			Currency:           CNY.Id,
+			Date:               records[i].Date,
+			Amount:             &records[i].Amount,
+			ImportedApprovalId: records[i].BankSerialId,
+			DataSource:         "收票",
+		}
+
+		errCode := newRecord.Create()
+
+		if errCode != util.Success {
+			param := service.ErrorLogCreate{
+				Detail: "导入tabShouPiao视图的记录时发生错误：" +
+					util.GetErrorDescription(errCode) + "，银行单号为：" +
+					records[i].BankSerialId,
 			}
 			param.Create()
 		}

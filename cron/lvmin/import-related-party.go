@@ -37,6 +37,11 @@ func ImportRelatedParty(userId int64) error {
 		return err
 	}
 
+	err = importRelatedPartyFromTabShouPiao(userId)
+	if err != nil {
+		return err
+	}
+
 	fmt.Println("★★★★★所有相关方记录处理完成......★★★★★")
 	return nil
 }
@@ -307,6 +312,71 @@ func importRelatedPartyFromTabShouHui(userId int64) error {
 
 	var records []tabShouHuiA
 	global.DBForLvmin.Table("tabShouHui").
+		Find(&records)
+
+	var existedNames []string
+
+	for i := range records {
+		if i > 0 && i%1000 == 0 {
+			process, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(i)/float64(len(records))), 64)
+			fmt.Println("已处理", i, "条相关方记录，当前进度：", fmt.Sprintf("%.0f", process*100), "%")
+		} else if i == len(records)-1 {
+			fmt.Println("已处理", i, "条相关方记录，当前进度：100 %")
+		}
+
+		//初筛，基本能过滤掉95%以上的重复数据
+		var tempCount int64
+		global.DB.Model(&model.RelatedParty{}).
+			Where("name = ?", strings.TrimSpace(records[i].RelatedPartyName)).
+			Count(&tempCount)
+
+		//如果通过初筛、没有重复记录，才执行细筛
+		if tempCount == 0 {
+			var relatedParties []model.RelatedParty
+			global.DB.Model(&model.RelatedParty{}).
+				Find(&relatedParties)
+
+			for j := range relatedParties {
+				if relatedParties[j].Name != nil {
+					existedNames = append(existedNames, *relatedParties[j].Name)
+				}
+				if relatedParties[j].EnglishName != nil {
+					existedNames = append(existedNames, *relatedParties[j].EnglishName)
+				}
+				if relatedParties[j].ImportedOriginalName != nil {
+					importedOriginalNames := strings.Split(*relatedParties[j].ImportedOriginalName, "|")
+					existedNames = append(existedNames, importedOriginalNames...)
+				}
+			}
+
+			if util.SliceIncludes(existedNames, strings.TrimSpace(records[i].RelatedPartyName)) {
+				continue
+			}
+
+			param := service.RelatedPartyCreate{
+				UserId:               userId,
+				Name:                 strings.TrimSpace(records[i].RelatedPartyName),
+				ImportedOriginalName: records[i].RelatedPartyName + "|"}
+
+			errCode := param.Create()
+			if errCode != util.Success {
+				return util.GenerateCustomError(errCode)
+			}
+		}
+	}
+
+	return nil
+}
+
+type tabShouPiaoA struct {
+	RelatedPartyName string `gorm:"column:F6443"`
+}
+
+func importRelatedPartyFromTabShouPiao(userId int64) error {
+	fmt.Println("正在从tabShouPiao导入相关方数据......")
+
+	var records []tabShouPiaoA
+	global.DBForLvmin.Table("tabShouPiao").
 		Find(&records)
 
 	var existedNames []string

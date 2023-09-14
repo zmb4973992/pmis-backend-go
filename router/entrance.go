@@ -74,6 +74,7 @@ func InitEngine() *gin.Engine {
 
 	privateGroup := engine.Group("")
 	privateGroup.Use(middleware.JWT())
+
 	customRouterGroup.InitUserRouter(privateGroup)
 	customRouterGroup.InitFileRouter(privateGroup)
 	customRouterGroup.InitRelatedPartyRouter(privateGroup)
