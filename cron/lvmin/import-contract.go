@@ -388,7 +388,7 @@ func UpdateExchangeRageOfContract(userId int64) error {
 				IgnoreDataAuthority: true,
 				UserId:              userId,
 				ContractId:          contracts[i].Id,
-				ExchangeRate:        &global.Config.ExchangeRate.MLR,
+				ExchangeRate:        &global.Config.ExchangeRate.MYR,
 			}
 			errCode := param.Update()
 			if errCode != util.Success {

@@ -63,11 +63,11 @@ type JWTConfig struct {
 }
 
 type LogConfig struct {
-	FileName      string
-	MaxSizeForLog int
-	MaxBackup     int
-	MaxAge        int
-	Compress      bool
+	FileName  string
+	MaxSize   int
+	MaxBackup int
+	MaxAge    int
+	Compress  bool
 }
 
 type UploadConfig struct {
@@ -118,11 +118,11 @@ type LDAPConfig struct {
 }
 
 type ExchangeRateConfig struct {
-	USD float64
-	EUR float64
-	HKD float64
-	SGD float64
-	MLR float64
+	USD float64 //美元
+	EUR float64 //欧元
+	HKD float64 //港币
+	SGD float64 //新加坡元
+	MYR float64 //马来西亚币
 }
 
 func InitConfig() {
@@ -184,7 +184,7 @@ func loadConfig() {
 	Config.Jwt.Issuer = v.GetString("Jwt.issuer")
 
 	Config.Log.FileName = v.GetString("Log.Log-path") + "/status.Log"
-	Config.Log.MaxSizeForLog = v.GetInt("Log.Log-max-size")
+	Config.Log.MaxSize = v.GetInt("Log.Log-max-size")
 	Config.Log.MaxBackup = v.GetInt("Log.Log-max-backup")
 	Config.Log.MaxAge = v.GetInt("Log.Log-max-age")
 	Config.Log.Compress = v.GetBool("Log.Log-compress")
@@ -231,15 +231,14 @@ func loadConfig() {
 	Config.ExchangeRate.EUR = v.GetFloat64("exchange-rate.EUR")
 	Config.ExchangeRate.HKD = v.GetFloat64("exchange-rate.HKD")
 	Config.ExchangeRate.SGD = v.GetFloat64("exchange-rate.SGD")
-	Config.ExchangeRate.MLR = v.GetFloat64("exchange-rate.MLR")
+	Config.ExchangeRate.MYR = v.GetFloat64("exchange-rate.MYR")
 
 }
 
 // byte 是 uint8 的别名,rune 是 int32 的别名
 type typeForSliceComparing interface {
-	bool | string | int | int64 | int32 | int16 | int8 |
-		uint | uint64 | uint32 | uint16 | uint8 |
-		float64 | float32
+	bool | string | int | int64 | int32 | int16 | int8 | uint | uint64 |
+		uint32 | uint16 | uint8 | float64 | float32
 }
 
 // isInSlice 这里使用了泛型，至少需要1.18版本以上

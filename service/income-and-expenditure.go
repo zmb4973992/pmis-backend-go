@@ -93,7 +93,7 @@ type IncomeAndExpenditureOutput struct {
 	FundDirection *int64 `json:"-"`
 	Currency      *int64 `json:"-"`
 	Kind          *int64 `json:"-"`
-
+	DataSource    *int64 `json:"-"`
 	//关联表的详情，不需要gorm查询，需要在json中显示
 	ProjectExternal  *ProjectOutput  `json:"project" gorm:"-"`
 	ContractExternal *ContractOutput `json:"contract" gorm:"-"`
@@ -101,7 +101,7 @@ type IncomeAndExpenditureOutput struct {
 	FundDirectionExternal *DictionaryDetailOutput `json:"fund_direction" gorm:"-"`
 	CurrencyExternal      *DictionaryDetailOutput `json:"currency" gorm:"-"`
 	KindExternal          *DictionaryDetailOutput `json:"kind" gorm:"-"`
-
+	DataSourceExternal    *DictionaryDetailOutput `json:"data_source" gorm:"-"`
 	//其他属性
 	Date *string `json:"date"`
 
@@ -177,6 +177,16 @@ func (i *IncomeAndExpenditureGet) Get() (output *IncomeAndExpenditureOutput, err
 				Find(&record)
 			if res.RowsAffected > 0 {
 				output.KindExternal = &record
+			}
+		}
+		if output.DataSource != nil {
+			var record DictionaryDetailOutput
+			res := global.DB.Model(&model.DictionaryDetail{}).
+				Where("id = ?", *output.DataSource).
+				Limit(1).
+				Find(&record)
+			if res.RowsAffected > 0 {
+				output.DataSourceExternal = &record
 			}
 		}
 	}
@@ -283,7 +293,8 @@ func (i *IncomeAndExpenditureCreate) Create() (errCode int) {
 
 			var detailedDataSource model.DictionaryDetail
 			err = global.DB.Where("dictionary_type_id = ?", dataSource.Id).
-				Where("name = ?", i.DataSource).Error
+				Where("name = ?", i.DataSource).
+				First(&detailedDataSource).Error
 			if err != nil {
 				return util.ErrorFailToCreateRecord
 			}
@@ -305,7 +316,10 @@ func (i *IncomeAndExpenditureCreate) Create() (errCode int) {
 				ProjectId: i.ProjectId,
 			}
 			temp1.Update()
-			temp2 := ProjectDailyAndCumulativeIncomeUpdate{ProjectId: i.ProjectId}
+			temp2 := ProjectDailyAndCumulativeIncomeUpdate{
+				UserId:    i.UserId,
+				ProjectId: i.ProjectId,
+			}
 			temp2.Update()
 		}
 
@@ -683,6 +697,16 @@ func (i *IncomeAndExpenditureGetList) GetList() (
 					Find(&record)
 				if res.RowsAffected > 0 {
 					outputs[i].KindExternal = &record
+				}
+			}
+			if outputs[i].DataSource != nil {
+				var record DictionaryDetailOutput
+				res := global.DB.Model(&model.DictionaryDetail{}).
+					Where("id = ?", *outputs[i].DataSource).
+					Limit(1).
+					Find(&record)
+				if res.RowsAffected > 0 {
+					outputs[i].DataSourceExternal = &record
 				}
 			}
 		}

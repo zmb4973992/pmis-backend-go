@@ -450,7 +450,7 @@ func ImportActualIncomeFromTabShouHui(userId int64) error {
 		case "新加坡元":
 			newRecord.ExchangeRate = &global.Config.ExchangeRate.SGD
 		case "马来西亚币":
-			newRecord.ExchangeRate = &global.Config.ExchangeRate.MLR
+			newRecord.ExchangeRate = &global.Config.ExchangeRate.MYR
 		default:
 			newRecord.ExchangeRate = model.Float64ToPointer(1)
 		}
@@ -625,6 +625,8 @@ func ImportActualIncomeFromTabShouPiao(userId int64) error {
 			}
 		}
 
+		exchangeRate := 1.0
+
 		newRecord := service.IncomeAndExpenditureCreate{
 			IgnoreUpdatingCumulativeIncomeAndExpenditure: true,
 			UserId:             userId,
@@ -632,6 +634,7 @@ func ImportActualIncomeFromTabShouPiao(userId int64) error {
 			Kind:               "实际",
 			FundDirection:      "收款",
 			Currency:           CNY.Id,
+			ExchangeRate:       &exchangeRate,
 			Date:               records[i].Date,
 			Amount:             &records[i].Amount,
 			ImportedApprovalId: records[i].BankSerialId,
@@ -655,7 +658,7 @@ func ImportActualIncomeFromTabShouPiao(userId int64) error {
 		return err
 	}
 
-	fmt.Println("★★★★★实际收汇记录处理完成......★★★★★")
+	fmt.Println("★★★★★实际收票记录处理完成......★★★★★")
 
 	return nil
 }

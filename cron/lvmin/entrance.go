@@ -8,7 +8,8 @@ import (
 
 func ImportDataForCron() {
 	var user model.User
-	err := global.DB.Where("username = 'z0030975'").First(&user).Error
+	err := global.DB.Where("username = 'z0030975'").
+		First(&user).Error
 	if err != nil {
 		global.SugaredLogger.Panicln(err)
 	}

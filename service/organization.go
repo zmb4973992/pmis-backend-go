@@ -18,7 +18,6 @@ type OrganizationCreate struct {
 	UserId     int64
 	SuperiorId int64  `json:"superior_id" binding:"required"` //上级机构id
 	Name       string `json:"name" binding:"required"`        //名称
-	//Sort           int    `json:"sort" binding:"required"`       //级别，如公司、事业部、部门等
 }
 
 //指针字段是为了区分入参为空或0与没有入参的情况，做到分别处理，通常用于update

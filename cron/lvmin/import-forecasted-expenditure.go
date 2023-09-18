@@ -250,7 +250,7 @@ func ImportForecastedExpenditure(userId int64) error {
 		case "新加坡元":
 			newRecord.ExchangeRate = &global.Config.ExchangeRate.SGD
 		case "马来西亚币":
-			newRecord.ExchangeRate = &global.Config.ExchangeRate.MLR
+			newRecord.ExchangeRate = &global.Config.ExchangeRate.MYR
 		default:
 			newRecord.ExchangeRate = model.Float64ToPointer(1)
 		}
