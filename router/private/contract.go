@@ -15,4 +15,5 @@ func (c *ContractRouter) InitContractRouter(param *gin.RouterGroup) {
 	contractRouter.PATCH("/:contract-id", controller.Contract.Update)  //修改合同
 	contractRouter.DELETE("/:contract-id", controller.Contract.Delete) //删除合同
 	contractRouter.POST("/list", controller.Contract.GetList)          //获取合同列表
+	contractRouter.POST("/count", controller.Contract.GetCount)        //获取合同数量
 }

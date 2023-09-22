@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/gin-gonic/gin"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -30,6 +31,7 @@ type ContractCreate struct {
 	Currency      int64 `json:"currency,omitempty"`
 	Type          int64 `json:"type,omitempty"`
 	//日期
+	ApprovalDate      string `json:"approval_date,omitempty"`
 	SigningDate       string `json:"signing_date,omitempty"`
 	EffectiveDate     string `json:"effective_date,omitempty"`
 	CommissioningDate string `json:"commissioning_date,omitempty"`
@@ -65,6 +67,7 @@ type ContractUpdate struct {
 	Currency      *int64 `json:"currency"`
 	Type          *int64 `json:"type"`
 	//日期
+	ApprovalDate      *string `json:"approval_date"`
 	SigningDate       *string `json:"signing_date"`
 	EffectiveDate     *string `json:"effective_date"`
 	CommissioningDate *string `json:"commissioning_date"`
@@ -92,14 +95,22 @@ type ContractDelete struct {
 
 type ContractGetList struct {
 	list.Input
-	UserId         int64  `json:"-"`
-	ProjectId      int64  `json:"project_id,omitempty"`
-	RelatedPartyId int64  `json:"related_party_id,omitempty"`
-	FundDirection  int64  `json:"fund_direction,omitempty"`
-	NameInclude    string `json:"name_include,omitempty"`
-
+	UserId          int64  `json:"-"`
+	ProjectId       int64  `json:"project_id,omitempty"`
+	RelatedPartyId  int64  `json:"related_party_id,omitempty"`
+	FundDirection   int64  `json:"fund_direction,omitempty"`
+	NameInclude     string `json:"name_include,omitempty"`
+	ApprovalDateGte string `json:"approval_date_gte,omitempty"`
+	ApprovalDateLte string `json:"approval_date_lte,omitempty"`
 	//是否忽略数据权限的限制，用于请求数据范围外的全部数据
 	IgnoreDataAuthority bool `json:"ignore_data_authority"`
+}
+
+type ContractGetCount struct {
+	UserId          int64  `json:"-"`
+	FundDirection   string `json:"fund_direction,omitempty"`
+	ApprovalDateGte string `json:"approval_date_gte,omitempty"`
+	ApprovalDateLte string `json:"approval_date_lte,omitempty"`
 }
 
 //以下为出参
@@ -127,6 +138,7 @@ type ContractOutput struct {
 	CurrencyExternal      *DictionaryDetailOutput `json:"currency" gorm:"-"`
 	TypeExternal          *DictionaryDetailOutput `json:"type" gorm:"-"`
 	//其他属性
+	ApprovalDate      *string `json:"approval_date"`
 	SigningDate       *string `json:"signing_date"`
 	EffectiveDate     *string `json:"effective_date"`
 	CommissioningDate *string `json:"commissioning_date"`
@@ -289,6 +301,11 @@ func (c *ContractGet) Get() (output *ContractOutput, errCode int) {
 	//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
 	//需要取年月日(即前9位)
 	{
+		if output.ApprovalDate != nil {
+			temp := *output.ApprovalDate
+			temp1 := temp[:10]
+			output.ApprovalDate = &temp1
+		}
 		if output.SigningDate != nil {
 			temp := *output.SigningDate
 			temp1 := temp[:10]
@@ -352,6 +369,13 @@ func (c *ContractCreate) Create() (errCode int) {
 
 	//日期
 	{
+		if c.ApprovalDate != "" {
+			approvalDate, err := time.Parse("2006-01-02", c.ApprovalDate)
+			if err != nil {
+				return util.ErrorInvalidDateFormat
+			}
+			paramOut.ApprovalDate = &approvalDate
+		}
 		if c.SigningDate != "" {
 			signingDate, err := time.Parse("2006-01-02", c.SigningDate)
 			if err != nil {
@@ -518,6 +542,16 @@ func (c *ContractUpdate) Update() (errCode int) {
 
 	//日期
 	{
+		if c.ApprovalDate != nil {
+			if *c.ApprovalDate != "" {
+				paramOut["approval_date"], err = time.Parse("2006-01-02", *c.ApprovalDate)
+				if err != nil {
+					return util.ErrorInvalidJSONParameters
+				}
+			} else {
+				paramOut["approval_date"] = nil
+			}
+		}
 		if c.SigningDate != nil {
 			if *c.SigningDate != "" {
 				var err1 error
@@ -694,6 +728,14 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 		db = db.Where("name like ?", "%"+c.NameInclude+"%")
 	}
 
+	if c.ApprovalDateGte != "" {
+		db = db.Where("approval_date >= ?", c.ApprovalDateGte)
+	}
+
+	if c.ApprovalDateLte != "" {
+		db = db.Where("approval_date <= ?", c.ApprovalDateLte)
+	}
+
 	//用来确定数据范围
 	if c.IgnoreDataAuthority == false {
 		organizationIds := util.GetOrganizationIdsForDataAuthority(c.UserId)
@@ -846,6 +888,10 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 		//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
 		//需要取年月日(即前9位)
 		{
+			if outputs[i].ApprovalDate != nil {
+				temp := *outputs[i].ApprovalDate
+				*outputs[i].ApprovalDate = temp[:10]
+			}
 			if outputs[i].SigningDate != nil {
 				temp := *outputs[i].SigningDate
 				*outputs[i].SigningDate = temp[:10]
@@ -885,6 +931,46 @@ func (c *ContractGetList) GetList() (outputs []ContractOutput,
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
 		}
+}
+
+func (c *ContractGetCount) GetCount() (output any, errCode int) {
+	db := global.DB.Model(&model.Contract{})
+	// 顺序：where -> count -> Order -> limit -> offset -> data
+
+	//where
+	if c.FundDirection != "" {
+		var fundDirectionOfContract model.DictionaryType
+		err := global.DB.Where("name = '合同的资金方向'").
+			First(&fundDirectionOfContract).Error
+		if err != nil {
+			return gin.H{"count": 0}, util.Success
+		}
+
+		var detailedFundDirectionOfContract model.DictionaryDetail
+		err = global.DB.
+			Where("dictionary_type_id = ?", fundDirectionOfContract.Id).
+			Where("name = ?", c.FundDirection).
+			First(&detailedFundDirectionOfContract).Error
+		if err != nil {
+			return gin.H{"count": 0}, util.Success
+		}
+
+		db = db.Where("fund_direction = ?", detailedFundDirectionOfContract.Id)
+	}
+
+	if c.ApprovalDateGte != "" {
+		db = db.Where("approval_date >= ?", c.ApprovalDateGte)
+	}
+
+	if c.ApprovalDateLte != "" {
+		db = db.Where("approval_date <= ?", c.ApprovalDateLte)
+	}
+
+	//count
+	var count int64
+	db.Count(&count)
+
+	return gin.H{"count": int(count)}, util.Success
 }
 
 func (c *contractCheckAuth) checkAuth() (authorized bool) {

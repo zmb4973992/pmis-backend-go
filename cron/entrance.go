@@ -17,7 +17,7 @@ func Init() {
 		global.SugaredLogger.Errorln("添加定时任务”windows_ad.UpdateUsersForCron“失败，请检查")
 	}
 
-	_, err = c.AddFunc("35 22 * * *", lvmin.ImportDataForCron)
+	_, err = c.AddFunc("32 22 * * *", lvmin.ImportDataForCron)
 	if err != nil {
 		global.SugaredLogger.Errorln("添加定时任务”lvmin.ImportDataForCron“失败，请检查")
 	}

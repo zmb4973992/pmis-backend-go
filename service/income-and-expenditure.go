@@ -1,10 +1,12 @@
 package service
 
 import (
+	"github.com/gin-gonic/gin"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
 	"pmis-backend-go/util"
+	"sync"
 	"time"
 )
 
@@ -74,6 +76,14 @@ type IncomeAndExpenditureGetList struct {
 	list.Input
 	UserId        int64  `json:"-"`
 	ProjectId     int64  `json:"project_id,omitempty"`
+	Kind          string `json:"kind,omitempty"`
+	FundDirection string `json:"fund_direction,omitempty"`
+	DateGte       string `json:"date_gte,omitempty"`
+	DateLte       string `json:"date_lte,omitempty"`
+}
+
+type IncomeAndExpenditureGetCumulativeTotalAmount struct {
+	UserId        int64  `json:"-"`
 	Kind          string `json:"kind,omitempty"`
 	FundDirection string `json:"fund_direction,omitempty"`
 	DateGte       string `json:"date_gte,omitempty"`
@@ -640,86 +650,95 @@ func (i *IncomeAndExpenditureGetList) GetList() (
 		return nil, util.ErrorRecordNotFound, nil
 	}
 
-	for i := range outputs {
-		//查询关联表的详情
-		{
-			//查项目信息
-			if outputs[i].ProjectId != nil {
-				var record ProjectOutput
-				res := global.DB.Model(&model.Project{}).
-					Where("id = ?", *outputs[i].ProjectId).
-					Limit(1).
-					Find(&record)
-				if res.RowsAffected > 0 {
-					outputs[i].ProjectExternal = &record
-				}
-			}
-			//查合同信息
-			if outputs[i].ContractId != nil {
-				var record ContractOutput
-				res := global.DB.Model(&model.Contract{}).
-					Where("id = ?", *outputs[i].ContractId).
-					Limit(1).
-					Find(&record)
-				if res.RowsAffected > 0 {
-					outputs[i].ContractExternal = &record
-				}
-			}
-		}
+	var wg sync.WaitGroup
 
-		//查dictionary_item表的详情
-		{
-			if outputs[i].FundDirection != nil {
-				var record DictionaryDetailOutput
-				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *outputs[i].FundDirection).
-					Limit(1).
-					Find(&record)
-				if res.RowsAffected > 0 {
-					outputs[i].FundDirectionExternal = &record
+	for j := range outputs {
+		k := j
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			//查询关联表的详情
+			{
+				//查项目信息
+				if outputs[k].ProjectId != nil {
+					var record ProjectOutput
+					res := global.DB.Model(&model.Project{}).
+						Where("id = ?", *outputs[k].ProjectId).
+						Limit(1).
+						Find(&record)
+					if res.RowsAffected > 0 {
+						outputs[k].ProjectExternal = &record
+					}
+				}
+				//查合同信息
+				if outputs[k].ContractId != nil {
+					var record ContractOutput
+					res := global.DB.Model(&model.Contract{}).
+						Where("id = ?", *outputs[k].ContractId).
+						Limit(1).
+						Find(&record)
+					if res.RowsAffected > 0 {
+						outputs[k].ContractExternal = &record
+					}
 				}
 			}
-			if outputs[i].Currency != nil {
-				var record DictionaryDetailOutput
-				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *outputs[i].Currency).
-					Limit(1).
-					Find(&record)
-				if res.RowsAffected > 0 {
-					outputs[i].CurrencyExternal = &record
-				}
-			}
-			if outputs[i].Kind != nil {
-				var record DictionaryDetailOutput
-				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *outputs[i].Kind).
-					Limit(1).
-					Find(&record)
-				if res.RowsAffected > 0 {
-					outputs[i].KindExternal = &record
-				}
-			}
-			if outputs[i].DataSource != nil {
-				var record DictionaryDetailOutput
-				res := global.DB.Model(&model.DictionaryDetail{}).
-					Where("id = ?", *outputs[i].DataSource).
-					Limit(1).
-					Find(&record)
-				if res.RowsAffected > 0 {
-					outputs[i].DataSourceExternal = &record
-				}
-			}
-		}
 
-		//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
-		//需要取年月日(即前9位)
-		{
-			if outputs[i].Date != nil {
-				temp := *outputs[i].Date
-				*outputs[i].Date = temp[:10]
+			//查dictionary_item表的详情
+			{
+				if outputs[k].FundDirection != nil {
+					var record DictionaryDetailOutput
+					res := global.DB.Model(&model.DictionaryDetail{}).
+						Where("id = ?", *outputs[k].FundDirection).
+						Limit(1).
+						Find(&record)
+					if res.RowsAffected > 0 {
+						outputs[k].FundDirectionExternal = &record
+					}
+				}
+				if outputs[k].Currency != nil {
+					var record DictionaryDetailOutput
+					res := global.DB.Model(&model.DictionaryDetail{}).
+						Where("id = ?", *outputs[k].Currency).
+						Limit(1).
+						Find(&record)
+					if res.RowsAffected > 0 {
+						outputs[k].CurrencyExternal = &record
+					}
+				}
+				if outputs[k].Kind != nil {
+					var record DictionaryDetailOutput
+					res := global.DB.Model(&model.DictionaryDetail{}).
+						Where("id = ?", *outputs[k].Kind).
+						Limit(1).
+						Find(&record)
+					if res.RowsAffected > 0 {
+						outputs[k].KindExternal = &record
+					}
+				}
+				if outputs[k].DataSource != nil {
+					var record DictionaryDetailOutput
+					res := global.DB.Model(&model.DictionaryDetail{}).
+						Where("id = ?", *outputs[k].DataSource).
+						Limit(1).
+						Find(&record)
+					if res.RowsAffected > 0 {
+						outputs[k].DataSourceExternal = &record
+					}
+				}
 			}
-		}
+
+			//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
+			//需要取年月日(即前9位)
+			{
+				if outputs[k].Date != nil {
+					temp := *outputs[k].Date
+					*outputs[k].Date = temp[:10]
+				}
+			}
+		}()
 	}
+
+	wg.Wait()
 
 	numberOfRecords := int(count)
 	numberOfPages := util.GetNumberOfPages(numberOfRecords, pageSize)
@@ -732,4 +751,56 @@ func (i *IncomeAndExpenditureGetList) GetList() (
 			NumberOfPages:   numberOfPages,
 			NumberOfRecords: numberOfRecords,
 		}
+}
+
+func (i *IncomeAndExpenditureGetCumulativeTotalAmount) GetCumulativeTotalAmount() (
+	output any, errCode int) {
+	db := global.DB.Model(&model.IncomeAndExpenditure{})
+	// 顺序：where -> count -> Order -> limit -> offset -> outputs
+
+	//where
+	if i.Kind != "" {
+		var dictionaryDetail model.DictionaryDetail
+		err := global.DB.Model(&model.DictionaryDetail{}).
+			Where("name = ?", i.Kind).
+			First(&dictionaryDetail).Error
+		if err != nil {
+			return 0, util.ErrorRecordNotFound
+		}
+		db = db.Where("kind = ?", dictionaryDetail.Id)
+	}
+
+	if i.FundDirection != "" {
+		var dictionaryDetail model.DictionaryDetail
+		err := global.DB.Model(&model.DictionaryDetail{}).
+			Where("name = ?", i.FundDirection).
+			First(&dictionaryDetail).Error
+		if err != nil {
+			return 0, util.ErrorRecordNotFound
+		}
+		db = db.Where("fund_direction = ?", dictionaryDetail.Id)
+	}
+
+	if i.DateGte != "" {
+		db = db.Where("date >= ?", i.DateGte)
+	}
+
+	if i.DateLte != "" {
+		db = db.Where("date <= ?", i.DateLte)
+	}
+
+	//用来确定组织的数据范围
+	organizationIds := util.GetOrganizationIdsForDataAuthority(i.UserId)
+
+	db = db.Joins("join (select distinct income_and_expenditure.id as income_and_expenditure_id from income_and_expenditure join (select distinct contract.id as contract_id from contract join (select distinct project.id as project_id from project where organization_id in ?) as temp1 on contract.project_id = temp1.project_id) as temp2  on income_and_expenditure.contract_id = temp2.contract_id union select distinct income_and_expenditure.id as income_and_expenditure_id from income_and_expenditure join (select distinct project.id as project_id from project where organization_id in ?) as temp2 on income_and_expenditure.project_id = temp2.project_id) as temp3 on income_and_expenditure.id = temp3.income_and_expenditure_id", organizationIds, organizationIds)
+
+	var cumulativeTotalAmount float64
+	db.Model(&model.IncomeAndExpenditure{}).
+		Select("sum(amount * coalesce(exchange_rate,0)) as total_amount").
+		Find(&cumulativeTotalAmount)
+
+	return gin.H{
+			"cumulative_total_amount_in_cny": util.Round(cumulativeTotalAmount, 2),
+		},
+		util.Success
 }

@@ -139,3 +139,31 @@ func (i *incomeAndExpenditure) GetList(c *gin.Context) {
 	)
 	return
 }
+
+func (i *incomeAndExpenditure) GetCumulativeTotalAmount(c *gin.Context) {
+	var param service.IncomeAndExpenditureGetCumulativeTotalAmount
+	err := c.ShouldBindJSON(&param)
+
+	//如果json没有传参，会提示EOF错误，这里允许正常运行(允许不传参的查询)；
+	//如果是其他错误，就正常报错
+	if err != nil && !errors.Is(err, io.EOF) {
+		c.JSON(
+			http.StatusBadRequest,
+			response.GenerateCommon(nil, util.ErrorInvalidJSONParameters),
+		)
+		return
+	}
+
+	//AuthorityInput需要userId
+	userId, exists := util.GetUserId(c)
+	if exists {
+		param.UserId = userId
+	}
+
+	output, errCode := param.GetCumulativeTotalAmount()
+	c.JSON(
+		http.StatusOK,
+		response.GenerateCommon(output, errCode),
+	)
+	return
+}

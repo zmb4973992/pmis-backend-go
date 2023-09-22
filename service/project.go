@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/gin-gonic/gin"
 	"pmis-backend-go/global"
 	"pmis-backend-go/model"
 	"pmis-backend-go/serializer/list"
@@ -31,6 +32,7 @@ type ProjectCreate struct {
 	Status       int64 `json:"status,omitempty"`
 	OurSignatory int64 `json:"our_signatory,omitempty"`
 	//日期
+	ApprovalDate      string `json:"approval_date,omitempty"`
 	SigningDate       string `json:"signing_date,omitempty"`
 	EffectiveDate     string `json:"effective_date,omitempty"`
 	CommissioningDate string `json:"commissioning_date,omitempty"`
@@ -63,6 +65,7 @@ type ProjectUpdate struct {
 	Status       *int64 `json:"status"`
 	OurSignatory *int64 `json:"our_signatory"`
 	//日期
+	ApprovalDate      *string `json:"approval_date"`
 	SigningDate       *string `json:"signing_date"`
 	EffectiveDate     *string `json:"effective_date"`
 	CommissioningDate *string `json:"commissioning_date"`
@@ -91,9 +94,16 @@ type ProjectGetList struct {
 	OrganizationNameInclude string  `json:"organization_name_include,omitempty"`
 	OrganizationIdIn        []int64 `json:"organization_id_in"`
 	Country                 int64   `json:"country,omitempty"`
-
+	ApprovalDateGte         string  `json:"approval_date_gte,omitempty"`
+	ApprovalDateLte         string  `json:"approval_date_lte,omitempty"`
 	//是否忽略数据权限的限制，用于请求数据范围外的全部数据
 	IgnoreDataAuthority bool `json:"ignore_data_authority"`
+}
+
+type ProjectGetCount struct {
+	UserId          int64  `json:"-"`
+	ApprovalDateGte string `json:"approval_date_gte,omitempty"`
+	ApprovalDateLte string `json:"approval_date_lte,omitempty"`
 }
 
 //获取简化的列表（），用于下拉框选项
@@ -131,6 +141,7 @@ type ProjectOutput struct {
 	StatusExternal       *DictionaryDetailOutput `json:"status" gorm:"-"`
 	OurSignatoryExternal *DictionaryDetailOutput `json:"our_signatory" gorm:"-"`
 	//其他属性
+	ApprovalDate      *string `json:"approval_date"`
 	SigningDate       *string `json:"signing_date"`
 	EffectiveDate     *string `json:"effective_date"`
 	CommissioningDate *string `json:"commissioning_date"`
@@ -173,6 +184,12 @@ func (p *ProjectGet) Get() (output *ProjectOutput, errCode int) {
 
 	if !authorized {
 		return nil, util.ErrorUnauthorized
+	}
+
+	//默认格式为这样的string：2019-11-01T00:00:00Z，需要取年月日(前9位)
+	if output.ApprovalDate != nil {
+		temp := *output.ApprovalDate
+		*output.ApprovalDate = temp[:10]
 	}
 
 	//默认格式为这样的string：2019-11-01T00:00:00Z，需要取年月日(前9位)
@@ -313,6 +330,13 @@ func (p *ProjectCreate) Create() (errCode int) {
 	}
 	//日期
 	{
+		if p.ApprovalDate != "" {
+			approvalDate, err := time.Parse("2006-01-02", p.ApprovalDate)
+			if err != nil {
+				return util.ErrorInvalidDateFormat
+			}
+			paramOut.ApprovalDate = &approvalDate
+		}
 		if p.SigningDate != "" {
 			signingDate, err := time.Parse("2006-01-02", p.SigningDate)
 			if err != nil {
@@ -458,6 +482,16 @@ func (p *ProjectUpdate) Update() (errCode int) {
 	}
 	//日期
 	{
+		if p.ApprovalDate != nil {
+			if *p.ApprovalDate != "" {
+				paramOut["approval_date"], err = time.Parse("2006-01-02", *p.ApprovalDate)
+				if err != nil {
+					return util.ErrorInvalidJSONParameters
+				}
+			} else {
+				paramOut["approval_date"] = nil
+			}
+		}
 		if p.SigningDate != nil {
 			if *p.SigningDate != "" {
 				paramOut["signing_date"], err = time.Parse("2006-01-02", *p.SigningDate)
@@ -602,6 +636,14 @@ func (p *ProjectGetList) GetList() (
 		db = db.Where("country = ?", p.Country)
 	}
 
+	if p.ApprovalDateGte != "" {
+		db = db.Where("approval_date >= ?", p.ApprovalDateGte)
+	}
+
+	if p.ApprovalDateLte != "" {
+		db = db.Where("approval_date <= ?", p.ApprovalDateLte)
+	}
+
 	//用来确定数据范围
 	if p.IgnoreDataAuthority == false {
 		organizationIds := util.GetOrganizationIdsForDataAuthority(p.UserId)
@@ -744,6 +786,10 @@ func (p *ProjectGetList) GetList() (
 			//处理日期，默认格式为这样的字符串：2019-11-01T00:00:00Z
 			//需要取年月日(即前9位)
 			{
+				if outputs[i].ApprovalDate != nil {
+					temp := *outputs[i].ApprovalDate
+					*outputs[i].ApprovalDate = temp[:10]
+				}
 				if outputs[i].SigningDate != nil {
 					temp := *outputs[i].SigningDate
 					*outputs[i].SigningDate = temp[:10]
@@ -819,6 +865,26 @@ func (p *ProjectGetSimplifiedList) GetSimplifiedList() (
 			NumberOfPages:   1,
 			NumberOfRecords: numberOfRecords,
 		}
+}
+
+func (p *ProjectGetCount) GetCount() (output any, errCode int) {
+	db := global.DB.Model(&model.Project{})
+	// 顺序：where -> count -> Order -> limit -> offset -> data
+
+	//where
+	if p.ApprovalDateGte != "" {
+		db = db.Where("approval_date >= ?", p.ApprovalDateGte)
+	}
+
+	if p.ApprovalDateLte != "" {
+		db = db.Where("approval_date <= ?", p.ApprovalDateLte)
+	}
+
+	//count
+	var count int64
+	db.Count(&count)
+
+	return gin.H{"count": int(count)}, util.Success
 }
 
 func (p *projectCheckAuth) checkAuth() (authorized bool) {

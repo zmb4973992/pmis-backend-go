@@ -8,7 +8,8 @@ import (
 )
 
 type DictionaryDetailGet struct {
-	Id int64
+	Id   int64
+	Name string
 }
 
 type DictionaryDetailCreate struct {
@@ -40,6 +41,7 @@ type DictionaryDetailDelete struct {
 type DictionaryDetailGetList struct {
 	list.Input
 	DictionaryTypeName string `json:"dictionary_type_name,omitempty"`
+	Name               string `json:"name,omitempty"`
 }
 
 //以下为出参
@@ -171,6 +173,10 @@ func (d *DictionaryDetailGetList) GetList() (
 			return nil, util.ErrorRecordNotFound, nil
 		}
 		db = db.Where("dictionary_type_id = ?", dictionaryType.Id)
+	}
+
+	if d.Name != "" {
+		db = db.Where("name = ?", d.Name)
 	}
 
 	// count

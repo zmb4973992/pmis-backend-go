@@ -24,9 +24,28 @@ type tabContract struct {
 	Content                   string  `gorm:"column:F6487"`
 	FundDirection             string  `gorm:"column:F12338"`
 	FillDate                  string  `gorm:"column:FillDate"`
+	ApprovalDate              string  `gorm:"column:F6520"` //过审日期
 }
 
 func ImportContract(userId int64) error {
+	//var contracts []model.Contract
+	//global.DB.Where("approval_date is null").
+	//	Find(&contracts)
+	//for i := range contracts {
+	//	var date string
+	//	global.DBForLvmin.Table("tabContract").
+	//		Where("F6100 = ?", contracts[i].Code).
+	//		Select("F6520").
+	//		Find(&date)
+	//	date = date[:10]
+	//
+	//	var param service.ContractUpdate
+	//	param.ContractId = contracts[i].Id
+	//	param.UserId = 454880103690245
+	//	param.ApprovalDate = &date
+	//	param.Update()
+	//}
+
 	fmt.Println("★★★★★开始处理合同记录......★★★★★")
 
 	var records []tabContract
@@ -97,6 +116,8 @@ func ImportContract(userId int64) error {
 			Where("code = ?", records[i].Code).
 			Count(&tempCount)
 		if tempCount == 0 {
+			records[i].ApprovalDate = records[i].ApprovalDate[:10]
+
 			var organization model.Organization
 			if records[i].Organization != "" {
 				switch records[i].Organization {
@@ -285,6 +306,7 @@ func ImportContract(userId int64) error {
 				Name:           records[i].Name,
 				Code:           records[i].Code,
 				Content:        records[i].Content,
+				ApprovalDate:   records[i].ApprovalDate,
 			}
 
 			errCode := newRecord.Create()

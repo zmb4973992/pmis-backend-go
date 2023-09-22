@@ -16,4 +16,5 @@ func (p *ProjectRouter) InitProjectRouter(param *gin.RouterGroup) {
 	projectRouter.DELETE("/:project-id", controller.Project.Delete)              //删除项目
 	projectRouter.POST("/list", controller.Project.GetList)                      //获取项目列表
 	projectRouter.POST("/simplified-list", controller.Project.GetSimplifiedList) //获取简化的项目列表
+	projectRouter.POST("/count", controller.Project.GetCount)                    //获取项目数量
 }

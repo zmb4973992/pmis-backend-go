@@ -18,6 +18,7 @@ type Project struct {
 	Status       *int64
 	OurSignatory *int64 //我方签约主体
 	//日期
+	ApprovalDate      *time.Time `gorm:"type:date"` //立项日期、批准日期
 	SigningDate       *time.Time `gorm:"type:date"` //签约日期
 	EffectiveDate     *time.Time `gorm:"type:date"` //生效日期
 	CommissioningDate *time.Time `gorm:"type:date"` //调试日期

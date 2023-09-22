@@ -17,7 +17,7 @@ type tabProject struct {
 	Country      string  `gorm:"column:F5030"`
 	Amount       float64 `gorm:"column:F5031"`
 	Currency     string  `gorm:"column:F5032"`
-	Date         string  `gorm:"column:F6363"`
+	ApprovalDate string  `gorm:"column:F6363"` //立项日期
 }
 
 func ImportProject(userId int64) error {
@@ -77,6 +77,11 @@ func ImportProject(userId int64) error {
 			Where("code = ?", projects[i].Code).
 			Count(&tempCount)
 		if tempCount == 0 {
+			projects[i].ApprovalDate = projects[i].ApprovalDate[:10]
+			if projects[i].ApprovalDate == "1900-01-01" {
+				projects[i].ApprovalDate = "2020-01-01"
+			}
+
 			var organization model.Organization
 			if projects[i].Organization != "" {
 				switch projects[i].Organization {
@@ -109,7 +114,7 @@ func ImportProject(userId int64) error {
 				}
 			}
 
-			var specificCountry model.DictionaryDetail
+			var detailedCountry model.DictionaryDetail
 			if projects[i].Country != "" {
 				switch projects[i].Country {
 				case "AC":
@@ -507,7 +512,7 @@ func ImportProject(userId int64) error {
 				err = global.DB.Model(&model.DictionaryDetail{}).
 					Where("dictionary_type_id = ?", country.Id).
 					Where("name = ?", projects[i].Country).
-					First(&specificCountry).Error
+					First(&detailedCountry).Error
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "tabProject视图的记录中发现无法匹配的国别:" +
@@ -518,7 +523,7 @@ func ImportProject(userId int64) error {
 				}
 			}
 
-			var specificProjectType model.DictionaryDetail
+			var detailedProjectType model.DictionaryDetail
 			if projects[i].Type != "" {
 				switch projects[i].Type {
 				case "C":
@@ -536,7 +541,7 @@ func ImportProject(userId int64) error {
 				err = global.DB.
 					Where("dictionary_type_id = ?", projectType.Id).
 					Where("name = ?", projects[i].Type).
-					First(&specificProjectType).Error
+					First(&detailedProjectType).Error
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "tabProject视图的记录中发现无法匹配的项目类型：" +
@@ -547,7 +552,7 @@ func ImportProject(userId int64) error {
 				}
 			}
 
-			var specificCurrency model.DictionaryDetail
+			var detailedCurrency model.DictionaryDetail
 			if projects[i].Currency != "" {
 				switch projects[i].Currency {
 				case "RMB":
@@ -563,7 +568,7 @@ func ImportProject(userId int64) error {
 				err = global.DB.
 					Where("dictionary_type_id = ?", currency.Id).
 					Where("name = ?", projects[i].Currency).
-					First(&specificCurrency).Error
+					First(&detailedCurrency).Error
 				if err != nil {
 					param := service.ErrorLogCreate{
 						Detail: "tabProject视图的记录中发现无法匹配的币种：" +
@@ -575,24 +580,15 @@ func ImportProject(userId int64) error {
 			}
 
 			newRecord := service.ProjectCreate{
-				UserId:             userId,
-				OrganizationId:     organization.Id,
-				RelatedPartyId:     0,
-				Country:            specificCountry.Id,
-				Type:               specificProjectType.Id,
-				DetailedType:       0,
-				Currency:           specificCurrency.Id,
-				Status:             0,
-				OurSignatory:       0,
-				SigningDate:        "",
-				EffectiveDate:      "",
-				CommissioningDate:  "",
-				Amount:             &projects[i].Amount,
-				ExchangeRate:       nil,
-				ConstructionPeriod: nil,
-				Code:               projects[i].Code,
-				Name:               projects[i].Name,
-				Content:            "",
+				UserId:         userId,
+				OrganizationId: organization.Id,
+				Country:        detailedCountry.Id,
+				Type:           detailedProjectType.Id,
+				Currency:       detailedCurrency.Id,
+				Amount:         &projects[i].Amount,
+				Code:           projects[i].Code,
+				Name:           projects[i].Name,
+				ApprovalDate:   projects[i].ApprovalDate,
 			}
 
 			var count int64

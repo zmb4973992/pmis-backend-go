@@ -14,6 +14,7 @@ type Contract struct {
 	Currency      *int64 //币种
 	Type          *int64 //类型(总包、采购、结算单等)
 	//日期
+	ApprovalDate      *time.Time `gorm:"type:date"` //过审日期、批准日期
 	SigningDate       *time.Time `gorm:"type:date"` //签约日期
 	EffectiveDate     *time.Time `gorm:"type:date"` //生效日期
 	CommissioningDate *time.Time `gorm:"type:date"` //调试日期
