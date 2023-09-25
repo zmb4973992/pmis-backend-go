@@ -96,6 +96,7 @@ type ProjectGetList struct {
 	Country                 int64   `json:"country,omitempty"`
 	ApprovalDateGte         string  `json:"approval_date_gte,omitempty"`
 	ApprovalDateLte         string  `json:"approval_date_lte,omitempty"`
+	Status                  int64   `json:"status,omitempty"`
 	//是否忽略数据权限的限制，用于请求数据范围外的全部数据
 	IgnoreDataAuthority bool `json:"ignore_data_authority"`
 }
@@ -642,6 +643,10 @@ func (p *ProjectGetList) GetList() (
 
 	if p.ApprovalDateLte != "" {
 		db = db.Where("approval_date <= ?", p.ApprovalDateLte)
+	}
+
+	if p.Status > 0 {
+		db = db.Where("status = ?", p.Status)
 	}
 
 	//用来确定数据范围
