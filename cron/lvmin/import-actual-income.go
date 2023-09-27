@@ -256,7 +256,7 @@ func ImportActualIncomeFromTabShouKuan(userId int64) error {
 
 type tabShouHui struct {
 	Date                     string  `gorm:"column:F14395"`
-	Amount                   float64 `gorm:"column:F14166"`
+	Amount                   float64 `gorm:"column:F16851"`
 	Currency                 string  `gorm:"column:F14168"`
 	ProjectCode              string  `gorm:"column:F16856"`
 	ImportedRelatedPartyName string  `gorm:"column:F14394"`
@@ -270,7 +270,7 @@ func ImportActualIncomeFromTabShouHui(userId int64) error {
 	//只处理“完成申报”的记录，别的状态可能会发生修改
 	var records []tabShouHui
 	global.DBForLvmin.Table("tabShouHui").
-		Where("F14166 > 0").
+		Where("F16851 > 0").
 		Where("F14173 = '完成申报'").
 		Find(&records)
 
